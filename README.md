@@ -6,7 +6,8 @@ Shares the Firebase project `sevenfriends` but has its own Hosting site (`canvas
 
 ```
 npm run install:all
+npm run dev               # everything: functions watch + emulators + frontend (Ctrl+C stops all)
 npm run dev:emulators     # backend: Auth, Functions, Firestore, Storage (ports offset from Seven Friends)
-npm run dev:frontend      # http://localhost:4200
+npm run dev:frontend      # http://localhost:4210
 npm test
 ```

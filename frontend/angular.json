@@ -49,7 +49,7 @@
             "development": { "buildTarget": "frontend:build:development" }
           },
           "defaultConfiguration": "development",
-          "options": { "proxyConfig": "proxy.conf.json" }
+          "options": { "proxyConfig": "proxy.conf.json", "port": 4210 }
         },
         "test": {
           "builder": "@angular/build:karma",
@@ -66,5 +66,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "118975b2-a1ed-48c5-acd3-a1589db1dd5d"
   }
 }

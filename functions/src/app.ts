@@ -1,11 +1,13 @@
 import cors from "cors";
 import express from "express";
+import { CanvasStore, canvasListRouter, firestoreCanvasStore } from "./canvas-list";
+import { CanvasObjectStore, canvasObjectsRouter, firestoreCanvasObjectStore } from "./canvas-objects";
 
 /** The addresses of the app that may call the API from a browser. */
-const ALLOWED_ORIGINS = ["https://canvas-auke.web.app", "https://canvas-auke.firebaseapp.com", "http://localhost:4200", "http://localhost:5010"];
+const ALLOWED_ORIGINS = ["https://canvas-auke.web.app", "https://canvas-auke.firebaseapp.com", "http://localhost:4210", "http://localhost:5010"];
 
 /** The Express app behind the `canvasApi` Cloud Function (also used directly by the tests). */
-export function createApp(): express.Express {
+export function createApp(stores: { canvasList?: CanvasStore; canvasObjects?: CanvasObjectStore } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   app.use(express.json({ limit: "200kb" }));
@@ -15,6 +17,8 @@ export function createApp(): express.Express {
   router.get("/health", (_req, res) => {
     res.json({ status: "ok", app: "canvas" });
   });
+  router.use("/canvas-list", canvasListRouter(stores.canvasList ?? firestoreCanvasStore()));
+  router.use("/canvas-objects", canvasObjectsRouter(stores.canvasObjects ?? firestoreCanvasObjectStore()));
   app.use("/api", router);
   return app;
 }

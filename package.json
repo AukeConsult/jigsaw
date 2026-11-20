@@ -7,6 +7,7 @@
   "repository": { "type": "git", "url": "git+https://github.com/AukeConsult/canvas.git" },
   "scripts": {
     "install:all": "npm --prefix frontend install && npm --prefix functions install",
+    "dev": "node scripts/dev.mjs",
     "dev:functions": "npm --prefix functions run build:watch",
     "predev:emulators": "npm --prefix functions run build",
     "dev:emulators": "node scripts/with-java.mjs firebase emulators:start --only auth,functions,firestore,storage --project demo-canvas --import=.emulator-data --export-on-exit=.emulator-data",

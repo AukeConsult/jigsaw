@@ -1,2 +1,6 @@
 // Shared types and plain data (frontend and backend). May only import from this folder.
-export const SHARED_MODELS_VERSION = 1;
+export * from './canvas';
+export * from './canvas-object';
+export * from './diagram';
+export * from './geometry';
+export * from './placed';

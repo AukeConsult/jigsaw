@@ -1,0 +1,19 @@
+<h2 class="h5">Canvas objects</h2>
+<div class="list-group">
+  @for (object of objects(); track object.id) {
+    <div class="list-group-item d-flex align-items-center gap-3" draggable="true" style="cursor: grab" (dragstart)="startDrag($event, object)">
+      <span class="flex-shrink-0 d-flex justify-content-center" style="width: 64px">
+        <app-canvas-shape [object]="object" [maxSide]="56" />
+      </span>
+      <span class="overflow-hidden">
+        <span class="d-block text-truncate">{{ object.name }}</span>
+        <span class="d-block small text-body-secondary">{{ object.kind === 'figure' ? object.shape : (object.arrow === 'both-ways' ? 'arrow ↔' : 'arrow →') }}, {{ object.width }} × {{ object.height }} px</span>
+      </span>
+    </div>
+  } @empty {
+    <div class="list-group-item text-body-secondary">
+      {{ failed() ? 'Could not load the canvas objects.' : 'No canvas objects yet.' }}
+      <a routerLink="/objects">Make one</a>
+    </div>
+  }
+</div>
