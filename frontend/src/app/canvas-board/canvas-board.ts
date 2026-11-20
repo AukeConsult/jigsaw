@@ -30,6 +30,8 @@ const HANDLE_OFFSET_PX = 9;
 const SCREEN_MARGIN_PX = 8;
 /** The helper picture is shown at this share of the size of the picture to begin with, and can be made as small as the first and as big as the second. */
 const HELPER_SCALE_START = 0.25;
+/** How long a piece blinks when it clicks into place, in milliseconds (the length of the animation). */
+const BLINK_MS = 700;
 const HELPER_SCALE_MIN = 0.1;
 const HELPER_SCALE_MAX = 0.5;
 /** The space (Bootstrap's p-2) between the edge of the pieces area and what is in it, in pixels. */
@@ -66,12 +68,27 @@ export class CanvasBoard {
   readonly numberPoints = input(false);
   /** a jigsaw: how wide the store frame beside the canvas is (0: none); the canvas and the frame together are the jigsaw pieces area, where a piece can be moved anywhere */
   readonly storeWidth = input(0);
+  /** a jigsaw: how close to its own grid point a piece has to be dropped to click into place, in pixels (0: never) */
+  readonly snapRange = input(0);
   /** a banner above the jigsaw pieces area, with a switch that shows or hides the helper picture (the whole picture at a quarter of its width and height) */
   readonly helperBanner = input(false);
   /** whether the helper picture is shown (on to begin with) */
   readonly helper = signal(true);
   /** where the floating frame of the helper picture is on the window (its top left corner, in pixels): it can be moved by its title */
   readonly helperFrame = signal({ x: Math.max(8, window.innerWidth - 260), y: 70 });
+  /** the pieces that clicked into place a moment ago: they blink */
+  readonly blinking = signal<ReadonlySet<string>>(new Set());
+  /** The pieces blink for a moment, and the device vibrates when it can. */
+  private blink(ids: string[]): void {
+    this.blinking.update((now) => new Set([...now, ...ids]));
+    try {
+      navigator.vibrate?.(40);
+    } catch {
+      /* the device cannot vibrate: the blink is enough */
+    }
+    setTimeout(() => this.blinking.update((now) => new Set([...now].filter((id) => !ids.includes(id)))), BLINK_MS);
+  }
+
   /** how big the helper picture is, as a share of the size of the picture (from 1/10 to 1/2) */
   readonly helperScale = signal(HELPER_SCALE_START);
   /** the corner of the frame that is being dragged to change the size: where the pointer was, and the scale then */
@@ -195,7 +212,7 @@ export class CanvasBoard {
   readonly lastLayer = computed(() => this.diagram().lastLayer());
 
   /** the box around several picked objects (null when only one or none is picked) */
-  readonly groupBox = computed(() => (this.selection().length > 1 ? this.diagram().boundsOf(this.selection()) : null));
+  readonly groupBox = computed(() => (this.selection().length > 1 && !this.selection().some((id) => this.diagram().get(id)?.data.piece) ? this.diagram().boundsOf(this.selection()) : null));
 
   /**
    * the resize handles, a little outside what they resize, with the mouse pointer for each: those of the picked figure (an arrow is stretched by its
@@ -226,7 +243,7 @@ export class CanvasBoard {
   });
 
   /** the placed object that is being moved: the pointer's distance from its centre (or from the end that was grabbed), and the canvas area it is in */
-  private moving: { id: string; dx: number; dy: number; end?: EndId } | null = null;
+  private moving: { id: string; dx: number; dy: number; end?: EndId; group?: boolean; matchedAtStart: ReadonlySet<string> } | null = null;
 
   /** the handle that is being dragged to resize the picked figure or objects, and the canvas area it is in */
   private resizing: { ids: string[]; handle: ResizeHandle; area: HTMLElement; gx: number; gy: number } | null = null;
@@ -238,7 +255,7 @@ export class CanvasBoard {
   private bending: { id: string; which: BendPoint; grabbed: number; area: HTMLElement } | null = null;
 
   /** where a rectangle drag on the empty canvas started */
-  private marqueeStart: { x: number; y: number; area: HTMLElement } | null = null;
+  private marqueeStart: { x: number; y: number } | null = null;
 
   constructor() {
     // the pieces area fills the screen: measured when the page is drawn, and again when the window is resized or scrolled
@@ -347,14 +364,23 @@ export class CanvasBoard {
   /** Grab a placed object (mouse, pen or finger): it is picked, and follows the pointer until it is let go. An arrow grabbed at an end moves that end alone. */
   startMove(event: PointerEvent, item: PlacedObject): void {
     const { x, y } = this.areaPoint(event);
-    this.selection.set([item.id]);
-    if (item.piece) this.apply(this.diagram().bringToFront(item.id)); // a piece that is picked up goes in front of the others and stays there when it is dropped
+    // grabbing one of several picked pieces moves them all; grabbing another object picks only that one
+    const picked = this.selection();
+    const group = picked.length > 1 && picked.includes(item.id);
+    if (!group) this.selection.set([item.id]);
+    if (item.piece) {
+      // a piece that is picked up goes in front of the others and stays there when it is dropped (a group keeps its order)
+      let diagram = this.diagram();
+      const ids = group ? [...picked] : [item.id];
+      for (const id of ids.sort((a, b) => (diagram.get(a)?.layer ?? 0) - (diagram.get(b)?.layer ?? 0))) diagram = diagram.bringToFront(id);
+      this.apply(diagram);
+    }
     this.connecting.set(true); // every point is shown while something is moved: it can be seen where it can be fastened
     const placed = this.diagram().get(item.id);
     const end = this.diagram().grabbedEnd(item.id, x, y);
     // the distance from the pointer to what is moved, so it does not jump to the pointer
     const grabbed = placed instanceof PlacedArrow && end ? placed.endPoint(end) : { x: item.centerX, y: item.centerY };
-    this.moving = { id: item.id, dx: x - grabbed.x, dy: y - grabbed.y, end };
+    this.moving = { id: item.id, dx: x - grabbed.x, dy: y - grabbed.y, end, group, matchedAtStart: this.matchedAmong(this.diagram(), group ? picked : [item.id]) };
     this.capture(this.root().nativeElement, event); // not the object: it is made again in the store frame when it is moved there
   }
 
@@ -392,15 +418,43 @@ export class CanvasBoard {
     const x = point.x - moving.dx;
     const y = point.y - moving.dy;
     let next = diagram;
+    if (moving.group && this.selection().length > 1) {
+      // several picked pieces: all move by as much as the one that is held (see `CanvasDiagram.moveGroup`)
+      this.apply(diagram.moveGroup(this.selection(), x - placed.centerX, y - placed.centerY));
+      return;
+    }
     if (!(placed instanceof PlacedArrow)) next = diagram.moveFigure(moving.id, x, y, this.step, this.origin);
     else if (moving.end) next = diagram.moveArrowEnd(moving.id, moving.end, x, y, this.step, this.origin);
     else next = diagram.moveArrow(moving.id, x, y, this.step, this.origin);
     this.apply(next);
   }
 
+  /**
+   * What is moved is let go. A piece that is dropped within the range of its own grid point clicks into place (see `CanvasDiagram.dropPieces` and
+   * `snapRange`): it goes exactly there, blinks, and the device vibrates. A piece does not click while it is moved, only when it is dropped.
+   */
   endMove(): void {
+    const moving = this.moving;
     this.moving = null;
     this.connecting.set(false);
+    if (!moving) return;
+    const ids = moving.group && this.selection().length > 1 ? this.selection() : [moving.id];
+    const before = this.diagram();
+    const dropped = before.dropPieces(ids, this.snapRange());
+    if (dropped !== before) this.apply(dropped);
+    const fresh = [...this.matchedAmong(dropped, ids)].filter((id) => !moving.matchedAtStart.has(id)); // in place now, and was not when it was picked up
+    if (fresh.length) this.blink(fresh);
+  }
+
+  /** which of these objects are jigsaw pieces on their own place */
+  private matchedAmong(diagram: CanvasDiagram, ids: readonly string[]): Set<string> {
+    return new Set(
+      ids.filter((id) => {
+        const p = diagram.get(id);
+        const piece = p instanceof PlacedFigure ? p.data.piece : undefined;
+        return !!piece && !!p && JigsawPieces.matched({ col: piece.col, row: piece.row, size: p.object.width, centerX: p.centerX, centerY: p.centerY });
+      }),
+    );
   }
 
   /** Grab a resize handle of the picked figure, or of the box around the picked objects. */
@@ -503,21 +557,18 @@ export class CanvasBoard {
     this.selection.set([id]);
   }
 
-  /** Dragging on the empty canvas picks the objects the rectangle touches (the objects stop their own pointer events, so this is only the empty canvas). */
+  /** Dragging on the empty canvas or the empty store frame picks the objects the rectangle touches (the objects stop their own pointer events, so this is only what is empty). */
   startMarquee(event: PointerEvent): void {
-    const area = event.currentTarget as HTMLElement;
-    const rect = area.getBoundingClientRect();
-    this.marqueeStart = { x: event.clientX - rect.left, y: event.clientY - rect.top, area };
+    const { x, y } = this.areaPoint(event); // on the canvas, or on the store frame (which can be scrolled)
+    this.marqueeStart = { x, y };
     this.selection.set([]);
-    this.capture(area, event);
+    this.capture(this.root().nativeElement, event);
   }
 
   moveMarquee(event: PointerEvent): void {
     const start = this.marqueeStart;
     if (!start) return;
-    const rect = start.area.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const { x, y } = this.areaPoint(event);
     const box: Box = { left: Math.min(start.x, x), top: Math.min(start.y, y), width: Math.abs(x - start.x), height: Math.abs(y - start.y) };
     this.marquee.set(box);
     this.selection.set(this.diagram().itemsIn(box));

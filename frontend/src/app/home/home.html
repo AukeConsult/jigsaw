@@ -8,7 +8,7 @@
     <app-canvas-panel [class.col-6]="!sidebar" [class.col-lg-2]="!sidebar" [class.flex-shrink-0]="sidebar" [class.border-end]="sidebar" [class.bg-body-tertiary]="sidebar" [class.overflow-y-auto]="sidebar"
                       [style.width]="sidebar ? '17rem' : null" [style.height.px]="sidebar ? sidebarHeight() : null" [heading]="sidebar ? heading : ''" [docked]="sidebar"
                       [(name)]="name" [(width)]="width" [(height)]="height" [(gridSize)]="gridSize" [(gridVisible)]="gridVisible"
-                      [fitToGrid]="gridInset" [debugAllowed]="numberPoints" [(debug)]="debug" [pictureAllowed]="background" [hasPicture]="!!picture()" (pickPicture)="choosePicture($event)" (removePicture)="clearPicture()" (cutPicture)="cut()" [hasPieces]="hasPieces()" [matched]="matched()" (resetPieces)="reset()" [error]="error()" [saveState]="saveState()" [currentId]="currentId()" [message]="message()" [saved]="saved()"
+                      [fitToGrid]="gridInset" [debugAllowed]="numberPoints" [(debug)]="debug" [pictureAllowed]="background" [hasPicture]="!!picture()" (pickPicture)="choosePicture($event)" (removePicture)="clearPicture()" (cutPicture)="cut()" [hasPieces]="hasPieces()" [piecesFailed]="pieceSync.state() === 'failed'" [(snapPercent)]="snapPercent" [piecesMode]="background" [(pieceCount)]="pieceCount" [pieceGrid]="pieceInfo()" (layoutChange)="relayout($event)" [matched]="matched()" (resetPieces)="reset()" [error]="error()" [saveState]="saveState()" [currentId]="currentId()" [message]="message()" [saved]="saved()"
                       (newCanvas)="newCanvas()" (openCanvas)="open($event)" (deleteCanvas)="removeCanvas($event)" />
 
     <div [class.col-12]="!sidebar" [class.col-lg-7]="!sidebar && palette" [class.col-lg-10]="!sidebar && !palette" [class.flex-grow-1]="sidebar" style="min-width: 0">
@@ -18,7 +18,7 @@
           <span class="text-body-secondary">{{ width() }} × {{ height() }} px, {{ gridSize() ? 'grid ' + gridSize() + ' px' + (gridVisible() ? '' : ' (hidden)') : 'no grid' }}</span>
         </div>
       }
-      <app-canvas-board [width]="width()" [height]="height()" [gridSize]="gridSize()" [gridVisible]="gridVisible()" [gridInset]="gridInset" [numberPoints]="numberPoints && debug()" [storeWidth]="storeWidth()" [picture]="picture()" [tools]="tools" [fillScreen]="fillScreen" [helperBanner]="background" [objects]="objects()"
+      <app-canvas-board [width]="width()" [height]="height()" [gridSize]="gridSize()" [gridVisible]="gridVisible()" [gridInset]="gridInset" [numberPoints]="numberPoints && debug()" [storeWidth]="storeWidth()" [snapRange]="background ? snapRangePx() : 0" [picture]="picture()" [tools]="tools" [fillScreen]="fillScreen" [helperBanner]="background" [objects]="objects()"
                         [(placed)]="placed" (notice)="tell($event)" />
     </div>
 

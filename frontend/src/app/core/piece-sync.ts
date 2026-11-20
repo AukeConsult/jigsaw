@@ -68,6 +68,21 @@ export class PieceSync {
     if (this.state() === 'waiting' && this.options.jigsawId()) void this.flush();
   }
 
+  /**
+   * The page is being closed or hidden: the moves that wait for the pause are sent at once, so what the person did is not lost (the game is as they
+   * left it when they come back). A cut that waits for its graphics cannot be sent this way.
+   */
+  leaving(): void {
+    const id = this.options.jigsawId();
+    if (!id || this.replacing) return;
+    const moves: PieceMove[] = this.moved(this.options.pieces()).map((p) => ({ id: p.id, centerX: p.centerX, centerY: p.centerY, layer: p.layer }));
+    if (!moves.length) return;
+    clearTimeout(this.timer);
+    this.options.api.moveWhileLeaving(id, moves);
+    for (const p of this.options.pieces()) if (this.saved.has(p.id)) this.saved.set(p.id, placeOf(p));
+    this.state.set('saved');
+  }
+
   /** the pieces that are not where the database has them */
   private moved(pieces: readonly JigsawPiece[]): JigsawPiece[] {
     return pieces.filter((p) => this.saved.has(p.id) && this.saved.get(p.id) !== placeOf(p));

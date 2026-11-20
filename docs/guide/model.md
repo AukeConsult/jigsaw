@@ -36,5 +36,8 @@ Three bends are pixels from the straight line, to the side (positive = side of t
 - Resize: `resizeFigure`, `resizeGroup`, `resizeArrowAcross`, `bendArrow(id, bend, which)`.
 - Select: `boundsOf`, `itemsIn`, `grabbedEnd`. Layers: `lastLayer`, `layers`, `setLayer`. Check: `CanvasDiagram.validate`.
 
+## Jigsaw pieces
+A piece of a jigsaw is `JigsawPiece` (`jigsaw.ts`): `id`, `number`, `col`, `row`, the four edges, `size`, `centerX`, `centerY`, `layer` and `matched`. `JigsawPieces` makes one from a placed piece and back (`of`, `toPlaced`), says whether it is matched (`matched`: within half a pixel of the centre of its cell of the picture) and checks one (`error`, `moveError`). The server sets `matched` itself whenever a piece is stored or moved.
+
 ## Saving
 A saved canvas document has `name`, `width`, `height`, `gridSize`, `gridVisible`, `placed`, `createdAt`. A save **replaces the whole document** (only `createdAt` is kept), so nothing removed is left in the database. A new canvas has a 50 px grid. Older documents are read through `fromStored` (grid 5 px, as they had, and shown, centre from `x`/`y`, layer 10, kind `figure`).

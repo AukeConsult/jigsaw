@@ -1,7 +1,7 @@
 # API, code layout and running
 
 ## API
-Express app, Cloud Function `canvasApi` (europe-west1, codebase `canvas`), served under `/api`. JSON bodies up to 600 kB. Errors are `400 {error}` with the model's message.
+Express app, Cloud Function `canvasApi` (europe-west1, codebase `canvas`), served under `/api`. JSON bodies up to 600 kB (the pieces of a jigsaw with their graphics: up to 30 MB). Errors are `400 {error}` with the model's message.
 
 | route | |
 |---|---|
@@ -11,10 +11,11 @@ Express app, Cloud Function `canvasApi` (europe-west1, codebase `canvas`), serve
 | `PUT /api/canvas-list/:id` | replace it (404 if missing) |
 | `DELETE /api/canvas-list/:id` | delete (204, 404 if missing) |
 | `/api/jigsaw` | the same four routes for jigsaw canvases (collection `jigsaw`) |
-| `PUT/GET/HEAD/DELETE /api/jigsaw-image/:id` | the background picture of a jigsaw canvas: a binary field of its own document, at most 600 KB, jpeg, png or webp |
+| `PUT/GET/HEAD/DELETE /api/jigsaw-image/:id` | the background picture of a jigsaw canvas: a file in Storage (`jigsaw/<id>/picture`), the raw bytes as the body, at most about 5 MB, jpeg, png or webp |
+| `/api/jigsaw-pieces/:id` | the pieces of a jigsaw: `GET` the list, `PUT` all the pieces with their graphics (a cut), `PATCH` where pieces are now, `GET /graphic/:pieceId`, `DELETE`. Each piece is a document under the jigsaw (`jigsaw/<id>/pieces/<piece id>`) and its graphic a file in Storage |
 | `/api/canvas-objects` | the same four routes for canvas objects |
 
-Firestore collections: `canvas-list` (limit 100) and `canvas-objects` (limit 200). Routes only call `error()`, `stored()` and the store (`functions/src/document-store.ts`).
+Firestore collections: `canvas-list` (limit 100), `canvas-objects` (limit 200) and `jigsaw` (limit 100, with the subcollection `pieces` under each document). Files (the picture of a jigsaw and the graphics of its pieces) are in Storage under `jigsaw/<id>/`, written by the backend only; the page never sends a file to Storage itself. Routes only call `error()`, `stored()` and the store (`functions/src/document-store.ts`).
 
 ## Code layout
 - `functions/src/`: `app.ts`, `canvas-list.ts`, `canvas-objects.ts`, `document-store.ts`, `models/` (the shared model).

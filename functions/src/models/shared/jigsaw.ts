@@ -1,4 +1,4 @@
-import { STORE_HEIGHT_FACTOR } from './canvas';
+import { CANVAS_MAX_SIDE, CanvasArea, STORE_HEIGHT_FACTOR } from './canvas';
 import { DEFAULT_OBJECT, OBJECT_MAX_SIDE } from './canvas-object';
 import { CANVAS_MAX_PLACED } from './diagram';
 import { DEFAULT_LAYER, MAX_LAYER, MAX_PIECE_INDEX, PiecePlace, PlacedObject } from './placed';
@@ -18,7 +18,50 @@ export function pieceGrid(width: number, height: number, grid: number): { column
 export const PIECE_GAP_MIN = -0.3;
 export const PIECE_GAP_MAX = 0.8;
 
+/** The fewest pieces a jigsaw is cut into. */
+export const MIN_PIECES = 2;
+
+/** What a number of pieces makes of a canvas: the grid size and the size of the canvas that goes with it, and how many pieces that really is. */
+export interface PieceLayout {
+  /** the side of a piece, and the grid size, in pixels */
+  grid: number;
+  /** the width and the height of the canvas, a whole number of pieces each */
+  width: number;
+  height: number;
+  columns: number;
+  rows: number;
+}
+
 export class JigsawCut {
+  /**
+   * The grid size for a canvas that is to be cut into about `pieces` pieces, and the canvas made a whole number of pieces wide and high: the pieces are
+   * square, a piece is the square root of (area / pieces) on each side, and of the grids near that the one that gives the number of pieces closest to
+   * what was asked for is taken (never more pieces than fit on a canvas, never fewer than `MIN_PIECES`). The pieces that come out can be a few more or
+   * fewer than asked for, since they are whole squares.
+   */
+  static layoutFor(width: number, height: number, pieces: number): PieceLayout {
+    const wanted = Math.min(CANVAS_MAX_PLACED, Math.max(MIN_PIECES, Math.round(Number.isFinite(pieces) ? pieces : MIN_PIECES)));
+    const ideal = Math.sqrt((Math.max(1, width) * Math.max(1, height)) / wanted);
+    let best: (PieceLayout & { miss: number; away: number }) | null = null;
+    for (let grid = Math.max(1, Math.floor(ideal) - 3); grid <= Math.ceil(ideal) + 3; grid++) {
+      const w = CanvasArea.fittedSide(width, grid);
+      const h = CanvasArea.fittedSide(height, grid);
+      const columns = Math.round(w / grid);
+      const rows = Math.round(h / grid);
+      const count = columns * rows;
+      if (count > CANVAS_MAX_PLACED || count < MIN_PIECES) continue;
+      const candidate = { grid, width: w, height: h, columns, rows, miss: Math.abs(count - wanted), away: Math.abs(grid - ideal) };
+      if (!best || candidate.miss < best.miss || (candidate.miss === best.miss && candidate.away < best.away)) best = candidate;
+    }
+    if (best) return { grid: best.grid, width: best.width, height: best.height, columns: best.columns, rows: best.rows };
+    // nothing near fits (a canvas that is very small or very big for this number): the smallest grid that does not give too many pieces
+    let grid = Math.max(1, Math.ceil(ideal));
+    while (grid < CANVAS_MAX_SIDE && Math.round(CanvasArea.fittedSide(width, grid) / grid) * Math.round(CanvasArea.fittedSide(height, grid) / grid) > CANVAS_MAX_PLACED) grid++;
+    const w = CanvasArea.fittedSide(width, grid);
+    const h = CanvasArea.fittedSide(height, grid);
+    return { grid, width: w, height: h, columns: Math.round(w / grid), rows: Math.round(h / grid) };
+  }
+
   /**
    * Cuts a canvas into pieces of `grid` × `grid` pixels. Each piece is a placed square (so it moves, saves and snaps like any figure) that says which
    * cell of the picture it is (`piece`: column, row and its four edges). Every edge between two pieces is a tab on one and the matching blank on the

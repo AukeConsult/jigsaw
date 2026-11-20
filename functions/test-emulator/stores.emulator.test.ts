@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import request from "supertest";
 import { beforeAll, describe, expect, it } from "vitest";
+import { createApp } from "../src/app";
 import { firestoreCanvasStore } from "../src/canvas-list";
 import { firestoreCanvasObjectStore } from "../src/canvas-objects";
 import { storageImageStore } from "../src/jigsaw-image";
@@ -143,5 +145,49 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect(await pieces.list(made.id)).toEqual([]);
     expect(await picture.get(made.id)).toBeNull();
     await jigsaws.remove(made.id);
+  });
+
+  it("works through the API with nothing faked: picture, cut, play, reopen, delete (the app sends bytes to the API, the API writes to Storage)", async () => {
+    const app = createApp(); // the real stores: Firestore and Storage on the emulators
+    const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(3000, 9)]);
+    const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(40, 5)]);
+
+    // a jigsaw is made (its settings only), its picture is sent to the API as the request body
+    const made = await request(app).post("/api/jigsaw").send({ name: "Through the API", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [] });
+    expect(made.status).toBe(201);
+    const id = made.body.id as string;
+    expect((await request(app).put(`/api/jigsaw-image/${id}`).set("Content-Type", "image/png").send(jpeg)).body).toMatchObject({ mime: "image/jpeg" }); // the type is found from the bytes
+    expect((await request(app).put("/api/jigsaw-image/NoSuchJigsaw1").set("Content-Type", "image/jpeg").send(jpeg)).status).toBe(404);
+
+    // cut: the pieces go to the API with their graphics
+    const cut = JigsawCut.cut(200, 150, 50, () => 0.4);
+    if ("error" in cut) throw new Error(cut.error);
+    const pieces = cut.placed.map((p) => ({ ...JigsawPieces.of(p, cut.columns)!, graphic: `data:image/webp;base64,${webp.toString("base64")}` }));
+    const put = await request(app).put(`/api/jigsaw-pieces/${id}`).send({ pieces });
+    expect(put.body).toEqual({ pieces: 12, graphics: 12 });
+
+    // play: one piece is put on its own place
+    const own = pieces.find((p) => p.number === 6)!; // column 1, row 1: its place is 75, 75
+    expect((await request(app).patch(`/api/jigsaw-pieces/${id}`).send({ moves: [{ id: own.id, centerX: 75, centerY: 75, layer: 50 }] })).status).toBe(200);
+
+    // reopen: the game is as it was left
+    const list = (await request(app).get(`/api/jigsaw-pieces/${id}`)).body.pieces as { id: string; number: number; matched: boolean; layer: number }[];
+    expect(list).toHaveLength(12);
+    expect(list.filter((p) => p.matched).map((p) => p.number)).toEqual([6]);
+    expect(list.find((p) => p.id === own.id)?.layer).toBe(50);
+    const graphic = await request(app).get(`/api/jigsaw-pieces/${id}/graphic/${own.id}`).buffer(true).parse((res, cb) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => cb(null, Buffer.concat(chunks)));
+    });
+    expect(graphic.headers["content-type"]).toBe("image/webp");
+    expect((graphic.body as Buffer).equals(webp)).toBe(true);
+    expect((await request(app).head(`/api/jigsaw-image/${id}`)).status).toBe(200);
+
+    // delete the jigsaw: its pieces, their graphics and its picture go with it
+    expect((await request(app).delete(`/api/jigsaw/${id}`)).status).toBe(204);
+    expect((await getFirestore().collection(JIGSAW).doc(id).collection(JIGSAW_PIECES).get()).size).toBe(0);
+    expect((await request(app).get(`/api/jigsaw-image/${id}`)).status).toBe(404);
+    expect((await request(app).get(`/api/jigsaw-pieces/${id}/graphic/${own.id}`)).status).toBe(404);
   });
 });

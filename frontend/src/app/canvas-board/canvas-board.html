@@ -39,11 +39,11 @@
 }
 <!-- the canvas area: exactly width × height pixels; scrolls when it is bigger than the page. The placed objects lie over the canvas at their real size. -->
 <div #root class="d-flex align-items-start overflow-auto border rounded bg-body-tertiary p-2" [style.gap.px]="gridSize()" [style.height.px]="areaHeight()" aria-label="Jigsaw pieces area"
-     (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()">
+     (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()">
   <div class="position-relative shadow-sm bg-white flex-shrink-0" [style.width.px]="width()" [style.height.px]="height()"
        [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null" style="background-size: cover; background-position: center"
        (dragover)="allowDrop($event)" (dragleave)="leaveDrop()" (drop)="drop($event)"
-       (pointerdown)="startMarquee($event)" (pointermove)="moveMarquee($event)" (pointerup)="endMarquee()" (pointercancel)="endMarquee()">
+       (pointerdown)="startMarquee($event)">
     <canvas #area class="d-block" aria-label="Canvas area"></canvas>
     @for (v of view(); track v.p.id) {
       @if (!v.inStore) {
@@ -85,7 +85,12 @@
   @if (store(); as s) {
     <div class="flex-shrink-0 border rounded bg-body-secondary overflow-y-auto overflow-x-hidden" aria-label="Jigsaw pieces store"
          [style.width.px]="s.width + 16" [style.height.px]="areaHeight() ? (areaHeight() ?? 0) - 18 : height()">
-      <div #storeInner class="position-relative" [style.width.px]="s.width" [style.height.px]="s.height">
+      <div #storeInner class="position-relative" [style.width.px]="s.width" [style.height.px]="s.height" (pointerdown)="startMarquee($event)">
+        <!-- the rectangle that is being dragged to pick pieces, in the store frame -->
+        @if (marquee(); as m) {
+          <div class="position-absolute border border-primary bg-primary bg-opacity-10" style="pointer-events: none; z-index: 1001"
+               [style.left.px]="m.left - s.left" [style.top.px]="m.top" [style.width.px]="m.width" [style.height.px]="m.height"></div>
+        }
         @for (v of view(); track v.p.id) {
           @if (v.inStore) {
             <ng-container *ngTemplateOutlet="item; context: { $implicit: v, shift: s.left }" />
@@ -103,7 +108,7 @@
            (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
            (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
         @if (v.piece; as piece) {
-          <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" />
+          <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" [blinking]="blinking().has(p.id)" />
         } @else {
         <app-canvas-shape [object]="v.object" [bends]="v.bends" [maxSide]="10000" [showPoints]="selectedId() === p.id || connecting()" [boundPoints]="boundPoints().get(p.id) ?? []" />
         }

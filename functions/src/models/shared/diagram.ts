@@ -22,9 +22,7 @@ export const CANVAS_MAX_PLACED = 500;
 export const SNAP_DISTANCE_PX = 24;
 /** How near (in pixels) to an end of an arrow it is grabbed to move that end alone (at most a quarter of the arrow's length). */
 export const HANDLE_RADIUS_PX = 12;
-/** A jigsaw piece moved within this share of its own size of the place it belongs snaps into place. */
-export const PIECE_SNAP_FRACTION = 0.5;
-/** A jigsaw piece is moved in steps this many times smaller than the grid (it does not stick to the grid points), but not finer than a half pixel. */
+/** A jigsaw piece is moved in steps this many times smaller than the grid (it does not stick to the grid points), made a whole number of half pixels (a place is a whole or a half pixel), and not finer than a half pixel. */
 export const PIECE_STEP_DIVISOR = 50;
 export const PIECE_MIN_STEP_PX = 0.5;
 
@@ -281,6 +279,45 @@ export class CanvasDiagram {
     return next.bends.every((b, i) => b === arrow.bends[i]) && next.data.bend === arrow.data.bend ? this : this.replace(next);
   }
 
+  /**
+   * A jigsaw piece that is dropped within `range` pixels of the grid point it belongs on (its home, see `PlacedFigure.home`) clicks into place: it goes
+   * exactly there. Only pieces are looked at, and only when they are dropped, not while they are moved. `range` 0 (or less) means no piece clicks.
+   * Nothing changes (the same diagram) when no piece is near enough.
+   */
+  dropPieces(ids: readonly string[], range: number): CanvasDiagram {
+    if (!(range > 0)) return this;
+    const placed = new Map<string, PlacedFigure>();
+    for (const id of ids) {
+      const figure = this.get(id);
+      const home = figure instanceof PlacedFigure ? figure.home() : null;
+      if (figure instanceof PlacedFigure && home && Math.hypot(figure.centerX - home.x, figure.centerY - home.y) <= range) placed.set(id, figure.at(home.x, home.y));
+    }
+    const changed = [...placed.entries()].filter(([id, f]) => f.centerX !== this.get(id)!.centerX || f.centerY !== this.get(id)!.centerY);
+    if (!changed.length) return this;
+    const now = new Map(changed);
+    return this.with(this.items.map((item) => now.get(item.id) ?? item));
+  }
+
+  /**
+   * The diagram with these figures moved together by this much (to the nearest half pixel), as far as all of them stay inside the area: they keep their
+   * places in relation to each other. Only figures move (a piece is one); nothing changes when they cannot move, or the move is nothing.
+   */
+  moveGroup(ids: readonly string[], dx: number, dy: number): CanvasDiagram {
+    const figures = ids.map((id) => this.get(id)).filter((p): p is PlacedFigure => p instanceof PlacedFigure);
+    if (!figures.length || !Number.isFinite(dx) || !Number.isFinite(dy)) return this;
+    const boxes = figures.map((f) => f.box());
+    // the furthest the whole group can go each way: the figure that is nearest to an edge decides
+    const lowX = Math.max(...boxes.map((b) => -b.left));
+    const highX = Math.min(...boxes.map((b) => this.width - (b.left + b.width)));
+    const lowY = Math.max(...boxes.map((b) => -b.top));
+    const highY = Math.min(...boxes.map((b) => this.height - (b.top + b.height)));
+    const moveX = Math.min(Math.max(Math.round(dx * 2) / 2, lowX), highX);
+    const moveY = Math.min(Math.max(Math.round(dy * 2) / 2, lowY), highY);
+    if (!moveX && !moveY) return this;
+    const moved = new Map(figures.map((f) => [f.id, f.at(f.centerX + moveX, f.centerY + moveY)] as const));
+    return this.with(this.items.map((item) => moved.get(item.id) ?? item));
+  }
+
   /** The diagram with an object on a layer above all the others (the highest layer there is, at most): it is in front of them. Nothing changes when it is in front already. */
   bringToFront(id: string): CanvasDiagram {
     const item = this.get(id);
@@ -386,18 +423,12 @@ export class CanvasDiagram {
   moveFigure(id: string, wantedX: number, wantedY: number, step: number, origin = 0): CanvasDiagram {
     const figure = this.get(id);
     if (!(figure instanceof PlacedFigure)) return this;
-    // a piece that comes close enough to the grid point it belongs on snaps there (this beats the grid)
-    const home = figure.home();
-    const size = figure.object.width;
-    const snapsHome = !!home && Math.hypot(wantedX - home.x, wantedY - home.y) <= PIECE_SNAP_FRACTION * size;
     // a piece moves in much finer steps than the grid (a step that goes a whole number of times into the grid, so the grid points are still among them)
-    const pieceStep = figure.data.piece ? Math.max(PIECE_MIN_STEP_PX, step / PIECE_STEP_DIVISOR) : step;
-    let moved = snapsHome && home
-      ? figure.at(home.x, home.y)
-      : figure.at(
-          CanvasDiagram.stickCenter(wantedX, figure.object.width, this.width, pieceStep, origin),
-          CanvasDiagram.stickCenter(wantedY, figure.object.height, this.height, pieceStep, origin),
-        );
+    const pieceStep = figure.data.piece ? Math.max(PIECE_MIN_STEP_PX, Math.round(step / PIECE_STEP_DIVISOR / PIECE_MIN_STEP_PX) * PIECE_MIN_STEP_PX) : step;
+    let moved = figure.at(
+      CanvasDiagram.stickCenter(wantedX, figure.object.width, this.width, pieceStep, origin),
+      CanvasDiagram.stickCenter(wantedY, figure.object.height, this.height, pieceStep, origin),
+    );
     let fastened: Fastening[] = [];
     const snapped = this.snapFigure(figure, wantedX, wantedY);
     if (snapped) ({ figure: moved, fastened } = snapped);

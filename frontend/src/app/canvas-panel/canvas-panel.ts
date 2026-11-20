@@ -48,6 +48,17 @@ export class CanvasPanel {
   readonly cutPicture = output<void>();
   /** the jigsaw has pieces: they can be shuffled all over again */
   readonly hasPieces = input(false);
+  /** the pieces could not be saved (they are tried again): said under the settings */
+  readonly piecesFailed = input(false);
+  /** the game setting: how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never) */
+  readonly snapPercent = model(50);
+  /** a jigsaw: the person gives the number of pieces and the grid size is worked out from it (the grid size is not asked for) */
+  readonly piecesMode = input(false);
+  readonly pieceCount = model(0);
+  /** how many pieces across and down the grid makes (for the line that tells the grid size) */
+  readonly pieceGrid = input<{ columns: number; rows: number }>({ columns: 0, rows: 0 });
+  /** the size (`size`) or the number of pieces (`pieces`) was changed: the grid size and the size of the canvas are worked out again */
+  readonly layoutChange = output<'size' | 'pieces'>();
   /** how many pieces are matched, of how many (the state of the game; none: no pieces) */
   readonly matched = input<{ count: number; total: number } | null>(null);
   readonly resetPieces = output<void>();
@@ -74,6 +85,7 @@ export class CanvasPanel {
 
   /** When a setting is done (not on every key): the size is made a whole number of grid steps, when it has to be (see `CanvasArea.fittedSide`). */
   fit(): void {
+    if (this.piecesMode()) return void this.layoutChange.emit('size'); // the grid size follows from the number of pieces
     if (!this.fitToGrid()) return;
     const grid = this.gridSize();
     this.width.set(CanvasArea.fittedSide(this.width(), grid));

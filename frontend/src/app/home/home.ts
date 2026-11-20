@@ -83,6 +83,14 @@ export class Home implements OnInit, OnDestroy {
   readonly gridVisible = signal(true);
   /** a jigsaw: how wide the store frame beside the canvas is (0: none) */
   readonly storeWidth = signal(0);
+  /** a jigsaw, a game setting: how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never; 50 to begin with) */
+  readonly snapPercent = signal(CanvasArea.DEFAULT_SNAP_PERCENT);
+  /** the same in pixels: a percent of the grid size */
+  readonly snapRangePx = computed(() => CanvasArea.snapRangePx(this.snapPercent(), this.gridSize()));
+  /** a jigsaw: how many pieces the picture is cut into (the person gives this, the grid size is worked out from it) */
+  readonly pieceCount = signal(16 * 12);
+  /** how many pieces the grid makes across and down */
+  readonly pieceInfo = computed(() => pieceGrid(this.width(), this.height(), this.gridSize()));
   /** the canvas objects placed on the canvas (as they are stored) */
   readonly placed = signal<PlacedObject[]>([]);
 
@@ -113,7 +121,7 @@ export class Home implements OnInit, OnDestroy {
     return this.placed().flatMap((p) => JigsawPieces.of(p, columns) ?? []);
   });
   /** keeps the pieces in the database: all of them with their graphics after a cut, after that the pieces that were moved */
-  private readonly pieceSync = new PieceSync({ jigsawId: () => this.currentId(), pieces: () => this.pieces(), api: this.pieceApi });
+  readonly pieceSync = new PieceSync({ jigsawId: () => this.currentId(), pieces: () => this.pieces(), api: this.pieceApi });
   /** how many pieces are matched (on their own place) of how many there are: the state of the game (null: no pieces) */
   readonly matched = computed(() => {
     const pieces = this.pieces();
@@ -122,7 +130,7 @@ export class Home implements OnInit, OnDestroy {
 
   /** the settings of the open canvas, as the API takes them */
   private input(): CanvasInput {
-    return { name: this.name().trim(), width: this.width(), height: this.height(), gridSize: this.gridSize(), gridVisible: this.gridVisible(), placed: this.placed().filter((p) => !p.piece), ...(this.storeWidth() ? { storeWidth: this.storeWidth() } : {}) };
+    return { name: this.name().trim(), width: this.width(), height: this.height(), gridSize: this.gridSize(), gridVisible: this.gridVisible(), placed: this.placed().filter((p) => !p.piece), ...(this.storeWidth() ? { storeWidth: this.storeWidth() } : {}), ...(this.background ? { snapPercent: this.snapPercent() } : {}) };
   }
 
   constructor() {
@@ -136,6 +144,18 @@ export class Home implements OnInit, OnDestroy {
     } catch {
       this.message.set({ kind: 'danger', text: 'Could not load the saved canvases.' });
     }
+  }
+
+  /** the page is closed: the moves of pieces that wait are saved now */
+  @HostListener('window:pagehide')
+  pageClosed(): void {
+    this.pieceSync.leaving();
+  }
+
+  /** the page is hidden (another tab, the phone is locked, the app is left): the same, the page may not come back */
+  @HostListener('document:visibilitychange')
+  pageHidden(): void {
+    if (document.visibilityState === 'hidden') this.pieceSync.leaving();
   }
 
   ngOnDestroy(): void {
@@ -168,6 +188,9 @@ export class Home implements OnInit, OnDestroy {
     this.gridVisible.set(true);
     this.placed.set([]);
     this.storeWidth.set(0);
+    this.snapPercent.set(CanvasArea.DEFAULT_SNAP_PERCENT);
+    this.pieceCount.set(16 * 12);
+    this.askedSize = { width: 800, height: 600 };
     this.message.set(null);
     this.picture.set(null);
     this.autosave.markSaved(null);
@@ -177,6 +200,7 @@ export class Home implements OnInit, OnDestroy {
   open(item: CanvasSpec): void {
     this.placed.set(item.placed);
     this.storeWidth.set(item.storeWidth ?? 0);
+    this.snapPercent.set(item.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT);
     this.name.set(item.name);
     this.width.set(item.width);
     this.height.set(item.height);
@@ -185,6 +209,8 @@ export class Home implements OnInit, OnDestroy {
     this.message.set(null);
     this.autosave.markSaved(item.id); // opening is not a change
     if (this.gridInset) this.fitSizeToGrid(); // but a size that does not fit the grid is fitted, and that is saved like a change
+    this.pieceCount.set(this.pieceInfo().columns * this.pieceInfo().rows || 16 * 12);
+    this.askedSize = { width: this.width(), height: this.height() };
     void this.showPictureOf(item.id);
     void this.loadPieces(item);
   }
@@ -208,6 +234,24 @@ export class Home implements OnInit, OnDestroy {
     } catch {
       this.message.set({ kind: 'danger', text: 'Could not load the pieces of the jigsaw.' });
     }
+  }
+
+  /** the size of the canvas as the person gave it (the canvas itself is made a whole number of pieces wide and high, which can differ a little) */
+  private askedSize = { width: 800, height: 600 };
+
+  /**
+   * The person gave a size or a number of pieces (a jigsaw): the grid size is worked out from the number of pieces, and the canvas is made a whole number
+   * of pieces wide and high (see `JigsawCut.layoutFor`). The number shown is the number of pieces that really comes out.
+   */
+  relayout(changed: 'size' | 'pieces'): void {
+    if (changed === 'size') this.askedSize = { width: this.width(), height: this.height() }; // the size the person typed: the canvas is made to fit the pieces from this, not from what it was made last time
+    const before = this.gridSize();
+    const layout = JigsawCut.layoutFor(this.askedSize.width, this.askedSize.height, this.pieceCount());
+    this.width.set(layout.width);
+    this.height.set(layout.height);
+    this.gridSize.set(layout.grid);
+    this.pieceCount.set(layout.columns * layout.rows);
+    if (this.hasPieces() && layout.grid !== before) this.tell('The pieces on the canvas are as they were cut: press "Cut into pieces" to cut them to the new number.');
   }
 
   /** The width and height made a whole number of grid steps (see `CanvasArea.fittedSide`), so the points are as far from every edge. */

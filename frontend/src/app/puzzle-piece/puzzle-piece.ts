@@ -9,6 +9,22 @@ import { PiecePlace } from '../models/shared/placed';
 @Component({
   selector: 'app-puzzle-piece',
   templateUrl: './puzzle-piece.html',
+  // the blink of a piece that has just clicked into place: it swells, shakes a little and shines (an animation needs a little CSS)
+  styles: `
+    svg.blink {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: piece-click 0.7s ease-out;
+    }
+    @keyframes piece-click {
+      0% { transform: scale(1) rotate(0); filter: brightness(1); }
+      15% { transform: scale(1.22) rotate(-5deg); filter: brightness(1.6) drop-shadow(0 0 6px #198754); }
+      35% { transform: scale(0.94) rotate(4deg); filter: brightness(1.3) drop-shadow(0 0 5px #198754); }
+      55% { transform: scale(1.1) rotate(-3deg); filter: brightness(1.4) drop-shadow(0 0 5px #198754); }
+      75% { transform: scale(0.98) rotate(2deg); filter: brightness(1.15); }
+      100% { transform: scale(1) rotate(0); filter: brightness(1); }
+    }
+  `,
 })
 export class PuzzlePiece {
   readonly id = input.required<string>();
@@ -24,6 +40,8 @@ export class PuzzlePiece {
   readonly numbered = input(false);
   /** the piece lies on its own place: it is drawn with a green outline */
   readonly matched = input(false);
+  /** the piece has just clicked into place: it blinks */
+  readonly blinking = input(false);
 
   readonly path = computed(() => JigsawCut.path(this.size(), this.piece()));
   /** the number of the grid point the piece belongs on in the picture: the points are numbered 1, 2, 3 ... along each row, as they are on the canvas */

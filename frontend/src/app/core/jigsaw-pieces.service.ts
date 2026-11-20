@@ -31,6 +31,11 @@ export class JigsawPiecesService {
     return firstValueFrom(this.http.patch(this.base(id), { moves }));
   }
 
+  /** The same, for the moment the page is being closed: the request goes on after the page is gone (`keepalive`; nothing waits for the answer). */
+  moveWhileLeaving(id: string, moves: PieceMove[]): void {
+    fetch(this.base(id), { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ moves }), keepalive: true }).catch(() => undefined);
+  }
+
   /** where the graphic of a piece can be read */
   graphicUrl(id: string, pieceId: string): string {
     return `${this.base(id)}/graphic/${encodeURIComponent(pieceId)}`;
