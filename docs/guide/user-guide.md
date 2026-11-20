@@ -29,6 +29,14 @@ A picked arrow shows three diamond handles, a quarter, half and three quarters o
 ### Layers
 The canvas is layer 0. Objects are on layers 1–1000, the first on 10. A new object goes on the highest layer in use. A higher layer is in front. Change the layer of the picked objects in the layer field.
 
+## Jigsaw page (jcanvas)
+Works like the canvas page, with its own saved list (collection `jigsaw`), and with these differences:
+- The grid points are half a step in from the edge; the **Debug** button in the sidebar shows or hides their numbers (1, 2, 3 … row by row; off to begin with); the width and height are kept a whole number of grid steps, so the last row and column of points are as far from the edge as the first. The default grid is 50 px.
+- **Background picture:** choose a jpeg, png or webp; a window opens with the picture behind a frame of the shape of the canvas: drag the picture inside the frame to find the cut and zoom with the slider or the mouse wheel, then press **Use this cut** (Cancel keeps the old picture). The cut is made at most 600 KB and kept in the jcanvas document. The helper picture shows the cut picture. If you change the width or height of the canvas later, choose the picture again to cut it to the new shape. **Remove the picture** takes it away.
+- **Cut into pieces:** replaces what is on the canvas with jigsaw pieces, one for each grid cell. The pieces start in the **store**, a frame beside the picture that is three times as high as the picture, with the pieces scattered in it (close together, some overlapping, in a random front-to-back order) and a scroll bar to reach them all. With **Debug** on, each piece shows the number of the grid point it belongs on in the picture. A piece that comes close to its own place (the grid point with its number, within half a piece) snaps into place. **Reset** shuffles all the pieces again, on new random places and layers. The picture and the store together are the **jigsaw pieces area**: drag a piece anywhere on it, from the store onto the picture and back; it moves in very small steps (50 times smaller than the grid), not from grid point to grid point. The area is as high as the visible screen. Everything is saved with the jcanvas.
+- After the cut the picture behind the canvas is hidden, so the pieces make the picture. A banner above the pieces area has a **Helper picture** switch. When it is on, the whole picture is shown in a frame on top of the page, a quarter of its size to begin with. Drag the frame's title to move it, drag its bottom right corner to make the picture bigger (up to half its size) or smaller (down to a tenth); the x on the frame hides it.
+- There is no list of objects at the side.
+
 ## Objects page
 Make and edit the objects you place on canvases.
 - **Figure:** shape, default size (drag to draw the size), border width and colour, background and front colours, font size, corner radius (rounded corners).
@@ -36,4 +44,4 @@ Make and edit the objects you place on canvases.
 - A square and a circle always have equal sides. Objects autosave too, and can be deleted from the list.
 
 ## Limits
-Canvas sides 1–10000 px, name up to 60 characters, at most 200 placed objects per canvas, objects at most 10000 px on a side, 100 canvases and 200 objects saved.
+Canvas sides 1–10000 px, name up to 60 characters, at most 500 placed objects per canvas, objects at most 10000 px on a side, 100 canvases and 200 objects saved.

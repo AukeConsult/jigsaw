@@ -1,0 +1,19 @@
+<svg class="d-block" [attr.width]="size()" [attr.height]="size()" style="overflow: visible">
+  <defs>
+    <clipPath [attr.id]="clipId()"><path [attr.d]="path()" /></clipPath>
+  </defs>
+  @if (picture(); as src) {
+    <g [attr.clip-path]="'url(#' + clipId() + ')'">
+      <image [attr.href]="src" [attr.x]="-piece().col * size()" [attr.y]="-piece().row * size()"
+             [attr.width]="columns() * size()" [attr.height]="rows() * size()" preserveAspectRatio="xMidYMid slice" />
+    </g>
+  } @else {
+    <path [attr.d]="path()" fill="#adb5bd" />
+  }
+  <path [attr.d]="path()" fill="none" [attr.stroke]="matched() ? '#198754' : '#212529'" [attr.stroke-opacity]="matched() ? 1 : 0.55" [attr.stroke-width]="matched() ? 2 : 1" stroke-linejoin="round" />
+  @if (numbered()) {
+    <!-- the number of its own grid point on the picture, white with a dark edge so it can be read on any part of the picture -->
+    <text [attr.x]="size() / 2" [attr.y]="size() / 2" text-anchor="middle" dominant-baseline="central" [attr.font-size]="numberSize()" font-weight="600"
+          fill="#fff" stroke="#212529" stroke-width="3" stroke-linejoin="round" paint-order="stroke" style="pointer-events: none; user-select: none">{{ number() }}</text>
+  }
+</svg>

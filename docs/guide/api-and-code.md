@@ -1,7 +1,7 @@
 # API, code layout and running
 
 ## API
-Express app, Cloud Function `canvasApi` (europe-west1, codebase `canvas`), served under `/api`. JSON bodies up to 200 kB. Errors are `400 {error}` with the model's message.
+Express app, Cloud Function `canvasApi` (europe-west1, codebase `canvas`), served under `/api`. JSON bodies up to 600 kB. Errors are `400 {error}` with the model's message.
 
 | route | |
 |---|---|
@@ -10,6 +10,8 @@ Express app, Cloud Function `canvasApi` (europe-west1, codebase `canvas`), serve
 | `POST /api/canvas-list` | make one (`name, width, height, gridSize, gridVisible, placed`), 201 |
 | `PUT /api/canvas-list/:id` | replace it (404 if missing) |
 | `DELETE /api/canvas-list/:id` | delete (204, 404 if missing) |
+| `/api/jigsaw` | the same four routes for jigsaw canvases (collection `jigsaw`) |
+| `PUT/GET/HEAD/DELETE /api/jigsaw-image/:id` | the background picture of a jigsaw canvas: a binary field of its own document, at most 600 KB, jpeg, png or webp |
 | `/api/canvas-objects` | the same four routes for canvas objects |
 
 Firestore collections: `canvas-list` (limit 100) and `canvas-objects` (limit 200). Routes only call `error()`, `stored()` and the store (`functions/src/document-store.ts`).

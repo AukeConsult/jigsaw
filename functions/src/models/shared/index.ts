@@ -3,4 +3,5 @@ export * from './canvas';
 export * from './canvas-object';
 export * from './diagram';
 export * from './geometry';
+export * from './jigsaw';
 export * from './placed';

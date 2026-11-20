@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CanvasArea, CanvasDiagram, DEFAULT_CONNECTOR, DEFAULT_OBJECT, PlacedArrow, PlacedBase, PlacedFigure } from "../src/models";
+import { CANVAS_MAX_PLACED, CanvasArea, CanvasDiagram, DEFAULT_CONNECTOR, DEFAULT_OBJECT, PlacedArrow, PlacedBase, PlacedFigure } from "../src/models";
 
 const STEP = 5; // the grid
 const square = { ...DEFAULT_OBJECT, width: 100, height: 100 };
@@ -28,7 +28,7 @@ describe("placing", () => {
   it("refuses an object that is bigger than the canvas, and one too many", () => {
     expect(empty().place({ ...square, width: 900, height: 900 }, 100, 100, STEP)).toEqual({ error: '"New object" is bigger than the canvas.' });
     let d = empty();
-    for (let i = 0; i < 200; i++) d = put(d, { ...square, width: 10, height: 10 }, 100, 100).diagram;
+    for (let i = 0; i < CANVAS_MAX_PLACED; i++) d = put(d, { ...square, width: 10, height: 10 }, 100, 100).diagram;
     expect(d.place(square, 100, 100, STEP)).toHaveProperty("error");
   });
 

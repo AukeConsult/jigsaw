@@ -20,6 +20,9 @@ export const CANVAS_DEFAULT_GRID = 50;
 /** The grid of a canvas that an older version saved before the grid was a setting: what it had then. */
 const CANVAS_LEGACY_GRID = 5;
 
+/** How many times the height of the canvas the store frame of a jigsaw is: its pieces are spread over it and it scrolls. */
+export const STORE_HEIGHT_FACTOR = 3;
+
 /** A canvas area: a name and its size in pixels. */
 export interface CanvasSpec {
   id: string;
@@ -34,16 +37,43 @@ export interface CanvasSpec {
   gridVisible: boolean;
   /** the canvas objects placed on the canvas area */
   placed: PlacedObject[];
+  /** a jigsaw: how wide its store frame is in pixels, beside the canvas (without it, 0: no store; see `CanvasArea.storeFrame`) */
+  storeWidth?: number;
   /** milliseconds since 1970 */
   createdAt: number;
 }
 
 /** What the page sends to make a canvas area. */
-export type CanvasInput = Pick<CanvasSpec, 'name' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed'>;
+export type CanvasInput = Pick<CanvasSpec, 'name' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth'>;
 
 /** A canvas area as it comes from outside (the page, the API): it checks itself. */
 export class CanvasArea {
-  constructor(readonly input: { name?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown }) {}
+  constructor(readonly input: { name?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown }) {}
+
+  /**
+   * A side of a canvas whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
+   * what a canvas can be), so the last row and column of points are as far from the far edge as the first are from the near one. No grid: as it is.
+   */
+  static fittedSide(side: number, grid: number): number {
+    if (!(grid > 0) || !Number.isFinite(side)) return side;
+    let steps = Math.max(1, Math.round(side / grid));
+    while (steps > 1 && steps * grid > CANVAS_MAX_SIDE) steps--;
+    return steps * grid;
+  }
+
+  /**
+   * The store frame of a jigsaw (where its pieces wait): beside the canvas, one grid step from its right edge (so the grid points go on across), as high
+   * as `STORE_HEIGHT_FACTOR` canvases and `storeWidth` wide; null when there is no store.
+   */
+  static storeFrame(width: number, height: number, grid: number, storeWidth: number | undefined): { left: number; width: number; height: number } | null {
+    return storeWidth && storeWidth > 0 ? { left: width + Math.max(0, grid), width: storeWidth, height: STORE_HEIGHT_FACTOR * height } : null;
+  }
+
+  /** Everything the objects can be on: the canvas, and its store frame when it has one (one box, so an object is checked against it). */
+  static extent(width: number, height: number, grid: number, storeWidth: number | undefined): { width: number; height: number } {
+    const store = CanvasArea.storeFrame(width, height, grid, storeWidth);
+    return store ? { width: store.left + store.width, height: Math.max(height, store.height) } : { width, height };
+  }
 
   /** The canvas as it is stored, for a canvas that is allowed (`error()` is ''): only the known fields, the name trimmed, the objects as `PlacedBase.stored` gives them. */
   stored(): CanvasInput {
@@ -55,6 +85,7 @@ export class CanvasArea {
       gridSize: i.gridSize as number,
       gridVisible: i.gridVisible as boolean,
       placed: (i.placed as PlacedObject[]).map((p) => PlacedBase.stored(p)),
+      ...(i.storeWidth ? { storeWidth: i.storeWidth as number } : {}),
     };
   }
 
@@ -68,6 +99,7 @@ export class CanvasArea {
       gridSize: doc.gridSize ?? CANVAS_LEGACY_GRID,
       gridVisible: doc.gridVisible ?? true,
       placed: (doc.placed ?? []).map((p) => PlacedBase.fromStored(p)),
+      ...(doc.storeWidth ? { storeWidth: doc.storeWidth } : {}),
       createdAt: doc.createdAt ?? 0,
     };
   }
@@ -88,6 +120,11 @@ export class CanvasArea {
       return `The grid must be a whole number of pixels from 0 (no grid) to ${CANVAS_MAX_GRID}.`;
     }
     if (typeof input.gridVisible !== 'boolean') return 'Say whether the grid is shown (true or false).';
-    return CanvasDiagram.validate(input.placed, input.width as number, input.height as number);
+    const store = input.storeWidth;
+    if (store !== undefined && (typeof store !== 'number' || !Number.isInteger(store) || store < 0 || store > CANVAS_MAX_SIDE)) {
+      return `The store must be a whole number of pixels from 0 to ${CANVAS_MAX_SIDE} wide.`;
+    }
+    const extent = CanvasArea.extent(input.width as number, input.height as number, grid, store);
+    return CanvasDiagram.validate(input.placed, extent.width, extent.height);
   }
 }

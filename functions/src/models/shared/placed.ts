@@ -52,9 +52,24 @@ export interface PlacedObject {
   bendStart?: number;
   /** the same three quarters of the way from its start, a quarter from its end */
   bendEnd?: number;
+  /** a figure that is a piece of a jigsaw: which piece it is (see `JigsawCut`) */
+  piece?: PiecePlace;
   /** an arrow that is turned: its angle in radians, 0 along the x axis to the right, positive clockwise on the screen (without it, 0) */
   angle?: number;
 }
+
+/** A piece of a jigsaw: which cell of the picture it is, and its four edges (1 a tab that goes out, -1 a blank that goes in, 0 flat: on the border). */
+export interface PiecePlace {
+  col: number;
+  row: number;
+  top: -1 | 0 | 1;
+  right: -1 | 0 | 1;
+  bottom: -1 | 0 | 1;
+  left: -1 | 0 | 1;
+}
+
+/** The most columns or rows of pieces. */
+export const MAX_PIECE_INDEX = 1000;
 
 /** A connection point of a placed object, in pixels of the canvas area. */
 export interface PlacedPoint extends Point {
@@ -97,6 +112,7 @@ export abstract class PlacedBase {
       ...(data.bendEnd !== undefined ? { bendEnd: data.bendEnd } : {}),
       ...(data.length !== undefined ? { length: data.length } : {}),
       ...(data.angle !== undefined ? { angle: data.angle } : {}),
+      ...(data.piece ? { piece: { col: data.piece.col, row: data.piece.row, top: data.piece.top, right: data.piece.right, bottom: data.piece.bottom, left: data.piece.left } } : {}),
     };
   }
 
@@ -211,6 +227,17 @@ export class PlacedFigure extends PlacedBase {
     return this.model as CanvasFigure;
   }
 
+  /**
+   * A jigsaw piece: where it belongs on the canvas, as the centre of its cell of the picture (its own grid point). Null for a figure that is not a piece.
+   * The picture covers the canvas, so the cell (col, row) of pieces of this size is at col × size, row × size.
+   */
+  home(): Point | null {
+    const piece = this.data.piece;
+    if (!piece) return null;
+    const size = this.object.width;
+    return { x: (piece.col + 0.5) * size, y: (piece.row + 0.5) * size };
+  }
+
   /** its box */
   box(): Box {
     return { left: this.left, top: this.top, width: this.object.width, height: this.object.height };
@@ -259,6 +286,13 @@ export class PlacedFigure extends PlacedBase {
     const d = this.data;
     if (d.length !== undefined || d.angle !== undefined || d.bend !== undefined || d.bendStart !== undefined || d.bendEnd !== undefined || d.connections !== undefined) {
       return `"${this.object.name}" is not an arrow, so it cannot be stretched, turned, bent or fastened to anything.`;
+    }
+    const piece = d.piece as Partial<PiecePlace> | null | undefined;
+    if (piece === undefined) return '';
+    const index = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < MAX_PIECE_INDEX;
+    const edge = (v: unknown) => v === -1 || v === 0 || v === 1;
+    if (!piece || typeof piece !== 'object' || !index(piece.col) || !index(piece.row) || ![piece.top, piece.right, piece.bottom, piece.left].every(edge)) {
+      return `"${this.object.name}" has a bad jigsaw piece.`;
     }
     return '';
   }
@@ -522,6 +556,7 @@ export class PlacedArrow extends PlacedBase {
   }
 
   protected override ownError(): string {
+    if (this.data.piece !== undefined) return `"${this.object.name}" is an arrow, so it cannot be a jigsaw piece.`;
     const { length, angle } = this.data;
     if (length !== undefined && (typeof length !== 'number' || !Number.isFinite(length) || length < 1 || length > 2 * OBJECT_MAX_SIDE)) {
       return 'A placed arrow has a bad length.';

@@ -1,23 +1,33 @@
-<main class="container-fluid py-4" *transloco="let t; prefix: 'home'">
-  <h1 class="h3 mb-4">{{ heading }}</h1>
+<main [class.container-fluid]="!sidebar" [class.py-4]="tools" [class.py-2]="!tools && !sidebar" *transloco="let t; prefix: 'home'">
+  @if (tools) {
+    <h1 class="h3 mb-4">{{ heading }}</h1>
+  }
 
-  <div class="row g-4">
+  <div [class.row]="!sidebar" [class.g-4]="!sidebar" [class.d-flex]="sidebar">
     <!-- half as wide as it was: half of the page when the columns are stacked (at every window width), two of twelve columns next to the canvas -->
-    <app-canvas-panel class="col-6 col-lg-2"
+    <app-canvas-panel [class.col-6]="!sidebar" [class.col-lg-2]="!sidebar" [class.flex-shrink-0]="sidebar" [class.border-end]="sidebar" [class.bg-body-tertiary]="sidebar" [class.overflow-y-auto]="sidebar"
+                      [style.width]="sidebar ? '17rem' : null" [style.height.px]="sidebar ? sidebarHeight() : null" [heading]="sidebar ? heading : ''" [docked]="sidebar"
                       [(name)]="name" [(width)]="width" [(height)]="height" [(gridSize)]="gridSize" [(gridVisible)]="gridVisible"
-                      [error]="error()" [saveState]="saveState()" [currentId]="currentId()" [message]="message()" [saved]="saved()"
+                      [fitToGrid]="gridInset" [debugAllowed]="numberPoints" [(debug)]="debug" [pictureAllowed]="background" [hasPicture]="!!picture()" (pickPicture)="choosePicture($event)" (removePicture)="clearPicture()" (cutPicture)="cut()" [hasPieces]="hasPieces()" [matched]="matched()" (resetPieces)="reset()" [error]="error()" [saveState]="saveState()" [currentId]="currentId()" [message]="message()" [saved]="saved()"
                       (newCanvas)="newCanvas()" (openCanvas)="open($event)" (deleteCanvas)="removeCanvas($event)" />
 
-    <div class="col-12 col-lg-7">
-      <div class="d-flex justify-content-between mb-2">
-        <strong>{{ name() }}</strong>
-        <span class="text-body-secondary">{{ width() }} × {{ height() }} px, {{ gridSize() ? 'grid ' + gridSize() + ' px' + (gridVisible() ? '' : ' (hidden)') : 'no grid' }}</span>
-      </div>
-      <app-canvas-board [width]="width()" [height]="height()" [gridSize]="gridSize()" [gridVisible]="gridVisible()" [frameDots]="frameDots" [objects]="objects()"
+    <div [class.col-12]="!sidebar" [class.col-lg-7]="!sidebar && palette" [class.col-lg-10]="!sidebar && !palette" [class.flex-grow-1]="sidebar" style="min-width: 0">
+      @if (tools) {
+        <div class="d-flex justify-content-between mb-2">
+          <strong>{{ name() }}</strong>
+          <span class="text-body-secondary">{{ width() }} × {{ height() }} px, {{ gridSize() ? 'grid ' + gridSize() + ' px' + (gridVisible() ? '' : ' (hidden)') : 'no grid' }}</span>
+        </div>
+      }
+      <app-canvas-board [width]="width()" [height]="height()" [gridSize]="gridSize()" [gridVisible]="gridVisible()" [gridInset]="gridInset" [numberPoints]="numberPoints && debug()" [storeWidth]="storeWidth()" [picture]="picture()" [tools]="tools" [fillScreen]="fillScreen" [helperBanner]="background" [objects]="objects()"
                         [(placed)]="placed" (notice)="tell($event)" />
     </div>
 
     <!-- the canvas objects that can be put on the canvas (made on the Objects page), at the side of the canvas area -->
-    <app-object-palette class="col-12 col-lg-3" [objects]="objects()" [failed]="objectsFailed()" />
+    @if (palette) {
+      <app-object-palette class="col-12 col-lg-3" [objects]="objects()" [failed]="objectsFailed()" />
+    }
   </div>
 </main>
+@if (cropping(); as chosen) {
+  <app-picture-cropper [file]="chosen" [width]="width()" [height]="height()" (use)="usePicture($event)" (cancel)="cropping.set(null)" />
+}

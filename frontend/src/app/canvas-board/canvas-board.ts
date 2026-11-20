@@ -1,9 +1,12 @@
-import { Component, ElementRef, HostListener, computed, effect, input, model, output, signal, untracked, viewChild } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, ElementRef, afterNextRender, HostListener, computed, effect, input, model, output, signal, untracked, viewChild } from '@angular/core';
 import { CanvasShape } from '../canvas-shape/canvas-shape';
+import { PuzzlePiece } from '../puzzle-piece/puzzle-piece';
 import { CANVAS_OBJECT_DRAG_TYPE } from '../core/drag';
 import { CanvasObject } from '../models/shared/canvas-object';
-import { CANVAS_MIN_SIDE } from '../models/shared/canvas';
+import { CANVAS_MIN_SIDE, CanvasArea } from '../models/shared/canvas';
 import { CanvasDiagram } from '../models/shared/diagram';
+import { JigsawPieces, pieceGrid } from '../models/shared/jigsaw';
 import { Box, Point, ResizeHandle, resizeHandlePositions } from '../models/shared/geometry';
 import { EndId, PlacedArrow, PlacedFigure, PlacedObject } from '../models/shared/placed';
 
@@ -20,7 +23,17 @@ const RESIZE_CURSORS: Record<ResizeHandle, string> = {
 };
 
 /** how far outside the figure its resize handles sit, so they do not cover its connection points (pixels) */
+/** Grid points closer than this are not numbered: the numbers would run into each other. */
+const MIN_NUMBERED_STEP_PX = 20;
 const HANDLE_OFFSET_PX = 9;
+/** What is kept free below the jigsaw pieces area at the bottom of the screen, in pixels. */
+const SCREEN_MARGIN_PX = 8;
+/** The helper picture is shown at this share of the size of the picture to begin with, and can be made as small as the first and as big as the second. */
+const HELPER_SCALE_START = 0.25;
+const HELPER_SCALE_MIN = 0.1;
+const HELPER_SCALE_MAX = 0.5;
+/** The space (Bootstrap's p-2) between the edge of the pieces area and what is in it, in pixels. */
+const AREA_PADDING_PX = 8;
 
 /** how far outside the edge of an arrow its handles for the width across sit (pixels) */
 const ACROSS_OFFSET_PX = 14;
@@ -38,7 +51,7 @@ const NOT_BENT = [0, 0, 0] as const;
  */
 @Component({
   selector: 'app-canvas-board',
-  imports: [CanvasShape],
+  imports: [CanvasShape, PuzzlePiece, NgTemplateOutlet],
   templateUrl: './canvas-board.html',
 })
 export class CanvasBoard {
@@ -47,8 +60,73 @@ export class CanvasBoard {
   /** pixels between the grid points (0 = no grid), and whether they are drawn */
   readonly gridSize = input.required<number>();
   readonly gridVisible = input.required<boolean>();
-  /** whether the grid points on the outer frame of the canvas (the first row and the first column) are drawn; the jigsaw leaves them out */
-  readonly frameDots = input(true);
+  /** whether the grid points are half a step in from the canvas edge (the first row and column of points are half a step from the border, as the last ones are from the far border); the jigsaw does this */
+  readonly gridInset = input(false);
+  /** whether each grid point is given a number (1, 2, 3 ... row by row from the top left, the points that are not drawn left out); only when the points are far enough apart to read it */
+  readonly numberPoints = input(false);
+  /** a jigsaw: how wide the store frame beside the canvas is (0: none); the canvas and the frame together are the jigsaw pieces area, where a piece can be moved anywhere */
+  readonly storeWidth = input(0);
+  /** a banner above the jigsaw pieces area, with a switch that shows or hides the helper picture (the whole picture at a quarter of its width and height) */
+  readonly helperBanner = input(false);
+  /** whether the helper picture is shown (on to begin with) */
+  readonly helper = signal(true);
+  /** where the floating frame of the helper picture is on the window (its top left corner, in pixels): it can be moved by its title */
+  readonly helperFrame = signal({ x: Math.max(8, window.innerWidth - 260), y: 70 });
+  /** how big the helper picture is, as a share of the size of the picture (from 1/10 to 1/2) */
+  readonly helperScale = signal(HELPER_SCALE_START);
+  /** the corner of the frame that is being dragged to change the size: where the pointer was, and the scale then */
+  private helperSizing: { x: number; scale: number } | null = null;
+
+  /** Grab the corner of the helper picture frame to change its size. */
+  startHelperSize(event: PointerEvent): void {
+    this.helperSizing = { x: event.clientX, scale: this.helperScale() };
+    this.capture(event.currentTarget as HTMLElement, event);
+    event.stopPropagation();
+  }
+
+  /** The picture is as wide as the corner has been pulled (the picture keeps its shape), at least 1/10 and at most 1/2 of the size of the picture. */
+  moveHelperSize(event: PointerEvent): void {
+    const sizing = this.helperSizing;
+    if (!sizing || !(this.width() > 0)) return;
+    const wanted = (sizing.scale * this.width() + (event.clientX - sizing.x)) / this.width();
+    this.helperScale.set(Math.min(HELPER_SCALE_MAX, Math.max(HELPER_SCALE_MIN, wanted)));
+  }
+
+  endHelperSize(): void {
+    this.helperSizing = null;
+  }
+
+  /** the frame that is being moved: where on its title it was grabbed */
+  private helperGrab: { dx: number; dy: number } | null = null;
+
+  /** Grab the title of the helper picture frame to move it. */
+  startHelperFrame(event: PointerEvent): void {
+    const frame = this.helperFrame();
+    this.helperGrab = { dx: event.clientX - frame.x, dy: event.clientY - frame.y };
+    this.capture(event.currentTarget as HTMLElement, event);
+  }
+
+  /** The frame follows the pointer, and stays on the window (its title can always be reached). */
+  moveHelperFrame(event: PointerEvent): void {
+    const grab = this.helperGrab;
+    if (!grab) return;
+    this.helperFrame.set({
+      x: Math.min(Math.max(event.clientX - grab.dx, 0), window.innerWidth - 80),
+      y: Math.min(Math.max(event.clientY - grab.dy, 0), window.innerHeight - 40),
+    });
+  }
+
+  endHelperFrame(): void {
+    this.helperGrab = null;
+  }
+  /** the jigsaw pieces area is as high as what is left of the visible screen, from where it starts to the bottom (the jigsaw does this) */
+  readonly fillScreen = input(false);
+  /** its height in pixels, when it fills the screen */
+  readonly areaHeight = signal<number | null>(null);
+  /** whether the layer field and the Remove picked button are shown above the canvas (the jigsaw has neither; the Delete key still removes what is picked) */
+  readonly tools = input(true);
+  /** the address of a picture to show behind the grid and the objects, covering the canvas (the jcanvas background) */
+  readonly picture = input<string | null>(null);
   /** the canvas objects in the palette: a drop asks for one of them by its id */
   readonly objects = input<readonly CanvasObject[]>([]);
 
@@ -59,6 +137,10 @@ export class CanvasBoard {
   readonly notice = output<string>();
 
   private readonly canvas = viewChild<ElementRef<HTMLCanvasElement>>('area');
+  /** the whole board: it keeps the pointer while something is moved, so the move goes on when the object changes place (canvas to store frame) */
+  private readonly root = viewChild.required<ElementRef<HTMLElement>>('root');
+  /** the inside of the store frame (it moves up and down when the frame is scrolled) */
+  private readonly storeInner = viewChild<ElementRef<HTMLElement>>('storeInner');
 
   /** the ids of the picked objects: one (picked by a click), or several (picked by dragging a rectangle around them) */
   readonly selection = signal<string[]>([]);
@@ -70,7 +152,12 @@ export class CanvasBoard {
   readonly connecting = signal(false);
 
   /** the placed objects, as the classes that work on them */
-  private readonly diagram = computed(() => CanvasDiagram.from(this.placed(), this.width(), this.height()));
+  /** the store frame beside the canvas, where the pieces of a jigsaw wait (null: none) */
+  readonly store = computed(() => CanvasArea.storeFrame(this.width(), this.height(), this.gridSize(), this.storeWidth()));
+  private readonly diagram = computed(() => {
+    const extent = CanvasArea.extent(this.width(), this.height(), this.gridSize(), this.storeWidth()); // the whole jigsaw pieces area
+    return CanvasDiagram.from(this.placed(), extent.width, extent.height);
+  });
   /** for each placed object, the ids of its connection points that something is fastened to */
   readonly boundPoints = computed(() => this.diagram().boundPoints());
   /** the placed objects as they are drawn: an arrow as long as it is stretched, turned by its angle, with its box at its centre */
@@ -86,9 +173,18 @@ export class CanvasBoard {
         top: item.centerY - item.object.height / 2,
         rotate: angle ? `rotate(${angle}rad)` : null,
         bends: item instanceof PlacedArrow ? item.bends : NOT_BENT,
+        piece: item instanceof PlacedFigure ? (item.data.piece ?? null) : null,
+        matched: item instanceof PlacedFigure && !!item.data.piece && JigsawPieces.matched({ col: item.data.piece.col, row: item.data.piece.row, size: item.object.width, centerX: item.centerX, centerY: item.centerY }),
+        inStore: !!this.store() && item.centerX >= (this.store()?.left ?? Infinity),
       };
     }),
   );
+
+  /** how many pieces the picture is cut into across and down (a piece of the jigsaw shows its own part of the picture) */
+  readonly pieceGrid = computed(() => pieceGrid(this.width(), this.height(), this.gridSize()));
+
+  /** the picture shown behind the canvas: not when the picture is cut into pieces (the pieces are the picture then; the help frame shows it) */
+  readonly backdrop = computed(() => (this.placed().some((p) => p.piece) ? null : this.picture()));
 
   /** the layer the picked objects are on, when they are all on the same one (the canvas itself is layer 0) */
   readonly selectedLayer = computed(() => {
@@ -106,6 +202,7 @@ export class CanvasBoard {
    * ends instead), or those of the box around several picked objects
    */
   readonly handles = computed(() => {
+    if (this.selection().some((id) => this.diagram().get(id)?.data.piece)) return []; // a piece keeps its size
     const picked = this.selectedId() ? this.diagram().get(this.selectedId() as string) : undefined;
     const box = this.groupBox() ?? (picked instanceof PlacedFigure ? picked.box() : null);
     if (!box) return [];
@@ -129,7 +226,7 @@ export class CanvasBoard {
   });
 
   /** the placed object that is being moved: the pointer's distance from its centre (or from the end that was grabbed), and the canvas area it is in */
-  private moving: { id: string; dx: number; dy: number; area: HTMLElement; end?: EndId } | null = null;
+  private moving: { id: string; dx: number; dy: number; end?: EndId } | null = null;
 
   /** the handle that is being dragged to resize the picked figure or objects, and the canvas area it is in */
   private resizing: { ids: string[]; handle: ResizeHandle; area: HTMLElement; gx: number; gy: number } | null = null;
@@ -144,6 +241,8 @@ export class CanvasBoard {
   private marqueeStart: { x: number; y: number; area: HTMLElement } | null = null;
 
   constructor() {
+    // the pieces area fills the screen: measured when the page is drawn, and again when the window is resized or scrolled
+    afterNextRender(() => this.measureArea());
     // draw the grid again whenever the size or the grid changes (a new width or height clears the canvas)
     effect(() => {
       const element = this.canvas()?.nativeElement;
@@ -152,7 +251,7 @@ export class CanvasBoard {
       if (!element || !(width >= CANVAS_MIN_SIDE) || !(height >= CANVAS_MIN_SIDE)) return;
       element.width = width;
       element.height = height;
-      if (this.gridVisible()) this.drawGrid(element, this.gridSize(), this.frameDots());
+      if (this.gridVisible()) this.drawGrid(element, this.gridSize(), this.gridInset(), this.numberPoints());
     });
     // what is picked has to be on the canvas: another canvas was opened, or an object was taken away
     effect(() => {
@@ -163,13 +262,27 @@ export class CanvasBoard {
     });
   }
 
+  /** Measures what is left of the visible screen below the top of the pieces area (when it fills the screen); the area is at least 200 px high. */
+  @HostListener('window:resize')
+  @HostListener('window:scroll')
+  measureArea(): void {
+    if (!this.fillScreen()) return this.areaHeight.set(null);
+    const top = this.root().nativeElement.getBoundingClientRect().top;
+    this.areaHeight.set(Math.max(200, Math.floor(window.innerHeight - top - SCREEN_MARGIN_PX)));
+  }
+
   /** the distance between the points the centres stick to: the grid, or a pixel when the grid is not shown */
   private get step(): number {
     return this.gridVisible() && this.gridSize() > 0 ? this.gridSize() : 1;
   }
 
-  /** A grid point every `step` pixels, starting at 0,0 (those on the outer frame left out when `frameDots` is off): one small tile of the grid filled over the whole canvas. */
-  private drawGrid(element: HTMLCanvasElement, step: number, frameDots: boolean): void {
+  /** where the grid points start on each axis: 0, or half a step for a grid whose points are half a step in from the edge (they are the points the centres stick to) */
+  private get origin(): number {
+    return this.gridInset() && this.gridVisible() && this.gridSize() > 0 ? this.gridSize() / 2 : 0;
+  }
+
+  /** A grid point every `step` pixels, starting at 0,0 (or half a step in when `inset`): one small tile of the grid filled over the whole canvas. */
+  private drawGrid(element: HTMLCanvasElement, step: number, inset: boolean, numbered: boolean): void {
     const ctx = element.getContext('2d');
     if (!ctx || step <= 0) return;
     const tile = document.createElement('canvas');
@@ -178,14 +291,24 @@ export class CanvasBoard {
     if (!tileCtx) return;
     tileCtx.fillStyle = '#6c757d';
     const dot = step >= 4 ? 2 : 1;
-    tileCtx.fillRect(0, 0, dot, dot);
+    const at = inset ? Math.round(step / 2 - dot / 2) : 0;
+    tileCtx.fillRect(at, at, dot, dot);
     const pattern = ctx.createPattern(tile, 'repeat'); // a pattern is a snapshot: the tile must be drawn before this
     if (!pattern) return;
     ctx.fillStyle = pattern;
     ctx.fillRect(0, 0, element.width, element.height);
-    if (!frameDots) {
-      ctx.clearRect(0, 0, element.width, dot); // the points on the top edge
-      ctx.clearRect(0, 0, dot, element.height); // and on the left edge
+    if (numbered && step >= MIN_NUMBERED_STEP_PX) this.drawNumbers(ctx, element, step, inset ? step / 2 : 0);
+  }
+
+  /** Number the grid points 1, 2, 3 ... along each row from the top left; `first` is where the first row and column of points are. */
+  private drawNumbers(ctx: CanvasRenderingContext2D, element: HTMLCanvasElement, step: number, first: number): void {
+    ctx.fillStyle = '#495057';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center'; // centred under its point, so the numbers are as far from the edges as the points are
+    ctx.textBaseline = 'top';
+    let n = 0;
+    for (let y = first; y < element.height; y += step) {
+      for (let x = first; x < element.width; x += step) ctx.fillText(String(++n), x, y + 4);
     }
   }
 
@@ -211,7 +334,7 @@ export class CanvasBoard {
     event.preventDefault();
     const { id: _id, createdAt: _createdAt, ...object } = source;
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const result = this.diagram().place(object, event.clientX - rect.left, event.clientY - rect.top, this.step);
+    const result = this.diagram().place(object, event.clientX - rect.left, event.clientY - rect.top, this.step, this.origin);
     if ('error' in result) {
       this.notice.emit(result.error);
       return;
@@ -223,19 +346,39 @@ export class CanvasBoard {
 
   /** Grab a placed object (mouse, pen or finger): it is picked, and follows the pointer until it is let go. An arrow grabbed at an end moves that end alone. */
   startMove(event: PointerEvent, item: PlacedObject): void {
-    const handle = event.currentTarget as HTMLElement;
-    const area = handle.parentElement as HTMLElement;
-    const rect = area.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const { x, y } = this.areaPoint(event);
     this.selection.set([item.id]);
+    if (item.piece) this.apply(this.diagram().bringToFront(item.id)); // a piece that is picked up goes in front of the others and stays there when it is dropped
     this.connecting.set(true); // every point is shown while something is moved: it can be seen where it can be fastened
     const placed = this.diagram().get(item.id);
     const end = this.diagram().grabbedEnd(item.id, x, y);
     // the distance from the pointer to what is moved, so it does not jump to the pointer
     const grabbed = placed instanceof PlacedArrow && end ? placed.endPoint(end) : { x: item.centerX, y: item.centerY };
-    this.moving = { id: item.id, dx: x - grabbed.x, dy: y - grabbed.y, area, end };
-    this.capture(handle, event);
+    this.moving = { id: item.id, dx: x - grabbed.x, dy: y - grabbed.y, end };
+    this.capture(this.root().nativeElement, event); // not the object: it is made again in the store frame when it is moved there
+  }
+
+  /**
+   * Where the pointer is on the jigsaw pieces area, in the pixels the objects are placed in: over the store frame (which can be scrolled) it is where
+   * the frame is, beside the canvas; anywhere else it is on the part of the jigsaw pieces area that is left of the frame (the canvas and the blank space
+   * under it), and not outside what the area shows.
+   */
+  private areaPoint(event: PointerEvent): Point {
+    const store = this.store();
+    const inner = this.storeInner()?.nativeElement;
+    if (store && inner) {
+      const frame = (inner.parentElement as HTMLElement).getBoundingClientRect();
+      if (event.clientX >= frame.left && event.clientX <= frame.right && event.clientY >= frame.top && event.clientY <= frame.bottom) {
+        const rect = inner.getBoundingClientRect(); // moves with the scrolling of the frame
+        return { x: store.left + event.clientX - rect.left, y: event.clientY - rect.top };
+      }
+    }
+    // not over the store frame: anywhere on the area that is left of it, the picture and the blank space under it, as far as the area shows
+    const rect = (this.canvas()?.nativeElement as HTMLElement).getBoundingClientRect();
+    const area = this.root().nativeElement.getBoundingClientRect();
+    const reach = store ? store.left : this.width();
+    const lowest = Math.max(this.height(), area.bottom - rect.top - AREA_PADDING_PX);
+    return { x: Math.min(Math.max(event.clientX - rect.left, 0), reach), y: Math.min(Math.max(event.clientY - rect.top, 0), lowest) };
   }
 
   /** What is grabbed follows the pointer: the diagram moves the figure, the arrow or the end of the arrow (see `CanvasDiagram`). */
@@ -245,13 +388,13 @@ export class CanvasBoard {
     const diagram = this.diagram();
     const placed = diagram.get(moving.id);
     if (!placed) return;
-    const rect = moving.area.getBoundingClientRect();
-    const x = event.clientX - rect.left - moving.dx;
-    const y = event.clientY - rect.top - moving.dy;
+    const point = this.areaPoint(event);
+    const x = point.x - moving.dx;
+    const y = point.y - moving.dy;
     let next = diagram;
-    if (!(placed instanceof PlacedArrow)) next = diagram.moveFigure(moving.id, x, y, this.step);
-    else if (moving.end) next = diagram.moveArrowEnd(moving.id, moving.end, x, y, this.step);
-    else next = diagram.moveArrow(moving.id, x, y, this.step);
+    if (!(placed instanceof PlacedArrow)) next = diagram.moveFigure(moving.id, x, y, this.step, this.origin);
+    else if (moving.end) next = diagram.moveArrowEnd(moving.id, moving.end, x, y, this.step, this.origin);
+    else next = diagram.moveArrow(moving.id, x, y, this.step, this.origin);
     this.apply(next);
   }
 

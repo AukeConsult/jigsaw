@@ -1,28 +1,54 @@
+@if (tools()) {
 <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
   <span class="small text-body-secondary">Drag an object from the list into the canvas area, and drag it again to move it. Its centre sticks to a grid point.
     The canvas is layer 0; a new object goes on layer {{ lastLayer() }}.</span>
-  <div class="d-flex align-items-center gap-2">
-    <label class="small text-body-secondary mb-0" for="layer">Layer</label>
-    <input id="layer" type="number" min="1" max="1000" step="1" class="form-control form-control-sm" style="width: 5rem"
-           [value]="selectedLayer() ?? ''" [disabled]="!selection().length" (change)="setLayer($any($event.target).value)">
-    <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" [disabled]="!selection().length" (click)="removeSelected()">Remove picked</button>
-  </div>
+    <div class="d-flex align-items-center gap-2">
+      <label class="small text-body-secondary mb-0" for="layer">Layer</label>
+      <input id="layer" type="number" min="1" max="1000" step="1" class="form-control form-control-sm" style="width: 5rem"
+             [value]="selectedLayer() ?? ''" [disabled]="!selection().length" (change)="setLayer($any($event.target).value)">
+      <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" [disabled]="!selection().length" (click)="removeSelected()">Remove picked</button>
+    </div>
 </div>
+}
+@if (helperBanner()) {
+  <!-- the helper banner above the jigsaw pieces area: the switch shows or hides the helper picture, a frame on top of the page with the whole picture, a quarter of its width and height to begin with -->
+  <div class="d-flex align-items-center gap-3 border rounded bg-body px-2 py-1 mb-1" aria-label="Helper banner">
+    <div class="form-check form-switch mb-0">
+      <input id="helper-picture" class="form-check-input" type="checkbox" role="switch" [checked]="helper()" [disabled]="!picture()"
+             (change)="helper.set($any($event.target).checked)">
+      <label class="form-check-label small text-nowrap" for="helper-picture">Helper picture</label>
+    </div>
+    @if (!picture()) {
+      <span class="small text-body-secondary">Choose a background picture to get a helper picture.</span>
+    }
+  </div>
+}
+@if (helperBanner() && helper() && picture(); as src) {
+  <!-- the helper picture: a frame on top of the rest of the page, moved by its title -->
+  <div class="position-fixed shadow border rounded bg-body" style="z-index: 1040" [style.left.px]="helperFrame().x" [style.top.px]="helperFrame().y" aria-label="Helper picture frame">
+    <div class="d-flex justify-content-between align-items-center gap-2 px-2 py-1 bg-body-secondary border-bottom rounded-top small" style="cursor: move; touch-action: none; user-select: none"
+         (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame()" (pointercancel)="endHelperFrame()">
+      <span>Helper picture</span>
+      <button type="button" class="btn-close btn-sm" aria-label="Hide the helper picture" (pointerdown)="$event.stopPropagation()" (click)="helper.set(false)"></button>
+    </div>
+    <img [src]="src" class="d-block m-1 border" [style.width.px]="width() * helperScale()" [style.height.px]="height() * helperScale()" style="pointer-events: none" alt="The whole picture, smaller">
+    <!-- the corner: drag it to make the picture bigger (up to half its size) or smaller (down to a tenth) -->
+    <div class="position-absolute end-0 bottom-0" aria-label="Size of the helper picture" style="width: 16px; height: 16px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 50%, #6c757d 50%)"
+         (pointerdown)="startHelperSize($event)" (pointermove)="moveHelperSize($event)" (pointerup)="endHelperSize()" (pointercancel)="endHelperSize()"></div>
+  </div>
+}
 <!-- the canvas area: exactly width × height pixels; scrolls when it is bigger than the page. The placed objects lie over the canvas at their real size. -->
-<div class="overflow-auto border rounded bg-body-tertiary p-2">
-  <div class="position-relative shadow-sm" [style.width.px]="width()" [style.height.px]="height()"
+<div #root class="d-flex align-items-start overflow-auto border rounded bg-body-tertiary p-2" [style.gap.px]="gridSize()" [style.height.px]="areaHeight()" aria-label="Jigsaw pieces area"
+     (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()">
+  <div class="position-relative shadow-sm bg-white flex-shrink-0" [style.width.px]="width()" [style.height.px]="height()"
+       [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null" style="background-size: cover; background-position: center"
        (dragover)="allowDrop($event)" (dragleave)="leaveDrop()" (drop)="drop($event)"
        (pointerdown)="startMarquee($event)" (pointermove)="moveMarquee($event)" (pointerup)="endMarquee()" (pointercancel)="endMarquee()">
-    <canvas #area class="bg-white d-block" aria-label="Canvas area"></canvas>
+    <canvas #area class="d-block" aria-label="Canvas area"></canvas>
     @for (v of view(); track v.p.id) {
-      @let p = v.p;
-      <div class="position-absolute" role="button" tabindex="0" [attr.aria-label]="p.object.name" [style.left.px]="v.left" [style.top.px]="v.top" [style.transform]="v.rotate" [style.z-index]="v.layer"
-           [style.outline]="selection().includes(p.id) ? '2px dashed #0d6efd' : null"
-           style="touch-action: none; cursor: move"
-           (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
-           (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
-        <app-canvas-shape [object]="v.object" [bends]="v.bends" [maxSide]="10000" [showPoints]="selectedId() === p.id || connecting()" [boundPoints]="boundPoints().get(p.id) ?? []" />
-      </div>
+      @if (!v.inStore) {
+        <ng-container *ngTemplateOutlet="item; context: { $implicit: v, shift: 0 }" />
+      }
     }
     <!-- the box around several picked objects, and the rectangle that is being dragged to pick them -->
     @if (groupBox(); as g) {
@@ -55,4 +81,31 @@
            (click)="$event.stopPropagation()"></div>
     }
   </div>
+  <!-- the store frame of a jigsaw, beside the canvas: the pieces wait here, spread out; it is as high as three canvases and scrolls up and down -->
+  @if (store(); as s) {
+    <div class="flex-shrink-0 border rounded bg-body-secondary overflow-y-auto overflow-x-hidden" aria-label="Jigsaw pieces store"
+         [style.width.px]="s.width + 16" [style.height.px]="areaHeight() ? (areaHeight() ?? 0) - 18 : height()">
+      <div #storeInner class="position-relative" [style.width.px]="s.width" [style.height.px]="s.height">
+        @for (v of view(); track v.p.id) {
+          @if (v.inStore) {
+            <ng-container *ngTemplateOutlet="item; context: { $implicit: v, shift: s.left }" />
+          }
+        }
+      </div>
+    </div>
+  }
 </div>
+<ng-template #item let-v let-shift="shift">
+      @let p = v.p;
+      <div class="position-absolute" role="button" tabindex="0" [attr.aria-label]="p.object.name" [style.left.px]="v.left - shift" [style.top.px]="v.top" [style.transform]="v.rotate" [style.z-index]="v.layer"
+           [style.outline]="selection().includes(p.id) ? '2px dashed #0d6efd' : null"
+           style="touch-action: none; cursor: move"
+           (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
+           (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
+        @if (v.piece; as piece) {
+          <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" />
+        } @else {
+        <app-canvas-shape [object]="v.object" [bends]="v.bends" [maxSide]="10000" [showPoints]="selectedId() === p.id || connecting()" [boundPoints]="boundPoints().get(p.id) ?? []" />
+        }
+      </div>
+</ng-template>

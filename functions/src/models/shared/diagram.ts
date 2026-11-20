@@ -17,11 +17,16 @@ import {
 // What the objects placed on a canvas do together: snap to each other, follow each other, resize as a group.
 
 /** The most objects that can be placed on one canvas. */
-export const CANVAS_MAX_PLACED = 200;
+export const CANVAS_MAX_PLACED = 500;
 /** How near (in pixels) an end of an arrow and a connection point of a figure have to come to snap together. */
 export const SNAP_DISTANCE_PX = 24;
 /** How near (in pixels) to an end of an arrow it is grabbed to move that end alone (at most a quarter of the arrow's length). */
 export const HANDLE_RADIUS_PX = 12;
+/** A jigsaw piece moved within this share of its own size of the place it belongs snaps into place. */
+export const PIECE_SNAP_FRACTION = 0.5;
+/** A jigsaw piece is moved in steps this many times smaller than the grid (it does not stick to the grid points), but not finer than a half pixel. */
+export const PIECE_STEP_DIVISOR = 50;
+export const PIECE_MIN_STEP_PX = 0.5;
 
 /** One end of a placed arrow that is fastened to one point of a placed figure. */
 export interface Fastening {
@@ -156,16 +161,16 @@ export class CanvasDiagram {
   }
 
   /**
-   * The centre on one axis: the nearest grid point to `wanted` (every `step` pixels, from 0), with the whole object inside the canvas,
+   * The centre on one axis: the nearest grid point to `wanted` (every `step` pixels, from `origin`: 0, or half a step for a grid whose points are half a step in from the edge), with the whole object inside the canvas,
    * that is the centre between half the size and the canvas size minus half the size. When no grid point is in that range
    * (an object nearly as big as the canvas) the centre is held at the range instead.
    */
-  private static stickCenter(wanted: number, size: number, canvasSize: number, step: number): number {
+  private static stickCenter(wanted: number, size: number, canvasSize: number, step: number, origin = 0): number {
     const low = size / 2;
     const high = canvasSize - size / 2;
-    let center = Math.round(wanted / step) * step;
-    if (center < low) center = Math.ceil(low / step) * step;
-    if (center > high) center = Math.floor(high / step) * step;
+    let center = origin + Math.round((wanted - origin) / step) * step;
+    if (center < low) center = origin + Math.ceil((low - origin) / step) * step;
+    if (center > high) center = origin + Math.floor((high - origin) / step) * step;
     if (center < low || center > high) center = Math.round(Math.min(Math.max(wanted, low), high) * 2) / 2;
     return center;
   }
@@ -249,12 +254,12 @@ export class CanvasDiagram {
    * dropped near a connection point of a figure is fastened to it, a figure dropped near the free end of an arrow is fastened to it.
    * The new diagram and the id of the object, or the reason it cannot be put there.
    */
-  place(object: CanvasObjectInput, wantedX: number, wantedY: number, step: number): { diagram: CanvasDiagram; id: string } | { error: string } {
+  place(object: CanvasObjectInput, wantedX: number, wantedY: number, step: number, origin = 0): { diagram: CanvasDiagram; id: string } | { error: string } {
     if (object.width > this.width || object.height > this.height) return { error: `"${object.name}" is bigger than the canvas.` };
     if (this.items.length >= CANVAS_MAX_PLACED) return { error: `At most ${CANVAS_MAX_PLACED} objects fit on a canvas.` };
     const id = crypto.randomUUID();
-    const centerX = CanvasDiagram.stickCenter(wantedX, object.width, this.width, step);
-    const centerY = CanvasDiagram.stickCenter(wantedY, object.height, this.height, step);
+    const centerX = CanvasDiagram.stickCenter(wantedX, object.width, this.width, step, origin);
+    const centerY = CanvasDiagram.stickCenter(wantedY, object.height, this.height, step, origin);
     const item = PlacedBase.of({ id, object, centerX, centerY, layer: this.lastLayer() }); // a new object goes on the last layer
     if (item instanceof PlacedArrow) {
       const snapped = this.snapArrow(item.at(wantedX, wantedY), wantedX, wantedY);
@@ -274,6 +279,15 @@ export class CanvasDiagram {
     if (!(arrow instanceof PlacedArrow)) return this;
     const next = arrow.withBends({ [which]: bend });
     return next.bends.every((b, i) => b === arrow.bends[i]) && next.data.bend === arrow.data.bend ? this : this.replace(next);
+  }
+
+  /** The diagram with an object on a layer above all the others (the highest layer there is, at most): it is in front of them. Nothing changes when it is in front already. */
+  bringToFront(id: string): CanvasDiagram {
+    const item = this.get(id);
+    if (!item) return this;
+    const top = Math.max(0, ...this.items.filter((i) => i.id !== id).map((i) => i.layer));
+    if (item.layer > top) return this;
+    return this.setLayer([id], Math.min(MAX_LAYER, top + 1));
   }
 
   /** The diagram with the width across of an arrow changed (see `CanvasArrow.withAcross`): its ends stay where they are, so what it is fastened to does too. */
@@ -369,13 +383,21 @@ export class CanvasDiagram {
    * Moves a figure so its centre is at (wantedX, wantedY): on a grid point, inside the canvas. Near a free end of an arrow it snaps so one of its
    * points is on that end, and is fastened to it. The arrows that are fastened to it follow, the other ends of those arrows stay.
    */
-  moveFigure(id: string, wantedX: number, wantedY: number, step: number): CanvasDiagram {
+  moveFigure(id: string, wantedX: number, wantedY: number, step: number, origin = 0): CanvasDiagram {
     const figure = this.get(id);
     if (!(figure instanceof PlacedFigure)) return this;
-    let moved = figure.at(
-      CanvasDiagram.stickCenter(wantedX, figure.object.width, this.width, step),
-      CanvasDiagram.stickCenter(wantedY, figure.object.height, this.height, step),
-    );
+    // a piece that comes close enough to the grid point it belongs on snaps there (this beats the grid)
+    const home = figure.home();
+    const size = figure.object.width;
+    const snapsHome = !!home && Math.hypot(wantedX - home.x, wantedY - home.y) <= PIECE_SNAP_FRACTION * size;
+    // a piece moves in much finer steps than the grid (a step that goes a whole number of times into the grid, so the grid points are still among them)
+    const pieceStep = figure.data.piece ? Math.max(PIECE_MIN_STEP_PX, step / PIECE_STEP_DIVISOR) : step;
+    let moved = snapsHome && home
+      ? figure.at(home.x, home.y)
+      : figure.at(
+          CanvasDiagram.stickCenter(wantedX, figure.object.width, this.width, pieceStep, origin),
+          CanvasDiagram.stickCenter(wantedY, figure.object.height, this.height, pieceStep, origin),
+        );
     let fastened: Fastening[] = [];
     const snapped = this.snapFigure(figure, wantedX, wantedY);
     if (snapped) ({ figure: moved, fastened } = snapped);
@@ -387,15 +409,15 @@ export class CanvasDiagram {
    * Moves a whole arrow (as long and as turned as it is) so its centre is at (wantedX, wantedY). An end near a connection point of a figure snaps
    * to it (this beats the grid) and is fastened; an arrow that is moved away is free again.
    */
-  moveArrow(id: string, wantedX: number, wantedY: number, step: number): CanvasDiagram {
+  moveArrow(id: string, wantedX: number, wantedY: number, step: number, origin = 0): CanvasDiagram {
     const arrow = this.get(id);
     if (!(arrow instanceof PlacedArrow)) return this;
     const next =
       this.snapArrow(arrow, wantedX, wantedY) ??
       arrow
         .at(
-          CanvasDiagram.stickCenter(wantedX, arrow.object.width, this.width, step),
-          CanvasDiagram.stickCenter(wantedY, arrow.object.height, this.height, step),
+          CanvasDiagram.stickCenter(wantedX, arrow.object.width, this.width, step, origin),
+          CanvasDiagram.stickCenter(wantedY, arrow.object.height, this.height, step, origin),
         )
         .withConnections(undefined);
     if (!next.fits(this.width, this.height)) return this; // a stretched or turned arrow has to stay in the canvas
@@ -408,7 +430,7 @@ export class CanvasDiagram {
    * connection point of a figure within SNAP_DISTANCE_PX (and is fastened to it), else to a grid point; it stays in the canvas. An end that is moved
    * off the point it was fastened to is free.
    */
-  moveArrowEnd(id: string, endId: EndId, wantedX: number, wantedY: number, step: number): CanvasDiagram {
+  moveArrowEnd(id: string, endId: EndId, wantedX: number, wantedY: number, step: number, origin = 0): CanvasDiagram {
     const arrow = this.get(id);
     if (!(arrow instanceof PlacedArrow)) return this;
     let nearest: { target: FigurePoint; distance: number } | null = null;
@@ -419,7 +441,7 @@ export class CanvasDiagram {
     const clamp = (value: number, max: number) => Math.min(Math.max(0, value), max);
     const point = nearest
       ? { x: nearest.target.x, y: nearest.target.y }
-      : { x: clamp(Math.round(wantedX / step) * step, this.width), y: clamp(Math.round(wantedY / step) * step, this.height) };
+      : { x: clamp(origin + Math.round((wantedX - origin) / step) * step, this.width), y: clamp(origin + Math.round((wantedY - origin) / step) * step, this.height) };
     const connections: PlacedConnections = { ...arrow.data.connections };
     if (nearest) connections[endId] = { objectId: nearest.target.objectId, pointId: nearest.target.id };
     else delete connections[endId];

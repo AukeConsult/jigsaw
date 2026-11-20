@@ -1,5 +1,8 @@
 <div *transloco="let t; prefix: 'home'">
-  <form class="card card-body p-3">
+  @if (heading()) {
+    <h1 class="h4 mb-3" [class.px-3]="docked()" [class.pt-2]="docked()">{{ heading() }}</h1>
+  }
+  <form class="card card-body p-3" [class.border-0]="docked()" [class.rounded-0]="docked()" [class.bg-transparent]="docked()">
     <div class="mb-2">
       <label class="form-label small mb-1" for="canvas-name">{{ t('name') || 'Name' }}</label>
       <input id="canvas-name" name="name" class="form-control form-control-sm" type="text" [maxlength]="maxName"
@@ -9,25 +12,47 @@
       <div class="col-6">
         <label class="form-label small mb-1" for="canvas-width">{{ t('width') || 'Width (px)' }}</label>
         <input id="canvas-width" name="width" class="form-control form-control-sm" type="number" [min]="minSide" [max]="maxSide" step="1"
-               [ngModel]="width()" (ngModelChange)="width.set($event)">
+               [ngModel]="width()" (ngModelChange)="width.set($event)" (change)="fit()">
       </div>
       <div class="col-6">
         <label class="form-label small mb-1" for="canvas-height">{{ t('height') || 'Height (px)' }}</label>
         <input id="canvas-height" name="height" class="form-control form-control-sm" type="number" [min]="minSide" [max]="maxSide" step="1"
-               [ngModel]="height()" (ngModelChange)="height.set($event)">
+               [ngModel]="height()" (ngModelChange)="height.set($event)" (change)="fit()">
       </div>
     </div>
 
     <div class="mb-2">
       <label class="form-label small mb-1" for="canvas-grid">{{ t('grid') || 'Grid (px, 0 = off)' }}</label>
       <input id="canvas-grid" name="gridSize" class="form-control form-control-sm" type="number" min="0" [max]="maxGrid" step="1"
-             [ngModel]="gridSize()" (ngModelChange)="gridSize.set($event)">
+             [ngModel]="gridSize()" (ngModelChange)="gridSize.set($event)" (change)="fit()">
       <div class="form-check form-switch mt-2 mb-0">
         <input id="canvas-grid-visible" name="gridVisible" class="form-check-input" type="checkbox" role="switch"
                [ngModel]="gridVisible()" (ngModelChange)="gridVisible.set($event)">
         <label class="form-check-label small" for="canvas-grid-visible">{{ t('gridVisible') || 'Show the grid points' }}</label>
       </div>
     </div>
+
+    @if (pictureAllowed()) {
+      <div class="mb-2">
+        <label class="form-label small mb-1" for="canvas-picture">Background picture</label>
+        <input id="canvas-picture" type="file" class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp" (change)="picked($event)">
+        @if (hasPicture()) {
+          <div class="d-flex flex-wrap gap-1 mt-1">
+            <button type="button" class="btn btn-sm btn-outline-primary py-0" (click)="cutPicture.emit()">Cut into pieces</button>
+            @if (hasPieces()) {
+              <button type="button" class="btn btn-sm btn-outline-primary py-0" (click)="resetPieces.emit()">Reset</button>
+            }
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0" (click)="removePicture.emit()">Remove the picture</button>
+          </div>
+          @if (matched(); as m) {
+            <div class="small mt-2" role="status" aria-live="polite">
+              Matched: <strong>{{ m.count }}</strong> of {{ m.total }}{{ m.count === m.total ? ' \u2013 solved!' : '' }}
+              <div class="progress mt-1" style="height: 6px"><div class="progress-bar bg-success" [style.width.%]="(m.count / m.total) * 100"></div></div>
+            </div>
+          }
+        }
+      </div>
+    }
 
     @if (error()) {
       <div class="form-text text-danger mb-2 mt-0">{{ error() }}</div>
@@ -48,12 +73,18 @@
           @default { {{ currentId() ? 'Saved' : 'New canvas: saved when you change something' }} }
         }
       </span>
-      <button type="button" class="btn btn-outline-primary btn-sm text-nowrap" (click)="newCanvas.emit()">New canvas</button>
+      <div class="d-flex gap-1">
+        @if (debugAllowed()) {
+          <button type="button" class="btn btn-sm text-nowrap" [class.btn-secondary]="debug()" [class.btn-outline-secondary]="!debug()" [attr.aria-pressed]="debug()"
+                  (click)="debug.set(!debug())">Debug</button>
+        }
+        <button type="button" class="btn btn-outline-primary btn-sm text-nowrap" (click)="newCanvas.emit()">New canvas</button>
+      </div>
     </div>
   </form>
 
-  <h2 class="h6 mt-3">{{ t('saved') || 'Saved canvases' }}</h2>
-  <div class="list-group list-group-flush border rounded">
+  <h2 class="h6 mt-3" [class.px-3]="docked()">{{ t('saved') || 'Saved canvases' }}</h2>
+  <div class="list-group list-group-flush border rounded" [class.mx-3]="docked()" [class.mb-3]="docked()">
     @for (item of saved(); track item.id) {
       <div class="list-group-item p-0">
         <button type="button" class="list-group-item-action border-0 bg-transparent w-100 d-flex justify-content-between px-2 py-1 small" (click)="openCanvas.emit(item)">

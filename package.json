@@ -24,6 +24,6 @@
     "android:open": "npm --prefix frontend run cap -- open android",
     "sync:models": "node scripts/sync-models.mjs",
     "check:models": "node scripts/sync-models.mjs --check",
-    "test:emulator": "node scripts/with-java.mjs firebase emulators:exec --config firebase.test.json --only firestore --project demo-canvas-test \"npm --prefix functions run test:emulator\""
+    "test:emulator": "node scripts/with-java.mjs firebase emulators:exec --config firebase.test.json --only firestore,storage --project demo-canvas-test \"npm --prefix functions run test:emulator\""
   }
 }

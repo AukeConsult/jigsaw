@@ -2,6 +2,7 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app";
 import type { CanvasStore } from "../src/canvas-list";
+import { CANVAS_MAX_PLACED, CanvasArea } from "../src/models";
 import type { CanvasSpec } from "../src/models";
 
 function memoryStore(): CanvasStore {
@@ -227,7 +228,7 @@ describe("canvas-list", () => {
     ["outside to the right", [{ id: "p", centerX: 91, centerY: 10, object: box }]],
     ["outside at the bottom", [{ id: "p", centerX: 10, centerY: 91, object: box }]],
     ["no centre (the old top-left fields)", [{ id: "p", x: 0, y: 0, object: box }]],
-    ["too many", Array.from({ length: 201 }, (_, i) => ({ id: "p" + i, centerX: 10, centerY: 10, object: box }))],
+    ["too many", Array.from({ length: CANVAS_MAX_PLACED + 1 }, (_, i) => ({ id: "p" + i, centerX: 10, centerY: 10, object: box }))],
   ])("refuses placed objects: %s", async (_why, placed) => {
     const res = await request(createApp({ canvasList: memoryStore() })).post("/api/canvas-list").send({ ...canvas, placed });
     expect(res.status).toBe(400);
@@ -266,5 +267,16 @@ describe("jigsaw", () => {
     expect((await request(app).post("/api/jigsaw").send({ ...body, width: 0 })).status).toBe(400); // the same checks
     expect((await request(app).delete(`/api/jigsaw/${made.body.id}`)).status).toBe(204);
     expect((await request(app).get("/api/jigsaw")).body).toEqual([]);
+  });
+});
+
+describe("the size of a canvas whose grid points are half a step in from the edge", () => {
+  it("is a whole number of grid steps, at least one and at most what a canvas can be", () => {
+    expect(CanvasArea.fittedSide(800, 50)).toBe(800);
+    expect(CanvasArea.fittedSide(810, 50)).toBe(800);
+    expect(CanvasArea.fittedSide(830, 50)).toBe(850);
+    expect(CanvasArea.fittedSide(10, 50)).toBe(50);
+    expect(CanvasArea.fittedSide(10000, 300)).toBe(9900); // not past the biggest canvas
+    expect(CanvasArea.fittedSide(777, 0)).toBe(777); // no grid: as it is
   });
 });

@@ -3,12 +3,14 @@ import { getFirestore } from "firebase-admin/firestore";
 import { beforeAll, describe, expect, it } from "vitest";
 import { firestoreCanvasStore } from "../src/canvas-list";
 import { firestoreCanvasObjectStore } from "../src/canvas-objects";
-import { CANVAS_LIST, CANVAS_OBJECTS, DEFAULT_CONNECTOR, DEFAULT_OBJECT } from "../src/models";
+import { storageImageStore } from "../src/jigsaw-image";
+import { firestorePieceStore } from "../src/jigsaw-pieces";
+import { CANVAS_LIST, CANVAS_OBJECTS, DEFAULT_CONNECTOR, DEFAULT_OBJECT, JIGSAW, JIGSAW_PIECES, JigsawCut, JigsawPieces } from "../src/models";
 
 // The real stores on the real Firestore emulator (npm run test:emulator, which starts it). The other tests use a small fake collection.
 describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firestore emulator", () => {
   beforeAll(() => {
-    initializeApp({ projectId: "demo-canvas-test" });
+    initializeApp({ projectId: "demo-canvas-test", storageBucket: "demo-canvas-test.appspot.com" });
   });
 
   const raw = async (collection: string, id: string) => (await getFirestore().collection(collection).doc(id).get()).data() as Record<string, any>;
@@ -90,5 +92,56 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect([older.kind, older.arrow, older.arrowStyle, older.fontSize, older.cornerRadius]).toEqual(["figure", "one-way", "solid", 16, 0]);
     await store.remove(made.id);
     await getFirestore().collection(CANVAS_OBJECTS).doc("older").delete();
+  });
+
+  it("keeps the pieces of a jigsaw under its document, their graphics and its picture in Storage, and all of it goes with the jigsaw", async () => {
+    const jigsaws = firestoreCanvasStore(JIGSAW);
+    const pieces = firestorePieceStore();
+    const picture = storageImageStore();
+    const made = await jigsaws.add({ name: "Puzzle", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [], storeWidth: 400 });
+    const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(30, 5)]);
+    const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(2000, 9)]);
+
+    const cut = JigsawCut.cut(200, 150, 50, () => 0.4);
+    if ("error" in cut) throw new Error(cut.error);
+    const list = cut.placed.map((p) => JigsawPieces.of(p, cut.columns)!);
+
+    expect(await pieces.replaceAll("no-such-jigsaw", list, new Map())).toBe(false);
+    expect(await pieces.replaceAll(made.id, list, new Map(list.slice(0, 2).map((p) => [p.id, { data: webp, mime: "image/webp" }])))).toBe(true);
+    await picture.put(made.id, jpeg, "image/jpeg");
+
+    // the pieces are documents under the jigsaw, with their number and status
+    const docs = await getFirestore().collection(JIGSAW).doc(made.id).collection(JIGSAW_PIECES).get();
+    expect(docs.size).toBe(12);
+    const read = await pieces.list(made.id);
+    expect(read.map((p) => p.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    expect(read[0]).toMatchObject({ id: "piece-0-0", col: 0, row: 0, size: 50 });
+    expect(Object.keys(docs.docs[0].data())).toContain("matched");
+    expect((await jigsaws.list()).find((c) => c.id === made.id)?.placed).toEqual([]); // the jigsaw document holds none of them
+
+    // the graphics are files
+    expect((await pieces.graphic(made.id, list[0].id))?.data.equals(webp)).toBe(true);
+    expect(await pieces.graphic(made.id, list[5].id)).toBeNull();
+    expect((await picture.get(made.id))?.data.equals(jpeg)).toBe(true);
+
+    // moving a piece onto its own place makes it matched, moving it away makes it not matched
+    const piece = read[5]; // column 1, row 1: its place is 75, 75
+    await pieces.move(made.id, [{ id: piece.id, centerX: 75, centerY: 75, layer: 40 }]);
+    expect((await pieces.list(made.id))[5]).toMatchObject({ centerX: 75, centerY: 75, layer: 40, matched: true });
+    await pieces.move(made.id, [{ id: piece.id, centerX: 300, centerY: 20, layer: 41 }, { id: "piece-9-9", centerX: 1, centerY: 1, layer: 1 }]);
+    expect((await pieces.list(made.id))[5]).toMatchObject({ centerX: 300, matched: false, number: 6 });
+    expect(await pieces.list(made.id)).toHaveLength(12); // nothing was made for a piece that is not there
+
+    // cut again: the old pieces and graphics are gone
+    expect(await pieces.replaceAll(made.id, list.slice(0, 3), new Map())).toBe(true);
+    expect(await pieces.list(made.id)).toHaveLength(3);
+    expect(await pieces.graphic(made.id, list[0].id)).toBeNull();
+    expect((await picture.get(made.id))?.data.equals(jpeg)).toBe(true); // the picture stays
+
+    // deleting the jigsaw takes all of it
+    await pieces.removeAll(made.id);
+    expect(await pieces.list(made.id)).toEqual([]);
+    expect(await picture.get(made.id)).toBeNull();
+    await jigsaws.remove(made.id);
   });
 });
