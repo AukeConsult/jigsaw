@@ -21,7 +21,7 @@
            style="touch-action: none; cursor: move"
            (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
            (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
-        <app-canvas-shape [object]="v.object" [bend]="v.bend" [maxSide]="10000" [showPoints]="selectedId() === p.id || connecting()" [boundPoints]="boundPoints().get(p.id) ?? []" />
+        <app-canvas-shape [object]="v.object" [bends]="v.bends" [maxSide]="10000" [showPoints]="selectedId() === p.id || connecting()" [boundPoints]="boundPoints().get(p.id) ?? []" />
       </div>
     }
     <!-- the box around several picked objects, and the rectangle that is being dragged to pick them -->
@@ -33,11 +33,11 @@
       <div class="position-absolute border border-primary bg-primary bg-opacity-10" style="pointer-events: none; z-index: 1001"
            [style.left.px]="m.left" [style.top.px]="m.top" [style.width.px]="m.width" [style.height.px]="m.height"></div>
     }
-    <!-- the middle of the picked arrow, its third point: drag it to the side to bend the arrow into a curve, back to the line to make it straight -->
-    @if (bendHandle(); as m) {
+    <!-- the three points that shape the picked arrow (a quarter, half and three quarters of the way): drag each to a side to curve the arrow, back to the line to make it straight -->
+    @for (m of bendHandles(); track m.which) {
       <div class="position-absolute bg-white border border-primary" style="width: 12px; height: 12px; transform: rotate(45deg); touch-action: none; cursor: move; z-index: 1001"
-           [style.left.px]="m.x - 6" [style.top.px]="m.y - 6" aria-label="Bend"
-           (pointerdown)="startBend($event); $event.stopPropagation()" (pointermove)="moveBend($event)" (pointerup)="endBend()" (pointercancel)="endBend()"
+           [style.left.px]="m.x - 6" [style.top.px]="m.y - 6" [attr.aria-label]="'Bend ' + m.which"
+           (pointerdown)="startBend($event, m.which); $event.stopPropagation()" (pointermove)="moveBend($event)" (pointerup)="endBend()" (pointercancel)="endBend()"
            (click)="$event.stopPropagation()"></div>
     }
     <!-- the two handles for the width across of the picked arrow: drag one to make the arrow wider or thinner -->

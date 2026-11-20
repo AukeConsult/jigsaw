@@ -1,33 +1,45 @@
 import { describe, expect, it } from "vitest";
-import { QuadraticCurve } from "../src/models";
+import { SmoothCurve } from "../src/models";
 
 const near = (a: { x: number; y: number }, b: { x: number; y: number }) => {
   expect(a.x).toBeCloseTo(b.x, 9);
   expect(a.y).toBeCloseTo(b.y, 9);
 };
+const line = (...ys: number[]) => ys.map((y, i) => ({ x: (i * 100) / (ys.length - 1), y }));
 
-describe("a quadratic curve", () => {
-  const curve = new QuadraticCurve({ x: 0, y: 0 }, { x: 50, y: 100 }, { x: 100, y: 0 });
+describe("a smooth curve", () => {
+  const curve = new SmoothCurve(line(0, 30, 40, 30, 0)); // five points, a hump in the middle
 
-  it("goes from its start to its end, and its middle is half way between the control point and the middle of the straight line", () => {
+  it("goes from its first point to its last and through every point on the way", () => {
     near(curve.at(0), { x: 0, y: 0 });
     near(curve.at(1), { x: 100, y: 0 });
-    near(curve.at(0.5), { x: 50, y: 50 }); // (start + 2 x control + end) / 4
+    near(curve.at(0.25), { x: 25, y: 30 });
+    near(curve.at(0.5), { x: 50, y: 40 });
+    near(curve.at(0.75), { x: 75, y: 30 });
+    near(curve.start, curve.at(0));
+    near(curve.end, curve.at(1));
+  });
+
+  it("can be an S: the points are on different sides of the line", () => {
+    const s = new SmoothCurve(line(0, 30, 0, -30, 0));
+    expect(s.at(0.25).y).toBeCloseTo(30, 9);
+    expect(s.at(0.75).y).toBeCloseTo(-30, 9);
+  });
+
+  it("is straight, and as long as the distance, when the points are on a line at equal distances", () => {
+    const straight = new SmoothCurve(line(0, 0, 0, 0, 0));
+    near(straight.at(0.3), { x: 30, y: 0 }); // at the same speed all the way
+    near(straight.normal(0.3), { x: 0, y: 1 }); // along x to the right: across is down
+    expect(straight.length()).toBeCloseTo(100, 9);
+    expect(curve.length()).toBeGreaterThan(100);
   });
 
   it("knows its direction, and the direction across it (a quarter turn clockwise on the screen)", () => {
-    expect(curve.tangent(0)).toEqual({ x: 100, y: 200 }); // twice the way to the control point
     const n = curve.normal(0);
     expect(Math.hypot(n.x, n.y)).toBeCloseTo(1, 9);
-    near(n, { x: -200 / Math.hypot(100, 200), y: 100 / Math.hypot(100, 200) });
-    const straight = new QuadraticCurve({ x: 0, y: 0 }, { x: 50, y: 0 }, { x: 100, y: 0 });
-    near(straight.normal(0.3), { x: 0, y: 1 }); // along x to the right: across is down
-  });
-
-  it("has a length: a straight one is as long as the distance, a bent one is longer", () => {
-    const straight = new QuadraticCurve({ x: 0, y: 0 }, { x: 50, y: 0 }, { x: 100, y: 0 });
-    expect(straight.length()).toBeCloseTo(100, 9);
-    expect(curve.length()).toBeGreaterThan(100);
+    const t = curve.tangent(0);
+    near(n, { x: -t.y / Math.hypot(t.x, t.y), y: t.x / Math.hypot(t.x, t.y) });
+    expect(curve.tangent(0.5).y).toBeCloseTo(0, 9); // at the top of the hump it goes level
   });
 
   it("gives a part of itself as a curve that is on it", () => {
@@ -36,8 +48,8 @@ describe("a quadratic curve", () => {
     near(part.end, curve.at(0.75));
     near(part.at(0.5), curve.at(0.5)); // the middle of the part is the middle of the whole
     near(part.at(0.25), curve.at(0.25 + 0.5 * 0.25));
-    const whole = curve.part(0, 1);
-    near(whole.control, curve.control);
+    near(curve.part(0, 1).at(0.6), curve.at(0.6));
+    near(part.part(0, 0.5).end, curve.at(0.5)); // a part of a part
   });
 
   it("has a box that holds all of it", () => {
@@ -45,6 +57,6 @@ describe("a quadratic curve", () => {
     expect(box.left).toBeCloseTo(0, 9);
     expect(box.top).toBeCloseTo(0, 9);
     expect(box.width).toBeCloseTo(100, 9);
-    expect(box.height).toBeCloseTo(50, 9); // it never gets to the control point, only to y = 50
+    expect(box.height).toBeGreaterThanOrEqual(40 - 1e-9); // it reaches the top of the hump
   });
 });

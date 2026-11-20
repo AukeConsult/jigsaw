@@ -4,12 +4,15 @@
   "license": "PolyForm-Noncommercial-1.0.0",
   "author": "Leif Auke <leif@auke.no> (Blueboot R&D AS)",
   "main": "lib/index.js",
-  "engines": { "node": "22" },
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
     "serve": "npm run build && firebase emulators:start --only functions",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:emulator": "vitest run --config vitest.emulator.config.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

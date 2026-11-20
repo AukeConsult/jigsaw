@@ -14,7 +14,7 @@ itself. Built on the same structure as Seven Friends.
 | file | what is in it |
 |---|---|
 | `canvas-object.ts` | a canvas object's settings and the classes `CanvasBaseObject` (parent) → `CanvasFigure` → `CanvasArrow` |
-| `geometry.ts` | `Point`, `Box`, resize handles and `resizedBox` (no knowledge of objects) |
+| `geometry.ts` | `Point`, `Box`, resize handles and `resizedBox`, and `SmoothCurve` (the curve of a bent arrow; used by the model and by the drawing). No knowledge of objects |
 | `placed.ts` | an object placed on a canvas: `PlacedBase` → `PlacedFigure`, `PlacedArrow` |
 | `diagram.ts` | `CanvasDiagram`: what the placed objects do together (snap, follow, resize as a group, layers) |
 | `canvas.ts` | a saved canvas (`CanvasSpec`) and `CanvasArea`, which checks one |
@@ -23,7 +23,7 @@ itself. Built on the same structure as Seven Friends.
 - `home/` – the canvas page: holds the open canvas, autosaves, opens/starts/deletes saved canvases. Three parts: `canvas-panel/` (settings + saved list), `canvas-board/` (the canvas, its objects and all pointer tools), `object-palette/` (objects to drag in).
 - `objects/` – the Objects page, with `object-panel/` (the form) and `canvas-shape/` (draws an object as SVG).
 - `core/` – `autosave.ts` (saves a change a pause after it), `api-collection.ts` + the two API services, `drag.ts`.
-- Backend: `canvas-list.ts` / `canvas-objects.ts` (routes), `document-store.ts` (the Firestore code both use).
+- Backend: `canvas-list.ts` / `canvas-objects.ts` (the routes: they only check, call `stored()` and the store), `document-store.ts` (the Firestore code both use: list, add, replace, delete).
 
 ## Rules for the code
 1. **Classes work on their own object.** A rule belongs on the class that owns the data, at the right level of the parent/child hierarchy: what every object has is on `CanvasBaseObject`, what a figure adds on `CanvasFigure`, what an arrow adds on `CanvasArrow` (an arrow *is a* figure, a figure *is a* base object). Children override small hooks instead of `if (kind === …)` branches. Placed objects know their own geometry; the diagram does what they do together.
@@ -41,7 +41,7 @@ itself. Built on the same structure as Seven Friends.
 - **Objects** (collection `canvas-objects`): a *figure* (square, circle, triangle, histogram) with a default size, border, corner radius, colours and font; or a *connector* (an arrow, one way or both ways, solid or hollow). A square and a circle have equal sides.
 - **Placed objects** are independent copies stored inside the canvas document (`placed`), so changing or deleting the original does not change a canvas.
 - **Position:** a placed object's *centre* is what sticks to a grid point. Everything stays inside the canvas.
-- **Connection points:** a figure has 8 on its border (a triangle 6); an arrow has 2, one at each end (`start`, `end`). An arrow end within 24 px of a figure point snaps to it exactly and is fastened (and the other way: a figure near a free arrow end). Fastened points are drawn as a point in a point.
+- **Connection points:** a figure has 8 on its border (a triangle 6); an arrow has 2, one at each end (`start`, `end`). An arrow has three more points that shape it (not connection points): a quarter, half and three quarters of the way along. Drag each sideways on its own to curve the arrow, even into an S (`bendStart`, `bend`, `bendEnd`, in pixels from the straight line; all three 3 px or less is straight; a plain `bend` makes the other two follow at three quarters of it); drag back to the line to straighten. An arrow end within 24 px of a figure point snaps to it exactly and is fastened (and the other way: a figure near a free arrow end). Fastened points are drawn as a point in a point.
 - **Arrows follow:** a fastened arrow follows its figure when it moves or is resized; the other end stays. Removing a figure frees its arrows. Grabbing an arrow near an end moves that end alone; the two handles on its sides change its width across.
 - **Layers:** the canvas is layer 0; objects are on layers 1–1000, the first on 10; a new object goes on the last (highest) layer in use; a higher layer is in front.
 - **Resizing:** one figure by its 8 handles (opposite edge stays, edge on the grid, square/circle stay equal-sided, at least 4 px). A group (drag a rectangle on the empty canvas): positions scale by the group box on each axis, every figure keeps its shape and scales by the factor that changed more; an arrow is stretched by its ends and its thickness scales the same way.
@@ -57,6 +57,6 @@ The Firebase project `sevenfriends` is shared with Seven Friends. Therefore:
 
 ## Running and testing
 - `npm run install:all`, then `npm run dev` (functions watch + emulators + frontend). The frontend is on **http://localhost:4210**; emulator ports are offset from Seven Friends (UI 4010, Functions 5011, Firestore 8090, Auth 9109, Storage 9209, Hosting 5010) so both can run together.
-- `npm test` runs the backend tests (Vitest). The model has the real tests: every rule above is tested on the classes (`functions/test/`), the Firestore code with a small fake collection. A rule is not done until it has a test.
+- `npm test` runs the backend tests (Vitest). `npm run test:emulator` starts a Firestore emulator (test ports, not the dev ones) and runs the real stores against it (`functions/test-emulator/`). The model has the real tests: every rule above is tested on the classes (`functions/test/`), the Firestore code with a small fake collection. A rule is not done until it has a test.
 - `npm run build` builds both. The frontend build also copies the model (`sync:models`).
 - The frontend has no unit tests: check pages in the browser (the dev server must be the current one; restart it if the page shows old code).

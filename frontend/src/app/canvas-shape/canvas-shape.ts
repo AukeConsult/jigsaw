@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { CanvasBaseObject, CanvasObjectInput } from '../models/shared/canvas-object';
-import { Point, QuadraticCurve } from '../models/shared/geometry';
+import { Point, SmoothCurve } from '../models/shared/geometry';
 
 /** The bars drawn in a histogram (fractions of its height): an example, the real data comes later. */
 const SAMPLE_BARS = [0.45, 0.8, 0.6, 0.95, 0.7];
@@ -14,21 +14,20 @@ export class CanvasShape {
   readonly object = input.required<CanvasObjectInput>();
   /** the longest side the drawing may have on the page, in pixels (the shape is only scaled down) */
   readonly maxSide = input(240);
-  /** how far the middle of the arrow is from the straight line between its ends, to the side, in pixels (0: straight; only an arrow can be bent) */
-  readonly bend = input(0);
+  /** how far the curve of the arrow is from the straight line between its ends, to the side, in pixels, a quarter, half and three quarters of the way from its start (all 0: straight; only an arrow can be bent) */
+  readonly bends = input<readonly number[]>([0, 0, 0]);
 
   /**
-   * A bent arrow: the curve it follows in the box of the arrow (its ends in the middle of the left and right sides, its middle `bend` pixels to the side),
+   * A bent arrow: the curve it follows in the box of the arrow (its ends in the middle of the left and right sides, its three shaping points `bends` pixels to the side),
    * and what is drawn along it: a line with a head at the end (and at the start when it points both ways), or the outline of a block arrow. Null when
    * the arrow is straight (then it is drawn as before).
    */
   readonly curved = computed(() => {
     const o = this.object();
-    const bend = this.bend();
-    if (o.kind !== 'connector' || !bend) return null;
+    const bends = this.bends();
+    if (o.kind !== 'connector' || bends.every((b) => !b)) return null;
     const { w, h } = this.box();
-    // the middle of the curve is `bend` to the side, so the control point is twice as far
-    const curve = new QuadraticCurve({ x: 0, y: h / 2 }, { x: w / 2, y: h / 2 + 2 * bend }, { x: w, y: h / 2 });
+    const curve = new SmoothCurve([{ x: 0, y: h / 2 }, ...bends.map((b, i) => ({ x: (w * (i + 1)) / 4, y: h / 2 + b })), { x: w, y: h / 2 }]);
     const length = curve.length();
     const both = o.arrow === 'both-ways';
     return o.arrowStyle === 'hollow'
@@ -48,20 +47,20 @@ export class CanvasShape {
   }
 
   /** a bent solid arrow: the line (the part of the curve between the heads) and the heads, as long and as wide as on a straight arrow */
-  private curvedLine(curve: QuadraticCurve, length: number, border: number, both: boolean) {
+  private curvedLine(curve: SmoothCurve, length: number, border: number, both: boolean) {
     const headLength = Math.min(length / 2, Math.max(10, border * 4));
     const half = Math.max(5, border * 2);
     const t = Math.min(0.45, headLength / length); // how far along the curve a head reaches (measured as a share of it)
     const part = curve.part(both ? t : 0, 1 - t);
     return {
-      d: `M ${part.start.x},${part.start.y} Q ${part.control.x},${part.control.y} ${part.end.x},${part.end.y}`,
+      d: part.sample(40).map((p, i) => `${i ? 'L' : 'M'} ${p.x},${p.y}`).join(' '), // many short pieces: the curve can bend more than once
       end: this.head(curve.end, part.end, half),
       start: both ? this.head(curve.start, part.start, half) : '',
     };
   }
 
   /** a bent hollow arrow: the outline of a block arrow along the curve (a shaft two fifths of the height, a head across the whole height) */
-  private curvedBlockArrow(curve: QuadraticCurve, length: number, border: number, h: number, both: boolean): string {
+  private curvedBlockArrow(curve: SmoothCurve, length: number, border: number, h: number, both: boolean): string {
     const p = border / 2;
     const across = h - 2 * p;
     const shaft = across * 0.2; // half the height of the shaft

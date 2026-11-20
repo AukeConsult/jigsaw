@@ -580,6 +580,57 @@ describe("the bend of an arrow", () => {
     expect(PlacedBase.stored(a.data).bend).toBe(25);
     expect("bend" in PlacedBase.stored(straightArrow().data)).toBe(false);
   });
+
+  it("has two more points to shape the curve: a quarter and three quarters of the way, each to a side of its own", () => {
+    const a = straightArrow().withBend(40);
+    expect(a.bends).toEqual([30, 40, 30]); // a plain bend: the other two follow it
+    expect(a.data.bendStart).toBeUndefined();
+    const [s0, m0, e0] = a.shapePoints();
+    expect(gap(s0, { x: 262.5, y: 330 })).toBeLessThan(1e-9);
+    expect(gap(m0, { x: 300, y: 340 })).toBeLessThan(1e-9);
+    expect(gap(e0, { x: 337.5, y: 330 })).toBeLessThan(1e-9);
+
+    const s = a.withBends({ start: 30, end: -30 }); // an S: the middle stays
+    expect(s.bends).toEqual([30, 40, -30]);
+    expect(s.data).toMatchObject({ bend: 40, bendStart: 30, bendEnd: -30 });
+    for (const [i, p] of s.shapePoints().entries()) expect(gap(s.curve().at((i + 1) / 4), p)).toBeLessThan(1e-9); // the curve goes through the points
+    expect(s.curve().at(0.75).y).toBeLessThan(300); // the end side of the S is on the other side of the line
+
+    const one = a.withBends({ start: 10 }); // changing one pins the other at what it was
+    expect(one.bends).toEqual([10, 40, 30]);
+    expect(one.withBend(60).bends).toEqual([10, 60, 30]); // the middle alone leaves the two that were set
+  });
+
+  it("is straight only when all three are a few pixels or less, and does not keep the fields then", () => {
+    const a = straightArrow();
+    expect(a.withBends({ start: 2, middle: 1, end: -3 }).data.bend).toBeUndefined();
+    expect(a.withBends({ start: 20 }).bends).toEqual([20, 0, 0]); // a bump near the start only
+    const bump = a.withBends({ start: 20 });
+    expect(bump.withBends({ start: 0 }).data).toEqual(a.data);
+    expect(a.withBends({ start: 1e9 }).bendStart).toBe(20000);
+  });
+
+  it("changes the diagram through one of the three points, bounds and fits hold the whole curve", () => {
+    const a = along();
+    const bent = a.diagram.bendArrow(a.id, 50, "start");
+    expect(arrow(bent, a.id).bends).toEqual([50, 0, 0]);
+    expect(bent.bendArrow(a.id, 50, "start")).toBe(bent);
+    expect(arrow(bent, a.id).bounds().height).toBeGreaterThan(30);
+    const low = put(empty(), arrowOf(150), 300, 590);
+    expect(CanvasDiagram.validate(low.diagram.bendArrow(low.id, 50, "end").toData(), 800, 600)).toContain("does not fit");
+    expect(CanvasDiagram.validate(low.diagram.bendArrow(low.id, -50, "end").toData(), 800, 600)).toBe("");
+  });
+
+  it("scales all three with the arrow, is stored with them, and refuses a bad one", () => {
+    const a = straightArrow().withBends({ start: 10, middle: 20, end: -10 });
+    expect(a.scaledAbout({ x: 0, y: 0 }, 2, 2, 800, 600).bends).toEqual([20, 40, -20]);
+    expect(PlacedBase.stored(a.data)).toMatchObject({ bend: 20, bendStart: 10, bendEnd: -10 });
+    expect("bendStart" in PlacedBase.stored(straightArrow().withBend(25).data)).toBe(false);
+    const bad = (extra: object) => CanvasDiagram.validate([{ ...a.data, ...extra }], 800, 600);
+    expect(bad({ bendStart: "5" })).toContain("bad bend");
+    expect(bad({ bendEnd: 1e9 })).toContain("bad bend");
+    expect(CanvasDiagram.validate([{ id: "f", centerX: 200, centerY: 200, bendStart: 5, object: square }], 800, 600)).not.toBe(""); // a figure cannot be bent
+  });
 });
 
 describe("the width across of an arrow", () => {

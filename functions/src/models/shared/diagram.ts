@@ -265,12 +265,15 @@ export class CanvasDiagram {
     return { diagram: this.with([...this.items, figure]).fasten(id, snapped?.fastened ?? []), id };
   }
 
-  /** The diagram with an arrow bent so that its middle is this far from the straight line (see `PlacedArrow.withBend`): its ends stay, so what it is fastened to does too. */
-  bendArrow(id: string, bend: number): CanvasDiagram {
+  /**
+   * The diagram with an arrow bent: one of its three shaping points (`which`, the middle by default) is this far from the straight line (see
+   * `PlacedArrow.withBends`). Its ends stay, so what it is fastened to does too.
+   */
+  bendArrow(id: string, bend: number, which: 'start' | 'middle' | 'end' = 'middle'): CanvasDiagram {
     const arrow = this.get(id);
     if (!(arrow instanceof PlacedArrow)) return this;
-    const next = arrow.withBend(bend);
-    return next.bend === arrow.bend ? this : this.replace(next);
+    const next = arrow.withBends({ [which]: bend });
+    return next.bends.every((b, i) => b === arrow.bends[i]) && next.data.bend === arrow.data.bend ? this : this.replace(next);
   }
 
   /** The diagram with the width across of an arrow changed (see `CanvasArrow.withAcross`): its ends stay where they are, so what it is fastened to does too. */

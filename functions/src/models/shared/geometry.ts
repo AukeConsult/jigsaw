@@ -75,31 +75,54 @@ export function resizedBox(box: Box, handle: ResizeHandle, x: number, y: number,
 }
 
 /**
- * A curve from `start` to `end` that bends towards `control` (a quadratic curve). It is straight when the control point is half way between the ends.
- * The middle of the curve (t = 0.5) is half way between the control point and the middle of the straight line.
+ * A smooth curve through points (at least 2), from the first to the last: it is straight when the points are on a line at equal distances.
+ * `at(t)` goes from the start (t = 0) to the end (t = 1); a part of a curve (see `part`) is a curve of its own.
  */
-export class QuadraticCurve {
+export class SmoothCurve {
   constructor(
-    readonly start: Point,
-    readonly control: Point,
-    readonly end: Point,
+    private readonly through: readonly Point[],
+    private readonly from = 0,
+    private readonly to = 1,
   ) {}
+
+  get start(): Point {
+    return this.at(0);
+  }
+
+  get end(): Point {
+    return this.at(1);
+  }
+
+  /** the four points that shape the piece of the curve between two of its points (the ends are mirrored, so a straight line stays straight) */
+  private piece(i: number): Point[] {
+    const p = this.through;
+    const last = p.length - 1;
+    const before = i === 0 ? { x: 2 * p[0].x - p[1].x, y: 2 * p[0].y - p[1].y } : p[i - 1];
+    const after = i + 1 === last ? { x: 2 * p[last].x - p[last - 1].x, y: 2 * p[last].y - p[last - 1].y } : p[i + 2];
+    return [before, p[i], p[i + 1], after];
+  }
+
+  /** where on the whole curve (0..1) the t of this part is, as the piece it is in and how far in that piece (0..1) */
+  private locate(t: number): { piece: Point[]; f: number } {
+    const pieces = this.through.length - 1;
+    const s = Math.min(Math.max(this.from + (this.to - this.from) * t, 0), 1) * pieces;
+    const i = Math.min(Math.floor(s), pieces - 1);
+    return { piece: this.piece(i), f: s - i };
+  }
 
   /** the point of the curve at t: 0 is the start, 1 the end */
   at(t: number): Point {
-    const u = 1 - t;
-    return {
-      x: u * u * this.start.x + 2 * u * t * this.control.x + t * t * this.end.x,
-      y: u * u * this.start.y + 2 * u * t * this.control.y + t * t * this.end.y,
-    };
+    const { piece: [a, b, c, d], f } = this.locate(t);
+    const one = (k: 'x' | 'y') => 0.5 * (2 * b[k] + (c[k] - a[k]) * f + (2 * a[k] - 5 * b[k] + 4 * c[k] - d[k]) * f * f + (3 * b[k] - a[k] - 3 * c[k] + d[k]) * f * f * f);
+    return { x: one('x'), y: one('y') };
   }
 
   /** the direction the curve goes at t (its length is not 1) */
   tangent(t: number): Point {
-    return {
-      x: 2 * ((1 - t) * (this.control.x - this.start.x) + t * (this.end.x - this.control.x)),
-      y: 2 * ((1 - t) * (this.control.y - this.start.y) + t * (this.end.y - this.control.y)),
-    };
+    const { piece: [a, b, c, d], f } = this.locate(t);
+    const scale = (this.through.length - 1) * (this.to - this.from);
+    const one = (k: 'x' | 'y') => scale * 0.5 * (c[k] - a[k] + 2 * (2 * a[k] - 5 * b[k] + 4 * c[k] - d[k]) * f + 3 * (3 * b[k] - a[k] - 3 * c[k] + d[k]) * f * f);
+    return { x: one('x'), y: one('y') };
   }
 
   /** the direction across the curve at t, of length 1: the tangent turned a quarter turn clockwise on the screen (along x to the right gives down) */
@@ -115,20 +138,18 @@ export class QuadraticCurve {
   }
 
   /** how long it is (measured along `steps` straight pieces) */
-  length(steps = 32): number {
+  length(steps = 48): number {
     const points = this.sample(steps);
     return points.slice(1).reduce((sum, p, i) => sum + Math.hypot(p.x - points[i].x, p.y - points[i].y), 0);
   }
 
   /** the part of the curve from t = a to t = b, as a curve of its own */
-  part(a: number, b: number): QuadraticCurve {
-    const start = this.at(a);
-    const way = this.tangent(a);
-    return new QuadraticCurve(start, { x: start.x + ((b - a) * way.x) / 2, y: start.y + ((b - a) * way.y) / 2 }, this.at(b));
+  part(a: number, b: number): SmoothCurve {
+    return new SmoothCurve(this.through, this.from + (this.to - this.from) * a, this.from + (this.to - this.from) * b);
   }
 
   /** the smallest box that holds it (measured along `steps` straight pieces) */
-  bounds(steps = 32): Box {
+  bounds(steps = 48): Box {
     const points = this.sample(steps);
     const left = Math.min(...points.map((p) => p.x));
     const top = Math.min(...points.map((p) => p.y));

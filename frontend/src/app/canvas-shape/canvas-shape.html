@@ -20,7 +20,7 @@
         @if (c.outline) {
           <polygon [attr.points]="c.outline" fill="none" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" stroke-linejoin="round" />
         } @else if (c.solid; as s) {
-          <path [attr.d]="s.d" fill="none" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" />
+          <path [attr.d]="s.d" fill="none" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" stroke-linejoin="round" />
           <polygon [attr.points]="s.end" [attr.fill]="o.borderColor" />
           @if (s.start) {
             <polygon [attr.points]="s.start" [attr.fill]="o.borderColor" />

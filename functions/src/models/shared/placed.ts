@@ -1,5 +1,5 @@
 import { CanvasArrow, CanvasBaseObject, CanvasFigure, CanvasObjectInput, OBJECT_MAX_SIDE } from './canvas-object';
-import { Box, Point, QuadraticCurve, ResizeHandle, resizeHandlePositions, resizedBox } from './geometry';
+import { Box, Point, ResizeHandle, SmoothCurve, resizeHandlePositions, resizedBox } from './geometry';
 
 // The objects placed on a canvas: what is stored (`PlacedObject`) and the classes that work on it, a placed figure and a placed arrow.
 
@@ -48,6 +48,10 @@ export interface PlacedObject {
   layer?: number;
   /** an arrow that is bent: how far its middle is from the middle of the straight line between its ends, to the side, in pixels (without it, 0: straight) */
   bend?: number;
+  /** an arrow that is bent: how far its curve is from the straight line a quarter of the way from its start (without it, three quarters of `bend`, as a plain bend is) */
+  bendStart?: number;
+  /** the same three quarters of the way from its start, a quarter from its end */
+  bendEnd?: number;
   /** an arrow that is turned: its angle in radians, 0 along the x axis to the right, positive clockwise on the screen (without it, 0) */
   angle?: number;
 }
@@ -89,6 +93,8 @@ export abstract class PlacedBase {
       ...(c ? { connections: { ...(c.start ? { start: pick(c.start) } : {}), ...(c.end ? { end: pick(c.end) } : {}) } } : {}),
       ...(data.layer !== undefined ? { layer: data.layer } : {}),
       ...(data.bend !== undefined ? { bend: data.bend } : {}),
+      ...(data.bendStart !== undefined ? { bendStart: data.bendStart } : {}),
+      ...(data.bendEnd !== undefined ? { bendEnd: data.bendEnd } : {}),
       ...(data.length !== undefined ? { length: data.length } : {}),
       ...(data.angle !== undefined ? { angle: data.angle } : {}),
     };
@@ -251,7 +257,7 @@ export class PlacedFigure extends PlacedBase {
 
   protected override ownError(): string {
     const d = this.data;
-    if (d.length !== undefined || d.angle !== undefined || d.bend !== undefined || d.connections !== undefined) {
+    if (d.length !== undefined || d.angle !== undefined || d.bend !== undefined || d.bendStart !== undefined || d.bendEnd !== undefined || d.connections !== undefined) {
       return `"${this.object.name}" is not an arrow, so it cannot be stretched, turned, bent or fastened to anything.`;
     }
     return '';
@@ -278,8 +284,28 @@ export class PlacedArrow extends PlacedBase {
     return this.data.bend ?? 0;
   }
 
+  /** how far its curve is from the straight line a quarter of the way from its start: what was set, else three quarters of the middle bend (a plain bend) */
+  get bendStart(): number {
+    return this.data.bendStart ?? 0.75 * this.bend;
+  }
+
+  /** how far its curve is from the straight line a quarter of the way from its end */
+  get bendEnd(): number {
+    return this.data.bendEnd ?? 0.75 * this.bend;
+  }
+
+  /** the three bends, from its start to its end: the points you drag to shape the curve */
+  get bends(): [number, number, number] {
+    return [this.bendStart, this.bend, this.bendEnd];
+  }
+
+  /** it has been bent: it follows a curve, not the straight line */
+  private get isBent(): boolean {
+    return this.data.bend !== undefined || this.data.bendStart !== undefined || this.data.bendEnd !== undefined;
+  }
+
   private get stretchedOrTurned(): boolean {
-    return this.data.length !== undefined || this.data.angle !== undefined || this.data.bend !== undefined;
+    return this.data.length !== undefined || this.data.angle !== undefined || this.isBent;
   }
 
   /** the direction across its straight line, of length 1 (down for an arrow that points right) */
@@ -293,24 +319,53 @@ export class PlacedArrow extends PlacedBase {
     return (point.x - this.centerX) * n.x + (point.y - this.centerY) * n.y;
   }
 
-  /** the curve it follows from its start to its end: straight when it is not bent; its middle is the point that is dragged to bend it */
-  curve(): QuadraticCurve {
+  /** the points of its curve: its start, the three points that shape it (a quarter, half and three quarters of the way, `bends` to the side) and its end */
+  private curvePoints(): Point[] {
     const { start, end } = this.ends();
     const n = this.sideDirection;
-    return new QuadraticCurve(start, { x: this.centerX + n.x * 2 * this.bend, y: this.centerY + n.y * 2 * this.bend }, end);
+    const shaping = this.bends.map((bend, i) => {
+      const along = (i + 1) / 4;
+      return { x: start.x + (end.x - start.x) * along + n.x * bend, y: start.y + (end.y - start.y) * along + n.y * bend };
+    });
+    return [start, ...shaping, end];
+  }
+
+  /** the curve it follows from its start to its end: straight when it is not bent */
+  curve(): SmoothCurve {
+    return new SmoothCurve(this.curvePoints());
+  }
+
+  /** the three points of its curve that are dragged to shape it, from its start to its end (the middle one is half way along) */
+  shapePoints(): [Point, Point, Point] {
+    const [, a, b, c] = this.curvePoints();
+    return [a, b, c];
   }
 
   /** the middle of its curve: the third point of the arrow, between its two ends */
   middle(): Point {
-    const n = this.sideDirection;
-    return { x: this.centerX + n.x * this.bend, y: this.centerY + n.y * this.bend };
+    return this.shapePoints()[1];
   }
 
   /** the same arrow bent so that its middle is this far from the straight line (a bend of a few pixels is straight) */
   withBend(bend: number): PlacedArrow {
-    const { bend: _old, ...rest } = this.data;
-    const bent = Math.abs(bend) <= STRAIGHT_BEND_PX ? 0 : Math.max(-MAX_BEND, Math.min(MAX_BEND, Math.round(bend * 2) / 2));
-    return new PlacedArrow(bent === 0 ? rest : { ...rest, bend: bent });
+    return this.withBends({ middle: bend });
+  }
+
+  /**
+   * The same arrow with some of its three bends changed (the others stay as they are), each in pixels to the side of the straight line, to the nearest
+   * half pixel and within what can be. When all three are a few pixels or less it is straight, and no field is kept.
+   * Only the middle changed on an arrow whose other two are not set: they keep following it (three quarters of it).
+   */
+  withBends(change: { start?: number; middle?: number; end?: number }): PlacedArrow {
+    const { bend: _bend, bendStart: _start, bendEnd: _end, ...rest } = this.data;
+    const clean = (v: number) => Math.max(-MAX_BEND, Math.min(MAX_BEND, Math.round(v * 2) / 2));
+    const middle = clean(change.middle ?? this.bend);
+    const shaped = change.start !== undefined || change.end !== undefined;
+    const start = change.start !== undefined ? clean(change.start) : shaped ? this.bendStart : this.data.bendStart;
+    const end = change.end !== undefined ? clean(change.end) : shaped ? this.bendEnd : this.data.bendEnd;
+    const all = [middle, start ?? 0.75 * middle, end ?? 0.75 * middle];
+    if (all.every((v) => Math.abs(v) <= STRAIGHT_BEND_PX)) return new PlacedArrow(rest);
+    return new PlacedArrow({ ...rest, bend: middle, ...(start !== undefined ? { bendStart: start } : {}), ...(end !== undefined ? { bendEnd: end } : {}) });
   }
 
   /** where its two ends are, in pixels of the canvas area: half its length from its centre each way along its angle */
@@ -359,7 +414,7 @@ export class PlacedArrow extends PlacedBase {
   /** inside the canvas: by its box, or when it is stretched, turned or bent, by its ends (and its curve when it is bent) */
   fits(width: number, height: number): boolean {
     if (this.stretchedOrTurned) {
-      const points = this.data.bend !== undefined ? this.curve().sample(16) : [this.ends().start, this.ends().end];
+      const points = this.isBent ? this.curve().sample(16) : [this.ends().start, this.ends().end];
       return points.every((e) => e.x >= 0 && e.x <= width && e.y >= 0 && e.y <= height);
     }
     const left = this.centerX - this.object.width / 2;
@@ -422,7 +477,7 @@ export class PlacedArrow extends PlacedBase {
 
   /** its two ends are the corners of its bounds, and its curve when it is bent */
   bounds(): Box {
-    if (this.bend) return this.curve().bounds();
+    if (this.isBent) return this.curve().bounds();
     const { start, end } = this.ends();
     return { left: Math.min(start.x, end.x), top: Math.min(start.y, end.y), width: Math.abs(end.x - start.x), height: Math.abs(end.y - start.y) };
   }
@@ -433,8 +488,9 @@ export class PlacedArrow extends PlacedBase {
     const moved = (p: Point): Point => ({ x: clamp(anchor.x + (p.x - anchor.x) * scaleX, canvasWidth), y: clamp(anchor.y + (p.y - anchor.y) * scaleY, canvasHeight) });
     const { start, end } = this.ends();
     const stretched = this.withEnds(moved(start), moved(end)).data;
-    const bend = this.data.bend === undefined ? {} : { bend: this.data.bend * this.model.evenScale(scaleX, scaleY) }; // the curve scales like the thickness
-    return new PlacedArrow({ ...stretched, ...bend, object: this.model.scaledSettings(scaleX, scaleY) });
+    const factor = this.model.evenScale(scaleX, scaleY); // the curve scales like the thickness
+    const bends = (['bend', 'bendStart', 'bendEnd'] as const).flatMap((key) => (this.data[key] === undefined ? [] : [[key, (this.data[key] as number) * factor] as const]));
+    return new PlacedArrow({ ...stretched, ...Object.fromEntries(bends), object: this.model.scaledSettings(scaleX, scaleY) });
   }
 
   /** The arrow with the ends that are fastened on the points of their figures, wherever those figures are now; the other ends stay. */
@@ -471,8 +527,9 @@ export class PlacedArrow extends PlacedBase {
       return 'A placed arrow has a bad length.';
     }
     if (angle !== undefined && (typeof angle !== 'number' || !Number.isFinite(angle))) return 'A placed arrow has a bad angle.';
-    const { bend } = this.data;
-    if (bend !== undefined && (typeof bend !== 'number' || !Number.isFinite(bend) || Math.abs(bend) > MAX_BEND)) return 'A placed arrow has a bad bend.';
+    for (const bend of [this.data.bend, this.data.bendStart, this.data.bendEnd]) {
+      if (bend !== undefined && (typeof bend !== 'number' || !Number.isFinite(bend) || Math.abs(bend) > MAX_BEND)) return 'A placed arrow has a bad bend.';
+    }
     return '';
   }
 

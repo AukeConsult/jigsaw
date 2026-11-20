@@ -25,6 +25,11 @@ const HANDLE_OFFSET_PX = 9;
 /** how far outside the edge of an arrow its handles for the width across sit (pixels) */
 const ACROSS_OFFSET_PX = 14;
 
+/** The three points that shape a bent arrow, from its start to its end, and the bends of an arrow that is not bent. */
+const BEND_POINTS = ['start', 'middle', 'end'] as const;
+type BendPoint = (typeof BEND_POINTS)[number];
+const NOT_BENT = [0, 0, 0] as const;
+
 /**
  * The canvas area: the grid, the objects placed on it, what is picked, and the tools the person uses on them (drag in from the palette, move,
  * resize, change the width of an arrow, pick with a rectangle, change the layer, delete). What the objects do (snap to each other, follow each
@@ -78,7 +83,7 @@ export class CanvasBoard {
         left: item.centerX - length / 2,
         top: item.centerY - item.object.height / 2,
         rotate: angle ? `rotate(${angle}rad)` : null,
-        bend: item instanceof PlacedArrow ? item.bend : 0,
+        bends: item instanceof PlacedArrow ? item.bends : NOT_BENT,
       };
     }),
   );
@@ -113,11 +118,12 @@ export class CanvasBoard {
     return ([1, -1] as const).map((side) => ({ side, ...picked.acrossHandle(side, ACROSS_OFFSET_PX) }));
   });
 
-  /** the middle of the picked arrow, the third point you drag to bend it (null when the picked object is not an arrow) */
-  readonly bendHandle = computed(() => {
+  /** the three points of the picked arrow you drag to curve it: a quarter, half and three quarters of the way (none when the picked object is not an arrow) */
+  readonly bendHandles = computed(() => {
     const id = this.selectedId();
     const picked = id ? this.diagram().get(id) : undefined;
-    return picked instanceof PlacedArrow ? picked.middle() : null;
+    if (!(picked instanceof PlacedArrow)) return [];
+    return picked.shapePoints().map((point, i) => ({ which: BEND_POINTS[i], ...point }));
   });
 
   /** the placed object that is being moved: the pointer's distance from its centre (or from the end that was grabbed), and the canvas area it is in */
@@ -129,8 +135,8 @@ export class CanvasBoard {
   /** the handle that is being dragged to change the width across of the picked arrow: its side, where on the handle it was grabbed, and the canvas area */
   private acrossing: { id: string; side: 1 | -1; grabbed: number; area: HTMLElement } | null = null;
 
-  /** the middle of an arrow that is being dragged to bend it: the arrow, where on the handle it was grabbed (as a bend), and the canvas area */
-  private bending: { id: string; grabbed: number; area: HTMLElement } | null = null;
+  /** a point of an arrow that is being dragged to curve it: the arrow, which of its three points, where on the handle it was grabbed (as a bend), and the canvas area */
+  private bending: { id: string; which: BendPoint; grabbed: number; area: HTMLElement } | null = null;
 
   /** where a rectangle drag on the empty canvas started */
   private marqueeStart: { x: number; y: number; area: HTMLElement } | null = null;
@@ -314,20 +320,21 @@ export class CanvasBoard {
     this.acrossing = null;
   }
 
-  /** Grab the middle of the picked arrow to bend it. */
-  startBend(event: PointerEvent): void {
+  /** Grab one of the three points of the picked arrow to curve it. */
+  startBend(event: PointerEvent, which: BendPoint): void {
     const id = this.selectedId();
     const arrow = id ? this.diagram().get(id) : undefined;
     if (!id || !(arrow instanceof PlacedArrow)) return;
     const target = event.currentTarget as HTMLElement;
     const area = target.parentElement as HTMLElement;
     const rect = area.getBoundingClientRect();
-    // how far the pointer is from the middle of the curve, so the arrow does not jump when it is grabbed off centre
-    this.bending = { id, grabbed: arrow.sidewaysOf({ x: event.clientX - rect.left, y: event.clientY - rect.top }) - arrow.bend, area };
+    // how far the pointer is from the point, so the arrow does not jump when it is grabbed off centre
+    const bend = arrow.bends[BEND_POINTS.indexOf(which)];
+    this.bending = { id, which, grabbed: arrow.sidewaysOf({ x: event.clientX - rect.left, y: event.clientY - rect.top }) - bend, area };
     this.capture(target, event);
   }
 
-  /** The middle follows the pointer: the arrow is bent so that its middle is there (see `CanvasDiagram.bendArrow`). */
+  /** The point follows the pointer: the arrow is curved so that the point is there (see `CanvasDiagram.bendArrow`). */
   moveBend(event: PointerEvent): void {
     const bending = this.bending;
     if (!bending) return;
@@ -335,7 +342,7 @@ export class CanvasBoard {
     const arrow = diagram.get(bending.id);
     if (!(arrow instanceof PlacedArrow)) return;
     const rect = bending.area.getBoundingClientRect();
-    this.apply(diagram.bendArrow(bending.id, arrow.sidewaysOf({ x: event.clientX - rect.left, y: event.clientY - rect.top }) - bending.grabbed));
+    this.apply(diagram.bendArrow(bending.id, arrow.sidewaysOf({ x: event.clientX - rect.left, y: event.clientY - rect.top }) - bending.grabbed, bending.which));
   }
 
   endBend(): void {
