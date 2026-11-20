@@ -1,0 +1,24 @@
+{
+  "name": "canvas",
+  "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Leif Auke <leif@auke.no> (Blueboot R&D AS)",
+  "description": "Canvas",
+  "repository": { "type": "git", "url": "git+https://github.com/AukeConsult/canvas.git" },
+  "scripts": {
+    "install:all": "npm --prefix frontend install && npm --prefix functions install",
+    "dev:functions": "npm --prefix functions run build:watch",
+    "predev:emulators": "npm --prefix functions run build",
+    "dev:emulators": "node scripts/with-java.mjs firebase emulators:start --only auth,functions,firestore,storage --project demo-canvas --import=.emulator-data --export-on-exit=.emulator-data",
+    "dev:frontend": "npm --prefix frontend start",
+    "build": "npm --prefix frontend run build && npm --prefix functions run build",
+    "test": "npm --prefix functions run test:run",
+    "deploy": "node scripts/sync-models.mjs && firebase deploy --only hosting:canvas,functions:canvas",
+    "deploy:hosting": "node scripts/sync-models.mjs && firebase deploy --only hosting:canvas",
+    "deploy:functions": "node scripts/sync-models.mjs && firebase deploy --only functions:canvas",
+    "android:sync": "npm --prefix frontend run build && npm --prefix frontend run cap -- sync android",
+    "android:open": "npm --prefix frontend run cap -- open android",
+    "sync:models": "node scripts/sync-models.mjs",
+    "check:models": "node scripts/sync-models.mjs --check"
+  }
+}

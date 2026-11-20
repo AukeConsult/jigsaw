@@ -1,0 +1,8 @@
+{
+  "projects": { "default": "sevenfriends" },
+  "targets": {
+    "sevenfriends": {
+      "hosting": { "canvas": ["canvas"] }
+    }
+  }
+}

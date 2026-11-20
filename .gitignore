@@ -1,0 +1,21 @@
+node_modules/
+dist/
+lib/
+.angular/
+.firebase/
+*.log
+.env
+.env.*
+!.env.example
+.emulator-data/
+firebase-export-*/
+.idea/
+# generated copy of functions/src/models/shared (scripts/sync-models.mjs)
+frontend/src/app/models/shared/
+frontend/src/environments/version.ts
+# secrets and keys: never committed
+service-account*.json
+*-firebase-adminsdk-*.json
+client-wrappers/android/app/google-services.json
+*.keystore
+*.jks

@@ -1,0 +1,7 @@
+{
+  "appId": "io.canvas.app",
+  "appName": "Canvas",
+  "webDir": "dist/frontend/browser",
+  "android": { "path": "../client-wrappers/android" },
+  "server": { "url": "https://canvas.web.app", "cleartext": false }
+}
