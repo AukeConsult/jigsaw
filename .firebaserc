@@ -2,7 +2,7 @@
   "projects": { "default": "sevenfriends" },
   "targets": {
     "sevenfriends": {
-      "hosting": { "canvas": ["canvas"] }
+      "hosting": { "canvas": ["canvas-auke"] }
     }
   }
 }

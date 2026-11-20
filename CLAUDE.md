@@ -3,7 +3,7 @@
 (Fill in what Canvas is.) Built on the same structure as Seven Friends.
 
 ## Structure
-- `frontend/` – Angular 20 (standalone components, signals, Bootstrap 5 + SCSS, Transloco), hosted on Firebase Hosting site `canvas`.
+- `frontend/` – Angular 20 (standalone components, signals, Bootstrap 5 + SCSS, Transloco), hosted on Firebase Hosting site `canvas-auke` (target `canvas`).
 - `functions/` – Node 22 + TypeScript Express backend, deployed as the Cloud Function `canvasApi` (served at `/api/**`), codebase `canvas`.
 - `functions/src/models/shared/` – the ONE place to edit shared types; `scripts/sync-models.mjs` copies them to `frontend/src/app/models/shared/` (generated, gitignored, never edit).
 - `client-wrappers/android` – Capacitor Android shell, generated with `npm --prefix frontend run cap -- add android` (not yet generated).

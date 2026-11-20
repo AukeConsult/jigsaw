@@ -3,5 +3,5 @@
   "appName": "Canvas",
   "webDir": "dist/frontend/browser",
   "android": { "path": "../client-wrappers/android" },
-  "server": { "url": "https://canvas.web.app", "cleartext": false }
+  "server": { "url": "https://canvas-auke.web.app", "cleartext": false }
 }
