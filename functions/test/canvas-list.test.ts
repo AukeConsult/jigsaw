@@ -252,3 +252,19 @@ describe("canvas-list", () => {
     expect(res.body.error).toBeTruthy();
   });
 });
+
+describe("jigsaw", () => {
+  const body = { name: "Puzzle", width: 800, height: 600, gridSize: 5, gridVisible: true, placed: [] };
+
+  it("works like canvas-list but keeps its pages in a store of its own", async () => {
+    const app = createApp({ canvasList: memoryStore(), jigsaw: memoryStore() });
+    const made = await request(app).post("/api/jigsaw").send(body);
+    expect(made.status).toBe(201);
+    expect((await request(app).get("/api/jigsaw")).body.map((c: { name: string }) => c.name)).toEqual(["Puzzle"]);
+    expect((await request(app).get("/api/canvas-list")).body).toEqual([]); // not among the canvases
+    expect((await request(app).put(`/api/jigsaw/${made.body.id}`).send({ ...body, name: "Renamed" })).body.name).toBe("Renamed");
+    expect((await request(app).post("/api/jigsaw").send({ ...body, width: 0 })).status).toBe(400); // the same checks
+    expect((await request(app).delete(`/api/jigsaw/${made.body.id}`)).status).toBe(204);
+    expect((await request(app).get("/api/jigsaw")).body).toEqual([]);
+  });
+});

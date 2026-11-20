@@ -13,6 +13,9 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
             <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Canvas area</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" routerLink="/jigsaw" routerLinkActive="active">Jigsaw</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" routerLink="/objects" routerLinkActive="active">Objects</a>
           </li>
         </ul>

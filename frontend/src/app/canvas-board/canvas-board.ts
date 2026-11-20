@@ -47,6 +47,8 @@ export class CanvasBoard {
   /** pixels between the grid points (0 = no grid), and whether they are drawn */
   readonly gridSize = input.required<number>();
   readonly gridVisible = input.required<boolean>();
+  /** whether the grid points on the outer frame of the canvas (the first row and the first column) are drawn; the jigsaw leaves them out */
+  readonly frameDots = input(true);
   /** the canvas objects in the palette: a drop asks for one of them by its id */
   readonly objects = input<readonly CanvasObject[]>([]);
 
@@ -150,7 +152,7 @@ export class CanvasBoard {
       if (!element || !(width >= CANVAS_MIN_SIDE) || !(height >= CANVAS_MIN_SIDE)) return;
       element.width = width;
       element.height = height;
-      if (this.gridVisible()) this.drawGrid(element, this.gridSize());
+      if (this.gridVisible()) this.drawGrid(element, this.gridSize(), this.frameDots());
     });
     // what is picked has to be on the canvas: another canvas was opened, or an object was taken away
     effect(() => {
@@ -166,8 +168,8 @@ export class CanvasBoard {
     return this.gridVisible() && this.gridSize() > 0 ? this.gridSize() : 1;
   }
 
-  /** A grid point every `step` pixels, starting at 0,0: one small tile of the grid filled over the whole canvas. */
-  private drawGrid(element: HTMLCanvasElement, step: number): void {
+  /** A grid point every `step` pixels, starting at 0,0 (those on the outer frame left out when `frameDots` is off): one small tile of the grid filled over the whole canvas. */
+  private drawGrid(element: HTMLCanvasElement, step: number, frameDots: boolean): void {
     const ctx = element.getContext('2d');
     if (!ctx || step <= 0) return;
     const tile = document.createElement('canvas');
@@ -181,6 +183,10 @@ export class CanvasBoard {
     if (!pattern) return;
     ctx.fillStyle = pattern;
     ctx.fillRect(0, 0, element.width, element.height);
+    if (!frameDots) {
+      ctx.clearRect(0, 0, element.width, dot); // the points on the top edge
+      ctx.clearRect(0, 0, dot, element.height); // and on the left edge
+    }
   }
 
   /** a drop is allowed over the canvas area (only when an object from the palette is dragged), and the points where it could be fastened are shown */

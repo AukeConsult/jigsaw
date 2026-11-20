@@ -6,13 +6,19 @@ import { PlacedBase, PlacedObject } from './placed';
 /** The Firestore collection that holds the saved canvas areas. */
 export const CANVAS_LIST = 'canvas-list';
 
+/** The Firestore collection that holds the jigsaw pages: canvas areas like the others, kept apart. */
+export const JIGSAW = 'jigsaw';
+
 /** The smallest and largest side of a canvas area, in pixels. */
 export const CANVAS_MIN_SIDE = 1;
 export const CANVAS_MAX_SIDE = 10000;
 export const CANVAS_MAX_NAME = 60;
 /** The grid: pixels between two grid points. 0 = no grid. */
 export const CANVAS_MAX_GRID = 1000;
-export const CANVAS_DEFAULT_GRID = 5;
+/** The grid of a new canvas. */
+export const CANVAS_DEFAULT_GRID = 50;
+/** The grid of a canvas that an older version saved before the grid was a setting: what it had then. */
+const CANVAS_LEGACY_GRID = 5;
 
 /** A canvas area: a name and its size in pixels. */
 export interface CanvasSpec {
@@ -59,7 +65,7 @@ export class CanvasArea {
       name: doc.name ?? '',
       width: doc.width ?? 800,
       height: doc.height ?? 600,
-      gridSize: doc.gridSize ?? CANVAS_DEFAULT_GRID,
+      gridSize: doc.gridSize ?? CANVAS_LEGACY_GRID,
       gridVisible: doc.gridVisible ?? true,
       placed: (doc.placed ?? []).map((p) => PlacedBase.fromStored(p)),
       createdAt: doc.createdAt ?? 0,

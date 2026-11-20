@@ -6,9 +6,9 @@ import { CANVAS_LIST, CanvasArea, CanvasInput, CanvasSpec } from "./models";
 /** Where the canvas areas are kept (Firestore in the app, a memory store in the tests). */
 export type CanvasStore = DocumentStore<CanvasInput, CanvasSpec>;
 
-/** The Firestore collection `canvas-list`: the newest 100; a canvas that an older version saved is read as the model says (see `CanvasArea.fromStored`). */
-export function firestoreCanvasStore(): CanvasStore {
-  return documentStore<CanvasInput, CanvasSpec>(() => getFirestore().collection(CANVAS_LIST), 100, (id, doc) => CanvasArea.fromStored(id, doc as Partial<CanvasSpec>));
+/** The Firestore collection `canvas-list` (or another with the same kind of documents, like `jigsaw`): the newest 100; a canvas that an older version saved is read as the model says (see `CanvasArea.fromStored`). */
+export function firestoreCanvasStore(collection: string = CANVAS_LIST): CanvasStore {
+  return documentStore<CanvasInput, CanvasSpec>(() => getFirestore().collection(collection), 100, (id, doc) => CanvasArea.fromStored(id, doc as Partial<CanvasSpec>));
 }
 
 /** The checked canvas of a request body, as it is stored (only the known fields), or the reason it is not allowed. */
@@ -18,7 +18,7 @@ function readInput(body: Record<string, unknown>): { input: CanvasInput } | { er
   return error ? { error } : { input: area.stored() };
 }
 
-/** GET /canvas-list: the saved canvas areas, newest first. POST /canvas-list: save a new one. PUT /canvas-list/:id: change a saved one (the page autosaves with these). DELETE /canvas-list/:id: delete one. */
+/** The routes of a collection of canvas areas (`/canvas-list`, and `/jigsaw` the same way). GET /canvas-list: the saved canvas areas, newest first. POST /canvas-list: save a new one. PUT /canvas-list/:id: change a saved one (the page autosaves with these). DELETE /canvas-list/:id: delete one. */
 export function canvasListRouter(store: CanvasStore): express.Router {
   const router = express.Router();
 

@@ -60,3 +60,5 @@ The Firebase project `sevenfriends` is shared with Seven Friends. Therefore:
 - `npm test` runs the backend tests (Vitest). `npm run test:emulator` starts a Firestore emulator (test ports, not the dev ones) and runs the real stores against it (`functions/test-emulator/`). The model has the real tests: every rule above is tested on the classes (`functions/test/`), the Firestore code with a small fake collection. A rule is not done until it has a test.
 - `npm run build` builds both. The frontend build also copies the model (`sync:models`).
 - The frontend has no unit tests: check pages in the browser (the dev server must be the current one; restart it if the page shows old code).
+
+Longer documentation is in `docs/guide/` (user guide, model, API and running).

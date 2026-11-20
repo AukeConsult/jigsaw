@@ -11,3 +11,6 @@ npm run dev:emulators     # backend: Auth, Functions, Firestore, Storage (ports 
 npm run dev:frontend      # http://localhost:4210
 npm test
 ```
+
+## Documentation
+See [docs/guide](docs/guide/README.md): [using Canvas](docs/guide/user-guide.md), [the model](docs/guide/model.md), [API, code and running](docs/guide/api-and-code.md). Rules for working on the code are in [CLAUDE.md](CLAUDE.md).

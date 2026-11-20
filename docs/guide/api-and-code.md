@@ -1,0 +1,34 @@
+# API, code layout and running
+
+## API
+Express app, Cloud Function `canvasApi` (europe-west1, codebase `canvas`), served under `/api`. JSON bodies up to 200 kB. Errors are `400 {error}` with the model's message.
+
+| route | |
+|---|---|
+| `GET /api/health` | health check |
+| `GET /api/canvas-list` | saved canvases, newest first |
+| `POST /api/canvas-list` | make one (`name, width, height, gridSize, gridVisible, placed`), 201 |
+| `PUT /api/canvas-list/:id` | replace it (404 if missing) |
+| `DELETE /api/canvas-list/:id` | delete (204, 404 if missing) |
+| `/api/canvas-objects` | the same four routes for canvas objects |
+
+Firestore collections: `canvas-list` (limit 100) and `canvas-objects` (limit 200). Routes only call `error()`, `stored()` and the store (`functions/src/document-store.ts`).
+
+## Code layout
+- `functions/src/`: `app.ts`, `canvas-list.ts`, `canvas-objects.ts`, `document-store.ts`, `models/` (the shared model).
+- `functions/test/`: Vitest tests of every rule on the classes. `functions/test-emulator/`: the real stores on a Firestore emulator.
+- `frontend/src/app/`: `home/` (page: open canvas, autosave, list), `canvas-board/` (canvas and pointer tools), `canvas-panel/`, `object-palette/`, `objects/` + `object-panel/` + `canvas-shape/` (SVG drawing of an object), `core/` (`autosave.ts`, API services, `drag.ts`).
+- Autosave: saves 800 ms after the last change, creates then updates, retries after 5 s, flushes when the page closes.
+
+## Running
+```
+npm run install:all
+npm run dev            # functions watch + emulators + frontend, http://localhost:4210
+npm test               # backend tests
+npm run test:emulator  # real Firestore emulator tests
+npm run build
+```
+Emulator ports: UI 4010, Functions 5011, Firestore 8090, Auth 9109, Storage 9209, Hosting 5010. If the emulator runs old code after a model change, run `npm --prefix functions run build`.
+
+## Deploying
+Shared Firebase project `sevenfriends`: deploy only `hosting:canvas` and `functions:canvas` (`npm run deploy`). Never deploy rules or indexes from here; change the live ones in the Seven Friends repo.

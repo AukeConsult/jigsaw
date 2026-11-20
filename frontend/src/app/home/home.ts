@@ -1,17 +1,19 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { Autosave } from '../core/autosave';
 import { CanvasBoard } from '../canvas-board/canvas-board';
 import { CanvasPanel } from '../canvas-panel/canvas-panel';
 import { CanvasListService } from '../core/canvas-list.service';
 import { CanvasObjectsService } from '../core/canvas-objects.service';
+import { JigsawService } from '../core/jigsaw.service';
 import { ObjectPalette } from '../object-palette/object-palette';
 import { CANVAS_DEFAULT_GRID, CanvasArea, CanvasInput, CanvasSpec } from '../models/shared/canvas';
 import { CanvasObject } from '../models/shared/canvas-object';
 import { PlacedObject } from '../models/shared/placed';
 
 /**
- * The canvas page: three parts side by side, the panel (the settings and the saved canvases), the board (the canvas with its objects) and the
+ * The canvas page (also the jigsaw page, which keeps its canvases in another collection): three parts side by side, the panel (the settings and the saved canvases), the board (the canvas with its objects) and the
  * palette (the objects to drag in). The page holds the open canvas (its settings and its placed objects), saves the changes by themselves, and
  * opens, starts and deletes saved canvases; each part works on what it is given.
  */
@@ -21,7 +23,14 @@ import { PlacedObject } from '../models/shared/placed';
   templateUrl: './home.html',
 })
 export class Home implements OnInit, OnDestroy {
-  private readonly service = inject(CanvasListService);
+  /** what the route says: the page's heading and where its canvases are kept (`canvas-list`, or `jigsaw`); the page works the same on both */
+  private readonly route = inject(ActivatedRoute).snapshot.data as { heading?: string; collection?: string; frameDots?: boolean };
+  readonly heading = this.route.heading ?? 'Canvas';
+  /** whether the grid points on the outer frame of the canvas are drawn (not on the jigsaw) */
+  readonly frameDots = this.route.frameDots ?? true;
+  private readonly canvasList = inject(CanvasListService);
+  private readonly jigsaw = inject(JigsawService);
+  private readonly service = this.route.collection === 'jigsaw' ? this.jigsaw : this.canvasList;
   private readonly objectsService = inject(CanvasObjectsService);
 
   // the open canvas
