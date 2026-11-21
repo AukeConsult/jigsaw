@@ -605,6 +605,36 @@ small,
   outline-offset: 0;
 }
 
+// ---- scroll bars: thin and quiet, no arrows, a rounded thumb that darkens when it is used ---------------------------------------------------------------
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--bs-emphasis-color-rgb), 0.3) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--bs-emphasis-color-rgb), 0.3);
+  border-radius: 0.5rem;
+  border: 0.125rem solid transparent;
+  background-clip: padding-box;
+
+  &:hover {
+    background-color: rgba(var(--bs-emphasis-color-rgb), 0.5);
+  }
+}
+
+*::-webkit-scrollbar-button {
+  display: none;
+}
+
 /** the layer the pieces are drawn in, over the canvas and the store frame: as big as the whole area, takes no room, lets the pointer through */
 /** the jigsaw pieces area is drawn at a scale (see the board): the sizer is as big as the scaled content, the content is scaled from its top left corner */
 .scale-sizer {
