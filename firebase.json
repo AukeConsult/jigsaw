@@ -1,35 +1,169 @@
 {
-  "hosting": {
-    "target": "canvas",
-    "public": "frontend/dist/frontend/browser",
-    "predeploy": ["npm --prefix frontend run build"],
-    "ignore": ["firebase.json", "**/README.md", "**/.*", "**/node_modules/**"],
-    "headers": [
-      { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
-      { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
-      { "source": "**/!(*.*)", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
-      { "source": "/manifest.webmanifest", "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }] }
-    ],
-    "rewrites": [
-      { "source": "/api/**", "function": { "functionId": "canvasApi", "region": "europe-west1" } },
-      { "source": "**", "destination": "/index.html" }
-    ]
-  },
+  "hosting": [
+    {
+      "target": "canvas",
+      "public": "frontend/dist/frontend/browser",
+      "predeploy": [
+        "npm --prefix frontend run build"
+      ],
+      "ignore": [
+        "firebase.json",
+        "**/README.md",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "/index.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "**/!(*.*)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/manifest.webmanifest",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/manifest+json"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "function": {
+            "functionId": "canvasApi",
+            "region": "europe-west1"
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "target": "jigsaw",
+      "public": "frontend/dist/frontend/browser",
+      "predeploy": [
+        "npm --prefix frontend run build"
+      ],
+      "ignore": [
+        "firebase.json",
+        "**/README.md",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "/index.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "**/!(*.*)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/manifest.webmanifest",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/manifest+json"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "function": {
+            "functionId": "canvasApi",
+            "region": "europe-west1"
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ],
   "functions": [
     {
       "source": "functions",
       "codebase": "canvas",
-      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
     }
   ],
   "emulators": {
-    "auth": { "port": 9109 },
-    "functions": { "port": 5011 },
-    "firestore": { "port": 8090 },
-    "storage": { "port": 9209 },
-    "hosting": { "port": 5010 },
-    "ui": { "enabled": true, "port": 4010 }
+    "auth": {
+      "port": 9109
+    },
+    "functions": {
+      "port": 5011
+    },
+    "firestore": {
+      "port": 8090
+    },
+    "storage": {
+      "port": 9209
+    },
+    "hosting": {
+      "port": 5010
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4010
+    }
   },
-  "storage": { "rules": "storage.rules" },
-  "firestore": { "rules": "firestore.rules", "indexes": "firestore.indexes.json" }
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
 }

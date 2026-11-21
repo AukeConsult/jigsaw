@@ -2,7 +2,7 @@
 
 Same layout as Seven Friends: an Angular web app (`frontend/`), an Express API as a Firebase Cloud Function (`functions/`), and an Android shell (Capacitor, `client-wrappers/android`).
 
-Shares the Firebase project `sevenfriends` but has its own Hosting site (`canvas-auke`, target `canvas`) and its own function (`canvasApi`, codebase `canvas`).
+Shares the Firebase project `sevenfriends` but has its own Hosting sites (`canvas-auke`, target `canvas`, and `karins-jigsaw`, target `jigsaw`) and its own function (`canvasApi`, codebase `canvas`).
 
 ```
 npm run install:all

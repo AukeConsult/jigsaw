@@ -34,4 +34,4 @@ npm run build
 Emulator ports: UI 4010, Functions 5011, Firestore 8090, Auth 9109, Storage 9209, Hosting 5010. If the emulator runs old code after a model change, run `npm --prefix functions run build`.
 
 ## Deploying
-Shared Firebase project `sevenfriends`: deploy only `hosting:canvas` and `functions:canvas` (`npm run deploy`). Never deploy rules or indexes from here; change the live ones in the Seven Friends repo.
+Shared Firebase project `sevenfriends`: deploy only `hosting:canvas`, `hosting:jigsaw` and `functions:canvas` (`npm run deploy`; `npm run deploy:jigsaw` for the jigsaw site alone). Never deploy rules or indexes from here; change the live ones in the Seven Friends repo.

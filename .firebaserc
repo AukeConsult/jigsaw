@@ -1,8 +1,17 @@
 {
-  "projects": { "default": "sevenfriends" },
+  "projects": {
+    "default": "sevenfriends"
+  },
   "targets": {
     "sevenfriends": {
-      "hosting": { "canvas": ["canvas-auke"] }
+      "hosting": {
+        "canvas": [
+          "canvas-auke"
+        ],
+        "jigsaw": [
+          "karins-jigsaw"
+        ]
+      }
     }
   }
 }

@@ -5,7 +5,7 @@ size, border, colours and font, and put copies of them on a canvas: move them, r
 itself. Built on the same structure as Seven Friends.
 
 ## Structure
-- `frontend/` – Angular 20 (standalone components, signals, Bootstrap 5 + SCSS, Transloco), hosted on Firebase Hosting site `canvas-auke` (target `canvas`).
+- `frontend/` – Angular 20 (standalone components, signals, Bootstrap 5 + SCSS, Transloco), hosted on Firebase Hosting site `canvas-auke` (target `canvas`) and on the site `karins-jigsaw` (target `jigsaw`, web app `karins-jigsaw`): the same build, which opens with Karins jigsaw.
 - `functions/` – Node 22 + TypeScript Express backend, deployed as the Cloud Function `canvasApi` (served at `/api/**`), codebase `canvas`.
 - `functions/src/models/shared/` – **the model, the ONE place to edit shared code.** `scripts/sync-models.mjs` copies it to `frontend/src/app/models/shared/` (generated, gitignored, never edit that copy). Shared files may only import from each other.
 - `client-wrappers/android` – Capacitor Android shell, generated with `npm --prefix frontend run cap -- add android` (not generated yet).
@@ -62,7 +62,7 @@ One folder for each module, and what both use:
 
 ## Shared Firebase project (IMPORTANT)
 The Firebase project `sevenfriends` is shared with Seven Friends. Therefore:
-- Deploy only `hosting:canvas` and `functions:canvas` (the npm `deploy*` scripts do). Never `firebase deploy` everything, and never deploy `firestore`/`storage` rules or indexes from here: that would overwrite Seven Friends' live ones. `firestore.rules` and `storage.rules` here are for the emulator only. Change live rules/indexes from the Seven Friends repo.
+- Deploy only `hosting:canvas`, `hosting:jigsaw` and `functions:canvas` (the npm `deploy*` scripts do; `npm run deploy:jigsaw` is the jigsaw site alone). Never `firebase deploy` everything, and never deploy `firestore`/`storage` rules or indexes from here: that would overwrite Seven Friends' live ones. `firestore.rules` and `storage.rules` here are for the emulator only. Change live rules/indexes from the Seven Friends repo.
 - The functions codebase is `canvas`, not `default`, so a deploy here never deletes Seven Friends' functions.
 - Collections and Storage paths start with `canvas` so they cannot collide with Seven Friends' data.
 - Do not run any `firebase` command that changes the shared project, and do not deploy, commit or push, unless asked.
