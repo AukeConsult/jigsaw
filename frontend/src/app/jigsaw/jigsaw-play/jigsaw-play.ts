@@ -1,10 +1,12 @@
-import { Component, ElementRef, HostListener, OnDestroy, afterNextRender, computed, effect, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, afterNextRender, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Autosave } from '../../core/autosave';
-import { isBoolean, readSession, writeSession } from '../../core/session-storage';
 import { isWideScreen } from '../../core/theme';
 import { CanvasBoard } from '../../canvas/canvas-board/canvas-board';
+import { LINE_LEVELS, lineLevelOf } from '../line-level';
+import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
+import { JigsawHelper } from '../jigsaw-helper';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawPiecesService } from '../jigsaw-pieces.service';
 import { JigsawService } from '../jigsaw.service';
@@ -39,15 +41,32 @@ export class JigsawPlay implements OnDestroy {
   /** the address of the picture (null: none) */
   readonly picture = signal<string | null>(null);
   readonly message = signal<{ kind: 'success' | 'danger'; text: string } | null>(null);
-  /** the sidebar is open: on a narrow screen it is folded away behind a bar until it is opened (kept for the session; on a wide screen it is always there) */
-  readonly sidebarOpen = signal(readSession('jigsaw.sidebarOpen', false, isBoolean));
-  /** debug is on (the Debug button): the numbers of the grid points and of the pieces are shown */
+  /** the top menu: its Sidebar switch opens the folded sidebar of a narrow screen */
+  protected readonly tools = inject(JigsawHelper);
+  /** the cheat is on (the Cheat button): the numbers of the grid points and of the pieces are shown, to help find the pieces */
   readonly debug = signal(false);
+  /** Start over was pressed: the person is asked to approve before the pieces are shuffled */
+  readonly confirmingStartOver = signal(false);
   /** how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never): a setting of the jigsaw */
   readonly snapPercent = signal(CanvasArea.DEFAULT_SNAP_PERCENT);
+  /** the line round each piece: how thick in pixels, and what colour (#rrggbb); settings of the jigsaw */
+  readonly lineWidth = signal(CanvasArea.DEFAULT_LINE_WIDTH);
+  readonly lineColor = signal(CanvasArea.DEFAULT_LINE_COLOR);
+  /** the background colour of the picture area (#rrggbb); a setting of the jigsaw */
+  readonly backColor = signal(CanvasArea.DEFAULT_BACK_COLOR);
+  /** the thicknesses of the line to choose from, in words, and the one the line is closest to */
+  readonly lineLevels = LINE_LEVELS;
+  readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
+  readonly levels = SNAP_LEVELS;
+  readonly level = computed(() => snapLevelOf(this.snapPercent()));
+
+  /** A difficulty was chosen: the snap range is set to it (and saved with the jigsaw). */
+  chooseLevel(key: string): void {
+    const percent = snapPercentOf(key);
+    if (percent !== null) this.snapPercent.set(percent);
+  }
 
   /** how thick the frame around the picture area is (chosen when the jigsaw was made; a jigsaw that has none gets the usual frame) */
-  readonly frameWidth = computed(() => this.item()?.frameWidth ?? CanvasArea.DEFAULT_FRAME_WIDTH);
   readonly width = computed(() => this.item()?.width ?? 0);
   readonly height = computed(() => this.item()?.height ?? 0);
   readonly gridSize = computed(() => this.item()?.gridSize ?? 0);
@@ -81,7 +100,6 @@ export class JigsawPlay implements OnDestroy {
 
   constructor() {
     afterNextRender(() => this.measureSidebar());
-    effect(() => writeSession('jigsaw.sidebarOpen', this.sidebarOpen()));
     void this.load();
   }
 
@@ -91,6 +109,7 @@ export class JigsawPlay implements OnDestroy {
     return {
       name: item?.name ?? '',
       ...(item?.author ? { author: item.author } : {}), // the PUT replaces the jigsaw: what is not sent is lost
+      ...(item?.pictureName ? { pictureName: item.pictureName } : {}),
       width: this.width(),
       height: this.height(),
       gridSize: this.gridSize(),
@@ -98,7 +117,9 @@ export class JigsawPlay implements OnDestroy {
       placed: this.placed().filter((p) => !p.piece),
       ...(item?.storeWidth ? { storeWidth: item.storeWidth } : {}),
       snapPercent: this.snapPercent(),
-      frameWidth: this.frameWidth(),
+      lineWidth: this.lineWidth(),
+      lineColor: this.lineColor(),
+      backColor: this.backColor(),
     };
   }
 
@@ -111,6 +132,9 @@ export class JigsawPlay implements OnDestroy {
       this.item.set(item);
       this.goodName = item.name;
       this.snapPercent.set(item.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT);
+      this.lineWidth.set(item.lineWidth ?? CanvasArea.DEFAULT_LINE_WIDTH);
+      this.lineColor.set(item.lineColor ?? CanvasArea.DEFAULT_LINE_COLOR);
+      this.backColor.set(item.backColor ?? CanvasArea.DEFAULT_BACK_COLOR);
       if (saved.length) {
         this.placed.set([...item.placed.filter((p) => !p.piece), ...saved.map((p) => JigsawPieces.toPlaced(p))]);
         this.pieceSync.markSaved(saved);
@@ -181,8 +205,9 @@ export class JigsawPlay implements OnDestroy {
     if (item) this.item.set({ ...item, storeWidth });
   }
 
-  /** Reset: all the pieces are shuffled over the store frame again, on random places and layers (see `JigsawCut.reshuffle`). */
-  reset(): void {
+  /** Start over: all the pieces are shuffled over the store frame again, on random places and layers (see `JigsawCut.reshuffle`). Asked for first. */
+  startOver(): void {
+    this.confirmingStartOver.set(false);
     const item = this.item();
     if (!item) return;
     const result = JigsawCut.reshuffle(this.placed(), item.width, item.height, item.gridSize);

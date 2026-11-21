@@ -94,10 +94,14 @@ export class CanvasBoard {
   readonly numberPoints = input(false);
   /** a jigsaw: how wide the store frame beside the canvas is (0: none); the canvas and the frame together are the jigsaw pieces area, where a piece can be moved anywhere */
   readonly storeWidth = input(0);
-  /** the store is made wider (Collect pieces uses the whole width of the frame): the new width in pixels, for the page to keep */
+  /** the store is made wider (collecting the pieces uses the whole width of the frame): the new width in pixels, for the page to keep */
   readonly storeWidthChange = output<number>();
   /** how thick the frame around the picture area is, in pixels (0: none): a line in a colour that can be seen, outside the area, so nothing moves when it is there */
-  readonly frameWidth = input(0);
+  /** a jigsaw: the line round each piece, how thick in pixels and what colour (none: the usual line) */
+  readonly lineWidth = input<number | null>(null);
+  readonly lineColor = input<string | null>(null);
+  /** a jigsaw: the background colour of the picture area (none: white) */
+  readonly backColor = input<string | null>(null);
   /** a jigsaw: how close to its own grid point a piece has to be dropped to click into place, in pixels (0: never) */
   readonly snapRange = input(0);
   /** a banner above the jigsaw pieces area, with a switch that shows or hides the helper picture (the whole picture at a quarter of its width and height) */
@@ -107,6 +111,20 @@ export class CanvasBoard {
   readonly helper = this.jigsawHelper.helper; // the switch is in the top menu (see `JigsawHelper`)
   /** where the floating frame of the helper picture is on the window (its top left corner, in pixels): it can be moved by its title */
   readonly helperFrame = signal(readSession('jigsaw.helperFrame', { x: Math.max(8, window.innerWidth - 260), y: 70 }, isPlace));
+  /** how big the window is now (it can change after the page was opened: a phone turned, a window made smaller) */
+  private readonly viewport = signal({ width: window.innerWidth, height: window.innerHeight });
+  /** where the helper picture frame is drawn: where it was put, but always on the window as it is now (so it is never left outside it when the window gets smaller) */
+  readonly shownHelperFrame = computed(() => {
+    const frame = this.helperFrame();
+    const view = this.viewport();
+    return { x: Math.max(0, Math.min(frame.x, view.width - 80)), y: Math.max(0, Math.min(frame.y, view.height - 40)) };
+  });
+
+  @HostListener('window:resize')
+  measureViewport(): void {
+    this.viewport.set({ width: window.innerWidth, height: window.innerHeight });
+  }
+
   /** the pieces that clicked into place a moment ago: they blink */
   readonly blinking = signal<ReadonlySet<string>>(new Set());
   /** The pieces blink for a moment, and the device vibrates when it can. */
@@ -134,7 +152,7 @@ export class CanvasBoard {
   });
 
   /**
-   * Collect pieces (a button of the helper banner): the pieces that lie in the store frame are put together at the top of it, close to each other (see
+   * Collect pieces (a click on the empty store frame): the pieces that lie in the store frame are put together at the top of it, close to each other (see
    * `CanvasDiagram.collectPieces`), and the frame is scrolled to its top so they are seen. Saved like any move of pieces.
    */
   collectPieces(): void {
@@ -196,7 +214,7 @@ export class CanvasBoard {
 
   /** Grab the title of the helper picture frame to move it. */
   startHelperFrame(event: PointerEvent): void {
-    const frame = this.helperFrame();
+    const frame = this.shownHelperFrame();
     this.helperGrab = { dx: event.clientX - frame.x, dy: event.clientY - frame.y };
     this.capture(event.currentTarget as HTMLElement, event);
   }
@@ -331,6 +349,16 @@ export class CanvasBoard {
   /** the band a place in the store (this far down) is in */
   private bandOf(y: number): number {
     return Math.min(this.bandCount() - 1, Math.max(0, Math.floor(y / this.bandHeight())));
+  }
+
+  /** below the picture: the store is scrolled away from its left end, so there is more to see to the left */
+  readonly canScrollLeft = computed(() => this.stacked() && this.storeScrollX() > 1);
+  /** below the picture: the store goes on past the right edge of the frame */
+  readonly canScrollRight = computed(() => this.stacked() && this.storeScrollX() + this.storeFrameWidth() - 2 * FRAME_BORDER_PX < this.storeInnerSize().width - 1);
+
+  /** The store frame is scrolled a step (most of what it shows) to the left (-1) or to the right (1). */
+  scrollStore(frame: HTMLElement, direction: -1 | 1): void {
+    frame.scrollBy({ left: direction * frame.clientWidth * 0.8, behavior: 'smooth' });
   }
 
   onStoreScroll(event: Event): void {
@@ -496,21 +524,13 @@ export class CanvasBoard {
       this.destroyRef.onDestroy(() => watch.disconnect());
     });
     // what the person chose for the helper stays for the session: when the page is reloaded or left and come back to, the switches, and the place and size of the frame, are as they were
-    // the top menu shows the helper while this board has it, and what it needs to know about the board; it asks for the pieces to be collected
+    // the top menu shows the helper while this board has it, and what it needs to know about the board
     const helper = this.jigsawHelper;
     effect(() => helper.active.set(this.helperBanner()));
     effect(() => helper.hasPicture.set(!!this.picture()));
     effect(() => helper.hasPieces.set(this.hasPieces()));
     effect(() => helper.counts.set(this.pieceCounts()));
-    effect(() => helper.canCollect.set(this.storePieceIds().length > 0));
     this.destroyRef.onDestroy(() => helper.active.set(false));
-    let collected = helper.collectRequests();
-    effect(() => {
-      const asked = helper.collectRequests();
-      if (asked === collected) return;
-      collected = asked;
-      untracked(() => this.collectPieces());
-    });
     effect(() => writeSession('jigsaw.helperFrame', this.helperFrame()));
     effect(() => writeSession('jigsaw.helperScale', this.helperScale()));
     // draw the grid again whenever the size or the grid changes (a new width or height clears the canvas)
@@ -855,7 +875,7 @@ export class CanvasBoard {
     this.marqueeStart = null;
     this.marqueeInStore = false;
     this.marquee.set(null);
-    if (clicked) this.collectPieces(); // a click on the empty store frame collects the pieces (as the Collect pieces button does)
+    if (clicked) this.collectPieces(); // a click on the empty store frame collects the pieces 
   }
 
   /** puts the picked objects on this layer (see `CanvasDiagram.setLayer`) */

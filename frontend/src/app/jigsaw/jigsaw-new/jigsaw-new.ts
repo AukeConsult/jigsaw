@@ -5,11 +5,14 @@ import { fitPicture } from '../fit-picture';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawPiecesService } from '../jigsaw-pieces.service';
 import { JigsawService } from '../jigsaw.service';
+import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
+import { LINE_LEVELS, lineLevelOf } from '../line-level';
+import { JigsawExample } from '../jigsaw-example/jigsaw-example';
 import { PictureCropper } from '../picture-cropper/picture-cropper';
 import { renderPieceGraphics } from '../piece-graphics';
-import { CANVAS_MAX_NAME, CANVAS_MAX_SIDE, CANVAS_MIN_SIDE, CanvasArea, CanvasInput } from '../../models/shared/canvas';
+import { CANVAS_MAX_NAME, CANVAS_MAX_PICTURE_NAME, CANVAS_MAX_SIDE, CANVAS_MIN_SIDE, CanvasArea, CanvasInput } from '../../models/shared/canvas';
 import { SourceRect } from '../../models/shared/geometry';
-import { JigsawCut, JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
+import { JigsawCut, JigsawPieces, PieceLayout, pieceGrid } from '../../models/shared/jigsaw';
 
 /** The biggest picture the API keeps for a jigsaw (about 5 MB; a larger one is made smaller first). */
 const MAX_PICTURE_BYTES = 5 * 1024 * 1024 - 64 * 1024;
@@ -23,7 +26,7 @@ const PREVIEW_BYTES = 300 * 1024;
  */
 @Component({
   selector: 'app-jigsaw-new',
-  imports: [FormsModule, RouterLink, PictureCropper],
+  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample],
   templateUrl: './jigsaw-new.html',
 })
 export class JigsawNew implements OnDestroy {
@@ -42,11 +45,13 @@ export class JigsawNew implements OnDestroy {
     { key: 'panorama', label: 'Panorama 3:1 (1200 × 400)', width: 1200, height: 400 },
     { key: 'large', label: 'Large 4:3 (1200 × 900)', width: 1200, height: 900 },
   ] as const;
-  /** the standard numbers of pieces to choose from */
-  readonly pieceOptions = [24, 48, 100, 200, 300, 500] as const;
-  /** which standard size and number of pieces is chosen ('custom': typed by hand) */
+  /** the size as the person asked for it (the canvas itself is made a whole number of pieces wide and high, which can differ a little) */
+  private readonly asked = signal({ width: 800, height: 600 });
+  /** the standard numbers of pieces to choose from: whole columns and rows in the shape of the canvas (see `JigsawCut.pieceChoices`) */
+  readonly pieceOptions = computed(() => JigsawCut.pieceChoices(this.asked().width, this.asked().height).map((c) => ({ ...c, key: `${c.columns}x${c.rows}` })));
+  /** which standard size and number of pieces is chosen ('custom': typed by hand; a number of pieces is 'columns x rows') */
   readonly sizeChoice = signal<string>('standard');
-  readonly pieceChoice = signal<string>('custom');
+  readonly pieceChoice = signal<string>('16x12');
 
   /** the name is needed, and starts empty (nothing is filled in for the person) */
   readonly name = signal('');
@@ -57,15 +62,26 @@ export class JigsawNew implements OnDestroy {
   /** how many pieces the picture is cut into (the grid size is worked out from it) */
   readonly pieceCount = signal(16 * 12);
   readonly gridSize = signal(50);
-  readonly gridVisible = signal(true);
   /** how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never) */
   readonly snapPercent = signal(CanvasArea.DEFAULT_SNAP_PERCENT);
-  /** how thick the frame around the picture area is, in pixels (0: none) */
-  readonly frameWidth = signal(CanvasArea.DEFAULT_FRAME_WIDTH);
-  readonly maxFrame = CanvasArea.MAX_FRAME_WIDTH;
+  readonly levels = SNAP_LEVELS;
+  readonly level = computed(() => snapLevelOf(this.snapPercent()));
 
-  /** the size of the canvas as the person gave it (the canvas itself is made a whole number of pieces wide and high, which can differ a little) */
-  private askedSize = { width: 800, height: 600 };
+  /** A difficulty was chosen: the snap range is set to it. */
+  chooseLevel(key: string): void {
+    const percent = snapPercentOf(key);
+    if (percent !== null) this.snapPercent.set(percent);
+  }
+  /** how thick the frame around the picture area is, in pixels (0: none) */
+  /** the line round each piece: how thick in pixels, and what colour (#rrggbb) */
+  readonly lineWidth = signal(CanvasArea.DEFAULT_LINE_WIDTH);
+  readonly lineColor = signal(CanvasArea.DEFAULT_LINE_COLOR);
+  /** the background colour of the picture area (#rrggbb) */
+  readonly backColor = signal(CanvasArea.DEFAULT_BACK_COLOR);
+  /** the thicknesses of the line to choose from, in words, and the one the line is closest to */
+  readonly lineLevels = LINE_LEVELS;
+  readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
+
   readonly pieceInfo = computed(() => pieceGrid(this.width(), this.height(), this.gridSize()));
 
   /** the picture file that was chosen, and the cut of it that was found (with the shape of the canvas it was found for) */
@@ -93,13 +109,16 @@ export class JigsawNew implements OnDestroy {
     return {
       name: this.name().trim(),
       ...(this.author().trim() ? { author: this.author().trim() } : {}),
+      ...(this.file()?.name.trim() ? { pictureName: this.file()!.name.trim().slice(0, CANVAS_MAX_PICTURE_NAME) } : {}), // kept with the jigsaw as information
       width: this.width(),
       height: this.height(),
       gridSize: this.gridSize(),
-      gridVisible: this.gridVisible(),
+      gridVisible: false, // the grid points were only for debugging: a new jigsaw does not show them
       placed: [],
       snapPercent: this.snapPercent(),
-      frameWidth: this.frameWidth(),
+      lineWidth: this.lineWidth(),
+      lineColor: this.lineColor(),
+      backColor: this.backColor(),
       ...(storeWidth ? { storeWidth } : {}),
     };
   }
@@ -121,13 +140,27 @@ export class JigsawNew implements OnDestroy {
    */
   relayout(changed: 'width' | 'height' | 'pieces'): void {
     // the sides as the person typed them, each on its own: not what the canvas was made last time (that is a little different when the pieces are whole squares)
-    if (changed === 'width') this.askedSize = { ...this.askedSize, width: this.width() };
-    if (changed === 'height') this.askedSize = { ...this.askedSize, height: this.height() };
-    const layout = JigsawCut.layoutFor(this.askedSize.width, this.askedSize.height, this.pieceCount());
+    if (changed === 'width') this.asked.update((a) => ({ ...a, width: this.width() }));
+    if (changed === 'height') this.asked.update((a) => ({ ...a, height: this.height() }));
+    if (changed !== 'pieces' && this.pieceChoice() !== 'custom') return this.choosePiecesNear(); // a standard number stays a standard number of the new shape
+    const asked = this.asked();
+    this.applyLayout(JigsawCut.layoutFor(asked.width, asked.height, this.pieceCount()));
+  }
+
+  private applyLayout(layout: PieceLayout): void {
     this.width.set(layout.width);
     this.height.set(layout.height);
     this.gridSize.set(layout.grid);
     this.pieceCount.set(layout.columns * layout.rows);
+  }
+
+  /** The shape changed: the standard number of pieces nearest to the one there was is taken from the numbers of the new shape. */
+  private choosePiecesNear(): void {
+    const wanted = this.pieceCount();
+    const options = this.pieceOptions();
+    if (!options.length) return this.pieceChoice.set('custom');
+    const near = options.reduce((best, o) => (Math.abs(o.count - wanted) < Math.abs(best.count - wanted) ? o : best));
+    this.choosePieces(near.key);
   }
 
   /** A standard size was chosen: the canvas gets that shape, and the grid is worked out again for the number of pieces. */
@@ -135,19 +168,20 @@ export class JigsawNew implements OnDestroy {
     this.sizeChoice.set(key);
     const preset = this.sizePresets.find((p) => p.key === key);
     if (!preset) return;
-    this.askedSize = { width: preset.width, height: preset.height };
+    this.asked.set({ width: preset.width, height: preset.height });
     this.width.set(preset.width);
     this.height.set(preset.height);
+    if (this.pieceChoice() !== 'custom') return this.choosePiecesNear();
     this.relayout('pieces');
   }
 
-  /** A standard number of pieces was chosen: the grid size is worked out from it. */
+  /** A standard number of pieces was chosen (columns × rows): the canvas is made to fit exactly that many pieces. */
   choosePieces(value: string): void {
     this.pieceChoice.set(value);
-    const count = Number(value);
-    if (!Number.isFinite(count)) return;
-    this.pieceCount.set(count);
-    this.relayout('pieces');
+    const option = this.pieceOptions().find((o) => o.key === value);
+    if (!option) return;
+    const asked = this.asked();
+    this.applyLayout(JigsawCut.layoutOf(asked.width, asked.height, option.columns, option.rows));
   }
 
   /** A picture file was chosen: it is shown behind a frame of the shape of the canvas to find the cut. */
@@ -208,7 +242,7 @@ export class JigsawNew implements OnDestroy {
       const address = URL.createObjectURL(picture);
       let graphics: Map<string, string>;
       try {
-        graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows);
+        graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, { width: this.lineWidth(), color: this.lineColor() });
       } finally {
         URL.revokeObjectURL(address);
       }

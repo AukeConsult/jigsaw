@@ -11,17 +11,17 @@
 </div>
 }
 @if (helperBanner() && helper() && picture(); as src) {
-  <!-- the helper picture: a frame on top of the rest of the page, moved by its title -->
-  <div class="helper-frame shadow border rounded bg-body" [style.left.px]="helperFrame().x" [style.top.px]="helperFrame().y" aria-label="Helper picture frame">
-    <div class="helper-frame-title d-flex justify-content-between align-items-center gap-2 px-2 py-1 bg-body-secondary border-bottom rounded-top small"
-         (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame()" (pointercancel)="endHelperFrame()">
+  <!-- the helper picture: a frame on top of the rest of the page, moved by grabbing it anywhere (the close button and the corner do their own things) -->
+  <div class="helper-frame shadow border rounded bg-body" [style.left.px]="shownHelperFrame().x" [style.top.px]="shownHelperFrame().y" aria-label="Helper picture frame"
+       (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame()" (pointercancel)="endHelperFrame()">
+    <div class="helper-frame-title d-flex justify-content-between align-items-center gap-2 px-2 py-1 bg-body-secondary border-bottom rounded-top small">
       <span>Helper picture</span>
       <button type="button" class="btn-close btn-sm" aria-label="Hide the helper picture" (pointerdown)="$event.stopPropagation()" (click)="helper.set(false)"></button>
     </div>
     <img [src]="src" class="helper-frame-picture d-block m-1 border" [style.width.px]="width() * helperScale() * scale()" [style.height.px]="height() * helperScale() * scale()" alt="The whole picture, smaller">
     <!-- the corner: drag it to make the picture bigger (up to half its size) or smaller (down to a tenth) -->
     <div class="helper-frame-grip" aria-label="Size of the helper picture"
-         (pointerdown)="startHelperSize($event)" (pointermove)="moveHelperSize($event)" (pointerup)="endHelperSize()" (pointercancel)="endHelperSize()"></div>
+         (pointerdown)="startHelperSize($event)" (pointermove)="moveHelperSize($event)" (pointerup)="endHelperSize()" (pointercancel)="endHelperSize()"><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i></div>
   </div>
 }
 <!--
@@ -32,7 +32,7 @@
      (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()">
 <div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
 <div class="scale-content position-relative d-flex align-items-start p-2" [class.flex-column]="stacked()" [style.gap.px]="gridSize()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
-  <div class="canvas-surface position-relative shadow-sm bg-white flex-shrink-0" [class.canvas-frame]="frameWidth() > 0" [style.width.px]="width()" [style.height.px]="height()" [style.outline-width.px]="frameWidth()"
+  <div class="canvas-surface position-relative shadow-sm flex-shrink-0" [class.bg-white]="!backColor()" [style.background-color]="backColor()" [class.canvas-frame]="(lineWidth() ?? 0) > 0" [style.width.px]="width()" [style.height.px]="height()" [style.outline-width.px]="lineWidth() === null ? null : lineWidth()! / scale()" [style.outline-color]="lineColor()"
        [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null"
        (dragover)="allowDrop($event)" (dragleave)="leaveDrop()" (drop)="drop($event)"
        (pointerdown)="startMarquee($event)">
@@ -75,7 +75,8 @@
   </div>
   <!-- the store frame of a jigsaw, beside the canvas (below it on a narrow screen, see `stacked`): the pieces wait here, spread out; it scrolls up and down -->
   @if (store(); as s) {
-    <div class="flex-shrink-0 border rounded bg-body-secondary" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" aria-label="Jigsaw pieces store"
+    <div class="position-relative flex-shrink-0">
+    <div #storeFrame class="border rounded bg-body-secondary" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" aria-label="Jigsaw pieces store"
          [style.width.px]="storeFrameWidth()" [style.height.px]="storeViewHeight()" (scroll)="onStoreScroll($event)">
       <div #storeInner class="position-relative" [style.width.px]="storeInnerSize().width" [style.height.px]="storeInnerSize().height" (pointerdown)="startMarquee($event)">
         <!-- the rectangle that is being dragged to pick pieces, in the store frame -->
@@ -84,6 +85,20 @@
                [style.left.px]="m.left - s.left" [style.top.px]="m.top" [style.width.px]="m.width" [style.height.px]="m.height"></div>
         }
       </div>
+    </div>
+    <!-- a tiny hint, on top of the pieces: a click on an empty place of the store collects the pieces -->
+    @if (storePieceIds().length) {
+      <span class="store-hint text-body-secondary" aria-hidden="true">Click to get pieces</span>
+    }
+    <!-- below the picture the store scrolls sideways: two buttons over its edges scroll it a step to the left or right (only where there is more to see) -->
+    @if (canScrollLeft()) {
+      <button type="button" class="store-scroll store-scroll-left btn btn-secondary rounded-circle" aria-label="Scroll the pieces to the left"
+              (pointerdown)="$event.stopPropagation()" (click)="scrollStore(storeFrame, -1)"><i class="bi bi-chevron-left" aria-hidden="true"></i></button>
+    }
+    @if (canScrollRight()) {
+      <button type="button" class="store-scroll store-scroll-right btn btn-secondary rounded-circle" aria-label="Scroll the pieces to the right"
+              (pointerdown)="$event.stopPropagation()" (click)="scrollStore(storeFrame, 1)"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+    }
     </div>
     <!--
       The layer of the pieces, on top of the canvas and the store frame: a piece is never cut off or put under a frame, also when it lies over the edge of one
@@ -110,7 +125,7 @@
            (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
            (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
         @if (v.piece; as piece) {
-          <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" [blinking]="blinking().has(p.id)" />
+          <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" [blinking]="blinking().has(p.id)" [lineWidth]="lineWidth()" [lineColor]="lineColor()" />
         } @else {
         <app-canvas-shape [object]="v.object" [bends]="v.bends" [maxSide]="10000" [showPoints]="selectedId() === p.id || connecting()" [boundPoints]="boundPoints().get(p.id) ?? []" />
         }

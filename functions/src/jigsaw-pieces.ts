@@ -2,7 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import express from "express";
 import { JIGSAW_ROOT, Picture, etagOf, isPictureId, pictureType } from "./jigsaw-image";
-import { CANVAS_MAX_PLACED, JIGSAW, JIGSAW_PIECES, JigsawPiece, JigsawPieces, PieceMove } from "./models";
+import { JIGSAW, JIGSAW_MAX_PIECES, JIGSAW_PIECES, JigsawPiece, JigsawPieces, PieceMove } from "./models";
 
 // The pieces of a jigsaw: one document each in the subcollection `jigsaw/<id>/pieces`, with its number, its edges, where it is, on which layer and
 // whether it is matched (the server says so, from where the piece is). The graphic of a piece is a small picture in Storage, `jigsaw/<id>/pieces/<piece id>`,
@@ -135,7 +135,7 @@ export function jigsawPiecesRouter(store: PieceStore, exists: (id: string) => Pr
   router.put("/:id", json, async (req, res) => {
     const list = (req.body as { pieces?: (JigsawPiece & { graphic?: unknown })[] } | undefined)?.pieces;
     if (!Array.isArray(list)) return bad(res, "Send the pieces as a list.");
-    if (list.length > CANVAS_MAX_PLACED) return bad(res, `At most ${CANVAS_MAX_PLACED} pieces fit on a canvas.`);
+    if (list.length > JIGSAW_MAX_PIECES) return bad(res, `At most ${JIGSAW_MAX_PIECES} pieces fit on a canvas.`);
     const ids = new Set<string>();
     const graphics = new Map<string, PieceGraphic>();
     for (const piece of list) {
@@ -156,7 +156,7 @@ export function jigsawPiecesRouter(store: PieceStore, exists: (id: string) => Pr
   router.patch("/:id", json, async (req, res) => {
     const moves = (req.body as { moves?: PieceMove[] } | undefined)?.moves;
     if (!Array.isArray(moves)) return bad(res, "Send the moves as a list.");
-    if (moves.length > CANVAS_MAX_PLACED) return bad(res, `At most ${CANVAS_MAX_PLACED} pieces fit on a canvas.`);
+    if (moves.length > JIGSAW_MAX_PIECES) return bad(res, `At most ${JIGSAW_MAX_PIECES} pieces fit on a canvas.`);
     for (const move of moves) {
       const error = JigsawPieces.moveError(move);
       if (error) return bad(res, error);

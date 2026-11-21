@@ -1,0 +1,17 @@
+<div #host class="w-100">
+  @if (scale() > 0 && pieces().length) {
+    <!-- the room the example takes on the page, and the example itself at its own size, scaled down to fit (the lines are divided by the scale: they keep their thickness) -->
+    <div class="example-room mx-auto" [style.width.px]="area().width * scale()" [style.height.px]="area().height * scale()" role="img" aria-label="An example of the jigsaw with its pieces">
+      <div class="example-area position-relative" [style.width.px]="area().width" [style.height.px]="area().height" [style.background-color]="backColor()"
+           [style.outline-width.px]="drawnLine() / scale()" [style.outline-color]="lineColor()" [class.example-border]="drawnLine() > 0"
+           [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
+        @for (p of pieces(); track p.id) {
+          <div class="position-absolute" [class.example-lifted]="p.lifted" [style.left.px]="p.left" [style.top.px]="p.top">
+            <app-puzzle-piece [id]="'example-' + p.id" [piece]="p.piece" [size]="size()" [columns]="columns()" [rows]="rows()" [picture]="picture()"
+                              [lineWidth]="drawnLine()" [lineColor]="lineColor()" />
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

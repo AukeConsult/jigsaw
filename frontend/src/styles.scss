@@ -78,12 +78,10 @@ $bp-xl: 1200px;
   --app-layer-input-width: 5rem;
   --app-palette-thumb: 64px;
   --app-shape-editor-height: 320px;
-  --app-cut-preview-width: 16rem;
-  --app-cut-preview-height: 12rem;
   --app-progress-height: 6px;
   --app-handle-size: 10px; // the squares that resize a figure
   --app-handle-size-large: 12px; // the handles that bend an arrow and change its width
-  --app-grip-size: 16px; // the corner that sizes the helper picture
+  --app-grip-size: 28px; // the corner that sizes the helper picture
   --app-tile-gap: 0.25rem;
 
   // layers, from the bottom: the pieces, the handles and frames of picking, the sidebar over a small screen, the helper picture, the dialog
@@ -227,6 +225,39 @@ $bp-xl: 1200px;
   touch-action: none;
 }
 
+// the buttons over the edges of the store strip that scroll it sideways: they keep their size on the screen when the board is scaled
+.store-scroll {
+  @extend %board-control;
+  top: 50%;
+  width: calc(2.5rem / var(--app-scale, 1));
+  height: calc(2.5rem / var(--app-scale, 1));
+  padding: 0;
+  font-size: calc(1.25rem / var(--app-scale, 1));
+  line-height: 1;
+  opacity: 0.85;
+  transform: translateY(-50%);
+}
+
+// the tiny hint in the store frame: it lies on top of the pieces and lets the click through to the frame
+.store-hint {
+  position: absolute;
+  z-index: var(--app-z-controls);
+  top: calc(0.25rem / var(--app-scale, 1));
+  left: calc(0.5rem / var(--app-scale, 1));
+  font-size: calc(0.7rem / var(--app-scale, 1));
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.store-scroll-left {
+  left: calc(0.5rem / var(--app-scale, 1));
+}
+
+.store-scroll-right {
+  right: calc(0.5rem / var(--app-scale, 1));
+}
+
 .group-box {
   @extend %board-control;
   pointer-events: none;
@@ -278,10 +309,7 @@ $bp-xl: 1200px;
   position: fixed;
   z-index: var(--app-z-helper);
   max-width: calc(100vw - 1rem);
-}
-
-.helper-frame-title {
-  cursor: move;
+  cursor: move; // the whole frame is grabbed to move it
   touch-action: none;
   user-select: none;
 }
@@ -300,7 +328,16 @@ $bp-xl: 1200px;
   height: var(--app-grip-size);
   cursor: nwse-resize;
   touch-action: none;
-  background: linear-gradient(135deg, transparent 50%, var(--app-muted) 50%);
+  background: linear-gradient(135deg, transparent 50%, var(--bs-secondary) 50%);
+  border-bottom-right-radius: var(--bs-border-radius); // follows the corner of the frame
+  opacity: 0.9;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0 3px 2px 0;
+  color: var(--bs-white);
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 // ---- the picture cropper (a dialog over the page) -------------------------------------------------------------------------------------------------
@@ -383,8 +420,9 @@ $bp-xl: 1200px;
 
 .piece-outline {
   fill: none;
-  stroke: var(--app-piece-outline);
-  stroke-width: 1;
+  stroke: var(--app-line-color, var(--app-piece-outline)); // the jigsaw can choose the line round its pieces
+  stroke-opacity: var(--app-line-opacity, 1); // a colour the jigsaw chose is drawn a little see-through, as the usual one is
+  stroke-width: calc(var(--app-line-width, 1) / var(--app-scale, 1)); // the same on the screen whatever the scale of the board
   stroke-linejoin: round;
 
   &.matched {
@@ -496,9 +534,18 @@ $bp-xl: 1200px;
   }
 }
 
-.cut-preview {
-  max-width: min(var(--app-cut-preview-width), 100%);
-  max-height: var(--app-cut-preview-height);
+// the example of a jigsaw on the page for a new one: drawn at its own size and scaled down to fit (the lines are divided by the scale)
+.example-area {
+  transform-origin: top left;
+}
+
+.example-lifted {
+  filter: drop-shadow(0 calc(3px / var(--app-scale, 1)) calc(4px / var(--app-scale, 1)) rgba(0, 0, 0, 0.5)); // a piece that is lifted out of the picture
+}
+
+.example-border {
+  outline-style: solid;
+  outline-offset: 0;
 }
 
 .progress-thin {
@@ -535,7 +582,7 @@ $bp-xl: 1200px;
   .jigsaw-sidebar {
     display: none; // folded away
     position: absolute;
-    top: 100%; // under the bar
+    top: 0; // over the top of the board (the menu above has the switch that opens it)
     left: 0;
     right: 0;
     z-index: var(--app-z-sidebar);

@@ -24,6 +24,9 @@ export class PuzzlePiece {
   readonly numbered = input(false);
   /** the piece lies on its own place: it is drawn with a green outline */
   readonly matched = input(false);
+  /** the line round the piece: how thick (in pixels) and what colour (#rrggbb); none: the usual line */
+  readonly lineWidth = input<number | null>(null);
+  readonly lineColor = input<string | null>(null);
   /** the piece has just clicked into place: it blinks */
   readonly blinking = input(false);
 

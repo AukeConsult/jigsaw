@@ -1,4 +1,5 @@
-<svg class="piece-svg" [class.blink]="blinking()" [attr.width]="size()" [attr.height]="size()">
+<svg class="piece-svg" [class.blink]="blinking()" [attr.width]="size()" [attr.height]="size()"
+     [style.--app-line-width]="lineWidth() === null ? null : lineWidth()" [style.--app-line-color]="lineColor()" [style.--app-line-opacity]="lineColor() ? 0.55 : null">
   <defs>
     <clipPath [attr.id]="clipId()"><path [attr.d]="path()" /></clipPath>
   </defs>

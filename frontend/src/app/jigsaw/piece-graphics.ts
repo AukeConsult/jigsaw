@@ -5,13 +5,15 @@ import { JigsawCut, JigsawPiece } from '../models/shared/jigsaw';
 const TAB_REACH = 0.35;
 /** The longest side of the graphic of a piece, in pixels: a piece on a big grid is drawn smaller than its size (its graphic is kept small). */
 const MAX_GRAPHIC_SIDE_PX = 256;
+/** How see-through the line round a piece is drawn (the same as on the board). */
+const LINE_ALPHA = 0.55;
 
 /**
  * The graphic of each piece: a small picture of the piece with its outline, cut out of the picture of the jigsaw (the picture covers `columns` × `rows` pieces
  * of the size of a piece), with a see-through background, as a data address of a webp (a png where the browser cannot make webp). It is kept with the piece in the
  * database. Pieces that cannot be drawn are left out.
  */
-export async function renderPieceGraphics(pictureUrl: string, pieces: readonly JigsawPiece[], columns: number, rows: number): Promise<Map<string, string>> {
+export async function renderPieceGraphics(pictureUrl: string, pieces: readonly JigsawPiece[], columns: number, rows: number, line?: { width: number; color: string }): Promise<Map<string, string>> {
   const graphics = new Map<string, string>();
   const bitmap = await createImageBitmap(await (await fetch(pictureUrl)).blob());
   for (const piece of pieces) {
@@ -31,10 +33,12 @@ export async function renderPieceGraphics(pictureUrl: string, pieces: readonly J
     ctx.clip(outline);
     ctx.drawImage(bitmap, -piece.col * size, -piece.row * size, columns * size, rows * size);
     ctx.restore();
-    ctx.lineWidth = 1;
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = cssVar('--app-piece-outline', 'gray'); // the outline of a piece, from the look (styles.scss)
-    ctx.stroke(outline);
+    ctx.lineWidth = line?.width ?? 1;
+    // the outline of a piece: the colour the jigsaw has, or the usual one from the look (styles.scss); a colour the jigsaw has is drawn a little see-through, as the usual one is
+    ctx.strokeStyle = line ? line.color : cssVar('--app-piece-outline', 'gray');
+    if (line) ctx.globalAlpha = LINE_ALPHA;
+    if (ctx.lineWidth > 0) ctx.stroke(outline);
     graphics.set(piece.id, canvas.toDataURL('image/webp', 0.8));
   }
   bitmap.close();

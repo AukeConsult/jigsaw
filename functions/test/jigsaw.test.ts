@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CANVAS_MAX_PLACED, CanvasArea, CanvasDiagram, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedBase, PlacedFigure, pieceGrid } from "../src/models";
+import { JIGSAW_MAX_PIECES, CanvasArea, CanvasDiagram, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedBase, PlacedFigure, pieceGrid } from "../src/models";
 
 /** a steady "random" so the tests give the same cut every time */
 function seeded(seed: number) {
@@ -107,7 +107,7 @@ describe("cutting a canvas into jigsaw pieces", () => {
     expect(JigsawCut.cut(60, 60, 50)).toHaveProperty("error"); // one piece is no puzzle
     const many = JigsawCut.cut(2000, 2000, 50);
     expect(many).toHaveProperty("error");
-    expect((many as { error: string }).error).toContain(String(CANVAS_MAX_PLACED));
+    expect((many as { error: string }).error).toContain(String(JIGSAW_MAX_PIECES));
   });
 
   it("draws the outline of a piece: flat edges are straight, a tab or a blank is a curve", () => {
@@ -291,6 +291,78 @@ describe("the frame around the picture area, a setting of the jigsaw", () => {
   });
 });
 
+describe("the name of the picture file", () => {
+  const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
+
+  it("is kept with the jigsaw (trimmed), and a jigsaw without it has none", () => {
+    expect(new CanvasArea({ ...input, pictureName: "  IMG_1.jpg " }).stored().pictureName).toBe("IMG_1.jpg");
+    expect("pictureName" in new CanvasArea({ ...input, pictureName: "  " }).stored()).toBe(false);
+    expect("pictureName" in new CanvasArea(input).stored()).toBe(false);
+    expect(CanvasArea.fromStored("x", { ...input, pictureName: "a.png", createdAt: 1 }).pictureName).toBe("a.png");
+    expect("pictureName" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+  });
+
+  it("is at most 200 characters", () => {
+    expect(new CanvasArea({ ...input, pictureName: "a".repeat(200) }).error()).toBe("");
+    for (const bad of ["a".repeat(201), 5, null]) expect(new CanvasArea({ ...input, pictureName: bad }).error()).toContain("picture file");
+  });
+});
+
+describe("the line round the pieces", () => {
+  const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
+
+  it("is saved with the jigsaw (also 0, no line), and a jigsaw without it has none", () => {
+    const stored = new CanvasArea({ ...input, lineWidth: 0, lineColor: "#FF0000" }).stored();
+    expect(stored.lineWidth).toBe(0);
+    expect(stored.lineColor).toBe("#ff0000");
+    expect("lineWidth" in new CanvasArea(input).stored()).toBe(false);
+    expect(CanvasArea.fromStored("x", { ...input, lineWidth: 3, lineColor: "#00ff00", createdAt: 1 }).lineWidth).toBe(3);
+    expect("lineColor" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+  });
+
+  it("is a whole number of pixels from 0 to 6, in a colour written #rrggbb", () => {
+    for (const bad of [-1, 1.5, "2", null, 7]) expect(new CanvasArea({ ...input, lineWidth: bad }).error()).toContain("line");
+    for (const good of [0, 1, 6]) expect(new CanvasArea({ ...input, lineWidth: good }).error()).toBe("");
+    for (const bad of ["red", "#fff", "#12345g", 5, null]) expect(new CanvasArea({ ...input, lineColor: bad }).error()).toContain("colour");
+    expect(new CanvasArea({ ...input, lineColor: "#a1B2c3" }).error()).toBe("");
+  });
+});
+
+describe("the background colour of the picture area", () => {
+  const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
+
+  it("is saved with the jigsaw as #rrggbb, and a jigsaw without it has none", () => {
+    expect(new CanvasArea({ ...input, backColor: "#AABBCC" }).stored().backColor).toBe("#aabbcc");
+    expect("backColor" in new CanvasArea(input).stored()).toBe(false);
+    expect(CanvasArea.fromStored("x", { ...input, backColor: "#112233", createdAt: 1 }).backColor).toBe("#112233");
+    expect(new CanvasArea({ ...input, backColor: "#abcdef" }).error()).toBe("");
+    for (const bad of ["white", "#fff", 3, null]) expect(new CanvasArea({ ...input, backColor: bad }).error()).toContain("background");
+  });
+});
+
+describe("the standard numbers of pieces for a shape", () => {
+  it("are whole columns and rows in the shape of the canvas, smallest first", () => {
+    expect(JigsawCut.pieceChoices(800, 600).map((c) => [c.columns, c.rows, c.count])).toEqual([[8, 6, 48], [12, 9, 108], [16, 12, 192], [20, 15, 300], [24, 18, 432], [32, 24, 768], [36, 27, 972]]);
+    for (const [w, h] of [[900, 600], [960, 540], [700, 700], [600, 800], [1200, 400]]) {
+      const choices = JigsawCut.pieceChoices(w, h);
+      expect(choices.length).toBeGreaterThan(0);
+      let before = 0;
+      for (const c of choices) {
+        expect(c.count).toBe(c.columns * c.rows);
+        expect(c.count).toBeGreaterThan(before);
+        expect(c.count).toBeLessThanOrEqual(1000);
+        expect(Math.abs(c.columns / c.rows - w / h) / (w / h)).toBeLessThanOrEqual(0.04);
+        before = c.count;
+      }
+    }
+  });
+
+  it("make a canvas that fits them exactly, as near the size asked for as it can be", () => {
+    expect(JigsawCut.layoutOf(800, 600, 16, 12)).toEqual({ grid: 50, width: 800, height: 600, columns: 16, rows: 12 });
+    expect(JigsawCut.layoutOf(800, 600, 24, 18)).toEqual({ grid: 33, width: 792, height: 594, columns: 24, rows: 18 });
+  });
+});
+
 describe("the grid size from the number of pieces", () => {
   const layout = (w: number, h: number, n: number) => JigsawCut.layoutFor(w, h, n);
 
@@ -322,13 +394,13 @@ describe("the grid size from the number of pieces", () => {
       const miss = Math.abs(l.columns * l.rows - n);
       for (let g = 5; g <= 300; g++) {
         const count = Math.round(CanvasArea.fittedSide(w, g) / g) * Math.round(CanvasArea.fittedSide(h, g) / g);
-        if (count <= 500 && count >= 2) expect(miss).toBeLessThanOrEqual(Math.abs(count - n) + 1e-9 + (Math.abs(g - Math.sqrt((w * h) / n)) <= 3 ? 0 : Infinity));
+        if (count <= 1000 && count >= 2) expect(miss).toBeLessThanOrEqual(Math.abs(count - n) + 1e-9 + (Math.abs(g - Math.sqrt((w * h) / n)) <= 3 ? 0 : Infinity));
       }
     }
   });
 
   it("keeps the number of pieces within what can be, and the layout allowed as a canvas", () => {
-    expect(layout(800, 600, 100000).columns * layout(800, 600, 100000).rows).toBeLessThanOrEqual(CANVAS_MAX_PLACED);
+    expect(layout(800, 600, 100000).columns * layout(800, 600, 100000).rows).toBeLessThanOrEqual(JIGSAW_MAX_PIECES);
     expect(layout(800, 600, 1).columns * layout(800, 600, 1).rows).toBeGreaterThanOrEqual(2);
     expect(layout(800, 600, Number.NaN).columns * layout(800, 600, Number.NaN).rows).toBeGreaterThanOrEqual(2);
     const l = layout(800, 600, 192);
@@ -343,7 +415,7 @@ describe("the grid size from the number of pieces", () => {
     expect(tiny.grid).toBeGreaterThanOrEqual(1);
     expect(tiny.width % tiny.grid).toBe(0);
     const big = layout(10000, 10000, 500);
-    expect(big.columns * big.rows).toBeLessThanOrEqual(CANVAS_MAX_PLACED);
+    expect(big.columns * big.rows).toBeLessThanOrEqual(JIGSAW_MAX_PIECES);
     expect(big.width).toBeLessThanOrEqual(10000);
   });
 });

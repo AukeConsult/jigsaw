@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app";
 import { etagOf } from "../src/jigsaw-image";
 import { MAX_PIECE_GRAPHIC_BYTES, PieceGraphic, PieceStore } from "../src/jigsaw-pieces";
-import { CANVAS_MAX_PLACED, DEFAULT_OBJECT, JigsawCut, JigsawPiece, JigsawPieces, PieceMove } from "../src/models";
+import { JIGSAW_MAX_PIECES, DEFAULT_OBJECT, JigsawCut, JigsawPiece, JigsawPieces, PieceMove } from "../src/models";
 
 /** the pieces in memory: what the subcollection and the bucket are in the app */
 function memoryPieces(jigsaws: string[]) {
@@ -141,7 +141,7 @@ describe("the pieces of a jigsaw in the database", () => {
     expect((await put([{ ...pieces[0], graphic: "not an address" }])).status).toBe(400);
     expect((await put([{ ...pieces[0], graphic: dataAddress(Buffer.from("just text, not a picture")) }])).status).toBe(400);
     expect((await put([{ ...pieces[0], graphic: dataAddress(Buffer.concat([webp, Buffer.alloc(MAX_PIECE_GRAPHIC_BYTES)])) }])).status).toBe(400);
-    expect((await put(Array.from({ length: CANVAS_MAX_PLACED + 1 }, (_, i) => ({ ...pieces[0], id: `p${i}` })))).status).toBe(400);
+    expect((await put(Array.from({ length: JIGSAW_MAX_PIECES + 1 }, (_, i) => ({ ...pieces[0], id: `p${i}` })))).status).toBe(400);
     const patch = (moves: unknown) => request(app).patch(`/api/jigsaw-pieces/${id}`).send({ moves });
     expect((await patch("no")).status).toBe(400);
     expect((await patch([{ id: "x", centerX: -1, centerY: 0, layer: 5 }])).status).toBe(400);

@@ -17,14 +17,8 @@
     @let m = matched();
     <div class="jigsaw-play">
       <div class="jigsaw-side">
-        <!-- on a narrow screen the sidebar is folded away behind this bar, which tells how far the game has come; it opens over the board -->
-        <button type="button" class="d-flex d-xl-none w-100 align-items-center justify-content-between gap-2 btn btn-light border-bottom rounded-0 text-start"
-                aria-controls="jigsaw-sidebar" [attr.aria-expanded]="sidebarOpen()" (click)="sidebarOpen.set(!sidebarOpen())">
-          <span class="text-truncate"><strong>{{ it.name }}</strong> <span class="text-body-secondary small">Matched {{ m.count }} of {{ m.total }}</span></span>
-          <i class="bi" [class.bi-chevron-up]="sidebarOpen()" [class.bi-chevron-down]="!sidebarOpen()" aria-hidden="true"></i>
-        </button>
-        <!-- the sidebar, docked at the left edge on a wide screen: how far the game has come and what can be done in it -->
-        <aside id="jigsaw-sidebar" class="jigsaw-sidebar border-end bg-body-tertiary p-3" [class.is-open]="sidebarOpen()" [style.height.px]="sidebarHeight()" aria-label="The jigsaw">
+        <!-- the sidebar, docked at the left edge on a wide screen: how far the game has come and what can be done in it; on a narrow screen it is folded away until the Sidebar switch in the top menu opens it over the board -->
+        <aside id="jigsaw-sidebar" class="jigsaw-sidebar border-end bg-body-tertiary p-3" [class.is-open]="tools.sidebarOpen()" [style.height.px]="sidebarHeight()" aria-label="The jigsaw">
         <!-- the title: it is edited here, and saved with the jigsaw -->
         <input id="jigsaw-title" name="title" class="form-control form-control-plaintext h4 fw-bold mb-1 px-0 py-0" type="text" aria-label="Name of the jigsaw" [maxlength]="maxName"
                [ngModel]="it.name" (ngModelChange)="rename($event)" (blur)="leaveTitle()">
@@ -42,10 +36,35 @@
         }
 
         <div class="mb-3">
-          <label class="form-label small mb-1" for="snap-range">Snap range (% of the grid)</label>
-          <input id="snap-range" name="snapPercent" class="form-control form-control-sm" type="number" min="0" max="100" step="1"
-                 [ngModel]="snapPercent()" (ngModelChange)="snapPercent.set($event === null || $event === '' ? 0 : $event)">
-          <div class="form-text mt-0">A piece clicks into place when it is dropped this close to its own grid point (0: never).</div>
+          <label class="form-label small mb-1" for="snap-range">Difficulty</label>
+          <select id="snap-range" name="snapLevel" class="form-select form-select-sm" (change)="chooseLevel($any($event.target).value)">
+            @for (l of levels; track l.key) {
+              <option [value]="l.key" [selected]="level() === l.key">{{ l.label }}</option>
+            }
+          </select>
+          <div class="form-text mt-0">How close a piece must be dropped to its place to click into it: the easier, the farther away.</div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label small mb-1" for="line-width">Line</label>
+            <select id="line-width" name="lineWidth" class="form-select form-select-sm" title="How thick the line round each piece and round the picture area is"
+                    (change)="lineWidth.set(+$any($event.target).value)">
+              @for (l of lineLevels; track l.width) {
+                <option [value]="l.width" [selected]="lineLevel() === l.width">{{ l.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-3">
+            <label class="form-label small mb-1" for="line-color">Colour</label>
+            <input id="line-color" name="lineColor" class="form-control form-control-sm form-control-color w-100" type="color" title="The colour of the line round each piece and round the picture area"
+                   [ngModel]="lineColor()" (ngModelChange)="lineColor.set($event)">
+          </div>
+          <div class="col-3">
+            <label class="form-label small mb-1" for="back-color">Back</label>
+            <input id="back-color" name="backColor" class="form-control form-control-sm form-control-color w-100" type="color" title="The background colour of the picture area, inside the frame"
+                   [ngModel]="backColor()" (ngModelChange)="backColor.set($event)">
+          </div>
         </div>
 
         @if (message(); as msg) {
@@ -53,29 +72,33 @@
         }
 
         <div class="d-flex flex-wrap gap-1 mb-3">
-          <button type="button" class="btn btn-sm btn-outline-primary" (click)="reset()"><i class="bi bi-shuffle me-1" aria-hidden="true"></i>Reset</button>
-          <button type="button" class="btn btn-sm text-nowrap" [class.btn-secondary]="debug()" [class.btn-outline-secondary]="!debug()" [attr.aria-pressed]="debug()"
-                  (click)="debug.set(!debug())"><i class="bi bi-bug me-1" aria-hidden="true"></i>Debug</button>
-        </div>
-
-        <div class="small" role="status" aria-live="polite"
-             [class.text-body-secondary]="saveState() !== 'failed' && saveState() !== 'invalid'" [class.text-danger]="saveState() === 'failed' || saveState() === 'invalid'">
-          @switch (saveState()) {
-            @case ('invalid') { Not saved: the settings are not allowed }
-            @case ('waiting') { Changes not saved yet… }
-            @case ('saving') { Saving… }
-            @case ('saved') { All changes saved }
-            @case ('failed') { Could not save, trying again }
-            @default { Saved }
+          @if (confirmingStartOver()) {
+            <div class="w-100 small" role="alert">Start all over? All the pieces are shuffled again and your progress is lost.</div>
+            <button type="button" class="btn btn-sm btn-danger" (click)="startOver()">Yes, start over</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingStartOver.set(false)">Cancel</button>
+          } @else {
+            <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Start over</button>
           }
         </div>
-        <a class="btn btn-sm btn-outline-secondary mt-3" routerLink="/jigsaw/list"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>All jigsaws</a>
+
+        <!-- the cheat: the numbers of the places on the picture and on the pieces, to help find them (a switch, as the helper ones in the menu are) -->
+        <div class="form-check form-switch mb-3">
+          <input id="cheat" class="form-check-input" type="checkbox" role="switch" [checked]="debug()" (change)="debug.set($any($event.target).checked)">
+          <label class="form-check-label small" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>Cheat <span class="text-body-secondary">(help find pieces)</span></label>
+        </div>
+
+        <!-- saving is automatic: only a problem is said -->
+        @if (saveState() === 'failed' || saveState() === 'invalid') {
+          <div class="small text-danger" role="alert">
+            @if (saveState() === 'invalid') { Not saved: the settings are not allowed } @else { Could not save, trying again }
+          </div>
+        }
         </aside>
       </div>
 
       <div class="jigsaw-main">
         <app-canvas-board [width]="it.width" [height]="it.height" [gridSize]="it.gridSize" [gridVisible]="it.gridVisible" [gridInset]="true" [numberPoints]="debug()"
-                          [storeWidth]="it.storeWidth ?? 0" [frameWidth]="frameWidth()" [snapRange]="snapRangePx()" [picture]="picture()" [tools]="false" [fillScreen]="true" [helperBanner]="true"
+                          [storeWidth]="it.storeWidth ?? 0" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" [snapRange]="snapRangePx()" [picture]="picture()" [tools]="false" [fillScreen]="true" [helperBanner]="true"
                           [(placed)]="placed" (notice)="tell($event)" (storeWidthChange)="widenStore($event)" />
       </div>
     </div>
