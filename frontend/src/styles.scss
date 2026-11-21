@@ -96,8 +96,10 @@ $bp-xl: 1200px;
   // motion
   --app-blink-duration: 0.7s;
 
-  // the width where the layout changes (read by the code that needs to know: the same as `$bp-md`)
-  --app-bp-md: #{$bp-md};
+  // the width under which the sidebar of a jigsaw is folded away behind a bar (read by the code that needs to know: the same as `$bp-xl`)
+  --app-sidebar-fold: #{$bp-xl};
+  // the width under which the pieces frame of a jigsaw is below the picture instead of beside it
+  --app-store-below: #{$bp-xl};
 
   // Bootstrap's own variables, from ours
   --bs-body-font-family: var(--app-font-sans);
@@ -501,7 +503,7 @@ $bp-xl: 1200px;
   min-width: 0;
 }
 
-@include below($bp-md) {
+@include below($bp-xl) {
   .jigsaw-play {
     display: block;
   }

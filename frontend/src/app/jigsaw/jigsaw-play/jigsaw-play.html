@@ -18,7 +18,7 @@
     <div class="jigsaw-play">
       <div class="jigsaw-side">
         <!-- on a narrow screen the sidebar is folded away behind this bar, which tells how far the game has come; it opens over the board -->
-        <button type="button" class="d-flex d-md-none w-100 align-items-center justify-content-between gap-2 btn btn-light border-bottom rounded-0 text-start"
+        <button type="button" class="d-flex d-xl-none w-100 align-items-center justify-content-between gap-2 btn btn-light border-bottom rounded-0 text-start"
                 aria-controls="jigsaw-sidebar" [attr.aria-expanded]="sidebarOpen()" (click)="sidebarOpen.set(!sidebarOpen())">
           <span class="text-truncate"><strong>{{ it.name }}</strong> <span class="text-body-secondary small">Matched {{ m.count }} of {{ m.total }}</span></span>
           <span aria-hidden="true">{{ sidebarOpen() ? '\u25B2' : '\u25BC' }}</span>

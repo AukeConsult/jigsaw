@@ -75,11 +75,11 @@
   </div>
   <!-- the store frame of a jigsaw, beside the canvas (below it on a narrow screen, see `stacked`): the pieces wait here, spread out; it scrolls up and down -->
   @if (store(); as s) {
-    <div class="flex-shrink-0 border rounded bg-body-secondary" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" class="overflow-x-auto" aria-label="Jigsaw pieces store"
+    <div class="flex-shrink-0 border rounded bg-body-secondary" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" aria-label="Jigsaw pieces store"
          [style.width.px]="storeFrameWidth()" [style.height.px]="storeViewHeight()" (scroll)="onStoreScroll($event)">
       <div #storeInner class="position-relative" [style.width.px]="storeInnerSize().width" [style.height.px]="storeInnerSize().height" (pointerdown)="startMarquee($event)">
         <!-- the rectangle that is being dragged to pick pieces, in the store frame -->
-        @if (!stacked() && marquee(); as m) {
+        @if (!stacked() && sliceCount() === 1 && marquee(); as m) {
           <div class="marquee"
                [style.left.px]="m.left - s.left" [style.top.px]="m.top" [style.width.px]="m.width" [style.height.px]="m.height"></div>
         }

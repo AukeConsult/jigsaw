@@ -18,7 +18,7 @@ export function cssNumber(name: string, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
 }
 
-/** Whether the screen is as wide as the layout of a wide screen needs (the sidebar docked at the left): from the width `--app-bp-md` up. */
+/** Whether the screen is as wide as the layout of a wide screen needs (the sidebar docked at the left): from the width `--app-sidebar-fold` up. */
 export function isWideScreen(): boolean {
-  return window.matchMedia(`(min-width: ${cssNumber('--app-bp-md', 768)}px)`).matches;
+  return window.matchMedia(`(min-width: ${cssNumber('--app-sidebar-fold', 1200)}px)`).matches;
 }

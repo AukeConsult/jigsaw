@@ -35,15 +35,15 @@ const SCREEN_MARGIN_PX = 8;
 const STORE_MIN_HEIGHT_PX = 100;
 /** The room the scroll bar of the store frame takes beside its pieces, in pixels. */
 const STORE_SCROLLBAR_PX = 16;
+/** A press on the empty store frame that moves less than this is a click (stored pixels). */
+const CLICK_MAX_PX = 6;
 /** The jigsaw pieces area is never drawn smaller than this share of the stored size (the picture is fitted to the screen down to here), and never bigger than the stored size. */
 const SCALE_MIN = 0.1;
 /** A jigsaw is drawn at most this many times bigger than its stored size. */
 const SCALE_MAX = 4;
-/** The store frame is beside the picture as long as the picture (2/3 of the room) can be drawn at this scale or bigger; on a narrower screen it goes below the picture. */
-const BESIDE_MIN_SCALE = 0.5;
 /** With the store frame beside the picture, the picture gets this share of the room to begin with and the frame the rest (the frame scrolls sideways when the pieces need more). */
 const BESIDE_PICTURE_SHARE = 2 / 3;
-/** With the store frame below the picture it is this many grid steps high (a short strip) and scrolls sideways only: the store is cut into bands as high as the strip, laid side by side. */
+/** With the store frame below the picture it is at least this many grid steps high (it goes on down to the bottom of the screen) and scrolls sideways only: the store is cut into bands as high as the strip, laid side by side. */
 const STACKED_STORE_ROWS = 4;
 /** The helper picture is shown at this share of the size of the picture to begin with, and can be made as small as the first and as big as the second. */
 const HELPER_SCALE_START = 0.25;
@@ -237,9 +237,19 @@ export class CanvasBoard {
   /** how far the store frame is scrolled, in pixels */
   readonly storeScroll = signal(0);
   /** how high the store frame is on the page */
-  readonly storeViewHeight = computed(() => (this.stacked() ? Math.max(STORE_MIN_HEIGHT_PX, Math.round(STACKED_STORE_ROWS * (this.gridSize() || STORE_MIN_HEIGHT_PX))) : this.areaHeight() ? Math.floor(((this.areaHeight() ?? 0) - 2) / this.scale() - 2 * AREA_PADDING_PX) : this.height()));
+  readonly storeViewHeight = computed(() => (this.stacked() ? this.stripHeight() : this.areaHeight() ? Math.floor(((this.areaHeight() ?? 0) - 2) / this.scale() - 2 * AREA_PADDING_PX) : this.height()));
+  /**
+   * How high the strip of the store is below the picture, in stored pixels: all that is left of the area under the picture, down to the bottom of the screen, and at
+   * least `STACKED_STORE_ROWS` grid steps. The store is shown in bands as high as this, so when the window changes size the pieces are spread over the bands again.
+   */
+  private readonly stripHeight = computed(() => {
+    const least = Math.max(STORE_MIN_HEIGHT_PX, Math.round(STACKED_STORE_ROWS * (this.gridSize() || STORE_MIN_HEIGHT_PX)));
+    const area = this.areaHeight();
+    if (!area) return least;
+    return Math.max(least, Math.floor((area - 2) / this.scale() - 2 * AREA_PADDING_PX - this.height() - this.gridSize()));
+  });
   /** what the pieces area has room for on the screen: its width (the area border is not counted) */
-  private readonly room = signal<{ width: number; height: number } | null>(null);
+  private readonly room = signal<{ width: number; height: number; view: number } | null>(null);
   /**
    * How big the pieces area is drawn compared with the stored pixels (at most 1): the picture, with the space round it, is fitted to the room there is, in its own
    * proportions, so it is whole on any screen. Everything on the area is drawn at this scale (the pieces, the grid, the frames); what the person does on it is
@@ -259,14 +269,14 @@ export class CanvasBoard {
     return Math.min(store ? SCALE_MAX : 1, Math.max(SCALE_MIN, fit)); // a jigsaw is drawn bigger than its stored size when the room is there: the picture gets 2/3 of the width
   });
   /**
-   * Whether the store frame is below the picture instead of beside it: when both side by side would have to be drawn smaller than `BESIDE_MIN_SCALE` to fit the
-   * room (a narrow screen). Only how it is drawn changes: the pieces keep the places they are stored at, and `place` puts them where the frame is shown.
+   * Whether the store frame is below the picture instead of beside it: on a screen narrower than `--app-store-below` (styles.scss; the same width as where the
+   * sidebar of the jigsaw is folded away). Only how it is drawn changes: the pieces keep the places they are stored at, and `place` puts them where the frame is shown.
    */
   readonly stacked = computed(() => {
     const store = this.store();
     const room = this.room();
     if (!store || !room || !(room.width > 0)) return false;
-    return (room.width * BESIDE_PICTURE_SHARE) / (this.width() + 2 * AREA_PADDING_PX) < BESIDE_MIN_SCALE;
+    return room.view < cssNumber('--app-store-below', 1200);
   });
   private readonly destroyRef = inject(DestroyRef);
   /** how big the layer of the pieces is: the whole area, so it scrolls with it */
@@ -301,11 +311,22 @@ export class CanvasBoard {
   private readonly bandHeight = computed(() => Math.max(1, this.storeViewHeight() - 2 * FRAME_BORDER_PX));
   /** how many bands the store has below the picture */
   private readonly bandCount = computed(() => Math.max(1, Math.ceil((this.store()?.height ?? 0) / this.bandHeight())));
-  /** the size of the inside of the store frame: the store as it is, or the bands side by side */
+  /**
+   * Beside the picture the frame scrolls up and down only: when the store is wider than the frame shows, it is cut into slices as wide as the frame, one under
+   * the other (the way it is cut into bands below the picture), so the pieces are arranged inside the view. How wide a slice is, in stored pixels:
+   */
+  private readonly sliceWidth = computed(() => Math.max(1, this.storeFrameWidth() - STORE_SCROLLBAR_PX - 2 * FRAME_BORDER_PX));
+  /** how many slices the store has beside the picture (1: the store is not wider than the frame, nothing is cut) */
+  readonly sliceCount = computed(() => {
+    const store = this.store();
+    return !store || this.stacked() ? 1 : Math.max(1, Math.ceil(store.width / this.sliceWidth()));
+  });
+  /** the size of the inside of the store frame: the store as it is, or the bands side by side (below the picture), or the slices one under the other (beside it) */
   readonly storeInnerSize = computed(() => {
     const store = this.store();
     if (!store) return { width: 0, height: 0 };
-    return this.stacked() ? { width: this.bandCount() * store.width, height: this.bandHeight() } : { width: store.width, height: store.height };
+    if (this.stacked()) return { width: this.bandCount() * store.width, height: this.bandHeight() };
+    return this.sliceCount() > 1 ? { width: this.sliceWidth(), height: this.sliceCount() * store.height } : { width: store.width, height: store.height };
   });
   /** the band a place in the store (this far down) is in */
   private bandOf(y: number): number {
@@ -333,8 +354,10 @@ export class CanvasBoard {
     const stacked = this.stacked();
     // where the piece is in the store as the frame has it: as stored, or in its band (below the picture; a piece is shown whole, not cut by the edge of its band)
     const band = stacked ? this.bandOf(v.top + size / 2) : 0;
-    const inLeft = v.left - store.left + band * store.width;
-    const inTop = stacked ? Math.min(Math.max(v.top - band * this.bandHeight(), 0), Math.max(0, this.bandHeight() - size)) : v.top;
+    const slices = this.sliceCount();
+    const slice = slices > 1 ? Math.min(slices - 1, Math.max(0, Math.floor((v.left + size / 2 - store.left) / this.sliceWidth()))) : 0; // beside the picture: the slice it is in
+    const inLeft = slices > 1 ? Math.min(Math.max(v.left - store.left - slice * this.sliceWidth(), 0), Math.max(0, this.sliceWidth() - size)) : v.left - store.left + band * store.width;
+    const inTop = stacked ? Math.min(Math.max(v.top - band * this.bandHeight(), 0), Math.max(0, this.bandHeight() - size)) : v.top + slice * store.height;
     const top = inTop - scroll; // where the piece is in what the frame shows
     if (top + size + reach <= 0 || top - reach >= shown) return { shift: 0, shiftY: 0, clip: null, hidden: true };
     const cutTop = Math.max(0, -top);
@@ -460,6 +483,8 @@ export class CanvasBoard {
 
   /** where a rectangle drag on the empty canvas started */
   private marqueeStart: { x: number; y: number } | null = null;
+  /** whether that drag started on the empty store frame: a click there (no drag) collects the pieces */
+  private marqueeInStore = false;
 
   constructor() {
     // the pieces area fills the screen: measured when the page is drawn, and again when the window is resized or scrolled
@@ -514,7 +539,8 @@ export class CanvasBoard {
     const root = this.root().nativeElement;
     this.areaHeight.set(this.fillScreen() ? Math.max(200, Math.floor(window.innerHeight - root.getBoundingClientRect().top - SCREEN_MARGIN_PX)) : null);
     const width = root.clientWidth; // the room is what the page gives the area: it does not grow with its content
-    if (this.room()?.width !== width) this.room.set({ width, height: 0 });
+    const now = this.room();
+    if (now?.width !== width || now.view !== window.innerWidth) this.room.set({ width, height: 0, view: window.innerWidth });
   }
 
   /** the distance between the points the centres stick to: the grid, or a pixel when the grid is not shown */
@@ -633,7 +659,12 @@ export class CanvasBoard {
         const rect = inner.getBoundingClientRect(); // moves with the scrolling of the frame
         const across = (event.clientX - rect.left) / this.scale();
         const down = (event.clientY - rect.top) / this.scale();
-        if (!this.stacked()) return { x: store.left + across, y: down };
+        if (!this.stacked()) {
+          const slices = this.sliceCount();
+          if (slices === 1) return { x: store.left + across, y: down };
+          const slice = Math.min(slices - 1, Math.max(0, Math.floor(down / store.height))); // beside the picture: the slice the pointer is over
+          return { x: store.left + Math.min(across + slice * this.sliceWidth(), store.width), y: Math.min(down - slice * store.height, store.height) };
+        }
         const band = Math.min(this.bandCount() - 1, Math.max(0, Math.floor(across / store.width))); // below the picture: the band the pointer is over
         return { x: store.left + Math.min(across - band * store.width, store.width), y: Math.min(down + band * this.bandHeight(), store.height) };
       }
@@ -804,6 +835,7 @@ export class CanvasBoard {
   startMarquee(event: PointerEvent): void {
     const { x, y } = this.areaPoint(event); // on the canvas, or on the store frame (which can be scrolled)
     this.marqueeStart = { x, y };
+    this.marqueeInStore = !!this.store() && event.currentTarget === this.storeInner()?.nativeElement;
     this.selection.set([]);
     this.capture(this.root().nativeElement, event);
   }
@@ -818,8 +850,12 @@ export class CanvasBoard {
   }
 
   endMarquee(): void {
+    const box = this.marquee();
+    const clicked = !!this.marqueeStart && this.marqueeInStore && (!box || (box.width < CLICK_MAX_PX && box.height < CLICK_MAX_PX)); // pressed and let go on the empty store frame
     this.marqueeStart = null;
+    this.marqueeInStore = false;
     this.marquee.set(null);
+    if (clicked) this.collectPieces(); // a click on the empty store frame collects the pieces (as the Collect pieces button does)
   }
 
   /** puts the picked objects on this layer (see `CanvasDiagram.setLayer`) */
