@@ -38,5 +38,6 @@
   "couldNotDelete": "No se pudo eliminar la partida: inténtalo de nuevo.",
   "couldNotReach": "No se pudo conectar con el servidor: inténtalo de nuevo.",
   "noSuchUser": "No hay ningún usuario con ese nombre de usuario.",
-  "chooseFirst": "Primero elige un usuario."
+  "chooseFirst": "Primero elige un usuario.",
+  "timePlayed": "Tiempo de juego"
 }

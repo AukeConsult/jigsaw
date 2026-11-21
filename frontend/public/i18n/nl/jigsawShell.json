@@ -12,5 +12,6 @@
   "edgesTitle": "Alleen de hoek- en randstukjes",
   "showing": "{{ shown }} van {{ total }} stukjes zichtbaar",
   "details": "Details",
-  "language": "Taal"
+  "language": "Taal",
+  "timePlayed": "Speeltijd"
 }

@@ -12,5 +12,6 @@
   "edgesTitle": "Only the corner and edge pieces",
   "showing": "Showing {{ shown }} of {{ total }} pieces",
   "details": "Details",
-  "language": "Language"
+  "language": "Language",
+  "timePlayed": "Time played"
 }

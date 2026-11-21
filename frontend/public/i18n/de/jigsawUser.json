@@ -38,5 +38,6 @@
   "couldNotDelete": "Die Runde konnte nicht gelöscht werden: Versuch es noch einmal.",
   "couldNotReach": "Der Server ist nicht erreichbar: Versuch es noch einmal.",
   "noSuchUser": "Es gibt keinen Benutzer mit diesem Benutzernamen.",
-  "chooseFirst": "Wähl zuerst einen Benutzer aus."
+  "chooseFirst": "Wähl zuerst einen Benutzer aus.",
+  "timePlayed": "Spielzeit"
 }

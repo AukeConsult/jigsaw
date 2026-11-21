@@ -12,5 +12,6 @@
   "edgesTitle": "Bare hjørne- og kantbrikkene",
   "showing": "Viser {{ shown }} av {{ total }} brikker",
   "details": "Detaljer",
-  "language": "Språk"
+  "language": "Språk",
+  "timePlayed": "Tid brukt"
 }

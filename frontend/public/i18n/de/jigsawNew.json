@@ -55,5 +55,7 @@
   "visibility": "Wer es sieht",
   "visibilityEveryone": "Alle",
   "visibilityOwner": "Nur der Besitzer",
-  "visibilityHelp": "Ein Puzzle für alle steht in den Listen aller. Eines, das nur der Besitzer sieht, steht nur in den Listen des Besitzers."
+  "visibilityHelp": "Ein Puzzle für alle steht in den Listen aller. Eines, das nur der Besitzer sieht, steht nur in den Listen des Besitzers.",
+  "timed": "Mit Zeitmessung",
+  "timedHelp": "Eine Uhr misst, wie lange jede Runde dauert."
 }

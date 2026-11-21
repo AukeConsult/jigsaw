@@ -55,5 +55,7 @@
   "visibility": "Hvem ser det",
   "visibilityEveryone": "Alle",
   "visibilityOwner": "Bare eieren",
-  "visibilityHelp": "Et puslespill for alle står i listene til alle. Et som bare eieren ser, står bare i eierens lister."
+  "visibilityHelp": "Et puslespill for alle står i listene til alle. Et som bare eieren ser, står bare i eierens lister.",
+  "timed": "Tidtaking",
+  "timedHelp": "En klokke måler hvor lang tid hver runde tar."
 }

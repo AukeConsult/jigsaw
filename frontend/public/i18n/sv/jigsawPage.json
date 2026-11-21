@@ -40,5 +40,8 @@
   "visibility": "Vem ser det",
   "visibilityEveryone": "Alla",
   "visibilityOwner": "Bara ägaren",
-  "onlyYou": "Bara du ser det"
+  "onlyYou": "Bara du ser det",
+  "timePlayed": "Speltid",
+  "timed": "Tidtagning",
+  "timedHelp": "en klocka mäter hur lång tid varje omgång tar"
 }

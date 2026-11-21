@@ -99,6 +99,12 @@
       </select>
     </div>
 
+    <div class="form-check form-switch mb-3">
+      <input id="jigsaw-timed" name="timed" class="form-check-input" type="checkbox" role="switch" [ngModel]="timed()" (ngModelChange)="timed.set($event)">
+      <label class="form-check-label" for="jigsaw-timed"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawNew.timed') || 'Timed' }}</label>
+      <div class="form-text mt-0">{{ t('jigsawNew.timedHelp') || 'A clock counts how long each round takes.' }}</div>
+    </div>
+
     <div class="row row-cols-3 g-2 mb-2">
       <div class="col">
         <label class="form-label small mb-1" for="jigsaw-line-width">{{ t('jigsawNew.line') || 'Line' }}</label>

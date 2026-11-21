@@ -38,5 +38,6 @@
   "couldNotDelete": "Kunde inte ta bort omgången: försök igen.",
   "couldNotReach": "Kunde inte nå servern: försök igen.",
   "noSuchUser": "Det finns ingen användare med det användarnamnet.",
-  "chooseFirst": "Välj en användare först."
+  "chooseFirst": "Välj en användare först.",
+  "timePlayed": "Speltid"
 }

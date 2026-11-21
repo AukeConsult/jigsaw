@@ -77,6 +77,16 @@ export class PlaysService {
     fetch(`${this.one(jigsawId, playId)}/positions`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...this.whoAsks() }, body: JSON.stringify({ moves }), keepalive: true }).catch(() => undefined);
   }
 
+  /** how long the round has been played, so far (it only grows on the server) */
+  saveTime(jigsawId: string, playId: string, elapsedMs: number): Promise<unknown> {
+    return firstValueFrom(this.http.patch(`${this.one(jigsawId, playId)}/positions`, { moves: [], elapsedMs }, { headers: this.whoAsks() }));
+  }
+
+  /** The same, for the moment the page is being closed or hidden: the request goes on after the page is gone. */
+  saveTimeWhileLeaving(jigsawId: string, playId: string, elapsedMs: number): void {
+    fetch(`${this.one(jigsawId, playId)}/positions`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...this.whoAsks() }, body: JSON.stringify({ moves: [], elapsedMs }), keepalive: true }).catch(() => undefined);
+  }
+
   remove(jigsawId: string, playId: string): Promise<unknown> {
     return firstValueFrom(this.http.delete(this.one(jigsawId, playId), { headers: this.whoAsks() }));
   }

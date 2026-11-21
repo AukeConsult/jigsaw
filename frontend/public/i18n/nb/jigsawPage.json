@@ -40,5 +40,8 @@
   "visibility": "Hvem ser det",
   "visibilityEveryone": "Alle",
   "visibilityOwner": "Bare eieren",
-  "onlyYou": "Bare du ser det"
+  "onlyYou": "Bare du ser det",
+  "timePlayed": "Tid brukt",
+  "timed": "Tidtaking",
+  "timedHelp": "en klokke måler hvor lang tid hver runde tar"
 }

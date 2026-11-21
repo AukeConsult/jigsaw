@@ -1,3 +1,4 @@
+import { clockOf } from '../duration';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -28,6 +29,9 @@ import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
   templateUrl: './jigsaw-page.html',
 })
 export class JigsawPage implements OnInit {
+  /** a time played, as a clock (`12:34`) */
+  protected readonly clock = clockOf;
+
   private readonly jigsaws = inject(JigsawService);
   private readonly plays = inject(PlaysService);
   private readonly images = inject(JigsawImageService);
@@ -54,6 +58,7 @@ export class JigsawPage implements OnInit {
   readonly owners = signal<JigsawUserSpec[]>([]);
   readonly ownerUid = signal('');
   readonly visibility = signal<'everyone' | 'owner'>('everyone');
+  readonly timed = signal(true);
   readonly snapPercent = signal<number>(CanvasArea.DEFAULT_SNAP_PERCENT);
   readonly lineWidth = signal<number>(CanvasArea.DEFAULT_LINE_WIDTH);
   readonly lineColor = signal<string>(CanvasArea.DEFAULT_LINE_COLOR);
@@ -154,6 +159,7 @@ export class JigsawPage implements OnInit {
     this.name.set(item.name);
     this.ownerUid.set(item.ownerUid ?? '');
     this.visibility.set(item.visibility ?? 'everyone');
+    this.timed.set(item.timed !== false);
     this.snapPercent.set(item.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT);
     this.lineWidth.set(item.lineWidth ?? CanvasArea.DEFAULT_LINE_WIDTH);
     this.lineColor.set(item.lineColor ?? CanvasArea.DEFAULT_LINE_COLOR);
@@ -177,6 +183,7 @@ export class JigsawPage implements OnInit {
       name,
       ...(owner ? { author: owner.name, ownerUid: owner.id } : item.author ? { author: item.author } : {}), // the API puts the name of the user in `author` itself
       ...(this.visibility() === 'owner' && (owner?.id ?? item.ownerUid) ? { visibility: 'owner' as const } : {}),
+      ...(this.timed() ? {} : { timed: false }),
       ...(item.pictureName ? { pictureName: item.pictureName } : {}),
       width: item.width,
       height: item.height,

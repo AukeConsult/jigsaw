@@ -38,5 +38,6 @@
   "couldNotDelete": "Could not delete the round: try again.",
   "couldNotReach": "Could not reach the server: try again.",
   "noSuchUser": "There is no user with that user name.",
-  "chooseFirst": "Choose a user first."
+  "chooseFirst": "Choose a user first.",
+  "timePlayed": "Time played"
 }

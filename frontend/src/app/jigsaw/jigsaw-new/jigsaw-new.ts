@@ -77,6 +77,8 @@ export class JigsawNew implements OnDestroy {
   readonly ownerUid = signal('');
   /** who sees the jigsaw in the lists: everyone, or only its owner */
   readonly visibility = signal<'everyone' | 'owner'>('everyone');
+  /** a clock counts how long each round takes */
+  readonly timed = signal(true);
   private readonly owner = computed(() => this.owners().find((u) => u.id === this.ownerUid()) ?? null);
   readonly width = signal(800);
   readonly height = signal(600);
@@ -148,6 +150,7 @@ export class JigsawNew implements OnDestroy {
       name: this.name().trim(),
       ...(this.owner() ? { author: this.owner()!.name, ownerUid: this.owner()!.id } : this.ownerUid() ? { ownerUid: this.ownerUid() } : {}), // the API puts the name of the user in `author` itself
       ...(this.visibility() === 'owner' && this.ownerUid() ? { visibility: 'owner' as const } : {}),
+      ...(this.timed() ? {} : { timed: false }), // timed is what none says
       ...(this.pictureNameOf() ? { pictureName: this.pictureNameOf() } : {}), // kept with the jigsaw as information
       width: this.width(),
       height: this.height(),
@@ -293,6 +296,7 @@ export class JigsawNew implements OnDestroy {
       this.name.set(item.name);
       this.ownerUid.set(item.ownerUid ?? '');
       this.visibility.set(item.visibility ?? 'everyone');
+      this.timed.set(item.timed !== false);
       this.asked.set({ width: item.width, height: item.height });
       this.width.set(item.width);
       this.height.set(item.height);

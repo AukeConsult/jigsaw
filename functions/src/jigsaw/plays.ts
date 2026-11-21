@@ -136,7 +136,7 @@ export interface PlayDeps {
  *  GET: the plays of all the users can be read (a round of another player can be looked at). Changing or deleting a round needs the header `X-Jigsaw-User` to be its player (403 otherwise).
  *  GET /:playId: the play, the settings it is played with, and the pieces as it has them (without the graphics).
  *  PATCH /:playId/settings {overrides}: the look this play chooses (the line and the colours; null takes a choice away); anything else, the difficulty too, is refused (400).
- *  PATCH /:playId/positions {moves, storeWidth?}: where pieces are now (and how wide the store of this game has grown to); how many are in place and whether the game is solved follows from that. DELETE /:playId.
+ *  PATCH /:playId/positions {moves, storeWidth?, elapsedMs?}: where pieces are now (how wide the store of this game has grown to, and how long it has been played: that only grows); how many are in place and whether the game is solved follows from that. DELETE /:playId.
  */
 export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
   const router = express.Router({ mergeParams: true });
@@ -215,16 +215,21 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
   router.patch("/:playId/positions", ownRound, async (req, res) => {
     const jigsaw = await jigsawOf(req, res);
     if (!jigsaw) return;
-    const { moves, storeWidth } = (req.body ?? {}) as { moves?: unknown; storeWidth?: unknown };
+    const { moves, storeWidth, elapsedMs } = (req.body ?? {}) as { moves?: unknown; storeWidth?: unknown; elapsedMs?: unknown };
     const error = Plays.movesError(moves);
     if (error) return bad(res, error);
+    if (elapsedMs !== undefined) {
+      const late = Plays.elapsedError(elapsedMs);
+      if (late) return bad(res, late);
+    }
     if (storeWidth !== undefined && !(typeof storeWidth === "number" && Number.isInteger(storeWidth) && storeWidth >= 0 && storeWidth <= CANVAS_MAX_SIDE)) {
       return bad(res, `The store must be a whole number of pixels from 0 to ${CANVAS_MAX_SIDE} wide.`);
     }
     const pieces = await deps.pieces.list(jigsaw.id);
     const saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {
       const next = Plays.moved(cur.play, pieces, cur.positions, moves as PieceMove[], now());
-      return typeof storeWidth === "number" ? { ...next, play: { ...next.play, storeWidth } } : next; // the store of this game grew (pieces were collected over the whole frame)
+      const grown = typeof storeWidth === "number" ? { ...next, play: { ...next.play, storeWidth } } : next; // the store of this game grew (pieces were collected over the whole frame)
+      return typeof elapsedMs === "number" ? { ...grown, play: Plays.withElapsed(grown.play, elapsedMs) } : grown; // the time played so far
     });
     if (!saved) return bad(res, "No such play.", 404);
     res.json({ moved: (moves as PieceMove[]).length, matched: saved.play.matched, total: saved.play.total, status: saved.play.status });

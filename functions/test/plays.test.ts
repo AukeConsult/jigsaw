@@ -284,6 +284,48 @@ describe("the plays of a jigsaw", () => {
   });
 });
 
+describe("the time a round has been played", () => {
+  it("is kept with the round, and only grows", async () => {
+    const { app, made } = await setup();
+    const url = `/jigsaw/api/jigsaw/${made.id}/plays`;
+    const play = await started(app, made.id, { userId: "anna" });
+    expect(play.elapsedMs).toBeUndefined(); // the clock has not run yet
+    const send = (elapsedMs: unknown) => anna(app).patch(`${url}/${play.id}/positions`).send({ moves: [], elapsedMs });
+    expect((await send(12_000)).status).toBe(200);
+    expect(((await request(app).get(`${url}/${play.id}`)).body.play as PlaySpec).elapsedMs).toBe(12_000);
+    expect((await send(5_000)).status).toBe(200); // a late request does not take time away
+    expect(((await request(app).get(`${url}/${play.id}`)).body.play as PlaySpec).elapsedMs).toBe(12_000);
+    expect((await send(30_500)).status).toBe(200);
+    expect(((await request(app).get(url)).body as PlaySpec[])[0].elapsedMs).toBe(30_500); // it is in the list of rounds
+  });
+
+  it("is a whole number of milliseconds, not more than a month, and only its player sets it", async () => {
+    const { app, made } = await setup();
+    const url = `/jigsaw/api/jigsaw/${made.id}/plays`;
+    const play = await started(app, made.id, { userId: "anna" });
+    for (const bad of [-1, 1.5, "10", null, 31 * 24 * 3600 * 1000]) {
+      expect((await anna(app).patch(`${url}/${play.id}/positions`).send({ moves: [], elapsedMs: bad })).status).toBe(400);
+    }
+    expect((await request(app).patch(`${url}/${play.id}/positions`).set("X-Jigsaw-User", "bo").send({ moves: [], elapsedMs: 5000 })).status).toBe(403);
+  });
+});
+
+describe("a timed jigsaw", () => {
+  const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [] };
+
+  it("is timed unless it says it is not, and only knows yes and no", async () => {
+    const app = createJigsawApp({ jigsaw: memoryJigsaws(), users: memoryUsers("anna"), plays: memoryPlays() });
+    const timed = (await request(app).post("/jigsaw/api/jigsaw").send(settings)).body as CanvasSpec;
+    expect(timed.timed).toBeUndefined(); // no word: timed
+    const untimed = (await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, timed: false })).body as CanvasSpec;
+    expect(untimed.timed).toBe(false);
+    expect((await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, timed: "no" })).status).toBe(400);
+    const back = (await request(app).put(`/jigsaw/api/jigsaw/${untimed.id}`).send({ ...settings, timed: true })).body as CanvasSpec;
+    expect(back.timed).toBeUndefined(); // timed again: stored as none says
+    expect(((await request(app).get("/jigsaw/api/jigsaw")).body as CanvasSpec[]).map((c) => c.timed)).toEqual([undefined, undefined]);
+  });
+});
+
 describe("who sees a jigsaw", () => {
   const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [] };
   const app = () => createJigsawApp({ jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bob"), plays: memoryPlays() });

@@ -55,5 +55,7 @@
   "visibility": "Wie ziet hem",
   "visibilityEveryone": "Iedereen",
   "visibilityOwner": "Alleen de eigenaar",
-  "visibilityHelp": "Een puzzel voor iedereen staat in ieders lijsten. Een puzzel die alleen de eigenaar ziet, staat alleen in de lijsten van de eigenaar."
+  "visibilityHelp": "Een puzzel voor iedereen staat in ieders lijsten. Een puzzel die alleen de eigenaar ziet, staat alleen in de lijsten van de eigenaar.",
+  "timed": "Met tijdmeting",
+  "timedHelp": "Een klok meet hoe lang elke ronde duurt."
 }

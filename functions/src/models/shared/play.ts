@@ -11,6 +11,9 @@ export const PLAYS = 'plays';
 export const PLAY_STATE = 'state';
 export const PLAY_POSITIONS_DOC = 'positions';
 
+/** The most time a round can have been played, in milliseconds (a month: a number that is not made up by a bug or a joke). */
+export const PLAY_MAX_ELAPSED_MS = 30 * 24 * 60 * 60 * 1000;
+
 /** The longest id of a user. */
 export const PLAY_MAX_USER_ID = 128;
 
@@ -39,6 +42,8 @@ export interface PlaySpec {
   /** how many pieces are in their own place, of how many there are */
   matched: number;
   total: number;
+  /** how long the round has been played, in milliseconds: the time it has been open on the screen of its player (without it, nothing is known: a round from before the clock) */
+  elapsedMs?: number;
   /** how wide the store frame of this game is (it depends on the screen, and grows when the pieces are collected over the whole frame) */
   storeWidth: number;
   /** the round is made but nobody has moved a piece yet (looking at it and going back does not make a round): it is not listed, and not counted as played, until the first piece is moved */
@@ -167,6 +172,17 @@ export class Plays {
     });
   }
 
+  /** The reason a time played is not allowed, or ''. */
+  static elapsedError(value: unknown): string {
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > PLAY_MAX_ELAPSED_MS) return 'The time played must be a whole number of milliseconds, at most a month.';
+    return '';
+  }
+
+  /** The play with this time played: the time only grows (a page that was left open in another tab, or a late request, never takes time away). */
+  static withElapsed(play: PlaySpec, elapsedMs: number): PlaySpec {
+    return { ...play, elapsedMs: Math.max(play.elapsedMs ?? 0, elapsedMs) };
+  }
+
   /** The reason a list of moves is not allowed, or ''. */
   static movesError(moves: unknown): string {
     if (!Array.isArray(moves)) return 'Send the moves as a list.';
@@ -191,6 +207,7 @@ export class Plays {
       total: play.total,
       storeWidth: play.storeWidth,
       ...(play.fresh ? { fresh: true } : {}),
+      ...(typeof play.elapsedMs === 'number' && play.elapsedMs > 0 ? { elapsedMs: play.elapsedMs } : {}),
       overrides: Object.fromEntries(PLAY_OVERRIDE_KEYS.filter((k) => play.overrides?.[k] !== undefined).map((k) => [k, play.overrides[k]])) as PlayOverrides,
     };
   }

@@ -1,3 +1,4 @@
+import { clockOf } from '../duration';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -20,6 +21,9 @@ import { JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../..
   templateUrl: './jigsaw-user.html',
 })
 export class JigsawUser implements OnInit {
+  /** a time played, as a clock (`12:34`) */
+  protected readonly clock = clockOf;
+
   protected readonly users = inject(JigsawUserService);
   private readonly plays = inject(PlaysService);
   private readonly images = inject(JigsawImageService);

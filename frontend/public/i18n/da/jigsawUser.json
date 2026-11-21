@@ -38,5 +38,6 @@
   "couldNotDelete": "Kunne ikke slette runden: prøv igen.",
   "couldNotReach": "Kunne ikke få kontakt til serveren: prøv igen.",
   "noSuchUser": "Der er ingen bruger med det brugernavn.",
-  "chooseFirst": "Vælg en bruger først."
+  "chooseFirst": "Vælg en bruger først.",
+  "timePlayed": "Tid brugt"
 }

@@ -70,7 +70,7 @@
                     }
                     <span>{{ t('jigsawUser.ofTotal', { matched: game.play.matched, total: game.play.total }) || game.play.matched + ' of ' + game.play.total }}</span>
                   </div>
-                  <div class="tiny text-body-secondary"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ game.play.startedAt | date: 'MMM d, y, HH:mm' }}</div>
+                  <div class="tiny text-body-secondary"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ game.play.startedAt | date: 'MMM d, y, HH:mm' }}@if (game.play.elapsedMs) { <span class="ms-2 text-nowrap" [title]="t('jigsawUser.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ clock(game.play.elapsedMs) }}</span> }</div>
                 </div>
                 <div class="round-actions">
                   @if (confirmingPlayId() === game.play.id) {

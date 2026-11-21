@@ -40,5 +40,8 @@
   "visibility": "Wie ziet hem",
   "visibilityEveryone": "Iedereen",
   "visibilityOwner": "Alleen de eigenaar",
-  "onlyYou": "Alleen jij ziet hem"
+  "onlyYou": "Alleen jij ziet hem",
+  "timePlayed": "Speeltijd",
+  "timed": "Met tijdmeting",
+  "timedHelp": "een klok meet hoe lang elke ronde duurt"
 }

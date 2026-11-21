@@ -12,5 +12,6 @@
   "edgesTitle": "Seulement les pièces de coin et de bord",
   "showing": "{{ shown }} pièces affichées sur {{ total }}",
   "details": "Détails",
-  "language": "Langue"
+  "language": "Langue",
+  "timePlayed": "Temps de jeu"
 }

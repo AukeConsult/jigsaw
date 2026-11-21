@@ -21,6 +21,8 @@ export class JigsawHelper {
   readonly active = signal(false);
   readonly hasPicture = signal(false);
   readonly hasPieces = signal(false);
+  /** the time played in the round that is open, as a clock (null: no round with a clock is open); the menu shows it */
+  readonly clock = signal<string | null>(null);
   /** how many pieces there are and how many of them are shown */
   readonly counts = signal({ shown: 0, total: 0 });
 

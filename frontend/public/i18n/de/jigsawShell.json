@@ -12,5 +12,6 @@
   "edgesTitle": "Nur die Eck- und Randteile",
   "showing": "{{ shown }} von {{ total }} Teilen werden angezeigt",
   "details": "Details",
-  "language": "Sprache"
+  "language": "Sprache",
+  "timePlayed": "Spielzeit"
 }

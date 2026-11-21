@@ -25,6 +25,10 @@ import { JigsawUserService } from './jigsaw-user.service';
         @if (tools.active()) {
           <!-- the helper, on the page of a jigsaw: the helper picture (a frame on top of the page with the whole picture), only the corner and edge pieces -->
           <div class="jigsaw-helper-bar d-flex align-items-center flex-wrap gap-2 gap-sm-3" [attr.aria-label]="t('jigsawShell.helper') || 'Helper'">
+            @if (tools.clock(); as time) {
+              <!-- the time played in this round, a small clock that runs while the round is open on the screen -->
+              <span class="small text-nowrap text-body-secondary" role="timer" [title]="t('jigsawShell.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i><span class="visually-hidden">{{ t('jigsawShell.timePlayed') || 'Time played' }}: </span><span class="font-monospace">{{ time }}</span></span>
+            }
             <div class="form-check form-switch mb-0">
               <input id="helper-picture" class="form-check-input" type="checkbox" role="switch" [checked]="tools.helper()" [disabled]="!tools.hasPicture()"
                      (change)="tools.helper.set($any($event.target).checked)">

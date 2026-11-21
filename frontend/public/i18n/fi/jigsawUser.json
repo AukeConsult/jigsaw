@@ -38,5 +38,6 @@
   "couldNotDelete": "Kierrosta ei voitu poistaa: yritä uudelleen.",
   "couldNotReach": "Palvelimeen ei saatu yhteyttä: yritä uudelleen.",
   "noSuchUser": "Tällä käyttäjätunnuksella ei ole käyttäjää.",
-  "chooseFirst": "Valitse ensin käyttäjä."
+  "chooseFirst": "Valitse ensin käyttäjä.",
+  "timePlayed": "Peliaika"
 }

@@ -39,6 +39,8 @@ export interface CanvasSpec {
   ownerUid?: string;
   /** a jigsaw: who sees it in the lists: `everyone` (also when it says nothing: the default) or `owner` (only its owner; it needs an owner) */
   visibility?: CanvasVisibility;
+  /** a jigsaw: a clock counts how long each round takes (also when it says nothing: the default); `false` means no clock */
+  timed?: boolean;
   /** a jigsaw: the name of the picture file it was made from (kept as information; not shown while playing) */
   pictureName?: string;
   /** horizontal size in pixels */
@@ -68,11 +70,11 @@ export interface CanvasSpec {
 }
 
 /** What the page sends to make a canvas area. */
-export type CanvasInput = Pick<CanvasSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'pictureName' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type CanvasInput = Pick<CanvasSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'timed' | 'pictureName' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** A canvas area as it comes from outside (the page, the API): it checks itself. */
 export class CanvasArea {
-  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; pictureName?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a canvas whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -129,6 +131,7 @@ export class CanvasArea {
       ...(typeof i.author === 'string' && i.author.trim() ? { author: i.author.trim() } : {}),
       ...(typeof i.ownerUid === 'string' && i.ownerUid ? { ownerUid: i.ownerUid } : {}),
       ...(i.visibility === 'owner' ? { visibility: 'owner' as const } : {}), // `everyone` is what none says
+      ...(i.timed === false ? { timed: false } : {}), // timed is what none says
       ...(typeof i.pictureName === 'string' && i.pictureName.trim() ? { pictureName: i.pictureName.trim() } : {}),
       width: i.width as number,
       height: i.height as number,
@@ -152,6 +155,7 @@ export class CanvasArea {
       ...(doc.author ? { author: doc.author } : {}),
       ...(doc.ownerUid ? { ownerUid: doc.ownerUid } : {}),
       ...(doc.visibility === 'owner' ? { visibility: 'owner' as const } : {}),
+      ...(doc.timed === false ? { timed: false } : {}),
       ...(doc.pictureName ? { pictureName: doc.pictureName } : {}),
       width: doc.width ?? 800,
       height: doc.height ?? 600,
@@ -176,6 +180,7 @@ export class CanvasArea {
     if (name.length > CANVAS_MAX_NAME) return `The name can be at most ${CANVAS_MAX_NAME} characters.`;
     if (input.author !== undefined && (typeof input.author !== 'string' || input.author.trim().length > CANVAS_MAX_NAME)) return `The author can be at most ${CANVAS_MAX_NAME} characters.`;
     if (input.ownerUid !== undefined && (typeof input.ownerUid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(input.ownerUid))) return 'The owner must be the id of a user.';
+    if (input.timed !== undefined && typeof input.timed !== 'boolean') return 'Timed is yes or no.';
     if (input.visibility !== undefined && !(CANVAS_VISIBILITIES as readonly unknown[]).includes(input.visibility)) return 'A jigsaw is seen by everyone or by its owner only.';
     if (input.visibility === 'owner' && !input.ownerUid) return 'A jigsaw only its owner sees needs an owner: choose the author from the users.';
     if (input.pictureName !== undefined && (typeof input.pictureName !== 'string' || input.pictureName.trim().length > CANVAS_MAX_PICTURE_NAME)) {

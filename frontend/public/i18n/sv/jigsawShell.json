@@ -12,5 +12,6 @@
   "edgesTitle": "Bara hörn- och kantbitarna",
   "showing": "Visar {{ shown }} av {{ total }} bitar",
   "details": "Detaljer",
-  "language": "Språk"
+  "language": "Språk",
+  "timePlayed": "Speltid"
 }

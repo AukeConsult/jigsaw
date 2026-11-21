@@ -55,5 +55,7 @@
   "visibility": "Qui le voit",
   "visibilityEveryone": "Tout le monde",
   "visibilityOwner": "Seulement le propriétaire",
-  "visibilityHelp": "Un puzzle pour tout le monde apparaît dans les listes de tous. Un puzzle que seul le propriétaire voit n'apparaît que dans les listes du propriétaire."
+  "visibilityHelp": "Un puzzle pour tout le monde apparaît dans les listes de tous. Un puzzle que seul le propriétaire voit n'apparaît que dans les listes du propriétaire.",
+  "timed": "Chronométré",
+  "timedHelp": "Un chrono mesure la durée de chaque partie."
 }

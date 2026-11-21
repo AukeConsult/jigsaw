@@ -40,5 +40,8 @@
   "visibility": "Quién lo ve",
   "visibilityEveryone": "Todos",
   "visibilityOwner": "Solo el dueño",
-  "onlyYou": "Solo lo ves tú"
+  "onlyYou": "Solo lo ves tú",
+  "timePlayed": "Tiempo de juego",
+  "timed": "Cronometrado",
+  "timedHelp": "un reloj mide cuánto dura cada partida"
 }

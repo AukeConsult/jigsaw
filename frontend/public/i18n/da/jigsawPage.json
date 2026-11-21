@@ -40,5 +40,8 @@
   "visibility": "Hvem ser det",
   "visibilityEveryone": "Alle",
   "visibilityOwner": "Kun ejeren",
-  "onlyYou": "Kun du ser det"
+  "onlyYou": "Kun du ser det",
+  "timePlayed": "Tid brugt",
+  "timed": "Tidtagning",
+  "timedHelp": "et ur måler, hvor lang tid hver runde tager"
 }

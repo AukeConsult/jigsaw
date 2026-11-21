@@ -38,5 +38,6 @@
   "couldNotDelete": "Impossible de supprimer la partie : réessaie.",
   "couldNotReach": "Impossible de joindre le serveur : réessaie.",
   "noSuchUser": "Il n'y a aucun utilisateur avec ce nom d'utilisateur.",
-  "chooseFirst": "Choisis d'abord un utilisateur."
+  "chooseFirst": "Choisis d'abord un utilisateur.",
+  "timePlayed": "Temps de jeu"
 }

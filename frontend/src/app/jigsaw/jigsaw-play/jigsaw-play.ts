@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, afterNextRender, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, afterNextRender, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr, translationsLoaded } from '../../core/i18n';
@@ -13,6 +13,7 @@ import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { PieceSync, PieceSyncApi } from '../piece-sync';
+import { clockOf } from '../duration';
 import { PlaysService } from '../plays.service';
 import { CanvasArea, CanvasSpec } from '../../models/shared/canvas';
 import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
@@ -145,11 +146,27 @@ export class JigsawPlay implements OnDestroy {
   });
   readonly saveState = this.autosave.state;
 
+  /** how long the round has been played, in milliseconds: counted while the round is open on the screen (the page is shown), it is the user's own and it is not solved */
+  readonly elapsedMs = signal(0);
+  readonly clock = computed(() => clockOf(this.elapsedMs()));
+  /** the time the database has, and when the clock was last read (performance.now(); 0: the clock is not running) */
+  private timeSaved = 0;
+  private lastTick = 0;
+  private clockTimer: ReturnType<typeof setInterval> | undefined;
+  /** the clock runs: the round is ready, is the user's own, is not solved, and the page is on the screen */
+  private clockRuns(): boolean {
+    const m = this.matched();
+    return this.status() === 'ready' && !!this.play() && this.item()?.timed !== false && !this.viewOnly() && !(m.total > 0 && m.count === m.total) && document.visibilityState === 'visible';
+  }
+
   constructor() {
     afterNextRender(() => this.measureSidebar());
+    this.clockTimer = setInterval(() => this.tickClock(), 1000);
+    effect(() => this.tools.clock.set(this.status() === 'ready' && this.item()?.timed !== false ? this.clock() : null)); // the menu at the top shows it
     // another game can be opened from this page (a new game): the page is the same, the ids change
     this.route.paramMap.subscribe((params) => {
       this.pieceSync.leaving(); // what waits to be saved goes to the game that is left
+      this.saveTimeNow(); // and so does the time
       this.jigsawId = params.get('id') ?? '';
       this.playId = params.get('playId') ?? '';
       void this.load();
@@ -179,6 +196,9 @@ export class JigsawPlay implements OnDestroy {
       this.placed.set([...jigsaw.placed.filter((p) => !p.piece), ...detail.pieces.map((p) => JigsawPieces.toPlaced(p))]);
       this.pieceSync.markSaved(detail.pieces);
       this.autosave.markSaved(this.playId); // reading is not a change
+      this.elapsedMs.set(detail.play.elapsedMs ?? 0);
+      this.timeSaved = this.elapsedMs();
+      this.lastTick = 0;
       this.status.set('ready');
       this.picture.set((await this.images.has(this.jigsawId)) ? this.images.url(this.jigsawId, 1) : null);
     } catch {
@@ -198,15 +218,53 @@ export class JigsawPlay implements OnDestroy {
   @HostListener('window:pagehide')
   pageClosed(): void {
     this.pieceSync.leaving();
+    this.saveTimeNow();
   }
 
   /** the page is hidden (another tab, the phone is locked, the app is left): the same, the page may not come back */
   @HostListener('document:visibilitychange')
   pageHidden(): void {
-    if (document.visibilityState === 'hidden') this.pieceSync.leaving();
+    if (document.visibilityState === 'hidden') {
+      this.tickClock(); // the time up to now counts; the clock stops while the page is hidden
+      this.pieceSync.leaving();
+      this.saveTimeNow();
+    } else {
+      this.lastTick = 0;
+    }
+  }
+
+  /** Adds the time since the last look at the clock, while it runs; the time is saved every ten seconds. */
+  private tickClock(): void {
+    const now = performance.now();
+    if (!this.clockRuns()) {
+      this.lastTick = 0;
+      if (this.elapsedMs() > this.timeSaved && this.status() === 'ready') this.saveTime(); // the round was just solved: the time it took is saved
+      return;
+    }
+    if (this.lastTick) this.elapsedMs.update((ms) => ms + Math.round(now - this.lastTick));
+    this.lastTick = now;
+    if (this.elapsedMs() - this.timeSaved >= 10_000) this.saveTime();
+  }
+
+  private saveTime(): void {
+    const ms = this.elapsedMs();
+    if (this.viewOnly() || !this.playId || ms <= this.timeSaved) return;
+    this.timeSaved = ms;
+    void this.plays.saveTime(this.jigsawId, this.playId, ms).catch(() => (this.timeSaved = Math.min(this.timeSaved, ms - 1))); // not saved: tried again at the next tick
+  }
+
+  /** The time is saved at once, for a page that is being left (the request goes on after the page is gone). */
+  private saveTimeNow(): void {
+    const ms = this.elapsedMs();
+    if (this.viewOnly() || !this.playId || ms <= this.timeSaved) return;
+    this.timeSaved = ms;
+    this.plays.saveTimeWhileLeaving(this.jigsawId, this.playId, ms);
   }
 
   ngOnDestroy(): void {
+    clearInterval(this.clockTimer);
+    this.tools.clock.set(null);
+    this.saveTimeNow();
     this.autosave.destroy();
     this.pieceSync.destroy();
   }
@@ -235,6 +293,7 @@ export class JigsawPlay implements OnDestroy {
     // nothing of this game is saved any more: what waited to be saved has nowhere to go
     this.pieceSync.markSaved([]);
     this.autosave.markSaved(null);
+    this.timeSaved = this.elapsedMs(); // the round is gone: nothing of its time is saved
     await this.router.navigate(['/jigsaw', this.jigsawId]);
   }
 

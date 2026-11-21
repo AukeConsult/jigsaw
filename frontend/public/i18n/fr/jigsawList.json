@@ -16,5 +16,6 @@
   "makeFirst": "Crée le premier",
   "noneTail": " : choisis une image, dis combien de pièces tu veux, et c'est parti.",
   "play": "Jouer",
-  "onlyYou": "Toi seul le vois"
+  "onlyYou": "Toi seul le vois",
+  "timed": "Chronométré"
 }

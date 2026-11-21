@@ -55,5 +55,7 @@
   "visibility": "Kuka näkee",
   "visibilityEveryone": "Kaikki",
   "visibilityOwner": "Vain omistaja",
-  "visibilityHelp": "Kaikille näkyvä palapeli on kaikkien listoilla. Vain omistajalle näkyvä palapeli on vain omistajan listoilla."
+  "visibilityHelp": "Kaikille näkyvä palapeli on kaikkien listoilla. Vain omistajalle näkyvä palapeli on vain omistajan listoilla.",
+  "timed": "Ajastettu",
+  "timedHelp": "Kello mittaa, kuinka kauan kukin kierros kestää."
 }

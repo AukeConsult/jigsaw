@@ -55,5 +55,7 @@
   "visibility": "Quién lo ve",
   "visibilityEveryone": "Todos",
   "visibilityOwner": "Solo el dueño",
-  "visibilityHelp": "Un puzle para todos aparece en las listas de todos. Uno que solo ve el dueño aparece únicamente en las listas del dueño."
+  "visibilityHelp": "Un puzle para todos aparece en las listas de todos. Uno que solo ve el dueño aparece únicamente en las listas del dueño.",
+  "timed": "Cronometrado",
+  "timedHelp": "Un reloj mide cuánto dura cada partida."
 }

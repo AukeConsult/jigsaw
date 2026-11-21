@@ -12,5 +12,6 @@
   "edgesTitle": "Solo las piezas de las esquinas y los bordes",
   "showing": "Mostrando {{ shown }} de {{ total }} piezas",
   "details": "Detalles",
-  "language": "Idioma"
+  "language": "Idioma",
+  "timePlayed": "Tiempo de juego"
 }

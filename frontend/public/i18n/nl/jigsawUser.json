@@ -38,5 +38,6 @@
   "couldNotDelete": "De ronde kon niet worden verwijderd: probeer het opnieuw.",
   "couldNotReach": "De server is niet bereikbaar: probeer het opnieuw.",
   "noSuchUser": "Er is geen gebruiker met die gebruikersnaam.",
-  "chooseFirst": "Kies eerst een gebruiker."
+  "chooseFirst": "Kies eerst een gebruiker.",
+  "timePlayed": "Speeltijd"
 }

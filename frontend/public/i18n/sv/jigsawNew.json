@@ -55,5 +55,7 @@
   "visibility": "Vem ser det",
   "visibilityEveryone": "Alla",
   "visibilityOwner": "Bara ägaren",
-  "visibilityHelp": "Ett pussel för alla finns i allas listor. Ett som bara ägaren ser finns bara i ägarens listor."
+  "visibilityHelp": "Ett pussel för alla finns i allas listor. Ett som bara ägaren ser finns bara i ägarens listor.",
+  "timed": "Tidtagning",
+  "timedHelp": "En klocka mäter hur lång tid varje omgång tar."
 }

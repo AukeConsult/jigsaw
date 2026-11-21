@@ -12,5 +12,6 @@
   "edgesTitle": "Vain kulma- ja reunapalat",
   "showing": "Näytetään {{ shown }} / {{ total }} palaa",
   "details": "Tiedot",
-  "language": "Kieli"
+  "language": "Kieli",
+  "timePlayed": "Peliaika"
 }
