@@ -15,7 +15,7 @@ const LIFTED: readonly { across: number; down: number; dx: number; dy: number }[
 /** What the board of a jigsaw keeps of the window, to guess how big it will draw the picture (the picture gets 2/3 of the width beside the store; the menu and the sidebar take some height). */
 const BOARD_WIDTH_SHARE = 0.6;
 const BOARD_HEIGHT_LEFT_PX = 160;
-/** The board draws a jigsaw at most this many times its size (see `CanvasBoard`). */
+/** The board draws a jigsaw at most this many times its size (see `JigsawBoard`). */
 const BOARD_SCALE_MAX = 4;
 /** The most room the example gets on the page, in pixels (it is as big as it can be in this and in the width of the page). */
 const MAX_HEIGHT_PX = 340;

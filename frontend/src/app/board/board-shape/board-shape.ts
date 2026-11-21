@@ -7,10 +7,10 @@ const SAMPLE_BARS = [0.45, 0.8, 0.6, 0.95, 0.7];
 
 /** Draws a canvas object (square, circle, triangle or histogram) as an SVG, at its own pixel size scaled down to fit the space. */
 @Component({
-  selector: 'app-canvas-shape',
-  templateUrl: './canvas-shape.html',
+  selector: 'app-board-shape',
+  templateUrl: './board-shape.html',
 })
-export class CanvasShape {
+export class BoardShape {
   readonly object = input.required<CanvasObjectInput>();
   /** the longest side the drawing may have on the page, in pixels (the shape is only scaled down) */
   readonly maxSide = input(240);

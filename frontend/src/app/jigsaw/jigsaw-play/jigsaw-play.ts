@@ -5,7 +5,7 @@ import { tr, translationsLoaded } from '../../core/i18n';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Autosave } from '../../core/autosave';
 import { isWideScreen } from '../../core/theme';
-import { CanvasBoard } from '../../canvas/canvas-board/canvas-board';
+import { JigsawBoard } from '../../board/jigsaw-board/jigsaw-board';
 import { LINE_LEVELS, lineLevelOf } from '../line-level';
 import { SNAP_LEVELS, snapLevelOf } from '../snap-level';
 import { JigsawHelper } from '../jigsaw-helper';
@@ -27,7 +27,7 @@ import { PlayOverrides, PlaySpec } from '../../models/shared/play';
  */
 @Component({
   selector: 'app-jigsaw-play',
-  imports: [FormsModule, RouterLink, CanvasBoard, TranslocoDirective],
+  imports: [FormsModule, RouterLink, JigsawBoard, TranslocoDirective],
   providers: [provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-play.html',
 })
