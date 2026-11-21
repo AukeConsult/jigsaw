@@ -6,7 +6,7 @@
   "description": "Canvas",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AukeConsult/canvas.git"
+    "url": "git+https://github.com/AukeConsult/jigsaw.git"
   },
   "scripts": {
     "install:all": "npm --prefix frontend install && npm --prefix functions install",
