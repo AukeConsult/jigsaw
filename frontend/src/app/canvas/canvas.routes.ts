@@ -12,7 +12,7 @@ export const CANVAS_ROUTES: Routes = [
     children: [
       { path: '', component: Home, title: 'Canvas' },
       { path: 'objects', component: Objects, title: 'Canvas objects' },
-      { path: 'guide', component: GuidePage, title: 'User guide' },
+      { path: 'guide', component: GuidePage, title: 'User guide', data: { guide: 'user-guide.md' } },
     ],
   },
 ];

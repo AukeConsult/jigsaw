@@ -1,9 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { renderMarkdown } from '../core/markdown';
 
-/** The user guide, shown from its Markdown file (`docs/guide/user-guide.md`, copied to `public/docs` by `scripts/sync-docs.mjs`). Both modules have it in their menu. */
+/**
+ * A user guide, shown from its Markdown file (in `docs/guide`, copied to `public/docs` by `scripts/sync-docs.mjs`). Which one is in the route data: the jigsaw
+ * module shows the short guide of the jigsaw, the canvas module the whole guide.
+ */
 @Component({
   selector: 'app-guide-page',
   template: `
@@ -22,6 +26,7 @@ import { renderMarkdown } from '../core/markdown';
 })
 export class GuidePage implements OnInit {
   private readonly http = inject(HttpClient);
+  private readonly route = inject(ActivatedRoute);
 
   /** the guide as HTML (null: not read yet) */
   readonly html = signal<string | null>(null);
@@ -29,7 +34,7 @@ export class GuidePage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const text = await firstValueFrom(this.http.get(new URL('docs/user-guide.md', document.baseURI).href, { responseType: 'text' }));
+      const text = await firstValueFrom(this.http.get(new URL(`docs/${this.route.snapshot.data['guide'] ?? 'user-guide.md'}`, document.baseURI).href, { responseType: 'text' }));
       this.html.set(renderMarkdown(text));
     } catch {
       this.failed.set(true);

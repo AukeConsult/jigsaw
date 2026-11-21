@@ -19,7 +19,7 @@ export const JIGSAW_ROUTES: Routes = [
     children: [
       { path: '', component: JigsawList, title: 'Karins jigsaw' },
       { path: 'new', component: JigsawNew, title: 'New jigsaw' },
-      { path: 'guide', component: GuidePage, title: 'User guide' }, // before ':id'
+      { path: 'guide', component: GuidePage, title: 'User guide', data: { guide: 'jigsaw-guide.md' } }, // before ':id'
       { path: ':id', component: JigsawPlay, title: 'Karins jigsaw' },
     ],
   },
