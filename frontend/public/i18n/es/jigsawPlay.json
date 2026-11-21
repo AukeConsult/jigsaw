@@ -4,7 +4,6 @@
   "toJigsaws": "Ir a los puzles",
   "couldNotOpen": "No se pudo abrir el puzle.",
   "sidebar": "El puzle",
-  "allRounds": "Todas las partidas de este puzle",
   "info": "{{ total }} piezas ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px, cuadrícula de {{ grid }} px, dificultad {{ level }}",
   "lookingAt": "Estás viendo la partida de",
   "anotherPlayer": "otro jugador",

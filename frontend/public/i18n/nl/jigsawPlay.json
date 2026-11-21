@@ -4,7 +4,6 @@
   "toJigsaws": "Naar de puzzels",
   "couldNotOpen": "De puzzel kon niet worden geopend.",
   "sidebar": "De puzzel",
-  "allRounds": "Alle rondes van deze puzzel",
   "info": "{{ total }} stukjes ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px, raster {{ grid }} px, moeilijkheid {{ level }}",
   "lookingAt": "Je kijkt naar de ronde van",
   "anotherPlayer": "een andere speler",

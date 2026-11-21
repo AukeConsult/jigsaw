@@ -4,7 +4,6 @@
   "toJigsaws": "Gå til puslespillene",
   "couldNotOpen": "Kunne ikke åpne puslespillet.",
   "sidebar": "Puslespillet",
-  "allRounds": "Alle rundene av dette puslespillet",
   "info": "{{ total }} brikker ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px, rutenett {{ grid }} px, vanskelighetsgrad {{ level }}",
   "lookingAt": "Du ser på",
   "anotherPlayer": "en annen spiller",

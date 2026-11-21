@@ -4,7 +4,6 @@
   "toJigsaws": "Siirry palapeleihin",
   "couldNotOpen": "Palapeliä ei voitu avata.",
   "sidebar": "Palapeli",
-  "allRounds": "Kaikki tämän palapelin kierrokset",
   "info": "{{ total }} palaa ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px, ruudukko {{ grid }} px, vaikeustaso {{ level }}",
   "lookingAt": "Katsot kierrosta, jonka pelaa",
   "anotherPlayer": "joku toinen",

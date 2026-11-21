@@ -839,7 +839,8 @@ small,
   fill: none;
   stroke: var(--app-line-color, var(--app-piece-outline)); // the jigsaw can choose the line round its pieces
   stroke-opacity: var(--app-line-opacity, 1); // a colour the jigsaw chose is drawn a little see-through, as the usual one is
-  stroke-width: calc(var(--app-line-width, 1) / var(--app-scale, 1)); // the same on the screen whatever the scale of the board
+  // the same on the screen whatever the scale of the board. `* 1px` makes it a length: without it a line of 0 is a zero percentage, and the browser still draws a hairline for that
+  stroke-width: calc(var(--app-line-width, 1) * 1px / var(--app-scale, 1));
   stroke-linejoin: round;
   // a piece in its own place is drawn like every other piece: with the line of the jigsaw (its blink, when it clicks into place, is the only sign)
 }

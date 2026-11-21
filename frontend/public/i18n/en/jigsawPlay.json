@@ -4,7 +4,6 @@
   "toJigsaws": "Go to the jigsaws",
   "couldNotOpen": "Could not open the jigsaw.",
   "sidebar": "The jigsaw",
-  "allRounds": "All rounds of this jigsaw",
   "info": "{{ total }} pieces ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px, grid {{ grid }} px, difficulty {{ level }}",
   "lookingAt": "You are looking at",
   "anotherPlayer": "another player",

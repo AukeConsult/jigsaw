@@ -4,7 +4,6 @@
   "toJigsaws": "Gå till pusslen",
   "couldNotOpen": "Kunde inte öppna pusslet.",
   "sidebar": "Pusslet",
-  "allRounds": "Alla omgångar av det här pusslet",
   "info": "{{ total }} bitar ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px, rutnät {{ grid }} px, svårighetsgrad {{ level }}",
   "lookingAt": "Du tittar på",
   "anotherPlayer": "en annan spelare",

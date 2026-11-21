@@ -4,7 +4,6 @@
   "toJigsaws": "Zu den Puzzles",
   "couldNotOpen": "Das Puzzle konnte nicht geöffnet werden.",
   "sidebar": "Das Puzzle",
-  "allRounds": "Alle Runden dieses Puzzles",
   "info": "{{ total }} Teile ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px, Raster {{ grid }} px, Schwierigkeit {{ level }}",
   "lookingAt": "Du siehst dir gerade die Runde von",
   "anotherPlayer": "einem anderen Spieler",
