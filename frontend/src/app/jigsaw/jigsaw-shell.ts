@@ -21,9 +21,6 @@ import { JigsawUserService } from './jigsaw-user.service';
           <li class="nav-item">
             <a class="nav-link" routerLink="/jigsaw/list" routerLinkActive="active" [title]="t('jigsawShell.jigsaws') || 'Jigsaws'"><i class="bi bi-grid-3x3-gap me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.jigsaws') || 'Jigsaws' }}</span></a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'User guide'"><i class="bi bi-book me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.guide') || 'User guide' }}</span></a>
-          </li>
         </ul>
         @if (tools.active()) {
           <!-- the helper, on the page of a jigsaw: the helper picture (a frame on top of the page with the whole picture), only the corner and edge pieces -->
@@ -49,6 +46,9 @@ import { JigsawUserService } from './jigsaw-user.service';
         <!-- who plays and the language: always at the right end of the menu -->
         <div class="d-flex align-items-center gap-2 ms-auto order-1">
           <ul class="navbar-nav flex-shrink-0">
+            <li class="nav-item">
+            <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'User guide'"><i class="bi bi-book me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.guide') || 'User guide' }}</span></a>
+            </li>
             <li class="nav-item">
             <!-- who plays: the name of the user, and a way to choose another -->
             <a class="nav-link text-nowrap" routerLink="/jigsaw/user" routerLinkActive="active" [title]="users.user() ? (t('jigsawShell.whoPlaysTitle', { name: users.user()!.username }) || 'Who plays: ' + users.user()!.username) : (t('jigsawShell.choosePlayer') || 'Choose who plays')">

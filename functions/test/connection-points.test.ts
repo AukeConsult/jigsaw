@@ -1,7 +1,7 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { createApp } from "../src/app";
-import type { CanvasObjectStore } from "../src/canvas-objects";
+import { createCanvasApp } from "../src/canvas/app";
+import type { CanvasObjectStore } from "../src/canvas/canvas-objects";
 import { CanvasBaseObject, DEFAULT_CONNECTOR, DEFAULT_OBJECT } from "../src/models";
 import type { CanvasObject, CanvasObjectInput } from "../src/models";
 
@@ -98,8 +98,8 @@ describe("canvas-objects: connector", () => {
   };
 
   it("saves a connector, and refuses a bad one", async () => {
-    const app = createApp({ canvasObjects: store() });
-    const post = (body: object) => request(app).post("/api/canvas-objects").send({ ...DEFAULT_CONNECTOR, ...body });
+    const app = createCanvasApp({ canvasObjects: store() });
+    const post = (body: object) => request(app).post("/canvas/api/canvas-objects").send({ ...DEFAULT_CONNECTOR, ...body });
     expect((await post({})).status).toBe(201);
     expect((await post({ shape: "square" })).status).toBe(400); // a connector is a line
     expect((await post({ borderWidth: 0, height: 0 })).status).toBe(400); // a line needs a thickness
@@ -108,8 +108,8 @@ describe("canvas-objects: connector", () => {
   });
 
   it("a hollow arrow has its own height, and its border is the outline", async () => {
-    const app = createApp({ canvasObjects: store() });
-    const post = (body: object) => request(app).post("/api/canvas-objects").send({ ...DEFAULT_CONNECTOR, arrowStyle: "hollow", ...body });
+    const app = createCanvasApp({ canvasObjects: store() });
+    const post = (body: object) => request(app).post("/canvas/api/canvas-objects").send({ ...DEFAULT_CONNECTOR, arrowStyle: "hollow", ...body });
     expect((await post({ height: 40, borderWidth: 3 })).status).toBe(201);
     expect((await post({ height: 40, borderWidth: 20 })).status).toBe(201); // the outline can be up to half the height
     expect((await post({ height: 40, borderWidth: 21 })).status).toBe(400);
@@ -118,26 +118,26 @@ describe("canvas-objects: connector", () => {
   });
 
   it("the arrow heads of a connector are solid or hollow, and nothing else", async () => {
-    const app = createApp({ canvasObjects: store() });
-    const post = (body: object) => request(app).post("/api/canvas-objects").send({ ...DEFAULT_CONNECTOR, ...body });
+    const app = createCanvasApp({ canvasObjects: store() });
+    const post = (body: object) => request(app).post("/canvas/api/canvas-objects").send({ ...DEFAULT_CONNECTOR, ...body });
     expect((await post({ arrowStyle: "solid" })).body.arrowStyle).toBe("solid");
     expect((await post({ arrowStyle: "hollow", height: 40 })).body.arrowStyle).toBe("hollow"); // a hollow arrow has a size of its own
     expect((await post({ arrowStyle: "striped" })).status).toBe(400);
     expect((await post({ arrowStyle: undefined })).status).toBe(400); // a connector must say it
     const { arrowStyle: _style, ...figure } = DEFAULT_OBJECT;
-    expect((await request(app).post("/api/canvas-objects").send(figure)).body.arrowStyle).toBe("solid");
+    expect((await request(app).post("/canvas/api/canvas-objects").send(figure)).body.arrowStyle).toBe("solid");
   });
 
   it("a connector points one way or both ways, and nothing else", async () => {
-    const app = createApp({ canvasObjects: store() });
-    const post = (body: object) => request(app).post("/api/canvas-objects").send({ ...DEFAULT_CONNECTOR, ...body });
+    const app = createCanvasApp({ canvasObjects: store() });
+    const post = (body: object) => request(app).post("/canvas/api/canvas-objects").send({ ...DEFAULT_CONNECTOR, ...body });
     expect((await post({ arrow: "one-way" })).body.arrow).toBe("one-way");
     expect((await post({ arrow: "both-ways" })).body.arrow).toBe("both-ways");
     expect((await post({ arrow: "backwards" })).status).toBe(400);
     expect((await post({ arrow: undefined })).status).toBe(400);
     // a figure has no arrow: the request may leave it out
     const { arrow: _arrow, ...figure } = DEFAULT_OBJECT;
-    const res = await request(app).post("/api/canvas-objects").send(figure);
+    const res = await request(app).post("/canvas/api/canvas-objects").send(figure);
     expect(res.status).toBe(201);
     expect(res.body.arrow).toBe("one-way");
   });

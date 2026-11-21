@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import express from "express";
-import { JIGSAW } from "./models";
+import { JIGSAW } from "../models";
 
 // The files of a jigsaw (jcanvas): its background picture and the graphics of its pieces. They are kept in Firebase Storage under `jigsaw/<id of the
 // jigsaw>/`, the way Seven Friends keeps its files: written and read by the backend only (the Admin SDK ignores the storage rules, which let nobody

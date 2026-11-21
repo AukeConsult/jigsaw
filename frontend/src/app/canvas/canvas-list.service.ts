@@ -8,6 +8,6 @@ import { ApiCollection } from '../core/api-collection';
 @Injectable({ providedIn: 'root' })
 export class CanvasListService extends ApiCollection<CanvasInput, CanvasSpec> {
   constructor() {
-    super(inject(HttpClient), `${environment.apiBase}/canvas-list`);
+    super(inject(HttpClient), `${environment.canvasApi}/canvas-list`);
   }
 }

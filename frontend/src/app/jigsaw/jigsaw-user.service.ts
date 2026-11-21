@@ -28,7 +28,7 @@ export class JigsawUserService {
   private loaded: Promise<JigsawUserSpec | null> | null = null;
 
   private url(id: string): string {
-    return `${environment.apiBase}/jigsaw-users/${encodeURIComponent(id)}`;
+    return `${environment.jigsawApi}/jigsaw-users/${encodeURIComponent(id)}`;
   }
 
   private stored(): string | null {
@@ -71,7 +71,7 @@ export class JigsawUserService {
     const error = JigsawUsers.error({ username, name, email });
     if (error) return error;
     try {
-      const user = await firstValueFrom(this.http.post<JigsawUserSpec>(`${environment.apiBase}/jigsaw-users`, { username, name, ...(email.trim() ? { email: email.trim() } : {}) }));
+      const user = await firstValueFrom(this.http.post<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users`, { username, name, ...(email.trim() ? { email: email.trim() } : {}) }));
       this.choose(user);
       return '';
     } catch (err) {
@@ -81,7 +81,7 @@ export class JigsawUserService {
 
   /** The users to choose from (without their e-mail addresses), by name. */
   list(): Promise<JigsawUserSpec[]> {
-    return firstValueFrom(this.http.get<JigsawUserSpec[]>(`${environment.apiBase}/jigsaw-users`));
+    return firstValueFrom(this.http.get<JigsawUserSpec[]>(`${environment.jigsawApi}/jigsaw-users`));
   }
 
   /** Plays as a user from the list. */
@@ -94,7 +94,7 @@ export class JigsawUserService {
     const error = JigsawUsers.usernameError(username);
     if (error) return error;
     try {
-      this.choose(await firstValueFrom(this.http.get<JigsawUserSpec>(`${environment.apiBase}/jigsaw-users/by-username/${encodeURIComponent(JigsawUsers.normalised(username))}`)));
+      this.choose(await firstValueFrom(this.http.get<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users/by-username/${encodeURIComponent(JigsawUsers.normalised(username))}`)));
       return '';
     } catch (err) {
       return err instanceof HttpErrorResponse && err.status === 404 ? tr('jigsawUser.noSuchUser', 'There is no user with that user name.') : reasonOf(err);

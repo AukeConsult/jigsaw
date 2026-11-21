@@ -11,11 +11,11 @@ export class JigsawService extends ApiCollection<CanvasInput, CanvasSpec> {
   private readonly client = inject(HttpClient);
 
   constructor() {
-    super(inject(HttpClient), `${environment.apiBase}/jigsaw`);
+    super(inject(HttpClient), `${environment.jigsawApi}/jigsaw`);
   }
 
   /** Deletes a jigsaw for good, with its pieces, picture and all its rounds. Says who asks: only the owner of a jigsaw that has one may. */
   removeAs(id: string, userId: string): Promise<unknown> {
-    return firstValueFrom(this.client.delete(`${environment.apiBase}/jigsaw/${encodeURIComponent(id)}`, { headers: { 'X-Jigsaw-User': userId } }));
+    return firstValueFrom(this.client.delete(`${environment.jigsawApi}/jigsaw/${encodeURIComponent(id)}`, { headers: { 'X-Jigsaw-User': userId } }));
   }
 }

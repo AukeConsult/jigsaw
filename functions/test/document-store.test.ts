@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CollectionLike, documentStore } from "../src/document-store";
+import { CollectionLike, documentStore } from "../src/common/document-store";
 
 /** a small collection in memory that works like the part of Firestore the store uses */
 function fakeCollection() {

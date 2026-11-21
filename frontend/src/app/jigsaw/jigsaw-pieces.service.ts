@@ -13,7 +13,7 @@ export class JigsawPiecesService {
   private readonly http = inject(HttpClient);
 
   private base(id: string): string {
-    return `${environment.apiBase}/jigsaw-pieces/${encodeURIComponent(id)}`;
+    return `${environment.jigsawApi}/jigsaw-pieces/${encodeURIComponent(id)}`;
   }
 
   /** the pieces of a saved jigsaw, by number (without their graphics) */

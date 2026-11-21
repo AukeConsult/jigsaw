@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { DocumentStore, documentStore } from "./document-store";
-import { CANVAS_LIST, CanvasArea, CanvasInput, CanvasSpec } from "./models";
+import { CANVAS_LIST, CanvasArea, CanvasInput, CanvasSpec } from "../models";
 
 /** Where the canvas areas are kept (Firestore in the app, a memory store in the tests). */
 export type CanvasStore = DocumentStore<CanvasInput, CanvasSpec>;

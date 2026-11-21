@@ -1,10 +1,10 @@
 import request from "supertest";
 import { memoryPlays } from "./memory-plays";
 import { describe, expect, it } from "vitest";
-import { createApp } from "../src/app";
-import type { CanvasStore } from "../src/canvas-list";
-import { ImageStore, MAX_PICTURE_BYTES, Picture, etagOf, pictureType } from "../src/jigsaw-image";
-import type { PieceStore } from "../src/jigsaw-pieces";
+import { createJigsawApp } from "../src/jigsaw/app";
+import type { CanvasStore } from "../src/common/canvas-list";
+import { ImageStore, MAX_PICTURE_BYTES, Picture, etagOf, pictureType } from "../src/jigsaw/jigsaw-image";
+import type { PieceStore } from "../src/jigsaw/jigsaw-pieces";
 import type { CanvasSpec } from "../src/models";
 
 /** the pictures in memory: what the Storage bucket is in the app */
@@ -58,7 +58,7 @@ describe("the background picture of a jcanvas", () => {
     const images = memoryImages();
     const removedPieces: string[] = [];
     const pieces = { removeAll: async (jigsawId: string) => void removedPieces.push(jigsawId) } as unknown as PieceStore;
-    const app = createApp({ plays: memoryPlays(), canvasList: memoryCanvases(), jigsaw: memoryCanvases(), jigsawImages: images.store, jigsawPieces: pieces, jigsawExists: async (x) => existing.includes(x) });
+    const app = createJigsawApp({ plays: memoryPlays(), jigsaw: memoryCanvases(), jigsawImages: images.store, jigsawPieces: pieces, jigsawExists: async (x) => existing.includes(x) });
     return { ...images, app, removedPieces };
   };
 
@@ -74,59 +74,59 @@ describe("the background picture of a jcanvas", () => {
 
   it("is saved from the request body, read back with its type, and replaced by the next one", async () => {
     const { app, files } = setup();
-    const put = await request(app).put(`/api/jigsaw-image/${id}`).set("Content-Type", "image/png").send(jpeg); // the type the app says is not trusted
+    const put = await request(app).put(`/jigsaw/api/jigsaw-image/${id}`).set("Content-Type", "image/png").send(jpeg); // the type the app says is not trusted
     expect(put.status).toBe(200);
     expect(put.body).toMatchObject({ mime: "image/jpeg", bytes: jpeg.length });
-    const got = await request(app).get(`/api/jigsaw-image/${id}`).buffer(true).parse((res, cb) => {
+    const got = await request(app).get(`/jigsaw/api/jigsaw-image/${id}`).buffer(true).parse((res, cb) => {
       const chunks: Buffer[] = [];
       res.on("data", (c) => chunks.push(c));
       res.on("end", () => cb(null, Buffer.concat(chunks)));
     });
     expect(got.headers["content-type"]).toBe("image/jpeg");
     expect(got.body.equals(jpeg)).toBe(true);
-    expect((await request(app).head(`/api/jigsaw-image/${id}`)).status).toBe(200);
-    await request(app).put(`/api/jigsaw-image/${id}`).set("Content-Type", "image/png").send(png);
+    expect((await request(app).head(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(200);
+    await request(app).put(`/jigsaw/api/jigsaw-image/${id}`).set("Content-Type", "image/png").send(png);
     expect(files.get(id)?.mime).toBe("image/png");
     expect(files.size).toBe(1);
   });
 
   it("answers 304 to a browser that has the picture already", async () => {
     const { app } = setup();
-    await request(app).put(`/api/jigsaw-image/${id}`).set("Content-Type", "image/jpeg").send(jpeg);
-    const tag = (await request(app).head(`/api/jigsaw-image/${id}`)).headers.etag;
-    expect((await request(app).get(`/api/jigsaw-image/${id}`).set("If-None-Match", tag)).status).toBe(304);
+    await request(app).put(`/jigsaw/api/jigsaw-image/${id}`).set("Content-Type", "image/jpeg").send(jpeg);
+    const tag = (await request(app).head(`/jigsaw/api/jigsaw-image/${id}`)).headers.etag;
+    expect((await request(app).get(`/jigsaw/api/jigsaw-image/${id}`).set("If-None-Match", tag)).status).toBe(304);
   });
 
   it("refuses what is not a picture, an empty body, a picture that is too big and an id that is not one", async () => {
     const { app, files } = setup();
-    const put = (to: string, body: Buffer) => request(app).put(`/api/jigsaw-image/${to}`).set("Content-Type", "application/octet-stream").send(body);
+    const put = (to: string, body: Buffer) => request(app).put(`/jigsaw/api/jigsaw-image/${to}`).set("Content-Type", "application/octet-stream").send(body);
     expect((await put(id, Buffer.from("just some text, not a picture"))).status).toBe(415);
     expect((await put(id, Buffer.alloc(0))).status).toBe(400);
     expect((await put(id, Buffer.concat([jpeg, Buffer.alloc(MAX_PICTURE_BYTES)]))).status).toBe(413);
     expect((await put("short", jpeg)).status).toBe(400);
-    expect((await request(app).get("/api/jigsaw-image/..%2Fsecret")).status).toBe(400);
+    expect((await request(app).get("/jigsaw/api/jigsaw-image/..%2Fsecret")).status).toBe(400);
     expect(files.size).toBe(0);
   });
 
   it("needs a jigsaw that is there", async () => {
     const { app, files } = setup([]);
-    expect((await request(app).put(`/api/jigsaw-image/${id}`).set("Content-Type", "image/jpeg").send(jpeg)).status).toBe(404);
+    expect((await request(app).put(`/jigsaw/api/jigsaw-image/${id}`).set("Content-Type", "image/jpeg").send(jpeg)).status).toBe(404);
     expect(files.size).toBe(0);
   });
 
   it("is 404 when there is none, and DELETE takes it away", async () => {
     const { app } = setup();
-    expect((await request(app).get(`/api/jigsaw-image/${id}`)).status).toBe(404);
-    await request(app).put(`/api/jigsaw-image/${id}`).set("Content-Type", "image/webp").send(webp);
-    expect((await request(app).delete(`/api/jigsaw-image/${id}`)).status).toBe(204);
-    expect((await request(app).get(`/api/jigsaw-image/${id}`)).status).toBe(404);
+    expect((await request(app).get(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(404);
+    await request(app).put(`/jigsaw/api/jigsaw-image/${id}`).set("Content-Type", "image/webp").send(webp);
+    expect((await request(app).delete(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(204);
+    expect((await request(app).get(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(404);
   });
 
   it("goes with its jigsaw: deleting the jigsaw takes away its pieces, their graphics and the picture", async () => {
     const { app, removedPieces } = setup();
     const body = { name: "Puzzle", width: 800, height: 600, gridSize: 50, gridVisible: true, placed: [] };
-    const made = (await request(app).post("/api/jigsaw").send(body)).body;
-    expect((await request(app).delete(`/api/jigsaw/${made.id}`)).status).toBe(204);
+    const made = (await request(app).post("/jigsaw/api/jigsaw").send(body)).body;
+    expect((await request(app).delete(`/jigsaw/api/jigsaw/${made.id}`)).status).toBe(204);
     expect(removedPieces).toEqual([made.id]);
   });
 });

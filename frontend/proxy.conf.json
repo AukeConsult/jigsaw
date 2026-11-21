@@ -1,7 +1,16 @@
 {
-  "/api": {
+  "/jigsaw/api": {
     "target": "http://localhost:5011",
     "secure": false,
-    "pathRewrite": { "^/api": "/demo-canvas/europe-west1/canvasApi/api" }
+    "pathRewrite": {
+      "^/jigsaw/api": "/demo-canvas/europe-west1/jigsawApi/jigsaw/api"
+    }
+  },
+  "/canvas/api": {
+    "target": "http://localhost:5011",
+    "secure": false,
+    "pathRewrite": {
+      "^/canvas/api": "/demo-canvas/europe-west1/canvasApi/canvas/api"
+    }
   }
 }

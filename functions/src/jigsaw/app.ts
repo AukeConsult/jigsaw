@@ -1,30 +1,28 @@
 import cors from "cors";
 import express from "express";
-import { CanvasStore, canvasListRouter, firestoreCanvasStore } from "./canvas-list";
+import { CanvasStore, canvasListRouter, firestoreCanvasStore } from "../common/canvas-list";
+import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
-import { JIGSAW, JigsawUsers } from "./models";
+import { JIGSAW, JigsawUsers } from "../models";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
 import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./plays";
-import { CanvasObjectStore, canvasObjectsRouter, firestoreCanvasObjectStore } from "./canvas-objects";
 
-/** The addresses of the app that may call the API from a browser. */
-const ALLOWED_ORIGINS = ["https://canvas-auke.web.app", "https://canvas-auke.firebaseapp.com", "http://localhost:4210", "http://localhost:5010"];
+/** The address the API of Karins jigsaw answers on (Hosting forwards the full path to the function). */
+export const JIGSAW_API = "/jigsaw/api";
 
-/** The Express app behind the `canvasApi` Cloud Function (also used directly by the tests). */
-export function createApp(stores: { canvasList?: CanvasStore; jigsaw?: CanvasStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawExists?: (id: string) => Promise<boolean>; canvasObjects?: CanvasObjectStore; plays?: PlayStore; users?: UserStore } = {}): express.Express {
+/** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
+export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
   const json = express.json({ limit: "600kb" });
-  app.use((req, res, next) => (req.path.startsWith("/api/jigsaw-pieces/") ? next() : json(req, res, next)));
+  app.use((req, res, next) => (req.path.startsWith(`${JIGSAW_API}/jigsaw-pieces/`) ? next() : json(req, res, next)));
 
-  // Hosting forwards the full path (including /api) to the function.
   const router = express.Router();
   router.get("/health", (_req, res) => {
-    res.json({ status: "ok", app: "canvas" });
+    res.json({ status: "ok", app: "jigsaw" });
   });
-  router.use("/canvas-list", canvasListRouter(stores.canvasList ?? firestoreCanvasStore()));
   // a jigsaw: its settings are a document in Firestore; its pieces are documents under it, and its picture and the graphics of its pieces are files in
   // Storage. A jigsaw that is deleted takes all of that with it.
   const jigsaw = stores.jigsaw ?? firestoreCanvasStore(JIGSAW);
@@ -85,7 +83,6 @@ export function createApp(stores: { canvasList?: CanvasStore; jigsaw?: CanvasSto
   );
   router.use("/jigsaw-image", jigsawImageRouter(stores.jigsawImages ?? storageImageStore(), jigsawExists));
   router.use("/jigsaw-pieces", jigsawPiecesRouter(pieces, jigsawExists));
-  router.use("/canvas-objects", canvasObjectsRouter(stores.canvasObjects ?? firestoreCanvasObjectStore()));
-  app.use("/api", router);
+  app.use(JIGSAW_API, router);
   return app;
 }

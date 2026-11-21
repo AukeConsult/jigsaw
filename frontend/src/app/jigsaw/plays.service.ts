@@ -31,7 +31,7 @@ export class PlaysService {
   }
 
   private base(jigsawId: string): string {
-    return `${environment.apiBase}/jigsaw/${encodeURIComponent(jigsawId)}/plays`;
+    return `${environment.jigsawApi}/jigsaw/${encodeURIComponent(jigsawId)}/plays`;
   }
 
   private one(jigsawId: string, playId: string): string {
@@ -45,7 +45,7 @@ export class PlaysService {
 
   /** the games of a user (by UID) over all the jigsaws, newest first */
   ofUser(userId: string): Promise<UserGame[]> {
-    return firstValueFrom(this.http.get<UserGame[]>(`${environment.apiBase}/jigsaw-users/${encodeURIComponent(userId)}/plays`));
+    return firstValueFrom(this.http.get<UserGame[]>(`${environment.jigsawApi}/jigsaw-users/${encodeURIComponent(userId)}/plays`));
   }
 
   /** whether anyone has started a game of the jigsaw (if not, the whole jigsaw can still be edited) */

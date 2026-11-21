@@ -52,7 +52,14 @@
       ],
       "rewrites": [
         {
-          "source": "/api/**",
+          "source": "/jigsaw/api/**",
+          "function": {
+            "functionId": "jigsawApi",
+            "region": "europe-west1"
+          }
+        },
+        {
+          "source": "/canvas/api/**",
           "function": {
             "functionId": "canvasApi",
             "region": "europe-west1"
@@ -116,7 +123,14 @@
       ],
       "rewrites": [
         {
-          "source": "/api/**",
+          "source": "/jigsaw/api/**",
+          "function": {
+            "functionId": "jigsawApi",
+            "region": "europe-west1"
+          }
+        },
+        {
+          "source": "/canvas/api/**",
           "function": {
             "functionId": "canvasApi",
             "region": "europe-west1"

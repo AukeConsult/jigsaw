@@ -9,7 +9,7 @@ export class JigsawImageService {
   private readonly http = inject(HttpClient);
 
   private base(id: string): string {
-    return `${environment.apiBase}/jigsaw-image/${encodeURIComponent(id)}`;
+    return `${environment.jigsawApi}/jigsaw-image/${encodeURIComponent(id)}`;
   }
 
   /** where the picture can be read (the number changes when the picture does, so the browser does not show an old one) */

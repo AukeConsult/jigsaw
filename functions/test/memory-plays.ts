@@ -1,5 +1,5 @@
-import type { UserStore } from "../src/jigsaw-users";
-import type { PlayRecord, PlayStore } from "../src/plays";
+import type { UserStore } from "../src/jigsaw/jigsaw-users";
+import type { PlayRecord, PlayStore } from "../src/jigsaw/plays";
 import { JigsawUserSpec, PlaySpec, Plays } from "../src/models";
 
 /** the plays in memory: what the subcollection of a jigsaw is in the app */

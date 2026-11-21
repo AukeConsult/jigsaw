@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { PieceStore } from "./jigsaw-pieces";
-import { CANVAS_MAX_SIDE, CanvasSpec, JIGSAW, PLAYS, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayPositions, PlaySpec, Plays } from "./models";
+import { CANVAS_MAX_SIDE, CanvasSpec, JIGSAW, PLAYS, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayPositions, PlaySpec, Plays } from "../models";
 
 // The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`. A play can only
 // choose the look (see `Plays.overridesError`); the difficulty, the size, the picture and the pieces are the jigsaw's.

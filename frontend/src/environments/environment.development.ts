@@ -1,6 +1,8 @@
 export const environment = {
   useEmulators: true,
-  apiBase: '/api',
+  // the two services of the app, each its own Cloud Function (Hosting and the dev proxy send these addresses to them)
+  jigsawApi: '/jigsaw/api',
+  canvasApi: '/canvas/api',
   firebase: {
     apiKey: 'demo',
     authDomain: 'demo-canvas.firebaseapp.com',

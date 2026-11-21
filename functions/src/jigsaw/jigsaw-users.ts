@@ -1,6 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import express from "express";
-import { JIGSAW_USERS, JigsawUserSpec, JigsawUsers } from "./models";
+import { JIGSAW_USERS, JigsawUserSpec, JigsawUsers } from "../models";
 
 // The users of the jigsaws: one document each in the collection `jigsaw-users`, with an id the database makes (the UID, the one a play is kept by), the user name the
 // person chose (the extra, for looking a user up and showing who is who: unique) and a name. There is no sign-in: knowing a user name is enough to play as that user, for

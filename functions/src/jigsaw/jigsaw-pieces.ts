@@ -2,7 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import express from "express";
 import { JIGSAW_ROOT, Picture, etagOf, isPictureId, pictureType } from "./jigsaw-image";
-import { JIGSAW, JIGSAW_MAX_PIECES, JIGSAW_PIECES, JigsawPiece, JigsawPieces, PieceMove } from "./models";
+import { JIGSAW, JIGSAW_MAX_PIECES, JIGSAW_PIECES, JigsawPiece, JigsawPieces, PieceMove } from "../models";
 
 // The pieces of a jigsaw: one document each in the subcollection `jigsaw/<id>/pieces`, with its number, its edges, where it is, on which layer and
 // whether it is matched (the server says so, from where the piece is). The graphic of a piece is a small picture in Storage, `jigsaw/<id>/pieces/<piece id>`,
