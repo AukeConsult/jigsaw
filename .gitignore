@@ -12,7 +12,6 @@ firebase-export-*/
 .idea/
 # generated copy of functions/src/models/shared (scripts/sync-models.mjs)
 frontend/src/app/models/shared/
-# generated copy of docs/guide/user-guide.md (scripts/sync-docs.mjs)
 frontend/src/environments/version.ts
 # secrets and keys: never committed
 service-account*.json

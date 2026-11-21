@@ -7,9 +7,8 @@ import { LanguageService } from '../core/language.service';
 import { renderMarkdown } from '../core/markdown';
 
 /**
- * A user guide, shown from its Markdown file (in `docs/guide`, copied to `public/docs` by `scripts/sync-docs.mjs`). Which one is in the route data: the jigsaw
- * module shows the short guide of the jigsaw, the canvas module the whole guide. A guide in another language than English is `<name>.<lang>.md` (the
- * English file is the fallback when there is none).
+ * A user guide, shown from its Markdown file: the guide of the language chosen (`i18n/<language>/<name>`), else the English one. Which guide is in the route data
+ * (`jigsaw-guide.md`).
  */
 @Component({
   selector: 'app-guide-page',
@@ -45,12 +44,12 @@ export class GuidePage {
   }
 
   private async load(lang: string): Promise<void> {
-    const name: string = this.route.snapshot.data['guide'] ?? 'user-guide.md';
+    const name: string = this.route.snapshot.data['guide'] ?? 'jigsaw-guide.md';
     const url = (file: string) => new URL(file, document.baseURI).href;
     const read = (file: string) => firstValueFrom(this.http.get(url(file), { responseType: 'text' }));
     this.failed.set(false);
-    // the guide of the language (`i18n/<language>/<name>`), else the English one, else the one of `docs` (the guide of Canvas has only that)
-    const places = [`i18n/${lang}/${name}`, `i18n/en/${name}`, `docs/${name}`];
+    // the guide of the language, else the English one
+    const places = [`i18n/${lang}/${name}`, `i18n/en/${name}`];
     try {
       let text: string | null = null;
       for (const place of places) {

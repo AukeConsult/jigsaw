@@ -5,9 +5,6 @@
   "targets": {
     "sevenfriends": {
       "hosting": {
-        "canvas": [
-          "canvas-auke"
-        ],
         "jigsaw": [
           "karins-jigsaw"
         ]

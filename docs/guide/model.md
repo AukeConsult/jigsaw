@@ -8,7 +8,7 @@ All of it lives in `functions/src/models/shared/`, the ONE place to edit shared 
 | `geometry.ts` | `Point`, `Box`, resize handles, `resizedBox`, and `SmoothCurve` |
 | `placed.ts` | an object placed on a canvas: `PlacedBase` → `PlacedFigure`, `PlacedArrow` |
 | `diagram.ts` | `CanvasDiagram`: what placed objects do together |
-| `canvas.ts` | `CanvasSpec` (a saved canvas) and `CanvasArea` (checks one) |
+| `canvas.ts` | `CanvasSpec` (a saved jigsaw document) and `CanvasArea` (checks one) |
 
 ## Principles
 1. **Classes work on their own object.** A rule lives on the class that owns the data: what every object has on `CanvasBaseObject`, what a figure adds on `CanvasFigure`, what an arrow adds on `CanvasArrow` (an arrow *is a* figure, a figure *is a* base object). Children override small hooks rather than branch on kind.

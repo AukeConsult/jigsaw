@@ -3,7 +3,7 @@
  * Runs the whole app locally with one command:  npm run dev
  *   - functions: tsc --watch (rebuilds functions/lib when a .ts file changes; the emulator picks it up)
  *   - emulators: Auth, Functions, Firestore, Storage (npm run dev:emulators)
- *   - frontend:  ng serve on http://localhost:4210, with /jigsaw/api and /canvas/api sent to the Functions emulator
+ *   - frontend:  ng serve on http://localhost:4210, with /jigsaw/api sent to the Functions emulator
  * Ctrl+C stops all three.
  */
 import { spawn, spawnSync } from "node:child_process";

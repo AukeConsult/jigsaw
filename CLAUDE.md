@@ -1,39 +1,33 @@
-# Canvas – project guide
+# Karins jigsaw – project guide
 
-Canvas lets a person make a canvas area of a chosen size in pixels (with a grid), make **canvas objects** (figures and arrow connectors) with their own
-size, border, colours and font, and put copies of them on a canvas: move them, resize them, fasten arrows to figures, group them. Everything saves by
-itself. Built on the same structure as Seven Friends.
+Karins jigsaw lets a person make a jigsaw puzzle from any picture and put it together on the screen, alone or with others: users, rounds (one game of a jigsaw by one user), timing, and a guide in nine languages. Everything saves by itself. Built on the same structure as Seven Friends.
 
 ## Structure
-- `frontend/` – Angular 20 (standalone components, signals, Bootstrap 5 + SCSS, Transloco), hosted on Firebase Hosting site `canvas-auke` (target `canvas`) and on the site `karins-jigsaw` (target `jigsaw`, web app `karins-jigsaw`): the same build, which opens with Karins jigsaw.
-- `functions/` – Node 22 + TypeScript Express backend, deployed as TWO Cloud Functions in the codebase `canvas`, one for each service of the app: `jigsawApi` (served at `/jigsaw/api/**`: the jigsaws, their pieces and pictures, the users and the plays; code in `functions/src/jigsaw/`, `createJigsawApp`) and `canvasApi` (served at `/canvas/api/**`: the saved canvases and the canvas objects; code in `functions/src/canvas/`, `createCanvasApp`). What both use is in `functions/src/common/` (the list of canvas documents, the document store, the allowed origins). The frontend calls them through `environment.jigsawApi` and `environment.canvasApi`; Hosting (`firebase.json`) and the dev proxy (`frontend/proxy.conf.json`) send each address to its function. A jigsaw page never calls `/canvas/api`, and a canvas page never calls `/jigsaw/api`.
+- `frontend/` – Angular 20 (standalone components, signals, Bootstrap 5 + SCSS, Transloco), hosted on Firebase Hosting site `karins-jigsaw` (target `jigsaw`, web app `karins-jigsaw`). The app opens with Karins jigsaw.
+- `functions/` – Node 22 + TypeScript Express backend, deployed as ONE Cloud Function, `jigsawApi`, in the codebase `canvas` (served at `/jigsaw/api/**`: the jigsaws, their pieces and pictures, the users and the plays; code in `functions/src/jigsaw/`, `createJigsawApp`). What the routes share is in `functions/src/common/` (the list of documents `canvas-list.ts`, the document store, the allowed origins). The frontend calls it through `environment.jigsawApi`; Hosting (`firebase.json`) and the dev proxy (`frontend/proxy.conf.json`) send `/jigsaw/api` to the function.
 - `functions/src/models/shared/` – **the model, the ONE place to edit shared code.** `scripts/sync-models.mjs` copies it to `frontend/src/app/models/shared/` (generated, gitignored, never edit that copy). Shared files may only import from each other.
 - `client-wrappers/android` – Capacitor Android shell, generated with `npm --prefix frontend run cap -- add android` (not generated yet).
 
 ### The model (`functions/src/models/shared/`)
+The jigsaw is stored as a "canvas": the name stays from the code the project started from (`CanvasSpec`, `CanvasArea`, the board `canvas-board`). The model also still has the parts that were made for a drawing tool with figures and arrows (`canvas-object.ts`, parts of `placed.ts` and `diagram.ts`); the jigsaw uses the pieces, the grid and the board only.
 | file | what is in it |
 |---|---|
-| `canvas-object.ts` | a canvas object's settings and the classes `CanvasBaseObject` (parent) → `CanvasFigure` → `CanvasArrow` |
-| `geometry.ts` | `Point`, `Box`, resize handles and `resizedBox`, and `SmoothCurve` (the curve of a bent arrow; used by the model and by the drawing). No knowledge of objects |
-| `placed.ts` | an object placed on a canvas: `PlacedBase` → `PlacedFigure`, `PlacedArrow` |
-| `diagram.ts` | `CanvasDiagram`: what the placed objects do together (snap, follow, resize as a group, layers) |
-| `canvas.ts` | a saved canvas (`CanvasSpec`) and `CanvasArea`, which checks one |
+| `canvas.ts` | a saved jigsaw as a document (`CanvasSpec`: name, size, grid, difficulty, line and colours, owner, visibility, timed) and `CanvasArea`, which checks one |
+| `jigsaw.ts` | the cut into pieces (`JigsawCut`), `JigsawPieces`, `pieceGrid`, limits |
+| `play.ts` | a round (`Plays`, `PlaySpec`): positions, settings of the player, time played |
+| `jigsaw-user.ts` | the users who play (`JigsawUsers`) |
+| `placed.ts`, `diagram.ts`, `geometry.ts`, `canvas-object.ts` | placed objects (the pieces are placed objects), what they do together (snap, layers, collecting pieces), points and boxes, object settings |
 
-### The two modules and their routes
-The app has two modules. Each is a route tree that is loaded when it is first opened (`loadChildren` in `app.routes.ts`), has its own shell with its own header menu, and the root (`app.ts`) only holds the router outlet.
-- **`/jigsaw` — Karins jigsaw** (`app/jigsaw/`: `jigsaw-shell.ts`, `jigsaw.routes.ts`). **The default: `/` goes to `/jigsaw`**, and so does any address that is not known. Its header menu has the brand "Karins jigsaw", the page link, and a small link to the canvas module.
-- **`/canvas` — Canvas** (`app/canvas/`: `canvas-shell.ts`, `canvas.routes.ts`). For other purposes and for testing. Its header menu has the brand "Canvas", "Canvas area" (`/canvas`), "Objects" (`/canvas/objects`), and a small link to the jigsaw. `/objects`, where the objects page was before there were modules, goes to `/canvas/objects`.
-The two modules share the pages and the parts under `app/` (`home/`, `canvas-board/`, ...) and the model; a module's route says how the shared canvas page is set up (the route data, see below). A new page of a module goes in that module's routes file; a rule that is only for one module is set in its route data, not by an `if` on the address.
+### The app and its routes
+One route tree, `/jigsaw` (`app/jigsaw/`: `jigsaw-shell.ts`, `jigsaw.routes.ts`), loaded when it is first opened (`loadChildren` in `app.routes.ts`). **`/` goes to `/jigsaw`**, and so does any address that is not known. The shell is the header menu; the root (`app.ts`) only holds the router outlet.
 
 ### The frontend (`frontend/src/app/`)
-One folder for each module, and what both use:
-- `canvas/` – the **canvas module** (`/canvas`): `canvas-shell.ts` (its header menu) and `canvas.routes.ts`, and all the canvas components. `home/` is the canvas page: it holds the open canvas, autosaves, opens/starts/deletes saved canvases, and is also the page of the jigsaw module (set up by its route data). It has three parts: `canvas-panel/` (settings + saved list), `canvas-board/` (the canvas, its objects and all pointer tools) and `object-palette/` (objects to drag in). `objects/` is the Objects page, with `object-panel/` (the form) and `canvas-shape/` (draws an object as SVG). Also `canvas-list.service.ts`, `canvas-objects.service.ts` (the API) and `drag.ts`.
-- `jigsaw/` – the **jigsaw module** (`/jigsaw`, Karins jigsaw): `jigsaw-shell.ts` (its header menu) and `jigsaw.routes.ts`, and everything only the jigsaw uses: `jigsaw-home/` (the front page at `/jigsaw`, with the photo `public/images/front.jpg`; the list of jigsaws is at `/jigsaw/list`), `puzzle-piece/` (draws a piece), `picture-cropper/` (finds the cut of a picture), `fit-picture.ts` (cuts the picture to the canvas shape), `piece-graphics.ts` (draws the graphic of each piece), `piece-sync.ts` (keeps the pieces in the database) and the API services `jigsaw.service.ts`, `jigsaw-image.service.ts`, `jigsaw-pieces.service.ts`.
-- `core/` – what both modules use: `autosave.ts` (saves a change a pause after it), `api-collection.ts` (the base of the API services), `session-storage.ts` (choices kept for the session: `readSession`, `writeSession`, `isBoolean`), `theme.ts` (`cssVar`, `cssNumber`, `isWideScreen`: canvas code reads colours and sizes from the look) and the Transloco files.
-- `src/styles.scss` – **the one place for the look**: fonts, colours, sizes, layers and every custom class, as `--app-*` tokens on `:root` (Bootstrap's own variables are set from them) and responsive rules (`from`, `below`, `touch` mixins; breakpoints `$bp-*`). Components use Bootstrap classes and the classes/tokens of this file: no hard-coded colour, font or size in a template, an SVG attribute, canvas code or a component `styles:` (the colours of objects the person made are data and the only exception). Canvas code reads tokens with `cssVar`/`cssNumber`.
+- `jigsaw/` – the pages and what only the jigsaw uses: `jigsaw-home/` (the front page, with the photo `public/images/front.jpg`; the list of jigsaws is at `/jigsaw/list`), `jigsaw-list/`, `jigsaw-page/` (one jigsaw and its rounds), `jigsaw-new/` (the form to make and edit), `jigsaw-play/` (a round), `jigsaw-user/` (who plays), `puzzle-piece/` (draws a piece), `picture-cropper/` (finds the cut of a picture), `fit-picture.ts` (cuts the picture to the shape), `piece-graphics.ts` (draws the graphic of each piece), `piece-sync.ts` (keeps the pieces in the database) and the API services `jigsaw.service.ts`, `jigsaw-image.service.ts`, `jigsaw-pieces.service.ts`, `plays.service.ts`, `jigsaw-user.service.ts`.
+- `canvas/` – the board the pieces are played on: `canvas-board/` (the picture area, the store of pieces and all pointer tools), `canvas-shape/` (draws a shape as SVG) and `drag.ts`. The name is from the code the project started from; the board is the jigsaw's.
+- `guide/` – the user guide page. `core/` – `autosave.ts` (saves a change a pause after it), `api-collection.ts` (the base of the API services), `session-storage.ts` (choices kept for the session), `theme.ts` (`cssVar`, `cssNumber`, `isWideScreen`: canvas code reads colours and sizes from the look), `i18n.ts`, `language.service.ts`, `user-header.interceptor.ts` and the Transloco files.
+- `src/styles.scss` – **the one place for the look**: fonts, colours, sizes, layers and every custom class, as `--app-*` tokens on `:root` (Bootstrap's own variables are set from them) and responsive rules (`from`, `below`, `touch` mixins; breakpoints `$bp-*`). Components use Bootstrap classes and the classes/tokens of this file: no hard-coded colour, font or size in a template, an SVG attribute, canvas code or a component `styles:`. Canvas code reads tokens with `cssVar`/`cssNumber`.
 - `models/shared/` – the model (generated copy, never edited).
-- A module's folder holds its own things. The canvas page (`canvas/home`, `canvas-board`, `canvas-panel`) is shared by the two modules, so it knows a little of the jigsaw (the pieces, the helper banner, the sidebar) and imports from `jigsaw/`; the jigsaw module in turn opens the canvas page. Anything new that only one module uses goes in that module's folder.
-- Backend: `canvas-list.ts` / `canvas-objects.ts` (the routes: they only check, call `stored()` and the store), `document-store.ts` (the Firestore code both use: list, add, replace, delete).
+- Backend: `common/canvas-list.ts` (the routes of the list of jigsaw documents: they only check, call `stored()` and the store), `common/document-store.ts` (the Firestore code: list, add, replace, delete).
 
 ## Rules for the code
 1. **Classes work on their own object.** A rule belongs on the class that owns the data, at the right level of the parent/child hierarchy: what every object has is on `CanvasBaseObject`, what a figure adds on `CanvasFigure`, what an arrow adds on `CanvasArrow` (an arrow *is a* figure, a figure *is a* base object). Children override small hooks instead of `if (kind === …)` branches. Placed objects know their own geometry; the diagram does what they do together.
@@ -49,22 +43,16 @@ One folder for each module, and what both use:
 11. **Small screens.** Below 1200 px (`--app-sidebar-fold`, `$bp-xl`) the jigsaw sidebar is folded away and opens over the board with the **Details** button in the jigsaw menu (a click anywhere but on its own controls closes it) (`JigsawHelper.sidebarOpen`, kept in the session as `jigsaw.sidebarOpen`).
 
 ## Rules for what the app does
-- **Canvas:** a name, width and height (whole pixels), a grid (pixels between points, 0 = off, shown or hidden). The canvas itself is layer 0.
-- **Objects** (collection `canvas-objects`): a *figure* (square, circle, triangle, histogram) with a default size, border, corner radius, colours and font; or a *connector* (an arrow, one way or both ways, solid or hollow). A square and a circle have equal sides.
-- **Placed objects** are independent copies stored inside the canvas document (`placed`), so changing or deleting the original does not change a canvas.
-- **Position:** a placed object's *centre* is what sticks to a grid point. Everything stays inside the canvas.
-- **Connection points:** a figure has 8 on its border (a triangle 6); an arrow has 2, one at each end (`start`, `end`). An arrow has three more points that shape it (not connection points): a quarter, half and three quarters of the way along. Drag each sideways on its own to curve the arrow, even into an S (`bendStart`, `bend`, `bendEnd`, in pixels from the straight line; all three 3 px or less is straight; a plain `bend` makes the other two follow at three quarters of it); drag back to the line to straighten. An arrow end within 24 px of a figure point snaps to it exactly and is fastened (and the other way: a figure near a free arrow end). Fastened points are drawn as a point in a point.
-- **Arrows follow:** a fastened arrow follows its figure when it moves or is resized; the other end stays. Removing a figure frees its arrows. Grabbing an arrow near an end moves that end alone; the two handles on its sides change its width across.
-- **Layers:** the canvas is layer 0; objects are on layers 1–1000, the first on 10; a new object goes on the last (highest) layer in use; a higher layer is in front.
-- **Resizing:** one figure by its 8 handles (opposite edge stays, edge on the grid, square/circle stay equal-sided, at least 4 px). A group (drag a rectangle on the empty canvas): positions scale by the group box on each axis, every figure keeps its shape and scales by the factor that changed more; an arrow is stretched by its ends and its thickness scales the same way.
-- **Delete** (or Backspace, when not typing in a field) removes the picked objects.
+- **A jigsaw** is a document with a name, a size in pixels (whole), a grid, a difficulty and a look, an owner and who sees it, and whether it is timed. The size, the picture and the pieces are fixed once somebody has started a round.
+- **Position:** a piece's *centre* is what sticks to a grid point; a piece close to its own point clicks into place by the difficulty. Everything stays inside the picture area and the store.
+- **Layers:** pieces are on layers 1–1000; a higher layer is in front.
 - **Saving:** every change saves by itself a pause later (autosave); nothing is saved while the settings are not allowed. A saved change **replaces the whole document** (only the creation time is kept), so nothing removed or stale is left in the database.
 
 ## Shared Firebase project (IMPORTANT)
 The Firebase project `sevenfriends` is shared with Seven Friends. Therefore:
-- Deploy only `hosting:canvas`, `hosting:jigsaw` and `functions:canvas` (the npm `deploy*` scripts do; `npm run deploy:jigsaw` is the jigsaw site alone). Never `firebase deploy` everything, and never deploy `firestore`/`storage` rules or indexes from here: that would overwrite Seven Friends' live ones. `firestore.rules` and `storage.rules` here are for the emulator only. Change live rules/indexes from the Seven Friends repo.
+- Deploy only `hosting:jigsaw` and `functions:canvas` (the functions codebase; the npm `deploy*` scripts do; `npm run deploy:jigsaw` is the site alone). Never `firebase deploy` everything, and never deploy `firestore`/`storage` rules or indexes from here: that would overwrite Seven Friends' live ones. `firestore.rules` and `storage.rules` here are for the emulator only. Change live rules/indexes from the Seven Friends repo.
 - The functions codebase is `canvas`, not `default`, so a deploy here never deletes Seven Friends' functions.
-- Collections and Storage paths start with `canvas` so they cannot collide with Seven Friends' data.
+- Collections (`jigsaw`, `jigsaw-users`) and Storage paths (`jigsaw/...`) are the jigsaw's own, so they cannot collide with Seven Friends' data.
 - Do not run any `firebase` command that changes the shared project, and do not deploy, commit or push, unless asked.
 
 ## Running and testing

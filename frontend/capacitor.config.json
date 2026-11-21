@@ -1,6 +1,6 @@
 {
   "appId": "io.canvas.app",
-  "appName": "Canvas",
+  "appName": "Karins jigsaw",
   "webDir": "dist/frontend/browser",
   "android": { "path": "../client-wrappers/android" },
   "server": { "url": "https://karins-jigsaw.web.app", "cleartext": false }
