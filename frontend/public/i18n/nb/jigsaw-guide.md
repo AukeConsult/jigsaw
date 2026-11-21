@@ -8,7 +8,7 @@ Lag et puslespill av et hvilket som helst bilde og legg det sammen på skjermen.
 
 ## Lag et puslespill
 
-1. Trykk **Legg til et nytt puslespill med ditt eget bilde** (på forsiden og øverst i listen).
+1. Trykk **Nytt puslespill** (på forsiden og øverst i listen).
 2. Skriv et **Navn** og velg et **Bilde**. Et vindu åpnes: dra bildet for å finne den delen du vil ha, zoom, og trykk **Bruk dette utsnittet**.
 3. Velg **Størrelse** og antall **Brikker** (opptil 1000). Størrelsen justeres litt så brikkene passer nøyaktig.
 4. Velg **Vanskelighetsgrad**, om det skal være **Tidtaking**, og **Strek**, **Farge** og **Bakgrunn** for bildeflaten.
@@ -33,14 +33,14 @@ Lag et puslespill av et hvilket som helst bilde og legg det sammen på skjermen.
 ## Runder
 
 * Ett spill av et puslespill er en **runde**. Siden til et puslespill viser rundene til alle; dine er merket **Din** og står først.
-* Trykk **Fortsett** for å gå videre med en av dine, **Ny runde** for å starte en til, eller **Slett** for å fjerne en av dine (du blir spurt først).
+* Trykk **Fortsett** for å gå videre med en av dine, **Gå inn i en runde, løs den** for å starte en til, eller **Slett** for å fjerne en av dine (du blir spurt først).
 * Trykk **Se** for å se en annen spillers runde. Du kan aldri endre den, men du kan starte din egen.
 * En runde teller først når du har flyttet en brikke i den. Åpner du bare et puslespill og går tilbake, står det ingen runde i listen.
 * **Utfordre en venn:** gjør puslespillet **Tidtaking** og be vennen din spille en runde av det også. Tiden for hver runde står i listen, så du kan se hvem som er raskest.
 
 ## Rediger eller slett et puslespill
 
-* Trykk **Rediger** på siden til et puslespill. Så lenge ingen har spilt det, kan alt endres. Når noen har spilt det, er bilde, størrelse og brikker faste, men navn, laget av, vanskelighetsgrad og utseende kan fortsatt endres.
+* Trykk **Rediger** på siden til et puslespill. Så lenge ingen har spilt det, kan alt endres. Når noen har spilt det, er bilde, størrelse, brikker, vanskelighetsgrad og tidtaking faste, men navn, beskrivelse, laget av, hvem som ser det og utseende kan fortsatt endres.
 * **Slett** fjerner puslespillet og alle rundene for godt. Bare eieren ser den, og du blir spurt først.
 
 ## Små skjermer

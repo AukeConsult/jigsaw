@@ -41,5 +41,12 @@
   "chooseFirst": "Choisis d'abord un utilisateur.",
   "timePlayed": "Temps de jeu",
   "sectionWho": "Qui tu es",
-  "sectionContact": "Contact"
+  "sectionContact": "Contact",
+  "yourJigsaws": "Tes puzzles",
+  "lookingJigsaws": "Recherche de tes puzzles…",
+  "noJigsaws": "Tu n’as pas encore fait de puzzle.",
+  "addJigsaw": "Ajouter un nouveau puzzle",
+  "deleteJigsawAsk": "Supprimer définitivement ce puzzle ? Son image et toutes ses parties, aussi celles des autres joueurs, sont supprimées.",
+  "jigsawNotDeleted": "Impossible de supprimer le puzzle : réessaie.",
+  "lists": "Listes"
 }

@@ -33,7 +33,7 @@
       <!-- the buttons come under the text: in the middle on a phone, at the left beside the picture on a wide screen -->
       <div class="toolbar toolbar-stack align-items-center align-items-lg-start mt-lg-5 ps-lg-4 row-gap-lg-3">
         <a class="link-action large" routerLink="/jigsaw/list"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawHome.seeAll') || 'See all we have prepared for you' }}</a>
-        <a class="link-action large" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawHome.addNew') || 'Add a new jigsaw with your picture' }}</a>
+        <a class="link-action large" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawHome.addNew') || 'New jigsaw' }}</a>
       </div>
       <!-- where the user left off: their own rounds that are not solved, as small pictures; press one to go on with it -->
       @if (myRounds().length) {

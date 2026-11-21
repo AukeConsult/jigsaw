@@ -6,7 +6,7 @@ import { switchMap } from 'rxjs';
 import { tr } from '../../core/i18n';
 import { BoardShape } from '../board-shape/board-shape';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
-import { readSession, writeSession } from '../../core/session-storage';
+import { readPreference, writePreference } from '../../core/preferences';
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
 import { bottomBarHeight, cssNumber, cssVar } from '../../core/theme';
 import { CANVAS_OBJECT_DRAG_TYPE } from '../drag';
@@ -125,7 +125,7 @@ export class JigsawBoard {
   private readonly jigsawHelper = inject(JigsawHelper);
   readonly helper = this.jigsawHelper.helper; // the switch is in the top menu (see `JigsawHelper`)
   /** where the floating frame of the helper picture is on the window (its top left corner, in pixels): it can be moved by its title */
-  readonly helperFrame = signal(readSession('jigsaw.helperFrame', { x: Math.max(8, window.innerWidth - 260), y: 70 }, isPlace));
+  readonly helperFrame = signal(readPreference('jigsaw.helperFrame', { x: Math.max(8, window.innerWidth - 260), y: 70 }, isPlace));
   /** how big the window is now (it can change after the page was opened: a phone turned, a window made smaller) */
   private readonly viewport = signal({ width: window.innerWidth, height: window.innerHeight });
   /** where the helper picture frame is drawn: where it was put, but always on the window as it is now (so it is never left outside it when the window gets smaller) */
@@ -201,7 +201,7 @@ export class JigsawBoard {
   });
 
   /** how big the helper picture is, as a share of the size of the picture (from 1/10 to 1/2) */
-  readonly helperScale = signal(readSession('jigsaw.helperScale', HELPER_SCALE_START, isScale));
+  readonly helperScale = signal(readPreference('jigsaw.helperScale', HELPER_SCALE_START, isScale));
   /** the corner of the frame that is being dragged to change the size: where the pointer was, and the scale then */
   private helperSizing: { x: number; scale: number } | null = null;
 
@@ -550,8 +550,8 @@ export class JigsawBoard {
     effect(() => helper.hasPieces.set(this.hasPieces()));
     effect(() => helper.counts.set(this.pieceCounts()));
     this.destroyRef.onDestroy(() => helper.active.set(false));
-    effect(() => writeSession('jigsaw.helperFrame', this.helperFrame()));
-    effect(() => writeSession('jigsaw.helperScale', this.helperScale()));
+    effect(() => writePreference('jigsaw.helperFrame', this.helperFrame()));
+    effect(() => writePreference('jigsaw.helperScale', this.helperScale()));
     // draw the grid again whenever the size or the grid changes (a new width or height clears the canvas)
     effect(() => {
       const element = this.canvas()?.nativeElement;

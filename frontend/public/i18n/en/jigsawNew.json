@@ -22,7 +22,7 @@
   "lineTitle": "How thick the line round each piece and round the picture area is",
   "colour": "Colour",
   "colourTitle": "The colour of the line round each piece and round the picture area",
-  "back": "Back",
+  "back": "Background",
   "backTitle": "The background colour of the picture area, inside the border",
   "picture": "Picture",
   "changePicture": "Change picture",
@@ -61,5 +61,8 @@
   "sectionBasics": "Basics",
   "sectionSize": "Size and pieces",
   "sectionPlay": "Play and look",
-  "sectionOwner": "Owner and sharing"
+  "sectionOwner": "Owner and sharing",
+  "description": "Description",
+  "optional": "(optional)",
+  "descriptionPlaceholder": "A place, a day, a memory…"
 }

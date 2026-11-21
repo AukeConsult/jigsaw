@@ -13,7 +13,7 @@
   "intro2": "Valitse kuva, kerro palojen määrä ja aloita.",
   "note": "Rakastan palapelien ja pulmien tekemistä, ja toivon, että sinäkin pidät järjestelmästäni.",
   "seeAll": "Katso kaikki, mitä olemme valmistaneet sinulle",
-  "addNew": "Lisää uusi palapeli omalla kuvallasi",
+  "addNew": "Uusi palapeli",
   "continue": "Jatka siitä, mihin jäit",
   "yourRounds": "Kierroksesi",
   "roundTitle": "{{ name }}: {{ matched }} / {{ total }}",

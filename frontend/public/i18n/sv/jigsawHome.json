@@ -13,7 +13,7 @@
   "intro2": "Välj en bild, säg hur många bitar du vill ha, och sätt igång.",
   "note": "Jag älskar att göra pussel och gåtor, och jag hoppas att du också kommer att tycka om mitt system.",
   "seeAll": "Se allt vi har förberett åt dig",
-  "addNew": "Lägg till ett nytt pussel med din egen bild",
+  "addNew": "Nytt pussel",
   "continue": "Fortsätt där du slutade",
   "yourRounds": "Dina omgångar",
   "roundTitle": "{{ name }}: {{ matched }} av {{ total }}",

@@ -13,7 +13,7 @@
   "intro2": "Elige una imagen, di cuántas piezas quieres y empieza.",
   "note": "Me encanta hacer puzles y rompecabezas, y espero que mi sistema también te encante.",
   "seeAll": "Mira todo lo que hemos preparado para ti",
-  "addNew": "Añade un puzle nuevo con tu imagen",
+  "addNew": "Nuevo puzle",
   "continue": "Continúa por donde lo dejaste",
   "yourRounds": "Tus partidas",
   "roundTitle": "{{ name }}: {{ matched }} de {{ total }}",

@@ -46,7 +46,7 @@
         @if (!viewOnly()) {
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label small mb-1" for="line-width">{{ t('jigsawPlay.line') || 'Line' }}</label>
+              <label class="form-label mb-1" for="line-width">{{ t('jigsawPlay.line') || 'Line' }}</label>
               <select id="line-width" name="lineWidth" class="form-select form-select-sm" [disabled]="viewOnly()" [title]="t('jigsawPlay.lineTitle') || 'How thick the line round each piece and round the picture area is'"
                       (change)="chooseLine(+$any($event.target).value)">
                 @for (l of lineLevels; track l.width) {
@@ -55,12 +55,12 @@
               </select>
             </div>
             <div class="col-3">
-              <label class="form-label small mb-1" for="line-color">{{ t('jigsawPlay.colour') || 'Colour' }}</label>
+              <label class="form-label mb-1" for="line-color">{{ t('jigsawPlay.colour') || 'Colour' }}</label>
               <input id="line-color" name="lineColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" [title]="t('jigsawPlay.colourTitle') || 'The colour of the line round each piece and round the picture area'"
                      [ngModel]="lineColor()" (ngModelChange)="chooseLineColor($event)">
             </div>
             <div class="col-3">
-              <label class="form-label small mb-1" for="back-color">{{ t('jigsawPlay.back') || 'Back' }}</label>
+              <label class="form-label mb-1" for="back-color">{{ t('jigsawPlay.back') || 'Background' }}</label>
               <input id="back-color" name="backColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" [title]="t('jigsawPlay.backTitle') || 'The background colour of the picture area, inside the frame'"
                      [ngModel]="backColor()" (ngModelChange)="chooseBackColor($event)">
             </div>
@@ -93,7 +93,7 @@
           <!-- the cheat: the numbers of the places on the picture and on the pieces, to help find them (a switch, as the helper ones in the menu are) -->
           <div class="form-check form-switch mb-3">
             <input id="cheat" class="form-check-input" type="checkbox" role="switch" [checked]="debug()" (change)="debug.set($any($event.target).checked)">
-            <label class="form-check-label small" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>{{ t('jigsawPlay.cheat') || 'Cheat' }} <span class="text-body-secondary">{{ t('jigsawPlay.cheatHelp') || '(help find pieces)' }}</span></label>
+            <label class="form-check-label" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>{{ t('jigsawPlay.cheat') || 'Cheat' }} <span class="text-body-secondary">{{ t('jigsawPlay.cheatHelp') || '(help find pieces)' }}</span></label>
           </div>
         }
 

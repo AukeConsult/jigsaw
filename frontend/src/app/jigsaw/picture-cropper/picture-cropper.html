@@ -20,7 +20,7 @@
         }
       </div>
       <div class="d-flex align-items-center gap-2 mt-2">
-        <label class="small mb-0 text-nowrap" for="crop-zoom">{{ t('jigsawCropper.zoom') || 'Zoom' }}</label>
+        <label class="form-label mb-0 text-nowrap" for="crop-zoom">{{ t('jigsawCropper.zoom') || 'Zoom' }}</label>
         <input id="crop-zoom" type="range" class="form-range" min="1" [max]="maxZoom" step="0.01" [value]="c?.zoom ?? 1" [disabled]="!c"
                (input)="zoomTo(+$any($event.target).value)">
       </div>

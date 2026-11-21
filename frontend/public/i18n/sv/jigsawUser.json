@@ -41,5 +41,12 @@
   "chooseFirst": "Välj en användare först.",
   "timePlayed": "Speltid",
   "sectionWho": "Vem du är",
-  "sectionContact": "Kontakt"
+  "sectionContact": "Kontakt",
+  "yourJigsaws": "Dina pussel",
+  "lookingJigsaws": "Letar efter dina pussel…",
+  "noJigsaws": "Du har inte gjort något pussel ännu.",
+  "addJigsaw": "Lägg till ett nytt pussel",
+  "deleteJigsawAsk": "Ta bort det här pusslet för gott? Bilden och alla omgångar, även andra spelares, tas bort.",
+  "jigsawNotDeleted": "Kunde inte ta bort pusslet: försök igen.",
+  "lists": "Listor"
 }

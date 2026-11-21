@@ -8,7 +8,7 @@ Fais un puzzle à partir de n’importe quelle image et assemble-le à l’écra
 
 ## Faire un puzzle
 
-1. Appuie sur **Ajouter un nouveau puzzle avec ton image** (sur la page d’accueil et en haut de la liste).
+1. Appuie sur **Nouveau puzzle** (sur la page d’accueil et en haut de la liste).
 2. Écris un **Nom** et choisis une **Image**. Une fenêtre s’ouvre : fais glisser l’image pour trouver la partie voulue, zoome, puis appuie sur **Utiliser ce découpage**.
 3. Choisis la **Taille** et le nombre de **Pièces** (jusqu’à 1000). La taille est un peu ajustée pour que les pièces tombent juste.
 4. Choisis la **Difficulté**, s’il est **Chronométré**, ainsi que le **Trait**, la **Couleur** et le **Fond** de la zone de l’image.
@@ -33,14 +33,14 @@ Fais un puzzle à partir de n’importe quelle image et assemble-le à l’écra
 ## Parties
 
 * Un jeu d’un puzzle est une **partie**. La page d’un puzzle liste les parties de tous ; les tiennes sont marquées **Les tiennes** et viennent en premier.
-* Appuie sur **Reprendre** pour continuer l’une des tiennes, **Nouvelle partie** pour en commencer une autre, ou **Supprimer** pour en retirer une des tiennes (on te demande d’abord).
+* Appuie sur **Reprendre** pour continuer l’une des tiennes, **Entre dans une partie, résous-la** pour en commencer une autre, ou **Supprimer** pour en retirer une des tiennes (on te demande d’abord).
 * Appuie sur **Regarder** pour voir la partie d’un autre joueur. Tu ne peux jamais la modifier, mais tu peux commencer la tienne.
 * Une partie ne compte qu’une fois que tu y as déplacé une pièce. Si tu ouvres seulement un puzzle et reviens en arrière, aucune partie n’apparaît dans la liste.
 * **Défie un ami :** rends le puzzle **Chronométré** et demande à ton ami d’y jouer une partie aussi. Le temps de chaque partie est dans la liste, pour voir qui est le plus rapide.
 
 ## Modifier ou supprimer un puzzle
 
-* Appuie sur **Modifier** sur la page d’un puzzle. Tant que personne n’y a joué, tout peut changer. Dès que quelqu’un y a joué, l’image, la taille et les pièces sont fixes, mais le nom, l’auteur, la difficulté et l’apparence peuvent encore changer.
+* Appuie sur **Modifier** sur la page d’un puzzle. Tant que personne n’y a joué, tout peut changer. Dès que quelqu’un y a joué, l’image, la taille, les pièces, la difficulté et le chronométrage sont fixes, mais le nom, la description, l’auteur, qui le voit et l’apparence peuvent encore changer.
 * **Supprimer** retire définitivement le puzzle et toutes ses parties. Seul son propriétaire le voit, et on te demande d’abord.
 
 ## Petits écrans

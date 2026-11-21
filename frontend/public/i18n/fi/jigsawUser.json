@@ -41,5 +41,12 @@
   "chooseFirst": "Valitse ensin käyttäjä.",
   "timePlayed": "Peliaika",
   "sectionWho": "Kuka olet",
-  "sectionContact": "Yhteystiedot"
+  "sectionContact": "Yhteystiedot",
+  "yourJigsaws": "Palapelisi",
+  "lookingJigsaws": "Etsitään palapelejäsi…",
+  "noJigsaws": "Et ole vielä tehnyt palapeliä.",
+  "addJigsaw": "Lisää uusi palapeli",
+  "deleteJigsawAsk": "Poistetaanko tämä palapeli lopullisesti? Sen kuva ja kaikki kierrokset, myös muiden pelaajien, poistetaan.",
+  "jigsawNotDeleted": "Palapeliä ei voitu poistaa: yritä uudelleen.",
+  "lists": "Luettelot"
 }

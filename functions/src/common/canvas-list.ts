@@ -19,13 +19,16 @@ function readInput(body: Record<string, unknown>): { input: CanvasInput } | { er
 }
 
 /** The routes of a collection of canvas areas (`/canvas-list`, and `/jigsaw` the same way). GET /canvas-list: the saved canvas areas, newest first. POST /canvas-list: save a new one. PUT /canvas-list/:id: change a saved one (the page autosaves with these). DELETE /canvas-list/:id: delete one. */
-export function canvasListRouter(store: CanvasStore): express.Router {
+export function canvasListRouter(store: CanvasStore, canSee: (canvas: CanvasSpec, me: string | undefined) => Promise<boolean> = async (c, me) => c.visibility !== "owner" || (!!me && c.ownerUid === me)): express.Router {
   const router = express.Router();
 
-  // a jigsaw its owner keeps to themselves is listed for the owner only (the header `X-Jigsaw-User` is the UID of who asks; there is no sign-in yet, so this keeps the lists honest, it is not a lock)
+  // a jigsaw its owner keeps to themselves is listed for those `canSee` says (the owner, and whoever the app adds: the header `X-Jigsaw-User` is the UID of who asks; there is no
+  // sign-in yet, so this keeps the lists honest, it is not a lock)
   router.get("/", async (req, res) => {
     const me = req.get("X-Jigsaw-User");
-    res.json((await store.list()).filter((c) => c.visibility !== "owner" || (!!me && c.ownerUid === me)));
+    const all = await store.list();
+    const seen = await Promise.all(all.map((c) => canSee(c, me)));
+    res.json(all.filter((_, i) => seen[i]));
   });
 
   router.post("/", async (req, res) => {

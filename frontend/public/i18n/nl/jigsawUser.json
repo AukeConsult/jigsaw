@@ -41,5 +41,12 @@
   "chooseFirst": "Kies eerst een gebruiker.",
   "timePlayed": "Speeltijd",
   "sectionWho": "Wie je bent",
-  "sectionContact": "Contact"
+  "sectionContact": "Contact",
+  "yourJigsaws": "Je puzzels",
+  "lookingJigsaws": "Je puzzels worden gezocht…",
+  "noJigsaws": "Je hebt nog geen puzzel gemaakt.",
+  "addJigsaw": "Een nieuwe puzzel toevoegen",
+  "deleteJigsawAsk": "Deze puzzel voorgoed verwijderen? Zijn afbeelding en alle rondes, ook die van andere spelers, worden verwijderd.",
+  "jigsawNotDeleted": "De puzzel kon niet worden verwijderd: probeer het opnieuw.",
+  "lists": "Lijsten"
 }

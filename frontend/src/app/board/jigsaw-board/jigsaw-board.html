@@ -2,7 +2,7 @@
 <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
   <span class="small text-body-secondary">{{ t('jigsawBoard.designerHint', { layer: lastLayer() }) || 'Drag an object from the list into the canvas area, and drag it again to move it. Its centre sticks to a grid point. The canvas is layer 0; a new object goes on layer ' + lastLayer() + '.' }}</span>
     <div class="d-flex align-items-center gap-2">
-      <label class="small text-body-secondary mb-0" for="layer">{{ t('jigsawBoard.layer') || 'Layer' }}</label>
+      <label class="form-label text-body-secondary mb-0" for="layer">{{ t('jigsawBoard.layer') || 'Layer' }}</label>
       <input id="layer" type="number" min="1" max="1000" step="1" class="form-control form-control-sm layer-input"
              [value]="selectedLayer() ?? ''" [disabled]="!selection().length" (change)="setLayer($any($event.target).value)">
       <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" [disabled]="!selection().length" (click)="removeSelected()">{{ t('jigsawBoard.removePicked') || 'Remove picked' }}</button>

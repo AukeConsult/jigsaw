@@ -41,5 +41,12 @@
   "chooseFirst": "Wähl zuerst einen Benutzer aus.",
   "timePlayed": "Spielzeit",
   "sectionWho": "Wer du bist",
-  "sectionContact": "Kontakt"
+  "sectionContact": "Kontakt",
+  "yourJigsaws": "Deine Puzzles",
+  "lookingJigsaws": "Deine Puzzles werden gesucht…",
+  "noJigsaws": "Du hast noch kein Puzzle gemacht.",
+  "addJigsaw": "Neues Puzzle hinzufügen",
+  "deleteJigsawAsk": "Dieses Puzzle endgültig löschen? Das Bild und alle Runden, auch die anderer Spieler, werden mitgelöscht.",
+  "jigsawNotDeleted": "Das Puzzle konnte nicht gelöscht werden: versuche es noch einmal.",
+  "lists": "Listen"
 }

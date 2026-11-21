@@ -61,5 +61,8 @@
   "sectionBasics": "Basis",
   "sectionSize": "Formaat en stukjes",
   "sectionPlay": "Spel en uiterlijk",
-  "sectionOwner": "Eigenaar en delen"
+  "sectionOwner": "Eigenaar en delen",
+  "description": "Beschrijving",
+  "optional": "(optioneel)",
+  "descriptionPlaceholder": "Een plek, een dag, een herinnering…"
 }

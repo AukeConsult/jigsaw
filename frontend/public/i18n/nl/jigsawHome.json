@@ -13,7 +13,7 @@
   "intro2": "Kies een afbeelding, kies hoeveel stukjes, en begin.",
   "note": "Ik maak dolgraag puzzels, en ik hoop dat je mijn systeem ook geweldig vindt.",
   "seeAll": "Bekijk alles wat we voor je hebben klaargezet",
-  "addNew": "Een nieuwe puzzel toevoegen met je afbeelding",
+  "addNew": "Nieuwe puzzel",
   "continue": "Ga verder waar je gebleven was",
   "yourRounds": "Je rondes",
   "roundTitle": "{{ name }}: {{ matched }} van {{ total }}",

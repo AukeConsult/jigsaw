@@ -61,5 +61,8 @@
   "sectionBasics": "Grundlagen",
   "sectionSize": "Größe und Teile",
   "sectionPlay": "Spiel und Aussehen",
-  "sectionOwner": "Besitzer und Freigabe"
+  "sectionOwner": "Besitzer und Freigabe",
+  "description": "Beschreibung",
+  "optional": "(freiwillig)",
+  "descriptionPlaceholder": "Ein Ort, ein Tag, eine Erinnerung…"
 }

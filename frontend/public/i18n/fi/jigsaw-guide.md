@@ -8,7 +8,7 @@ Tee palapeli mistä tahansa kuvasta ja kokoa se ruudulla. Kaikki tallentuu itses
 
 ## Tee palapeli
 
-1. Paina **Lisää uusi palapeli omalla kuvallasi** (etusivulla ja luettelon yläreunassa).
+1. Paina **Uusi palapeli** (etusivulla ja luettelon yläreunassa).
 2. Kirjoita **Nimi** ja valitse **Kuva**. Ikkuna aukeaa: vedä kuvaa löytääksesi haluamasi osan, zoomaa ja paina **Käytä tätä rajausta**.
 3. Valitse **Koko** ja **Palat** (enintään 1000). Kokoa säädetään hieman, jotta palat sopivat täsmälleen.
 4. Valitse **Vaikeustaso**, onko se **Ajastettu**, sekä kuva-alueen **Viiva**, **Väri** ja **Tausta**.
@@ -33,14 +33,14 @@ Tee palapeli mistä tahansa kuvasta ja kokoa se ruudulla. Kaikki tallentuu itses
 ## Kierrokset
 
 * Yksi palapelin peli on **kierros**. Palapelin sivu luettelee kaikkien kierrokset; omasi on merkitty **Omasi** ja ne ovat ensin.
-* Paina **Jatka** jatkaaksesi yhtä omistasi, **Uusi kierros** aloittaaksesi uuden tai **Poista** poistaaksesi yhden omistasi (sinulta kysytään ensin).
+* Paina **Jatka** jatkaaksesi yhtä omistasi, **Siirry kierrokselle, ratkaise se** aloittaaksesi uuden tai **Poista** poistaaksesi yhden omistasi (sinulta kysytään ensin).
 * Paina **Katso** nähdäksesi toisen pelaajan kierroksen. Et voi koskaan muuttaa sitä, mutta voit aloittaa oman.
 * Kierros lasketaan vasta, kun olet siirtänyt siinä palaa. Jos vain avaat palapelin ja palaat takaisin, luettelossa ei näy kierrosta.
 * **Haasta ystävä:** tee palapelistä **Ajastettu** ja pyydä ystävääsi pelaamaan siitä myös kierros. Jokaisen kierroksen aika näkyy luettelossa, joten näet kuka on nopein.
 
 ## Muokkaa tai poista palapeli
 
-* Paina **Muokkaa** palapelin sivulla. Kunnes kukaan on pelannut sitä, kaiken voi muuttaa. Kun joku on pelannut, kuva, koko ja palat ovat lukittuja, mutta nimeä, tekijää, vaikeustasoa ja ulkoasua voi yhä muuttaa.
+* Paina **Muokkaa** palapelin sivulla. Kunnes kukaan on pelannut sitä, kaiken voi muuttaa. Kun joku on pelannut, kuva, koko, palat, vaikeustaso ja ajastus ovat lukittuja, mutta nimeä, kuvausta, tekijää, sitä kuka näkee ja ulkoasua voi yhä muuttaa.
 * **Poista** poistaa palapelin ja kaikki sen kierrokset lopullisesti. Vain omistaja näkee sen, ja sinulta kysytään ensin.
 
 ## Pienet näytöt

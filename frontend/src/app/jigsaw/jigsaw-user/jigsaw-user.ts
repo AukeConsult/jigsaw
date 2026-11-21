@@ -4,10 +4,13 @@ import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
+import { readPreference, writePreference } from '../../core/preferences';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { JigsawImageService } from '../jigsaw-image.service';
+import { JigsawService } from '../jigsaw.service';
 import { PlaysService, UserGame } from '../plays.service';
 import { JigsawUserService } from '../jigsaw-user.service';
+import { CanvasSpec } from '../../models/shared/canvas';
 import { JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../../models/shared/jigsaw-user';
 
 /**
@@ -27,6 +30,7 @@ export class JigsawUser implements OnInit {
   protected readonly users = inject(JigsawUserService);
   private readonly plays = inject(PlaysService);
   private readonly images = inject(JigsawImageService);
+  private readonly jigsaws = inject(JigsawService);
   private readonly router = inject(Router);
   private readonly next = inject(ActivatedRoute).snapshot.queryParamMap.get('next');
 
@@ -35,8 +39,8 @@ export class JigsawUser implements OnInit {
   /** the users to choose from (null: not read yet) */
   readonly list = signal<JigsawUserSpec[] | null>(null);
   readonly listFailed = signal(false);
-  /** what is typed to find a user in a long list */
-  readonly filter = signal('');
+  /** what is typed to find a user in a long list (kept on the device) */
+  readonly filter = signal(readPreference('jigsaw.userFilter', '', (v): v is string => typeof v === 'string'));
   readonly username = signal('');
   readonly name = signal('');
   /** an e-mail address, optional: kept so the user can be connected to a registration later */
@@ -53,7 +57,12 @@ export class JigsawUser implements OnInit {
   /** the jigsaws whose picture could not be read (an empty box is shown) */
   readonly noPicture = signal<ReadonlySet<string>>(new Set());
 
+  /** which list is shown: the rounds played or the jigsaws made; kept for the session */
+  readonly tab = signal<'rounds' | 'jigsaws'>(readPreference('jigsaw.userTab', 'rounds', (v): v is 'rounds' | 'jigsaws' => v === 'rounds' || v === 'jigsaws'));
+
   constructor() {
+    effect(() => writePreference('jigsaw.userTab', this.tab()));
+    effect(() => writePreference('jigsaw.userFilter', this.filter()));
     // the games are read when a user plays (and again when another user is chosen)
     effect(() => {
       const me = this.users.user();
@@ -61,6 +70,40 @@ export class JigsawUser implements OnInit {
       this.gamesFailed.set(false);
       if (me) void this.loadGames(me.id);
     });
+    // the jigsaws the user made are read in the same way
+    effect(() => {
+      const me = this.users.user();
+      this.mine.set(null);
+      if (me) void this.loadMine(me.id);
+    });
+  }
+
+  /** the jigsaws the user who plays has made (null: not read yet) */
+  readonly mine = signal<CanvasSpec[] | null>(null);
+  /** the jigsaw whose Delete was pressed and waits for "Yes" */
+  readonly confirmingJigsawId = signal<string | null>(null);
+
+  private async loadMine(userId: string): Promise<void> {
+    try {
+      const all = await this.jigsaws.list();
+      if (this.users.user()?.id === userId) this.mine.set(all.filter((j) => j.ownerUid === userId));
+    } catch {
+      this.mine.set([]);
+    }
+  }
+
+  /** The jigsaw is deleted for good, with its picture and all its rounds (only its owner can). */
+  async removeJigsaw(item: CanvasSpec): Promise<void> {
+    const me = this.users.user();
+    this.confirmingJigsawId.set(null);
+    if (!me) return;
+    try {
+      await this.jigsaws.removeAs(item.id, me.id);
+      this.mine.update((all) => (all ?? []).filter((j) => j.id !== item.id));
+      this.games.update((all) => (all ?? []).filter((g) => g.jigsaw.id !== item.id));
+    } catch {
+      this.error.set(tr('jigsawUser.jigsawNotDeleted', 'Could not delete the jigsaw: try again.'));
+    }
   }
 
   private async loadGames(userId: string): Promise<void> {

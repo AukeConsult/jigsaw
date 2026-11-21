@@ -13,7 +13,7 @@
   "intro2": "Vælg et billede, sig hvor mange brikker du vil have, og gå i gang.",
   "note": "Jeg elsker at lave puslespil og gåder, og jeg håber, du også vil kunne lide mit system.",
   "seeAll": "Se alt, hvad vi har gjort klar til dig",
-  "addNew": "Tilføj et nyt puslespil med dit eget billede",
+  "addNew": "Nyt puslespil",
   "continue": "Fortsæt, hvor du slap",
   "yourRounds": "Dine runder",
   "roundTitle": "{{ name }}: {{ matched }} af {{ total }}",

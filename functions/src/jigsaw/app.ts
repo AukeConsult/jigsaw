@@ -4,7 +4,7 @@ import { CanvasStore, canvasListRouter, firestoreCanvasStore } from "../common/c
 import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
-import { JIGSAW, JigsawUsers } from "../models";
+import { CanvasArea, JIGSAW, JigsawUsers } from "../models";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
 import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./plays";
 
@@ -35,6 +35,19 @@ export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: I
   // the games of a user over all the jigsaws (before the users, whose own routes would take the address first)
   router.use("/jigsaw-users/:id/plays", userPlaysRouter(plays, { jigsaws: () => jigsaw.list(), userOf: async (userId) => (await users.get(userId)) ?? null }));
   router.use("/jigsaw-users", jigsawUsersRouter(users));
+  // A jigsaw only its owner sees (`visibility: "owner"`) is seen by its owner and by the players who have a round on it (they keep what they started); nobody else sees it,
+  // its rounds either. A player who is not the owner cannot start another round of it. (The header `X-Jigsaw-User` is the UID of who asks.)
+  const isOwnerOf = (c: { ownerUid?: string }, me: string | undefined) => !!me && c.ownerUid === me;
+  const hasRoundOn = async (c: { id: string }, me: string | undefined) => !!me && (await plays.list(c.id, me)).length > 0;
+  const canSee = async (c: { id: string; visibility?: string; ownerUid?: string }, me: string | undefined) => c.visibility !== "owner" || isOwnerOf(c, me) || (await hasRoundOn(c, me));
+  router.use("/jigsaw/:id/plays", async (req, res, next) => {
+    const c = await jigsawById(req.params.id);
+    if (!c || c.visibility !== "owner") return next();
+    const me = req.get("X-Jigsaw-User");
+    if (!(await canSee(c, me))) return void res.status(404).json({ error: "No such jigsaw." });
+    if (req.method === "POST" && !isOwnerOf(c, me)) return void res.status(403).json({ error: "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have." });
+    next();
+  });
   router.use("/jigsaw/:id/plays", playsRouter(plays, { jigsaw: jigsawById, pieces, userOf: async (userId) => (await users.get(userId)) ?? null }));
   // the owner of a jigsaw is a user that exists (chosen from the users); the author of the jigsaw is then that user's name, put there here, not taken from the request
   const stampOwner: express.RequestHandler = async (req, res, next) => {
@@ -45,13 +58,20 @@ export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: I
     body.author = user.name;
     next();
   };
-  // a jigsaw is deleted by its owner only (the header `X-Jigsaw-User` is the UID of who asks; a jigsaw from before owners has none and can be deleted by anyone). There is
-  // no sign-in yet, so this keeps the app honest, it is not a lock.
-  router.delete("/jigsaw/:id", async (req, res, next) => {
+  // Who may change a jigsaw, said once and used by every route that changes it (the header `X-Jigsaw-User` is the UID of who asks; there is no sign-in yet, so this keeps the
+  // app honest, it is not a lock):
+  //  - only its owner changes or deletes a jigsaw; one from before owners has none, and is anybody's;
+  //  - once somebody has started a round of it, nobody (the owner too) changes what every round shares: its size, pieces, picture, difficulty and clock.
+  const ownerOnly = (what: string): express.RequestHandler => async (req, res, next) => {
     const now = await jigsawById(req.params.id);
-    if (now?.ownerUid && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(403).json({ error: "Only the owner of a jigsaw can delete it." });
+    if (now?.ownerUid && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(403).json({ error: `Only the owner of a jigsaw can ${what} it.` });
     next();
-  });
+  };
+  const notWhenPlayed: express.RequestHandler = async (req, res, next) => {
+    if (await plays.has(req.params.id)) return void res.status(409).json({ error: CanvasArea.PLAYED_MESSAGE });
+    next();
+  };
+  router.delete("/jigsaw/:id", ownerOnly("delete"));
   router.post("/jigsaw", stampOwner);
   router.put("/jigsaw/:id", stampOwner);
   // a jigsaw only its owner sees can be changed by its owner only (for anyone else it is not there)
@@ -60,26 +80,32 @@ export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: I
     if (now?.visibility === "owner" && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(404).json({ error: "No such canvas." });
     next();
   });
-  // a jigsaw that has been played keeps its size, grid and pieces (every play shares them): a change of them is refused
+  router.put("/jigsaw/:id", ownerOnly("change"));
+  // a jigsaw that has been played keeps what every round shares (see `CanvasArea.changesWhatPlayersShare`): a change of it is refused
   router.put("/jigsaw/:id", async (req, res, next) => {
-    const body = (req.body ?? {}) as { width?: unknown; height?: unknown; gridSize?: unknown };
     const now = await jigsawById(req.params.id);
     if (!now) return next();
     if (!(await plays.has(req.params.id))) {
       await plays.removeFresh(req.params.id); // not played: the rounds that are only opened go, their pieces would be out of date after the change
       return next();
     }
-    if (body.width !== now.width || body.height !== now.height || body.gridSize !== now.gridSize) {
-      return void res.status(409).json({ error: "This jigsaw has been played: its size and pieces can not change." });
-    }
+    if (CanvasArea.changesWhatPlayersShare(now, (req.body ?? {}) as Record<string, unknown>)) return void res.status(409).json({ error: CanvasArea.PLAYED_MESSAGE });
     next();
   });
+  // nor can its picture or its cut into pieces be put in again, taken away or moved once it has been played (the pieces of every round are the ones it has); a jigsaw that
+  // is not played can have them put in by whoever is making it (a jigsaw can be made for another user, who is then its owner)
+  router.put(["/jigsaw-image/:id", "/jigsaw-pieces/:id"], notWhenPlayed);
+  router.delete(["/jigsaw-image/:id", "/jigsaw-pieces/:id"], ownerOnly("change"), notWhenPlayed);
+  router.patch("/jigsaw-pieces/:id", ownerOnly("change"), notWhenPlayed);
   router.use(
     "/jigsaw",
-    canvasListRouter({
-      ...jigsaw,
-      remove: async (id) => (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id)]).then(() => true, () => true)),
-    }),
+    canvasListRouter(
+      {
+        ...jigsaw,
+        remove: async (id) => (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id)]).then(() => true, () => true)),
+      },
+      (c, me) => canSee(c, me),
+    ),
   );
   router.use("/jigsaw-image", jigsawImageRouter(stores.jigsawImages ?? storageImageStore(), jigsawExists));
   router.use("/jigsaw-pieces", jigsawPiecesRouter(pieces, jigsawExists));

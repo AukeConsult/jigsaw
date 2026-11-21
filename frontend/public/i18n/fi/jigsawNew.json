@@ -61,5 +61,8 @@
   "sectionBasics": "Perustiedot",
   "sectionSize": "Koko ja palat",
   "sectionPlay": "Peli ja ulkoasu",
-  "sectionOwner": "Omistaja ja jakaminen"
+  "sectionOwner": "Omistaja ja jakaminen",
+  "description": "Kuvaus",
+  "optional": "(valinnainen)",
+  "descriptionPlaceholder": "Paikka, päivä, muisto…"
 }

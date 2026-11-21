@@ -13,7 +13,7 @@
   "intro2": "Choose a picture, say how many pieces, and start.",
   "note": "I love making jigsaws and puzzles, and I hope you will love my system too.",
   "seeAll": "See all we have prepared for you",
-  "addNew": "Add a new jigsaw with your picture",
+  "addNew": "New jigsaw",
   "continue": "Continue where you left off",
   "yourRounds": "Your rounds",
   "roundTitle": "{{ name }}: {{ matched }} of {{ total }}",

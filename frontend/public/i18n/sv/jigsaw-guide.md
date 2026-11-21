@@ -8,7 +8,7 @@ Gör ett pussel av vilken bild som helst och lägg det på skärmen. Allt sparas
 
 ## Gör ett pussel
 
-1. Tryck **Lägg till ett nytt pussel med din egen bild** (på startsidan och överst i listan).
+1. Tryck **Nytt pussel** (på startsidan och överst i listan).
 2. Skriv ett **Namn** och välj en **Bild**. Ett fönster öppnas: dra bilden för att hitta den del du vill ha, zooma och tryck **Använd det här urklippet**.
 3. Välj **Storlek** och antal **Bitar** (upp till 1000). Storleken justeras lite så att bitarna passar exakt.
 4. Välj **Svårighetsgrad**, om det ska vara **Tidtagning**, och **Linje**, **Färg** och **Bakgrund** för bildytan.
@@ -33,14 +33,14 @@ Gör ett pussel av vilken bild som helst och lägg det på skärmen. Allt sparas
 ## Omgångar
 
 * Ett spel av ett pussel är en **omgång**. Pusslets sida visar allas omgångar; dina är märkta **Din** och kommer först.
-* Tryck **Fortsätt** för att gå vidare med en av dina, **Ny omgång** för att starta en till, eller **Ta bort** för att ta bort en av dina (du får frågan först).
+* Tryck **Fortsätt** för att gå vidare med en av dina, **Gå in i en omgång, lös den** för att starta en till, eller **Ta bort** för att ta bort en av dina (du får frågan först).
 * Tryck **Titta** för att se en annan spelares omgång. Du kan aldrig ändra den, men du kan starta din egen.
 * En omgång räknas först när du har flyttat en bit i den. Öppnar du bara ett pussel och går tillbaka, syns ingen omgång i listan.
 * **Utmana en vän:** gör pusslet **Tidtagning** och be din vän spela en omgång av det också. Tiden för varje omgång står i listan, så du kan se vem som är snabbast.
 
 ## Ändra eller ta bort ett pussel
 
-* Tryck **Ändra** på pusslets sida. Så länge ingen har spelat det kan allt ändras. När någon har spelat det är bild, storlek och bitar fasta, men namn, gjort av, svårighetsgrad och utseende kan fortfarande ändras.
+* Tryck **Ändra** på pusslets sida. Så länge ingen har spelat det kan allt ändras. När någon har spelat det är bild, storlek, bitar, svårighetsgrad och tidtagning fasta, men namn, beskrivning, gjort av, vem som ser det och utseende kan fortfarande ändras.
 * **Ta bort** tar bort pusslet och alla omgångar för gott. Bara ägaren ser det, och du får frågan först.
 
 ## Små skärmar

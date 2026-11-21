@@ -8,7 +8,7 @@ Mach aus jedem Bild ein Puzzle und setze es am Bildschirm zusammen. Alles wird v
 
 ## Ein Puzzle machen
 
-1. Drücke **Neues Puzzle mit deinem Bild hinzufügen** (auf der Startseite und oben in der Liste).
+1. Drücke **Neues Puzzle** (auf der Startseite und oben in der Liste).
 2. Gib einen **Name** ein und wähle ein **Bild**. Ein Fenster öffnet sich: Ziehe das Bild, um den gewünschten Teil zu finden, zoome und drücke **Diesen Ausschnitt verwenden**.
 3. Wähle die **Größe** und die Anzahl der **Teile** (bis zu 1000). Die Größe wird etwas angepasst, damit die Teile genau passen.
 4. Wähle die **Schwierigkeit**, ob es **Mit Zeitmessung** sein soll, und **Linie**, **Farbe** und **Hintergrund** der Bildfläche.
@@ -33,14 +33,14 @@ Mach aus jedem Bild ein Puzzle und setze es am Bildschirm zusammen. Alles wird v
 ## Runden
 
 * Ein Spiel eines Puzzles ist eine **Runde**. Die Seite eines Puzzles listet die Runden aller auf; deine sind mit **Deine** markiert und stehen zuerst.
-* Drücke **Fortsetzen**, um mit einer deiner Runden weiterzumachen, **Neue Runde**, um eine weitere zu beginnen, oder **Löschen**, um eine deiner Runden zu entfernen (du wirst vorher gefragt).
+* Drücke **Fortsetzen**, um mit einer deiner Runden weiterzumachen, **Betritt eine Runde, löse es**, um eine weitere zu beginnen, oder **Löschen**, um eine deiner Runden zu entfernen (du wirst vorher gefragt).
 * Drücke **Ansehen**, um die Runde eines anderen Spielers zu sehen. Du kannst sie nie ändern, aber du kannst deine eigene beginnen.
 * Eine Runde zählt erst, wenn du darin ein Teil bewegt hast. Wenn du ein Puzzle nur öffnest und zurückgehst, steht keine Runde in der Liste.
 * **Fordere einen Freund heraus:** Stelle das Puzzle auf **Mit Zeitmessung** und bitte deinen Freund, auch eine Runde zu spielen. Die Zeit jeder Runde steht in der Liste, so siehst du, wer am schnellsten ist.
 
 ## Ein Puzzle bearbeiten oder löschen
 
-* Drücke **Bearbeiten** auf der Seite eines Puzzles. Solange niemand es gespielt hat, kann alles geändert werden. Sobald jemand gespielt hat, sind Bild, Größe und Teile fest, aber Name, Autor, Schwierigkeit und Aussehen können weiter geändert werden.
+* Drücke **Bearbeiten** auf der Seite eines Puzzles. Solange niemand es gespielt hat, kann alles geändert werden. Sobald jemand gespielt hat, sind Bild, Größe, Teile, Schwierigkeit und Zeitmessung fest, aber Name, Beschreibung, Autor, wer es sieht und Aussehen können weiter geändert werden.
 * **Löschen** entfernt das Puzzle mit allen Runden endgültig. Nur der Besitzer sieht es, und du wirst vorher gefragt.
 
 ## Kleine Bildschirme

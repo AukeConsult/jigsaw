@@ -41,5 +41,12 @@
   "chooseFirst": "Choose a user first.",
   "timePlayed": "Time played",
   "sectionWho": "Who you are",
-  "sectionContact": "Contact"
+  "sectionContact": "Contact",
+  "yourJigsaws": "Your jigsaws",
+  "lookingJigsaws": "Looking for your jigsaws…",
+  "noJigsaws": "You have not made a jigsaw yet.",
+  "addJigsaw": "Add a new jigsaw",
+  "deleteJigsawAsk": "Delete this jigsaw for good? Its picture and all its rounds, also those of other players, go too.",
+  "jigsawNotDeleted": "Could not delete the jigsaw: try again.",
+  "lists": "Lists"
 }

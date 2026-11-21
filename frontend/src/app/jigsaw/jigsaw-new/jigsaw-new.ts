@@ -1,7 +1,8 @@
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, effect, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
+import { readPreference, writePreference } from '../../core/preferences';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { fitPicture } from '../fit-picture';
 import { JigsawImageService } from '../jigsaw-image.service';
@@ -15,9 +16,36 @@ import { LINE_LEVELS, lineLevelOf } from '../line-level';
 import { JigsawExample } from '../jigsaw-example/jigsaw-example';
 import { PictureCropper } from '../picture-cropper/picture-cropper';
 import { renderPieceGraphics } from '../piece-graphics';
-import { CANVAS_MAX_NAME, CANVAS_MAX_PICTURE_NAME, CANVAS_MAX_SIDE, CANVAS_MIN_SIDE, CanvasArea, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
+import { CANVAS_MAX_DESCRIPTION, CANVAS_MAX_NAME, CANVAS_MAX_PICTURE_NAME, CANVAS_MAX_SIDE, CANVAS_MIN_SIDE, CanvasArea, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
 import { SourceRect } from '../../models/shared/geometry';
 import { JigsawCut, JigsawPieces, PieceLayout, pieceGrid } from '../../models/shared/jigsaw';
+
+/** What the person chose the last time they made a jigsaw: the form starts with it (what is typed for this jigsaw, like the name and the picture, is not kept). */
+interface NewJigsawPreferences {
+  /** the size: a standard one by its key, or 'custom' with the width and height as they were typed */
+  size: string;
+  width: number;
+  height: number;
+  /** the number of pieces: a standard one by its key ('16x12'), or 'custom' with the number typed */
+  pieces: string;
+  pieceCount: number;
+  snapPercent: number;
+  timed: boolean;
+  lineWidth: number;
+  lineColor: string;
+  backColor: string;
+}
+
+const NEW_JIGSAW_KEY = 'jigsaw.newDefaults';
+const isNewJigsawPreferences = (v: unknown): v is NewJigsawPreferences => {
+  const p = v as Partial<NewJigsawPreferences> | null;
+  const num = (x: unknown) => typeof x === 'number' && Number.isFinite(x);
+  const colour = (x: unknown) => typeof x === 'string' && /^#[0-9a-fA-F]{6}$/.test(x);
+  return (
+    !!p && typeof p === 'object' && typeof p.size === 'string' && num(p.width) && num(p.height) && typeof p.pieces === 'string' && num(p.pieceCount) && num(p.snapPercent) &&
+    typeof p.timed === 'boolean' && num(p.lineWidth) && colour(p.lineColor) && colour(p.backColor)
+  );
+};
 
 /** The biggest picture the API keeps for a jigsaw (about 5 MB; a larger one is made smaller first). */
 const MAX_PICTURE_BYTES = 5 * 1024 * 1024 - 64 * 1024;
@@ -72,6 +100,9 @@ export class JigsawNew implements OnDestroy {
 
   /** the name is needed, and starts empty (nothing is filled in for the person) */
   readonly name = signal('');
+  /** a few words about the picture (optional), shown on the page of the jigsaw */
+  readonly description = signal('');
+  readonly maxDescription = CANVAS_MAX_DESCRIPTION;
   /** who made the jigsaw: a user chosen from the users (the UID is kept on the jigsaw as its owner, and the user's name is its author) */
   readonly owners = signal<JigsawUserSpec[]>([]);
   readonly ownerUid = signal('');
@@ -113,7 +144,47 @@ export class JigsawNew implements OnDestroy {
 
   constructor() {
     void this.loadOwners();
-    if (this.editId) void this.loadForEdit(this.editId);
+    if (this.editId) {
+      void this.loadForEdit(this.editId);
+      return;
+    }
+    // a new jigsaw starts with what was chosen for the last one, and what is chosen now is kept for the next
+    const saved = readPreference<NewJigsawPreferences | null>(NEW_JIGSAW_KEY, null, (v): v is NewJigsawPreferences | null => v === null || isNewJigsawPreferences(v));
+    if (saved) this.useDefaults(saved);
+    effect(() => {
+      const now: NewJigsawPreferences = {
+        size: this.sizeChoice(),
+        width: this.asked().width,
+        height: this.asked().height,
+        pieces: this.pieceChoice(),
+        pieceCount: this.pieceCount(),
+        snapPercent: this.snapPercent(),
+        timed: this.timed(),
+        lineWidth: this.lineWidth(),
+        lineColor: this.lineColor(),
+        backColor: this.backColor(),
+      };
+      writePreference(NEW_JIGSAW_KEY, now);
+    });
+  }
+
+  /** The form is filled in with what was chosen for the last jigsaw: the look, the difficulty and the clock, and the size and the number of pieces (worked out again, so they fit). */
+  private useDefaults(saved: NewJigsawPreferences): void {
+    this.snapPercent.set(saved.snapPercent);
+    this.timed.set(saved.timed);
+    this.lineWidth.set(saved.lineWidth);
+    this.lineColor.set(saved.lineColor.toLowerCase());
+    this.backColor.set(saved.backColor.toLowerCase());
+    this.asked.set({ width: saved.width, height: saved.height });
+    this.width.set(saved.width);
+    this.height.set(saved.height);
+    this.sizeChoice.set(saved.size === 'custom' || this.sizePresets.some((p) => p.key === saved.size) ? saved.size : 'custom');
+    this.pieceCount.set(saved.pieceCount);
+    if (saved.pieces !== 'custom' && this.pieceOptions().some((o) => o.key === saved.pieces)) this.choosePieces(saved.pieces);
+    else {
+      this.pieceChoice.set('custom');
+      this.relayout('pieces');
+    }
   }
 
   /** The users the author is chosen from; a new jigsaw starts with the user who plays as its author. */
@@ -152,6 +223,7 @@ export class JigsawNew implements OnDestroy {
       ...(this.visibility() === 'owner' && this.ownerUid() ? { visibility: 'owner' as const } : {}),
       ...(this.timed() ? {} : { timed: false }), // timed is what none says
       ...(this.pictureNameOf() ? { pictureName: this.pictureNameOf() } : {}), // kept with the jigsaw as information
+      ...(this.description().trim() ? { description: this.description().trim() } : {}),
       width: this.width(),
       height: this.height(),
       gridSize: this.gridSize(),
@@ -291,10 +363,12 @@ export class JigsawNew implements OnDestroy {
     try {
       const item = (await this.service.list()).find((c) => c.id === id);
       if (!item) return void (await this.router.navigate(['/jigsaw/list']));
+      if (item.ownerUid && item.ownerUid !== this.users.user()?.id) return void (await this.router.navigate(['/jigsaw', id])); // only its owner edits a jigsaw, also by its address
       if (await this.plays.played(id)) return void (await this.router.navigate(['/jigsaw', id])); // it has been played: only the name and the defaults can change, on its page
       this.original = item;
       this.name.set(item.name);
       this.ownerUid.set(item.ownerUid ?? '');
+      this.description.set(item.description ?? '');
       this.visibility.set(item.visibility ?? 'everyone');
       this.timed.set(item.timed !== false);
       this.asked.set({ width: item.width, height: item.height });

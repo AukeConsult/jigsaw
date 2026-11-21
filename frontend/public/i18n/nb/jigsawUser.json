@@ -41,5 +41,12 @@
   "chooseFirst": "Velg en bruker først.",
   "timePlayed": "Tid brukt",
   "sectionWho": "Hvem du er",
-  "sectionContact": "Kontakt"
+  "sectionContact": "Kontakt",
+  "yourJigsaws": "Puslespillene dine",
+  "lookingJigsaws": "Leter etter puslespillene dine…",
+  "noJigsaws": "Du har ikke laget noe puslespill ennå.",
+  "addJigsaw": "Legg til et nytt puslespill",
+  "deleteJigsawAsk": "Slette dette puslespillet for godt? Bildet og alle rundene, også andre spilleres, blir slettet.",
+  "jigsawNotDeleted": "Kunne ikke slette puslespillet: prøv igjen.",
+  "lists": "Lister"
 }

@@ -15,6 +15,8 @@ export const CANVAS_MAX_SIDE = 10000;
 export const CANVAS_MAX_NAME = 60;
 /** The longest name of the picture file that is kept with a jigsaw. */
 export const CANVAS_MAX_PICTURE_NAME = 200;
+/** The longest description of a jigsaw (a few sentences about the picture). */
+export const CANVAS_MAX_DESCRIPTION = 500;
 /** The grid: pixels between two grid points. 0 = no grid. */
 export const CANVAS_MAX_GRID = 1000;
 /** The grid of a new canvas. */
@@ -43,6 +45,8 @@ export interface CanvasSpec {
   timed?: boolean;
   /** a jigsaw: the name of the picture file it was made from (kept as information; not shown while playing) */
   pictureName?: string;
+  /** a jigsaw: a few words about the picture, shown on its page (a place, a day, a memory; optional) */
+  description?: string;
   /** horizontal size in pixels */
   width: number;
   /** vertical size in pixels */
@@ -70,11 +74,11 @@ export interface CanvasSpec {
 }
 
 /** What the page sends to make a canvas area. */
-export type CanvasInput = Pick<CanvasSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'timed' | 'pictureName' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type CanvasInput = Pick<CanvasSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** A canvas area as it comes from outside (the page, the API): it checks itself. */
 export class CanvasArea {
-  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a canvas whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -118,6 +122,28 @@ export class CanvasArea {
   /** The background colour of the picture area of a jigsaw when the jigsaw says nothing: white. */
   static readonly DEFAULT_BACK_COLOR = '#ffffff';
 
+  /** What is said when a change is refused because the jigsaw has been played. */
+  static readonly PLAYED_MESSAGE = 'This jigsaw has been played: its size, pieces, picture, difficulty and clock can not change.';
+
+  /**
+   * Whether a change of a jigsaw that has been played touches what every round of it shares: its size, its cut into pieces (the grid and the store), its difficulty or its
+   * clock. A jigsaw that says nothing about its difficulty or clock has the default (the default difficulty, timed), so saying the default is not a change. Everything else
+   * (the name, the description, the author, who sees it, the look) can still change.
+   */
+  static changesWhatPlayersShare(
+    before: Pick<CanvasSpec, 'width' | 'height' | 'gridSize' | 'storeWidth' | 'snapPercent' | 'timed'>,
+    after: { width?: unknown; height?: unknown; gridSize?: unknown; storeWidth?: unknown; snapPercent?: unknown; timed?: unknown },
+  ): boolean {
+    return (
+      after.width !== before.width ||
+      after.height !== before.height ||
+      after.gridSize !== before.gridSize ||
+      (after.storeWidth ?? 0) !== (before.storeWidth ?? 0) ||
+      (after.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT) !== (before.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT) ||
+      (after.timed !== false) !== (before.timed !== false)
+    );
+  }
+
   /** the snap range in pixels: a percent of the grid size */
   static snapRangePx(percent: number, grid: number): number {
     return grid > 0 && percent > 0 ? (percent / 100) * grid : 0;
@@ -133,6 +159,7 @@ export class CanvasArea {
       ...(i.visibility === 'owner' ? { visibility: 'owner' as const } : {}), // `everyone` is what none says
       ...(i.timed === false ? { timed: false } : {}), // timed is what none says
       ...(typeof i.pictureName === 'string' && i.pictureName.trim() ? { pictureName: i.pictureName.trim() } : {}),
+      ...(typeof i.description === 'string' && i.description.trim() ? { description: i.description.trim() } : {}),
       width: i.width as number,
       height: i.height as number,
       gridSize: i.gridSize as number,
@@ -157,6 +184,7 @@ export class CanvasArea {
       ...(doc.visibility === 'owner' ? { visibility: 'owner' as const } : {}),
       ...(doc.timed === false ? { timed: false } : {}),
       ...(doc.pictureName ? { pictureName: doc.pictureName } : {}),
+      ...(doc.description ? { description: doc.description } : {}),
       width: doc.width ?? 800,
       height: doc.height ?? 600,
       gridSize: doc.gridSize ?? CANVAS_LEGACY_GRID,
@@ -185,6 +213,9 @@ export class CanvasArea {
     if (input.visibility === 'owner' && !input.ownerUid) return 'A jigsaw only its owner sees needs an owner: choose the author from the users.';
     if (input.pictureName !== undefined && (typeof input.pictureName !== 'string' || input.pictureName.trim().length > CANVAS_MAX_PICTURE_NAME)) {
       return `The name of the picture file can be at most ${CANVAS_MAX_PICTURE_NAME} characters.`;
+    }
+    if (input.description !== undefined && (typeof input.description !== 'string' || input.description.trim().length > CANVAS_MAX_DESCRIPTION)) {
+      return `The description can be at most ${CANVAS_MAX_DESCRIPTION} characters.`;
     }
     for (const [label, value] of [['Width', input.width], ['Height', input.height]] as const) {
       if (typeof value !== 'number' || !Number.isInteger(value) || value < CANVAS_MIN_SIDE || value > CANVAS_MAX_SIDE) {

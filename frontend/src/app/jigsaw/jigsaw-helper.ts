@@ -1,5 +1,6 @@
 import { Injectable, effect, signal } from '@angular/core';
-import { isBoolean, readSession, writeSession } from '../core/session-storage';
+import { isBoolean, readPreference, writePreference } from '../core/preferences';
+import { readSession, writeSession } from '../core/session-storage';
 
 /**
  * The helper of the jigsaw: the switches in the top menu (the helper picture, only corner and edge pieces) and the button that opens the sidebar. The menu is in the
@@ -10,9 +11,9 @@ import { isBoolean, readSession, writeSession } from '../core/session-storage';
 @Injectable({ providedIn: 'root' })
 export class JigsawHelper {
   /** whether the helper picture is shown (on to begin with) */
-  readonly helper = signal(readSession('jigsaw.helper', true, isBoolean));
+  readonly helper = signal(readPreference('jigsaw.helper', true, isBoolean));
   /** whether only the corner and edge pieces are shown (off to begin with) */
-  readonly edgesOnly = signal(readSession('jigsaw.edgesOnly', false, isBoolean));
+  readonly edgesOnly = signal(readPreference('jigsaw.edgesOnly', false, isBoolean));
 
   /** whether the sidebar of the jigsaw is open: on a narrow screen it is folded away until the menu opens it (on a wide screen it is always there) */
   readonly sidebarOpen = signal(readSession('jigsaw.sidebarOpen', false, isBoolean));
@@ -27,8 +28,8 @@ export class JigsawHelper {
   readonly counts = signal({ shown: 0, total: 0 });
 
   constructor() {
-    effect(() => writeSession('jigsaw.helper', this.helper()));
-    effect(() => writeSession('jigsaw.edgesOnly', this.edgesOnly()));
+    effect(() => writePreference('jigsaw.helper', this.helper()));
+    effect(() => writePreference('jigsaw.edgesOnly', this.edgesOnly()));
     effect(() => writeSession('jigsaw.sidebarOpen', this.sidebarOpen()));
   }
 }

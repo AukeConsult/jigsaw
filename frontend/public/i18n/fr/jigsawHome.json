@@ -13,7 +13,7 @@
   "intro2": "Choisis une image, dis combien de pièces tu veux, et c'est parti.",
   "note": "J'adore faire des puzzles et des casse-têtes, et j'espère que tu aimeras aussi mon système.",
   "seeAll": "Voir tout ce que nous avons préparé pour toi",
-  "addNew": "Ajouter un nouveau puzzle avec ton image",
+  "addNew": "Nouveau puzzle",
   "continue": "Reprendre là où tu t'étais arrêté",
   "yourRounds": "Tes parties",
   "roundTitle": "{{ name }} : {{ matched }} sur {{ total }}",

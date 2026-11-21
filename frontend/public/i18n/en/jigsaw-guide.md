@@ -8,10 +8,10 @@ Make a jigsaw puzzle from any picture and put it together on the screen. Everyth
 
 ## Make a jigsaw
 
-1. Press **Add a new jigsaw with your picture** (on the front page and at the top of the list).
+1. Press **New jigsaw** (on the front page and at the top of the list).
 2. Type a **Name** and choose a **Picture**. A window opens: drag the picture to find the part you want, zoom, then press **Use this cut**.
 3. Choose the **Size** and the number of **Pieces** (up to 1000). The size is adjusted a little so the pieces fit exactly.
-4. Choose the **Difficulty**, whether it is **Timed**, and the **Line**, **Colour** and **Back** of the picture area.
+4. Choose the **Difficulty**, whether it is **Timed**, and the **Line**, **Colour** and **Background** of the picture area.
 5. Choose the **Author** and **Who sees it**.
 6. Press **Save and start**.
 
@@ -33,14 +33,14 @@ Make a jigsaw puzzle from any picture and put it together on the screen. Everyth
 ## Rounds
 
 * One game of a jigsaw is a **round**. The page of a jigsaw lists the rounds of everybody; yours are marked **Yours** and come first.
-* Press **Continue** to go on with one of yours, **New round** to start another, or **Delete** to remove one of yours (you are asked first).
+* Press **Continue** to go on with one of yours, **Enter a round, solve it** to start another, or **Delete** to remove one of yours (you are asked first).
 * Press **Look** to see another player's round. You can never change it, but you can start your own.
 * A round counts once you have moved a piece in it. If you only open a jigsaw and go back, no round is listed.
 * **Challenge a friend:** make the jigsaw **Timed** and ask your friend to play a round of it too. The time of every round is in the list, so you can see who is fastest.
 
 ## Edit or delete a jigsaw
 
-* Press **Edit** on the page of a jigsaw. While nobody has played it, everything can be changed. Once somebody has, the picture, size and pieces are fixed, but the name, the author, the difficulty and the look can still be changed.
+* Press **Edit** on the page of a jigsaw. While nobody has played it, everything can be changed. Once somebody has, the picture, size, pieces, difficulty and whether it is timed are fixed, but the name, the description, the author, who sees it and the look can still be changed.
 * **Delete** removes the jigsaw and all its rounds for good. Only its owner sees it, and you are asked first.
 
 ## Small screens

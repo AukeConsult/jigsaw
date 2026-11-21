@@ -52,29 +52,23 @@ $fluid-to: 87.5; // 1400px in rem
   // fonts
   --app-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif;
   --app-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-  // the sizes of the text: the ONE scale of the app. Each grows with the window, from the first size on a phone to the second on a big screen (see `fluid`). A
-  // component never sets a size of its own: it takes a class below (`.page-title`, `.section-title`, `.small` ...) or one of these tokens.
-  --app-fs-page-title: #{fluid(1.4, 2)}; // the title of a page (h1)
-  --app-fs-section: #{fluid(1.125, 1.5)}; // a part of a page (h2), and the name in the header
-  --app-fs-subsection: #{fluid(1.0625, 1.25)}; // a smaller title in a part (h3 and under)
-  --app-fs-body: #{fluid(1, 1.125)}; // the text, buttons and fields (not under 1rem: a smaller field makes a phone zoom in)
-  --app-fs-lead: #{fluid(1.125, 1.375)}; // the line under a title that says what the page is
-  --app-fs-small: #{fluid(0.8125, 0.9375)}; // help texts, dates, small buttons
-  // the buttons: three sizes, each with its text and its room round the text growing with the window (see `fluid`)
-  --app-btn-font-size: #{fluid(0.875, 1)};
-  // the room round the text is in em: it follows the text size of the button, so a button keeps its shape whatever size the text has
+  // the sizes of the text: the ONE scale of the app, FIVE sizes. Each grows with the window, from the first size on a phone to the second on a big screen (see `fluid`).
+  // A component never sets a size of its own: it takes a class below (`.page-title`, `.section-title`, `.small`, `.tiny` ...) or one of these tokens.
+  --app-fs-title: #{fluid(1.4, 2)}; // the title of a page (h1)
+  --app-fs-heading: #{fluid(1.125, 1.5)}; // a part of a page (h2, h3 and under), the line under a title, the name in the header, an icon beside a heading
+  --app-fs-text: #{fluid(1, 1.125)}; // the text, what is typed in the fields, and the main button (not under 1rem: a smaller field makes a phone zoom in)
+  --app-fs-small: #{fluid(0.8125, 0.9375)}; // labels and the help under a field, notes, the text of every button
+  --app-fs-tiny: #{fluid(0.5, 0.58)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`)
+  // the buttons: the text of every button is `--app-fs-small` (the main one `--app-fs-text`); what makes them three sizes is the room round the text, in em, so it
+  // follows the text size and a button keeps its shape whatever size the text has
   --app-btn-pad-y: 0.4em;
   --app-btn-pad-x: 0.85em;
-  --app-btn-sm-font-size: #{fluid(0.8125, 0.875)};
   --app-btn-sm-pad-y: 0.3em;
   --app-btn-sm-pad-x: 0.7em;
-  --app-btn-main-font-size: #{fluid(1, 1.25)};
   --app-btn-main-pad-y: 0.5em;
   --app-btn-main-pad-x: 1em;
   --app-btn-gap: 0.4em; // between the icon and the text
-  --app-fs-tiny: #{fluid(0.6875, 0.8125)}; // the tiniest text: dates and other side notes, a hint on the board (class `.tiny`)
-  --app-fs-icon-md: #{fluid(1.25, 1.5)}; // an icon beside text
-  --app-font-size: var(--app-fs-body);
+  --app-font-size: var(--app-fs-text);
   --app-line-height: 1.5;
   /* the numbers drawn on the grid of the canvas, in pixels (a number: the canvas draws them) */
   --app-grid-number-size: 10;
@@ -199,46 +193,43 @@ $fluid-to: 87.5; // 1400px in rem
 // ---- text: Bootstrap's headings, text and buttons are set to the scale above, so the whole app grows and shrinks the same way ------------------------------
 h1,
 .h1 {
-  font-size: var(--app-fs-page-title);
+  font-size: var(--app-fs-title);
 }
 
 h2,
 .h2,
 h3,
-.h3 {
-  font-size: var(--app-fs-section);
-}
-
+.h3,
 h4,
 .h4,
 h5,
 .h5,
 h6,
 .h6 {
-  font-size: var(--app-fs-subsection);
+  font-size: var(--app-fs-heading);
 }
 
 // the classes a template uses for a title (instead of choosing a Bootstrap heading size)
 .page-title {
-  font-size: var(--app-fs-page-title);
+  font-size: var(--app-fs-title);
   font-weight: 600;
   line-height: 1.2;
 }
 
 .section-title {
-  font-size: var(--app-fs-section);
+  font-size: var(--app-fs-heading);
   font-weight: 600;
   line-height: 1.25;
 }
 
 .subsection-title {
-  font-size: var(--app-fs-subsection);
+  font-size: var(--app-fs-heading);
   font-weight: 600;
   line-height: 1.3;
 }
 
 .lead {
-  font-size: var(--app-fs-lead);
+  font-size: var(--app-fs-heading);
 }
 
 // the tiniest text: a date, a side note (under `small` in the scale)
@@ -246,18 +237,23 @@ h6,
   font-size: var(--app-fs-tiny);
 }
 
+// the small size: notes, small fields, and (about 80 % of the text of the fields) the label of a field, the label of a switch and the help under a field
 small,
 .small,
-.form-text,
 .form-control-sm,
-.form-select-sm {
+.form-select-sm,
+.form-label,
+.form-check-label,
+.form-text,
+.invalid-feedback,
+.valid-feedback {
   font-size: var(--app-fs-small);
 }
 
 // the buttons: `btn` is the usual one, `btn-sm` the small one (in rows and lists), `btn-main` the big one for the main action of a page (`btn-lg` is the same).
 // All three take their text size and their room from the tokens `--app-btn-*`, so they grow and shrink with the window.
 .btn {
-  --bs-btn-font-size: var(--app-btn-font-size);
+  --bs-btn-font-size: var(--app-fs-small);
   --bs-btn-padding-y: var(--app-btn-pad-y);
   --bs-btn-padding-x: var(--app-btn-pad-x);
   // the icon and the text are centred on one line with a gap that follows the text size; the icon is a little bigger than the letters, as a glyph looks smaller
@@ -275,21 +271,44 @@ small,
 
 .btn-sm,
 .btn-group-sm > .btn {
-  --bs-btn-font-size: var(--app-btn-sm-font-size);
+  --bs-btn-font-size: var(--app-fs-small);
   --bs-btn-padding-y: var(--app-btn-sm-pad-y);
   --bs-btn-padding-x: var(--app-btn-sm-pad-x);
 }
 
+.btn-overlay {
+  // a small see-through button on a picture (Play on the card of a jigsaw): the shade is the text colour of the look at half strength and the icon is the page colour,
+  // so it can be seen on any picture, light or dark, and it takes little of it
+  --bs-btn-font-size: var(--app-fs-small);
+  --bs-btn-padding-y: 0.25em;
+  --bs-btn-padding-x: 0.4em;
+  --bs-btn-color: var(--bs-body-bg);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-bg: rgba(var(--bs-emphasis-color-rgb), 0.5);
+  --bs-btn-hover-bg: rgba(var(--bs-emphasis-color-rgb), 0.75);
+  --bs-btn-active-bg: rgba(var(--bs-emphasis-color-rgb), 0.85);
+  --bs-btn-border-width: 0;
+  line-height: 1;
+}
+
+.badge {
+  // a badge is tiny text (the same size as the dates and the notes beside it), with its room in `em`, so it follows
+  --bs-badge-font-size: var(--app-fs-tiny);
+  --bs-badge-padding-x: 0.55em;
+  --bs-badge-padding-y: 0.3em;
+}
+
 .btn-lg,
 .btn-main {
-  --bs-btn-font-size: var(--app-btn-main-font-size);
+  --bs-btn-font-size: var(--app-fs-text);
   --bs-btn-padding-y: var(--app-btn-main-pad-y);
   --bs-btn-padding-x: var(--app-btn-main-pad-x);
 }
 
 .form-control,
 .form-select {
-  font-size: var(--app-fs-body);
+  font-size: var(--app-fs-text);
 }
 
 .form-control-sm,
@@ -298,7 +317,7 @@ small,
 }
 
 .navbar {
-  --bs-navbar-brand-font-size: var(--app-fs-section);
+  --bs-navbar-brand-font-size: var(--app-fs-heading);
 }
 
 // ---- the toolbar: a row of plain words (no boxes, no padding at the sides) -----------------------------------------------------------------------------
@@ -335,7 +354,7 @@ small,
   border: 0;
   background: none;
   color: var(--app-primary);
-  font-size: var(--app-btn-font-size);
+  font-size: var(--app-fs-small);
   line-height: var(--bs-body-line-height);
   text-decoration: none;
   max-width: 100%; // a long text (in another language) wraps inside the view, it never flows outside it
@@ -368,7 +387,7 @@ small,
 
 // a bigger one, for the main actions of a front page (a toolbar with `toolbar-stack` puts them one under the other)
 .link-action.large {
-  font-size: var(--app-fs-lead);
+  font-size: var(--app-fs-heading);
 }
 
 .toolbar.toolbar-stack {
@@ -480,14 +499,14 @@ small,
   }
 
   .brand-name {
-    font-size: 1.125rem;
+    font-size: var(--app-fs-heading);
     font-weight: 600;
     line-height: 1;
   }
 
   .brand-sub {
     margin-top: 0.125rem;
-    font-size: 0.625rem;
+    font-size: var(--app-fs-tiny);
     font-weight: 400;
     line-height: 1;
     letter-spacing: 0.14em;
@@ -509,7 +528,7 @@ small,
 }
 
 // a row of a round (in the lists of rounds). It is laid out by the width of the ROW, not of the screen (a container query): what it says (and a small picture, if there
-// is one) wraps in its own part, and the buttons sit in a column at its right when there is room, else side by side under the text.
+// is one) wraps in its own part, and the actions (plain links) sit at its right when there is room, else under the text.
 .round-row {
   container-type: inline-size;
 }
@@ -538,28 +557,35 @@ small,
   display: flex;
   align-items: center;
   flex: 1 1 100%;
-  gap: 0.25rem;
-
-  > .btn {
-    flex: 1 1 0;
-  }
+  gap: 0.25rem 1rem; // plain text links (`link-action`), side by side
 }
 
 @container (min-width: 22rem) {
   .round-actions {
-    flex: 0 0 auto;
-    flex-direction: column;
-    align-items: stretch;
-    min-width: 5.5rem;
+    flex: 0 0 auto; // beside the text when there is room
+  }
+}
 
-    > .btn {
-      flex: 0 0 auto;
+// a narrow row: the actions are only icons, in the upper right corner of the row (the words are the tooltips); what asks "are you sure" keeps its words and its own line
+@container (max-width: 21.99rem) {
+  .round-actions:not(.confirming) {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    flex: 0 0 auto;
+
+    .round-action-text {
+      display: none;
     }
+  }
+
+  .round-body:has(.round-actions:not(.confirming)) .round-info {
+    padding-right: 3.5rem; // room for the icons
   }
 }
 
 .icon-md {
-  font-size: var(--app-fs-icon-md);
+  font-size: var(--app-fs-heading);
 }
 
 // ---- small helpers (Bootstrap has `pe-none`, `pe-auto` and `user-select-none`) ---------------------------------------------------------------------
@@ -718,7 +744,7 @@ small,
   width: calc(2.5rem / var(--app-scale, 1));
   height: calc(2.5rem / var(--app-scale, 1));
   padding: 0;
-  font-size: calc(var(--app-fs-lead) / var(--app-scale, 1)); // the arrow keeps its size on the screen when the board is scaled
+  font-size: calc(var(--app-fs-heading) / var(--app-scale, 1)); // the arrow keeps its size on the screen when the board is scaled
   line-height: 1;
   opacity: 0.85;
   transform: translateY(-50%);
@@ -998,8 +1024,15 @@ small,
   max-width: var(--app-list-width);
 }
 
+// the description of a jigsaw, as the owner typed it: the line breaks stay, and a long word wraps inside the view
+.description {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
 .form-card {
   max-width: var(--app-form-width);
+  --bs-card-border-width: 0; // the form is the page: no frame round it
 
   @include below($bp-sm) {
     --bs-card-spacer-x: 0.75rem;
@@ -1015,7 +1048,7 @@ small,
   margin: 1.5rem 0 0.75rem;
   padding-bottom: 0.25rem;
   border-bottom: 1px solid var(--bs-border-color);
-  font-size: var(--app-fs-body); // the same size as the labels and the fields under it; it stands out by its weight and colour, not by being smaller
+  font-size: var(--app-fs-text); // the same size as the labels and the fields under it; it stands out by its weight and colour, not by being smaller
   font-weight: 600;
   color: var(--bs-emphasis-color);
 

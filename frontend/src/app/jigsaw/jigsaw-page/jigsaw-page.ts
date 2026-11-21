@@ -1,21 +1,21 @@
 import { clockOf } from '../duration';
-import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DatePipe, Location } from '@angular/common';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { Autosave } from '../../core/autosave';
 import { tr } from '../../core/i18n';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { PlaysService } from '../plays.service';
-import { CANVAS_MAX_NAME, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
+import { CANVAS_MAX_DESCRIPTION, CANVAS_MAX_NAME, CanvasArea, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { PlaySpec } from '../../models/shared/play';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
-import { CanvasArea } from '../../models/shared/canvas';
 import { LINE_LEVELS, lineLevelOf } from '../line-level';
-import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
+import { snapLevelOfJigsaw } from '../snap-level';
 
 /**
  * A jigsaw (`/jigsaw/:id`): its picture and what it is, and the games the user has played of it. A game is continued where it was left, or a new one is started
@@ -36,6 +36,7 @@ export class JigsawPage implements OnInit {
   private readonly plays = inject(PlaysService);
   private readonly images = inject(JigsawImageService);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   protected readonly users = inject(JigsawUserService);
   private readonly route = inject(ActivatedRoute);
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -57,17 +58,17 @@ export class JigsawPage implements OnInit {
   readonly name = signal('');
   readonly owners = signal<JigsawUserSpec[]>([]);
   readonly ownerUid = signal('');
+  /** the description in the edit form */
+  readonly description = signal('');
+  readonly maxDescription = CANVAS_MAX_DESCRIPTION;
   readonly visibility = signal<'everyone' | 'owner'>('everyone');
-  readonly timed = signal(true);
-  readonly snapPercent = signal<number>(CanvasArea.DEFAULT_SNAP_PERCENT);
   readonly lineWidth = signal<number>(CanvasArea.DEFAULT_LINE_WIDTH);
   readonly lineColor = signal<string>(CanvasArea.DEFAULT_LINE_COLOR);
   readonly backColor = signal<string>(CanvasArea.DEFAULT_BACK_COLOR);
-  readonly levels = SNAP_LEVELS;
-  readonly level = computed(() => snapLevelOf(this.snapPercent()));
+  /** the difficulty the jigsaw has (shown under its name and in the panel, where it cannot be changed) */
+  readonly itemLevel = computed(() => snapLevelOfJigsaw(this.item() ?? {}));
   readonly lineLevels = LINE_LEVELS;
   readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
-  readonly saving = signal(false);
   /** anyone has started a game of this jigsaw: its picture, size and pieces are then fixed */
   readonly played = signal(false);
 
@@ -96,8 +97,14 @@ export class JigsawPage implements OnInit {
     }
   }
 
-  /** the user may delete the jigsaw: it is theirs (or it is one from before owners, which has none) */
-  readonly canDelete = computed(() => {
+  /** Back to the page the person came from; a page that was opened with nothing before it (a link, a new tab) goes to the list of the jigsaws instead. */
+  back(): void {
+    if (window.history.length > 1) this.location.back();
+    else void this.router.navigate(['/jigsaw/list']);
+  }
+
+  /** the user may edit and delete the jigsaw: it is theirs (or it is one from before owners, which has none) */
+  readonly mayChange = computed(() => {
     const owner = this.item()?.ownerUid;
     return !owner || owner === this.users.user()?.id;
   });
@@ -147,64 +154,78 @@ export class JigsawPage implements OnInit {
     }
   }
 
-  /** The edit form is opened, with the jigsaw as it is. */
-  edit(): void {
+  /**
+   * What the edit panel holds, as the API takes it: the jigsaw keeps its picture, size, pieces and difficulty (the API refuses a change of them once it has been played) and has
+   * the new name, description, author and look. null while there is no jigsaw.
+   */
+  private panelInput(): CanvasInput | null {
     const item = this.item();
-    if (!item) return;
-    // nobody has played it: the whole jigsaw can be edited, with the form of a new one
-    if (!this.played()) {
-      void this.router.navigate(['/jigsaw', this.id, 'edit']);
-      return;
-    }
-    this.name.set(item.name);
-    this.ownerUid.set(item.ownerUid ?? '');
-    this.visibility.set(item.visibility ?? 'everyone');
-    this.timed.set(item.timed !== false);
-    this.snapPercent.set(item.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT);
-    this.lineWidth.set(item.lineWidth ?? CanvasArea.DEFAULT_LINE_WIDTH);
-    this.lineColor.set(item.lineColor ?? CanvasArea.DEFAULT_LINE_COLOR);
-    this.backColor.set(item.backColor ?? CanvasArea.DEFAULT_BACK_COLOR);
-    this.error.set('');
-    this.editing.set(true);
-  }
-
-  chooseLevel(key: string): void {
-    const percent = snapPercentOf(key);
-    if (percent !== null) this.snapPercent.set(percent);
-  }
-
-  /** The edit is saved: the jigsaw keeps its picture, size and pieces (the API refuses a change of them once it has been played) and has the new name, author and defaults. */
-  async save(): Promise<void> {
-    const item = this.item();
-    const name = this.name().trim();
-    if (!item || !name || this.saving()) return;
+    if (!item) return null;
     const owner = this.owners().find((u) => u.id === this.ownerUid()) ?? null;
-    const input: CanvasInput = {
-      name,
+    return {
+      name: this.name().trim(),
       ...(owner ? { author: owner.name, ownerUid: owner.id } : item.author ? { author: item.author } : {}), // the API puts the name of the user in `author` itself
       ...(this.visibility() === 'owner' && (owner?.id ?? item.ownerUid) ? { visibility: 'owner' as const } : {}),
-      ...(this.timed() ? {} : { timed: false }),
+      ...(item.timed === false ? { timed: false } : {}), // the clock is fixed once somebody has started a round: it is sent back as it is
       ...(item.pictureName ? { pictureName: item.pictureName } : {}),
+      ...(this.description().trim() ? { description: this.description().trim() } : {}),
       width: item.width,
       height: item.height,
       gridSize: item.gridSize,
       gridVisible: item.gridVisible,
       placed: item.placed,
       ...(item.storeWidth ? { storeWidth: item.storeWidth } : {}),
-      snapPercent: this.snapPercent(),
+      ...(item.snapPercent !== undefined ? { snapPercent: item.snapPercent } : {}), // the difficulty is fixed once somebody has started a round: it is sent back as it is
       lineWidth: this.lineWidth(),
       lineColor: this.lineColor(),
       backColor: this.backColor(),
     };
-    this.saving.set(true);
-    this.error.set('');
-    try {
-      this.item.set(await this.jigsaws.update(item.id, input));
-      this.editing.set(false);
-    } catch {
-      this.error.set(tr('jigsawPage.couldNotSave', 'Could not save the changes: try again.'));
-    } finally {
-      this.saving.set(false);
+  }
+
+  /** What is changed in the panel is saved by itself, a pause after the last change; nothing is saved while the name is empty. */
+  private readonly autosave = new Autosave<CanvasInput | null, CanvasSpec>({
+    input: () => this.panelInput(),
+    invalid: () => (!this.item() || !this.name().trim() ? 'name' : ''),
+    create: () => Promise.reject(new Error('A jigsaw is made on the page for a new one.')),
+    update: (id, input) => this.jigsaws.update(id, input!),
+    saved: (saved) => this.item.set(saved),
+  });
+  readonly saveState = this.autosave.state;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.autosave.destroy()); // a change that is still waiting is saved when the page is left
+  }
+
+  /** The owner presses "Add a description": the edit opens (the panel of a played jigsaw, else the form of the jigsaw) and the cursor goes to the description. */
+  addDescription(): void {
+    if (!this.editing()) this.edit();
+    setTimeout(() => document.getElementById('edit-description')?.focus());
+  }
+
+  /** The edit panel is opened, with the jigsaw as it is; pressing Edit again closes it. */
+  toggleEdit(): void {
+    if (this.editing()) this.editing.set(false);
+    else this.edit();
+  }
+
+  /** The edit form is opened, with the jigsaw as it is. */
+  edit(): void {
+    const item = this.item();
+    if (!item || !this.mayChange()) return; // a link that opens the form (`?edit=1`) does not open it for somebody who is not the owner
+    // nobody has played it: the whole jigsaw can be edited, with the form of a new one
+    if (!this.played()) {
+      void this.router.navigate(['/jigsaw', this.id, 'edit']);
+      return;
     }
+    this.name.set(item.name);
+    this.description.set(item.description ?? '');
+    this.ownerUid.set(item.ownerUid ?? '');
+    this.visibility.set(item.visibility ?? 'everyone');
+    this.lineWidth.set(item.lineWidth ?? CanvasArea.DEFAULT_LINE_WIDTH);
+    this.lineColor.set(item.lineColor ?? CanvasArea.DEFAULT_LINE_COLOR);
+    this.backColor.set(item.backColor ?? CanvasArea.DEFAULT_BACK_COLOR);
+    this.error.set('');
+    this.editing.set(true);
+    this.autosave.markSaved(item.id); // what is open is what is saved: only a change after this is saved
   }
 }

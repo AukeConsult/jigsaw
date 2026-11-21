@@ -41,5 +41,12 @@
   "chooseFirst": "Primero elige un usuario.",
   "timePlayed": "Tiempo de juego",
   "sectionWho": "Quién eres",
-  "sectionContact": "Contacto"
+  "sectionContact": "Contacto",
+  "yourJigsaws": "Tus puzles",
+  "lookingJigsaws": "Buscando tus puzles…",
+  "noJigsaws": "Todavía no has hecho ningún puzle.",
+  "addJigsaw": "Añadir un puzle nuevo",
+  "deleteJigsawAsk": "¿Eliminar este puzle para siempre? Su imagen y todas sus partidas, también las de otros jugadores, se eliminan.",
+  "jigsawNotDeleted": "No se pudo eliminar el puzle: inténtalo de nuevo.",
+  "lists": "Listas"
 }

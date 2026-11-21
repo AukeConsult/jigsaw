@@ -308,6 +308,48 @@ describe("the name of the picture file", () => {
   });
 });
 
+describe("what the players of a jigsaw share", () => {
+  const before = { width: 200, height: 150, gridSize: 50, storeWidth: 300, snapPercent: 10, timed: false };
+
+  it("is the size, the cut (grid and store), the difficulty and the clock: a change of any is a change", () => {
+    expect(CanvasArea.changesWhatPlayersShare(before, { ...before })).toBe(false);
+    for (const change of [{ width: 201 }, { height: 1 }, { gridSize: 25 }, { storeWidth: 0 }, { storeWidth: 301 }, { snapPercent: 11 }, { snapPercent: undefined }, { timed: true }, { timed: undefined }]) {
+      expect(CanvasArea.changesWhatPlayersShare(before, { ...before, ...change })).toBe(true);
+    }
+  });
+
+  it("takes what a jigsaw says nothing about as the default: timed, the default difficulty, no store", () => {
+    const plain = { width: 200, height: 150, gridSize: 50 };
+    expect(CanvasArea.changesWhatPlayersShare(plain, { ...plain })).toBe(false);
+    expect(CanvasArea.changesWhatPlayersShare(plain, { ...plain, timed: true, snapPercent: CanvasArea.DEFAULT_SNAP_PERCENT, storeWidth: 0 })).toBe(false);
+    expect(CanvasArea.changesWhatPlayersShare(plain, { ...plain, timed: false })).toBe(true);
+    expect(CanvasArea.changesWhatPlayersShare(plain, { ...plain, snapPercent: 40 })).toBe(true);
+  });
+
+  it("leaves the name, the description, the author, who sees it and the look free", () => {
+    const next = { ...before, name: "Other", description: "d", author: "a", ownerUid: "u", visibility: "owner", lineWidth: 3, lineColor: "#ff0000", backColor: "#000000" };
+    expect(CanvasArea.changesWhatPlayersShare(before, next)).toBe(false);
+  });
+});
+
+describe("the description of a jigsaw", () => {
+  const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
+
+  it("is optional, kept trimmed, and a jigsaw without one has none", () => {
+    expect(new CanvasArea({ ...input, description: "  A day at the harbour  " }).stored().description).toBe("A day at the harbour");
+    expect("description" in new CanvasArea({ ...input, description: "  " }).stored()).toBe(false);
+    expect("description" in new CanvasArea(input).stored()).toBe(false);
+    expect(CanvasArea.fromStored("x", { ...input, description: "Summer", createdAt: 1 }).description).toBe("Summer");
+    expect("description" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+  });
+
+  it("is at most 500 characters, and text", () => {
+    expect(new CanvasArea({ ...input, description: "a".repeat(500) }).error()).toBe("");
+    expect(new CanvasArea({ ...input, description: "" }).error()).toBe("");
+    for (const bad of ["a".repeat(501), 5, null]) expect(new CanvasArea({ ...input, description: bad }).error()).toContain("description");
+  });
+});
+
 describe("the line round the pieces", () => {
   const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
 

@@ -61,5 +61,8 @@
   "sectionBasics": "Grunnleggende",
   "sectionSize": "Størrelse og brikker",
   "sectionPlay": "Spill og utseende",
-  "sectionOwner": "Eier og deling"
+  "sectionOwner": "Eier og deling",
+  "description": "Beskrivelse",
+  "optional": "(valgfritt)",
+  "descriptionPlaceholder": "Et sted, en dag, et minne…"
 }

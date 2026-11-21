@@ -8,7 +8,7 @@ Haz un puzle con cualquier imagen y arma el puzle en la pantalla. Todo se guarda
 
 ## Hacer un puzle
 
-1. Pulsa **Añade un puzle nuevo con tu imagen** (en la página de inicio y arriba en la lista).
+1. Pulsa **Nuevo puzle** (en la página de inicio y arriba en la lista).
 2. Escribe un **Nombre** y elige una **Imagen**. Se abre una ventana: arrastra la imagen para encontrar la parte que quieres, haz zoom y pulsa **Usar este recorte**.
 3. Elige el **Tamaño** y el número de **Piezas** (hasta 1000). El tamaño se ajusta un poco para que las piezas encajen exactamente.
 4. Elige la **Dificultad**, si es **Cronometrado**, y la **Línea**, el **Color** y el **Fondo** del área de la imagen.
@@ -33,14 +33,14 @@ Haz un puzle con cualquier imagen y arma el puzle en la pantalla. Todo se guarda
 ## Partidas
 
 * Un juego de un puzle es una **partida**. La página de un puzle lista las partidas de todos; las tuyas están marcadas **Tuya** y van primero.
-* Pulsa **Continuar** para seguir con una tuya, **Nueva partida** para empezar otra, o **Eliminar** para quitar una tuya (se te pregunta antes).
+* Pulsa **Continuar** para seguir con una tuya, **Entra en una partida, resuélvelo** para empezar otra, o **Eliminar** para quitar una tuya (se te pregunta antes).
 * Pulsa **Ver** para ver la partida de otro jugador. Nunca puedes cambiarla, pero puedes empezar la tuya.
 * Una partida cuenta cuando has movido una pieza en ella. Si solo abres un puzle y vuelves, no aparece ninguna partida en la lista.
 * **Reta a un amigo:** haz el puzle **Cronometrado** y pide a tu amigo que juegue también una partida. El tiempo de cada partida está en la lista, para ver quién es más rápido.
 
 ## Editar o eliminar un puzle
 
-* Pulsa **Editar** en la página de un puzle. Mientras nadie lo haya jugado, se puede cambiar todo. Cuando alguien lo ha jugado, la imagen, el tamaño y las piezas quedan fijos, pero el nombre, el autor, la dificultad y el aspecto se pueden seguir cambiando.
+* Pulsa **Editar** en la página de un puzle. Mientras nadie lo haya jugado, se puede cambiar todo. Cuando alguien lo ha jugado, la imagen, el tamaño, las piezas, la dificultad y el cronometraje quedan fijos, pero el nombre, la descripción, el autor, quién lo ve y el aspecto se pueden seguir cambiando.
 * **Eliminar** quita el puzle y todas sus partidas para siempre. Solo lo ve su propietario, y se te pregunta antes.
 
 ## Pantallas pequeñas

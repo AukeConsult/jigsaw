@@ -61,5 +61,8 @@
   "sectionBasics": "Grundläggande",
   "sectionSize": "Storlek och bitar",
   "sectionPlay": "Spel och utseende",
-  "sectionOwner": "Ägare och delning"
+  "sectionOwner": "Ägare och delning",
+  "description": "Beskrivning",
+  "optional": "(valfritt)",
+  "descriptionPlaceholder": "En plats, en dag, ett minne…"
 }

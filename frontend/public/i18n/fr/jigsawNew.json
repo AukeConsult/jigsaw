@@ -61,5 +61,8 @@
   "sectionBasics": "Bases",
   "sectionSize": "Taille et pièces",
   "sectionPlay": "Jeu et apparence",
-  "sectionOwner": "Propriétaire et partage"
+  "sectionOwner": "Propriétaire et partage",
+  "description": "Description",
+  "optional": "(facultatif)",
+  "descriptionPlaceholder": "Un lieu, un jour, un souvenir…"
 }

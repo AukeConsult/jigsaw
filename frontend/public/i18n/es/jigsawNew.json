@@ -61,5 +61,8 @@
   "sectionBasics": "Básico",
   "sectionSize": "Tamaño y piezas",
   "sectionPlay": "Juego y aspecto",
-  "sectionOwner": "Propietario y uso compartido"
+  "sectionOwner": "Propietario y uso compartido",
+  "description": "Descripción",
+  "optional": "(opcional)",
+  "descriptionPlaceholder": "Un lugar, un día, un recuerdo…"
 }

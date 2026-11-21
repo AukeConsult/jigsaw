@@ -8,7 +8,7 @@ Maak een puzzel van elke afbeelding en leg hem op het scherm. Alles wordt vanzel
 
 ## Een puzzel maken
 
-1. Tik op **Een nieuwe puzzel toevoegen met je afbeelding** (op de voorpagina en bovenaan de lijst).
+1. Tik op **Nieuwe puzzel** (op de voorpagina en bovenaan de lijst).
 2. Typ een **Naam** en kies een **Afbeelding**. Een venster opent: sleep de afbeelding om het gewenste deel te vinden, zoom en tik op **Deze uitsnede gebruiken**.
 3. Kies het **Formaat** en het aantal **Stukjes** (tot 1000). Het formaat wordt een beetje aangepast zodat de stukjes precies passen.
 4. Kies de **Moeilijkheid**, of het **Met tijdmeting** is, en de **Lijn**, **Kleur** en **Achtergrond** van het afbeeldingsvlak.
@@ -33,14 +33,14 @@ Maak een puzzel van elke afbeelding en leg hem op het scherm. Alles wordt vanzel
 ## Rondes
 
 * Eén spel van een puzzel is een **ronde**. De pagina van een puzzel toont de rondes van iedereen; die van jou zijn gemarkeerd als **Van jou** en staan bovenaan.
-* Tik op **Verder** om met een van jouw rondes door te gaan, op **Nieuwe ronde** om een andere te beginnen, of op **Verwijderen** om een van jouw rondes te verwijderen (je wordt eerst gevraagd).
+* Tik op **Verder** om met een van jouw rondes door te gaan, op **Ga een ronde in, los hem op** om een andere te beginnen, of op **Verwijderen** om een van jouw rondes te verwijderen (je wordt eerst gevraagd).
 * Tik op **Kijken** om de ronde van een andere speler te zien. Je kunt hem nooit wijzigen, maar je kunt je eigen ronde beginnen.
 * Een ronde telt pas als je er een stukje in hebt verplaatst. Als je een puzzel alleen opent en teruggaat, staat er geen ronde in de lijst.
 * **Daag een vriend uit:** zet de puzzel op **Met tijdmeting** en vraag je vriend ook een ronde te spelen. De tijd van elke ronde staat in de lijst, zodat je ziet wie het snelst is.
 
 ## Een puzzel bewerken of verwijderen
 
-* Tik op **Bewerken** op de pagina van een puzzel. Zolang niemand hem heeft gespeeld, kan alles worden gewijzigd. Zodra iemand hem heeft gespeeld, liggen afbeelding, formaat en stukjes vast, maar de naam, de maker, de moeilijkheid en het uiterlijk kunnen nog worden gewijzigd.
+* Tik op **Bewerken** op de pagina van een puzzel. Zolang niemand hem heeft gespeeld, kan alles worden gewijzigd. Zodra iemand hem heeft gespeeld, liggen afbeelding, formaat, stukjes, moeilijkheid en tijdmeting vast, maar de naam, de beschrijving, de maker, wie het ziet en het uiterlijk kunnen nog worden gewijzigd.
 * **Verwijderen** haalt de puzzel met alle rondes voorgoed weg. Alleen de eigenaar ziet het, en je wordt eerst gevraagd.
 
 ## Kleine schermen
