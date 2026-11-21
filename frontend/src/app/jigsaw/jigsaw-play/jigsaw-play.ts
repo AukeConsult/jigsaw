@@ -9,7 +9,7 @@ import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawPiecesService } from '../jigsaw-pieces.service';
 import { JigsawService } from '../jigsaw.service';
 import { PieceSync } from '../piece-sync';
-import { CanvasArea, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
+import { CANVAS_MAX_NAME, CanvasArea, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
 import { JigsawCut, JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
 import { PlacedObject } from '../../models/shared/placed';
 
@@ -90,6 +90,7 @@ export class JigsawPlay implements OnDestroy {
     const item = this.item();
     return {
       name: item?.name ?? '',
+      ...(item?.author ? { author: item.author } : {}), // the PUT replaces the jigsaw: what is not sent is lost
       width: this.width(),
       height: this.height(),
       gridSize: this.gridSize(),
@@ -108,6 +109,7 @@ export class JigsawPlay implements OnDestroy {
       if (!item) return this.status.set('missing');
       const saved = await this.pieceApi.list(this.id);
       this.item.set(item);
+      this.goodName = item.name;
       this.snapPercent.set(item.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT);
       if (saved.length) {
         this.placed.set([...item.placed.filter((p) => !p.piece), ...saved.map((p) => JigsawPieces.toPlaced(p))]);
@@ -151,6 +153,24 @@ export class JigsawPlay implements OnDestroy {
   }
 
   /** what the board tells: why an object could not be put there ('' when there is nothing to tell) */
+  readonly maxName = CANVAS_MAX_NAME;
+  /** the last name that is allowed (not empty): the title goes back to it when it is left empty */
+  private goodName = '';
+
+  /** The title is edited in the sidebar: the jigsaw has the new name at once (the menu bar shows it too) and it is saved a pause after the last key. */
+  rename(name: string): void {
+    const item = this.item();
+    if (!item) return;
+    if (name.trim()) this.goodName = name;
+    this.item.set({ ...item, name }); // an empty name is not saved (see `invalid`), and is put back when the field is left
+  }
+
+  /** The title field is left: an empty title is put back as it was. */
+  leaveTitle(): void {
+    const item = this.item();
+    if (item && !item.name.trim() && this.goodName) this.item.set({ ...item, name: this.goodName });
+  }
+
   tell(notice: string): void {
     this.message.set(notice ? { kind: 'danger', text: notice } : null);
   }

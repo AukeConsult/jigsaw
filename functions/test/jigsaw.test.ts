@@ -202,11 +202,26 @@ describe("a piece that is dropped close to its own place", () => {
   });
 });
 
+describe("the author of a jigsaw", () => {
+  const input = { name: "Puzzle", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [] };
+
+  it("is kept trimmed, left out when empty, and checked", () => {
+    expect(new CanvasArea({ ...input, author: "  Karin  " }).stored().author).toBe("Karin");
+    expect("author" in new CanvasArea({ ...input, author: "   " }).stored()).toBe(false);
+    expect("author" in new CanvasArea(input).stored()).toBe(false);
+    expect(new CanvasArea({ ...input, author: "Karin" }).error()).toBe("");
+    expect(new CanvasArea({ ...input, author: 5 }).error()).toMatch(/author/);
+    expect(new CanvasArea({ ...input, author: "x".repeat(200) }).error()).toMatch(/author/);
+    expect(CanvasArea.fromStored("a", { ...input, author: "Karin" }).author).toBe("Karin");
+    expect("author" in CanvasArea.fromStored("a", input)).toBe(false); // a jigsaw saved before there was an author
+  });
+});
+
 describe("how close a piece has to be dropped, a setting of the jigsaw", () => {
   const input = { name: "Puzzle", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [] };
 
-  it("is a percent of the grid size, 50 when the jigsaw says nothing", () => {
-    expect(CanvasArea.DEFAULT_SNAP_PERCENT).toBe(50);
+  it("is a percent of the grid size, 25 when the jigsaw says nothing", () => {
+    expect(CanvasArea.DEFAULT_SNAP_PERCENT).toBe(25);
     expect([CanvasArea.snapRangePx(50, 50), CanvasArea.snapRangePx(20, 50), CanvasArea.snapRangePx(100, 80), CanvasArea.snapRangePx(0, 50)]).toEqual([25, 10, 80, 0]);
     expect([CanvasArea.snapRangePx(50, 0), CanvasArea.snapRangePx(-5, 50)]).toEqual([0, 0]); // no grid or a bad percent: never
   });

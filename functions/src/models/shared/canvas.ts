@@ -27,6 +27,8 @@ export const STORE_HEIGHT_FACTOR = 3;
 export interface CanvasSpec {
   id: string;
   name: string;
+  /** a jigsaw: who made it (the name of the author, as typed; without it, none is shown) */
+  author?: string;
   /** horizontal size in pixels */
   width: number;
   /** vertical size in pixels */
@@ -39,7 +41,7 @@ export interface CanvasSpec {
   placed: PlacedObject[];
   /** a jigsaw: how wide its store frame is in pixels, beside the canvas (without it, 0: no store; see `CanvasArea.storeFrame`) */
   storeWidth?: number;
-  /** a jigsaw, a game setting: how close to the grid point it belongs on a piece has to be dropped to click into place, in percent of the grid size (0: never; without it, 50) */
+  /** a jigsaw, a game setting: how close to the grid point it belongs on a piece has to be dropped to click into place, in percent of the grid size (0: never; without it, `CanvasArea.DEFAULT_SNAP_PERCENT`) */
   snapPercent?: number;
   /** a jigsaw: how thick the frame around the picture area is, in pixels (0: no frame; without it, `CanvasArea.DEFAULT_FRAME_WIDTH`); chosen when the jigsaw is made */
   frameWidth?: number;
@@ -48,11 +50,11 @@ export interface CanvasSpec {
 }
 
 /** What the page sends to make a canvas area. */
-export type CanvasInput = Pick<CanvasSpec, 'name' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth'>;
+export type CanvasInput = Pick<CanvasSpec, 'name' | 'author' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth'>;
 
 /** A canvas area as it comes from outside (the page, the API): it checks itself. */
 export class CanvasArea {
-  constructor(readonly input: { name?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown }) {}
 
   /**
    * A side of a canvas whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -80,7 +82,7 @@ export class CanvasArea {
   }
 
   /** How close a piece has to be dropped to its own grid point to click into place when the jigsaw says nothing: half a grid step (50 %). */
-  static readonly DEFAULT_SNAP_PERCENT = 50;
+  static readonly DEFAULT_SNAP_PERCENT = 25;
 
   /** How thick the frame around the picture area of a jigsaw is when the jigsaw says nothing: 4 pixels, a frame that can be seen. */
   static readonly DEFAULT_FRAME_WIDTH = 4;
@@ -97,6 +99,7 @@ export class CanvasArea {
     const i = this.input;
     return {
       name: (i.name as string).trim(),
+      ...(typeof i.author === 'string' && i.author.trim() ? { author: i.author.trim() } : {}),
       width: i.width as number,
       height: i.height as number,
       gridSize: i.gridSize as number,
@@ -113,6 +116,7 @@ export class CanvasArea {
     return {
       id,
       name: doc.name ?? '',
+      ...(doc.author ? { author: doc.author } : {}),
       width: doc.width ?? 800,
       height: doc.height ?? 600,
       gridSize: doc.gridSize ?? CANVAS_LEGACY_GRID,
@@ -131,6 +135,7 @@ export class CanvasArea {
     const name = typeof input.name === 'string' ? input.name.trim() : '';
     if (!name) return 'Give the canvas a name.';
     if (name.length > CANVAS_MAX_NAME) return `The name can be at most ${CANVAS_MAX_NAME} characters.`;
+    if (input.author !== undefined && (typeof input.author !== 'string' || input.author.trim().length > CANVAS_MAX_NAME)) return `The author can be at most ${CANVAS_MAX_NAME} characters.`;
     for (const [label, value] of [['Width', input.width], ['Height', input.height]] as const) {
       if (typeof value !== 'number' || !Number.isInteger(value) || value < CANVAS_MIN_SIDE || value > CANVAS_MAX_SIDE) {
         return `${label} must be a whole number of pixels from ${CANVAS_MIN_SIDE} to ${CANVAS_MAX_SIDE}.`;

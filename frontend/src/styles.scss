@@ -459,6 +459,21 @@ $bp-xl: 1200px;
 }
 
 // ---- the pages of Karins jigsaw ----------------------------------------------------------------------------------------------------------------
+.guide {
+  max-width: 50rem; // the user guide, shown from Markdown
+
+  h1 { margin-bottom: 1rem; }
+  h2 { margin-top: 2rem; }
+  h3 { margin-top: 1.5rem; }
+  pre { overflow-x: auto; }
+  li { margin-bottom: 0.35rem; }
+}
+
+.list-thumb {
+  width: 3.5rem;
+  height: 2.6rem; // the small picture of a jigsaw in the list
+}
+
 .page-list {
   max-width: var(--app-list-width);
 }

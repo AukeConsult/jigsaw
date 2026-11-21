@@ -15,7 +15,7 @@ import { JigsawHelper } from './jigsaw-helper';
             <a class="nav-link" routerLink="/jigsaw" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Jigsaws</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/jigsaw/new" routerLinkActive="active">New jigsaw</a>
+            <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active">User guide</a>
           </li>
         </ul>
         @if (tools.active()) {

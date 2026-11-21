@@ -25,7 +25,12 @@
         </button>
         <!-- the sidebar, docked at the left edge on a wide screen: how far the game has come and what can be done in it -->
         <aside id="jigsaw-sidebar" class="jigsaw-sidebar border-end bg-body-tertiary p-3" [class.is-open]="sidebarOpen()" [style.height.px]="sidebarHeight()" aria-label="The jigsaw">
-        <h1 class="h4 mb-1 text-break">{{ it.name }}</h1>
+        <!-- the title: it is edited here, and saved with the jigsaw -->
+        <input id="jigsaw-title" name="title" class="form-control form-control-plaintext h4 fw-bold mb-1 px-0 py-0" type="text" aria-label="Name of the jigsaw" [maxlength]="maxName"
+               [ngModel]="it.name" (ngModelChange)="rename($event)" (blur)="leaveTitle()">
+        @if (it.author) {
+          <div class="small text-body-secondary">by {{ it.author }}</div>
+        }
         <div class="small text-body-secondary mb-3">{{ m.total }} pieces ({{ pieceInfo().columns }} × {{ pieceInfo().rows }}), {{ it.width }} × {{ it.height }} px, grid {{ it.gridSize }} px</div>
 
         <div class="small mb-3" role="status" aria-live="polite">

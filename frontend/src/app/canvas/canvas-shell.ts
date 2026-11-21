@@ -16,6 +16,9 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
           <li class="nav-item">
             <a class="nav-link" routerLink="/canvas/objects" routerLinkActive="active">Objects</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/canvas/guide" routerLinkActive="active">User guide</a>
+          </li>
         </ul>
       </div>
     </nav>

@@ -3,27 +3,54 @@
     <h1 class="h4 mb-3">New jigsaw</h1>
 
     <div class="mb-3">
-      <label class="form-label" for="jigsaw-name">Name</label>
-      <input id="jigsaw-name" name="name" class="form-control" type="text" [maxlength]="maxName" [ngModel]="name()" (ngModelChange)="name.set($event)">
-    </div>
-
-    <div class="row g-3 mb-3">
-      <div class="col-6">
-        <label class="form-label" for="jigsaw-width">Width (px)</label>
-        <input id="jigsaw-width" name="width" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
-               [ngModel]="width()" (ngModelChange)="width.set($event)" (change)="relayout('width')">
-      </div>
-      <div class="col-6">
-        <label class="form-label" for="jigsaw-height">Height (px)</label>
-        <input id="jigsaw-height" name="height" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
-               [ngModel]="height()" (ngModelChange)="height.set($event)" (change)="relayout('height')">
-      </div>
+      <label class="form-label" for="jigsaw-name">Name <span class="text-danger" aria-hidden="true">*</span></label>
+      <input id="jigsaw-name" name="name" class="form-control" type="text" [maxlength]="maxName" required placeholder="Name of the jigsaw" [ngModel]="name()" (ngModelChange)="name.set($event)">
     </div>
 
     <div class="mb-3">
+      <label class="form-label" for="jigsaw-author">Author</label>
+      <input id="jigsaw-author" name="author" class="form-control" type="text" autocomplete="name" [maxlength]="maxName" placeholder="Who made this jigsaw (optional)"
+             [ngModel]="author()" (ngModelChange)="author.set($event)">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="jigsaw-size">Size</label>
+      <select id="jigsaw-size" name="size" class="form-select" (change)="chooseSize($any($event.target).value)">
+        @for (p of sizePresets; track p.key) {
+          <option [value]="p.key" [selected]="sizeChoice() === p.key">{{ p.label }}</option>
+        }
+        <option value="custom" [selected]="sizeChoice() === 'custom'">Custom (type the width and height)</option>
+      </select>
+    </div>
+
+    <!-- the width and the height are typed only for a custom size; the standard sizes set them -->
+    @if (sizeChoice() === 'custom') {
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label" for="jigsaw-width">Width (px)</label>
+          <input id="jigsaw-width" name="width" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
+                 [ngModel]="width()" (ngModelChange)="width.set($event)" (change)="sizeChoice.set('custom'); relayout('width')">
+        </div>
+        <div class="col-6">
+          <label class="form-label" for="jigsaw-height">Height (px)</label>
+          <input id="jigsaw-height" name="height" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
+                 [ngModel]="height()" (ngModelChange)="height.set($event)" (change)="sizeChoice.set('custom'); relayout('height')">
+        </div>
+      </div>
+    }
+
+    <div class="mb-3">
       <label class="form-label" for="piece-count">Pieces</label>
-      <input id="piece-count" name="pieceCount" class="form-control" type="number" min="2" max="500" step="1"
-             [ngModel]="pieceCount()" (ngModelChange)="pieceCount.set($event)" (change)="relayout('pieces')">
+      <div class="d-flex gap-2">
+        <select id="piece-options" name="pieceOptions" class="form-select w-auto" aria-label="Standard numbers of pieces" (change)="choosePieces($any($event.target).value)">
+          @for (n of pieceOptions; track n) {
+            <option [value]="n" [selected]="pieceChoice() === '' + n">{{ n }}</option>
+          }
+          <option value="custom" [selected]="pieceChoice() === 'custom'">Custom</option>
+        </select>
+        <input id="piece-count" name="pieceCount" class="form-control" type="number" min="2" max="500" step="1"
+               [ngModel]="pieceCount()" (ngModelChange)="pieceCount.set($event)" (change)="pieceChoice.set('custom'); relayout('pieces')">
+      </div>
       <div class="form-text" role="status">Grid: {{ gridSize() }} px ({{ pieceInfo().columns }} × {{ pieceInfo().rows }} pieces). The grid size is worked out from the number of pieces.</div>
     </div>
 

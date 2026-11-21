@@ -32,7 +32,26 @@ export class JigsawNew implements OnDestroy {
   private readonly pieceApi = inject(JigsawPiecesService);
   private readonly router = inject(Router);
 
-  readonly name = signal('Untitled');
+  /** the standard shapes to choose from (the canvas is then made a whole number of pieces wide and high, which can differ a little) */
+  readonly sizePresets = [
+    { key: 'standard', label: 'Standard 4:3 (800 × 600)', width: 800, height: 600 },
+    { key: 'photo', label: 'Photo 3:2 (900 × 600)', width: 900, height: 600 },
+    { key: 'wide', label: 'Wide 16:9 (960 × 540)', width: 960, height: 540 },
+    { key: 'square', label: 'Square 1:1 (700 × 700)', width: 700, height: 700 },
+    { key: 'portrait', label: 'Portrait 3:4 (600 × 800)', width: 600, height: 800 },
+    { key: 'panorama', label: 'Panorama 3:1 (1200 × 400)', width: 1200, height: 400 },
+    { key: 'large', label: 'Large 4:3 (1200 × 900)', width: 1200, height: 900 },
+  ] as const;
+  /** the standard numbers of pieces to choose from */
+  readonly pieceOptions = [24, 48, 100, 200, 300, 500] as const;
+  /** which standard size and number of pieces is chosen ('custom': typed by hand) */
+  readonly sizeChoice = signal<string>('standard');
+  readonly pieceChoice = signal<string>('custom');
+
+  /** the name is needed, and starts empty (nothing is filled in for the person) */
+  readonly name = signal('');
+  /** who made the jigsaw (the name of the author, optional) */
+  readonly author = signal('');
   readonly width = signal(800);
   readonly height = signal(600);
   /** how many pieces the picture is cut into (the grid size is worked out from it) */
@@ -73,6 +92,7 @@ export class JigsawNew implements OnDestroy {
   private settings(storeWidth?: number): CanvasInput {
     return {
       name: this.name().trim(),
+      ...(this.author().trim() ? { author: this.author().trim() } : {}),
       width: this.width(),
       height: this.height(),
       gridSize: this.gridSize(),
@@ -102,6 +122,26 @@ export class JigsawNew implements OnDestroy {
     this.height.set(layout.height);
     this.gridSize.set(layout.grid);
     this.pieceCount.set(layout.columns * layout.rows);
+  }
+
+  /** A standard size was chosen: the canvas gets that shape, and the grid is worked out again for the number of pieces. */
+  chooseSize(key: string): void {
+    this.sizeChoice.set(key);
+    const preset = this.sizePresets.find((p) => p.key === key);
+    if (!preset) return;
+    this.askedSize = { width: preset.width, height: preset.height };
+    this.width.set(preset.width);
+    this.height.set(preset.height);
+    this.relayout('pieces');
+  }
+
+  /** A standard number of pieces was chosen: the grid size is worked out from it. */
+  choosePieces(value: string): void {
+    this.pieceChoice.set(value);
+    const count = Number(value);
+    if (!Number.isFinite(count)) return;
+    this.pieceCount.set(count);
+    this.relayout('pieces');
   }
 
   /** A picture file was chosen: it is shown behind a frame of the shape of the canvas to find the cut. */
