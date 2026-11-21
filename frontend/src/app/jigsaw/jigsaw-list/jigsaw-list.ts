@@ -1,6 +1,7 @@
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { readSession, writeSession } from '../../core/session-storage';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawService } from '../jigsaw.service';
@@ -10,7 +11,8 @@ import { pieceGrid } from '../../models/shared/jigsaw';
 /** The saved jigsaws of Karins jigsaw: open one to play it, delete one, or go and make a new one. */
 @Component({
   selector: 'app-jigsaw-list',
-  imports: [RouterLink, NgTemplateOutlet, DatePipe],
+  imports: [RouterLink, NgTemplateOutlet, DatePipe, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawList')],
   templateUrl: './jigsaw-list.html',
 })
 export class JigsawList implements OnInit {

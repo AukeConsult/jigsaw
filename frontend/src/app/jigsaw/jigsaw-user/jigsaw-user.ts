@@ -1,6 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { tr } from '../../core/i18n';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { PlaysService, UserGame } from '../plays.service';
@@ -13,7 +15,8 @@ import { JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../..
  */
 @Component({
   selector: 'app-jigsaw-user',
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, RouterLink, DatePipe, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawUser')],
   templateUrl: './jigsaw-user.html',
 })
 export class JigsawUser implements OnInit {
@@ -76,7 +79,7 @@ export class JigsawUser implements OnInit {
       await this.plays.remove(game.jigsaw.id, game.play.id);
       this.games.update((all) => (all ?? []).filter((g) => g.play.id !== game.play.id));
     } catch {
-      this.error.set('Could not delete the round: try again.');
+      this.error.set(tr('jigsawUser.couldNotDelete', 'Could not delete the round: try again.'));
     }
   }
 

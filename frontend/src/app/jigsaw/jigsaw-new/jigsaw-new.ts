@@ -1,5 +1,7 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { tr } from '../../core/i18n';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { fitPicture } from '../fit-picture';
 import { JigsawImageService } from '../jigsaw-image.service';
@@ -32,7 +34,8 @@ const PREVIEW_BYTES = 300 * 1024;
  */
 @Component({
   selector: 'app-jigsaw-new',
-  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample],
+  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-new.html',
 })
 export class JigsawNew implements OnDestroy {
@@ -114,7 +117,7 @@ export class JigsawNew implements OnDestroy {
     try {
       this.owners.set(await this.users.list());
     } catch {
-      this.error.set('Could not read the users: reload the page.');
+      this.error.set(tr('jigsawNew.couldNotReadUsers', 'Could not read the users: reload the page.'));
     }
     const me = this.users.user();
     if (!this.editId && me && !this.ownerUid()) this.ownerUid.set(me.id);
@@ -309,7 +312,7 @@ export class JigsawNew implements OnDestroy {
         this.setPreview(URL.createObjectURL(blob));
       }
     } catch {
-      this.error.set('Could not open the jigsaw to edit: go back and try again.');
+      this.error.set(tr('jigsawNew.couldNotOpen', 'Could not open the jigsaw to edit: go back and try again.'));
     } finally {
       this.loading.set(false);
     }
@@ -343,7 +346,7 @@ export class JigsawNew implements OnDestroy {
       }
       await this.router.navigate(['/jigsaw', id]);
     } catch {
-      this.error.set('Could not save the changes: nobody may have started playing it in the meantime. Check the picture and try again.');
+      this.error.set(tr('jigsawNew.couldNotSave', 'Could not save the changes: nobody may have started playing it in the meantime. Check the picture and try again.'));
       this.saving.set(false);
     }
   }
@@ -384,7 +387,7 @@ export class JigsawNew implements OnDestroy {
       await this.router.navigate(game ? ['/jigsaw', made.id, 'play', game.id] : ['/jigsaw', made.id]);
     } catch {
       if (madeId) await this.service.remove(madeId).catch(() => undefined); // nothing half made is left
-      this.error.set('Could not make the jigsaw. Nothing was saved: check the picture and try again.');
+      this.error.set(tr('jigsawNew.couldNotMake', 'Could not make the jigsaw. Nothing was saved: check the picture and try again.'));
       this.saving.set(false);
     }
   }

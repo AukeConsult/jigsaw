@@ -1,5 +1,7 @@
 import { Component, ElementRef, HostListener, OnDestroy, afterNextRender, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { tr, translationsLoaded } from '../../core/i18n';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Autosave } from '../../core/autosave';
 import { isWideScreen } from '../../core/theme';
@@ -24,7 +26,8 @@ import { PlayOverrides, PlaySpec } from '../../models/shared/play';
  */
 @Component({
   selector: 'app-jigsaw-play',
-  imports: [FormsModule, RouterLink, CanvasBoard],
+  imports: [FormsModule, RouterLink, CanvasBoard, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-play.html',
 })
 export class JigsawPlay implements OnDestroy {
@@ -76,7 +79,12 @@ export class JigsawPlay implements OnDestroy {
   readonly lineLevels = LINE_LEVELS;
   readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
   /** the difficulty in words (it is shown, not chosen: it belongs to the jigsaw) */
-  readonly levelLabel = computed(() => SNAP_LEVELS.find((l) => l.key === snapLevelOf(this.snapPercent()))?.label ?? '');
+  private readonly loadedTick = translationsLoaded();
+  readonly levelLabel = computed(() => {
+    this.loadedTick(); // made again when the language file arrives
+    const level = SNAP_LEVELS.find((l) => l.key === snapLevelOf(this.snapPercent()));
+    return level ? tr('jigsawLevels.snap.' + level.key, level.label) : '';
+  });
 
   chooseLine(width: number): void {
     if (this.viewOnly()) return;
@@ -222,7 +230,7 @@ export class JigsawPlay implements OnDestroy {
     try {
       await this.plays.remove(this.jigsawId, this.playId);
     } catch {
-      return this.tell('Could not delete the round: try again.');
+      return this.tell(tr('jigsawPlay.couldNotDelete', 'Could not delete the round: try again.'));
     }
     // nothing of this game is saved any more: what waited to be saved has nowhere to go
     this.pieceSync.markSaved([]);
@@ -240,7 +248,7 @@ export class JigsawPlay implements OnDestroy {
       const game = await this.plays.start(this.jigsawId, me.id);
       await this.router.navigate(['/jigsaw', this.jigsawId, 'play', game.id]);
     } catch {
-      this.tell('Could not start a new round: try again.');
+      this.tell(tr('jigsawPlay.couldNotStart', 'Could not start a new round: try again.'));
     }
   }
 }

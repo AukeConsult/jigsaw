@@ -13,7 +13,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withFetch()), // the texts of the app are files (public/i18n)
     provideTransloco({
-      config: { availableLangs: ['en'], defaultLang: 'en', fallbackLang: 'en', reRenderOnLangChange: true, prodMode: !isDevMode() },
+      config: { availableLangs: ['en', 'nb', 'sv', 'da'], defaultLang: 'en', fallbackLang: 'en', reRenderOnLangChange: true, prodMode: !isDevMode() },
       loader: TranslocoHttpLoader,
     }),
     { provide: TRANSLOCO_MISSING_HANDLER, useClass: EmptyMissingHandler }, // a missing text is '' so the English text next to the key is shown

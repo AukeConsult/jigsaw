@@ -2,6 +2,8 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { tr } from '../../core/i18n';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
@@ -21,7 +23,8 @@ import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
  */
 @Component({
   selector: 'app-jigsaw-page',
-  imports: [RouterLink, DatePipe, FormsModule],
+  imports: [RouterLink, DatePipe, FormsModule, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-page.html',
 })
 export class JigsawPage implements OnInit {
@@ -102,7 +105,7 @@ export class JigsawPage implements OnInit {
       await this.jigsaws.removeAs(this.id, me.id);
       await this.router.navigate(['/jigsaw/list']);
     } catch {
-      this.error.set('Could not delete the jigsaw: only its owner can.');
+      this.error.set(tr('jigsawPage.couldNotDelete', 'Could not delete the jigsaw: only its owner can.'));
       this.confirmingDelete.set(false);
       this.busy.set(false);
     }
@@ -123,7 +126,7 @@ export class JigsawPage implements OnInit {
       const game = await this.plays.start(this.id, me.id);
       await this.router.navigate(['/jigsaw', this.id, 'play', game.id]);
     } catch {
-      this.error.set('Could not start a round: try again.');
+      this.error.set(tr('jigsawPage.couldNotStart', 'Could not start a round: try again.'));
       this.busy.set(false);
     }
   }
@@ -134,7 +137,7 @@ export class JigsawPage implements OnInit {
       await this.plays.remove(this.id, game.id);
       this.games.update((all) => all.filter((g) => g.id !== game.id));
     } catch {
-      this.error.set('Could not delete the round: try again.');
+      this.error.set(tr('jigsawPage.couldNotDeleteRound', 'Could not delete the round: try again.'));
     }
   }
 
@@ -189,7 +192,7 @@ export class JigsawPage implements OnInit {
       this.item.set(await this.jigsaws.update(item.id, input));
       this.editing.set(false);
     } catch {
-      this.error.set('Could not save the changes: try again.');
+      this.error.set(tr('jigsawPage.couldNotSave', 'Could not save the changes: try again.'));
     } finally {
       this.saving.set(false);
     }

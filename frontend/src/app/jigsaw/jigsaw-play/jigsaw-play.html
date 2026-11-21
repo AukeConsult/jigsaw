@@ -1,15 +1,16 @@
+<ng-container *transloco="let t">
 @switch (status()) {
   @case ('loading') {
-    <main class="container py-4 text-body-secondary" role="status">Opening the jigsaw…</main>
+    <main class="container py-4 text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
   }
   @case ('missing') {
     <main class="container py-4">
-      <div class="alert alert-warning" role="alert">There is no such jigsaw. <a routerLink="/jigsaw/list">Go to the jigsaws</a>.</div>
+      <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/jigsaw/list">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     </main>
   }
   @case ('failed') {
     <main class="container py-4">
-      <div class="alert alert-danger" role="alert">Could not open the jigsaw. <a routerLink="/jigsaw/list">Go to the jigsaws</a>.</div>
+      <div class="alert alert-danger" role="alert">{{ t('jigsawPlay.couldNotOpen') || 'Could not open the jigsaw.' }} <a routerLink="/jigsaw/list">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     </main>
   }
   @case ('ready') {
@@ -18,50 +19,50 @@
     <div class="jigsaw-play">
       <div class="jigsaw-side">
         <!-- the sidebar, docked at the left edge on a wide screen: how far the round has come and what can be done in it; on a narrow screen it is folded away until the Sidebar switch in the top menu opens it over the board -->
-        <aside id="jigsaw-sidebar" class="jigsaw-sidebar border-end bg-body-tertiary p-3" [class.is-open]="tools.sidebarOpen()" [style.height.px]="sidebarHeight()" aria-label="The jigsaw">
+        <aside id="jigsaw-sidebar" class="jigsaw-sidebar border-end bg-body-tertiary p-3" [class.is-open]="tools.sidebarOpen()" [style.height.px]="sidebarHeight()" [attr.aria-label]="t('jigsawPlay.sidebar') || 'The jigsaw'">
         <!-- the title of the jigsaw (it is changed on the page of the jigsaw), with a way back to its rounds -->
         <h1 class="page-title mb-1">{{ it.name }}</h1>
-        <a class="small d-inline-block mb-2" [routerLink]="['/jigsaw', it.id]"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>All rounds of this jigsaw</a>
+        <a class="small d-inline-block mb-2" [routerLink]="['/jigsaw', it.id]"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ t('jigsawPlay.allRounds') || 'All rounds of this jigsaw' }}</a>
         @if (it.author) {
           <div class="small text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
         }
-        <div class="small text-body-secondary mb-3">{{ m.total }} pieces ({{ pieceInfo().columns }} × {{ pieceInfo().rows }}), {{ it.width }} × {{ it.height }} px, grid {{ it.gridSize }} px, difficulty {{ levelLabel().toLowerCase() }}</div>
+        <div class="small text-body-secondary mb-3">{{ t('jigsawPlay.info', { total: m.total, columns: pieceInfo().columns, rows: pieceInfo().rows, width: it.width, height: it.height, grid: it.gridSize, level: levelLabel().toLowerCase() }) || m.total + ' pieces (' + pieceInfo().columns + ' × ' + pieceInfo().rows + '), ' + it.width + ' × ' + it.height + ' px, grid ' + it.gridSize + ' px, difficulty ' + levelLabel().toLowerCase() }}</div>
 
         @if (viewOnly()) {
           <!-- another player's round: it can be looked at, never changed -->
           <div class="alert alert-info py-2 small" role="status">
-            <i class="bi bi-eye me-1" aria-hidden="true"></i>You are looking at <strong>{{ play()?.userName || 'another player' }}</strong>'s round. You can look, but not change it.
-            <div class="mt-2"><button type="button" class="btn btn-sm btn-primary" (click)="startOver()"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Start my own round</button></div>
+            <i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('jigsawPlay.lookingAt') || 'You are looking at' }} <strong>{{ play()?.userName || t('jigsawPlay.anotherPlayer') || 'another player' }}</strong>{{ t('jigsawPlay.roundSuffix') || "'s round. You can look, but not change it." }}
+            <div class="mt-2"><button type="button" class="btn btn-sm btn-primary" (click)="startOver()"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ t('jigsawPlay.startOwn') || 'Start my own round' }}</button></div>
           </div>
         }
 
         <div class="small mb-3" role="status" aria-live="polite">
-          Matched: <strong>{{ m.count }}</strong> of {{ m.total }}{{ m.total && m.count === m.total ? ' – solved!' : '' }}
+          {{ t('jigsawPlay.matched') || 'Matched:' }} <strong>{{ m.count }}</strong> {{ t('jigsawPlay.ofTotal', { total: m.total }) || 'of ' + m.total }}{{ m.total && m.count === m.total ? (t('jigsawPlay.solved') || ' – solved!') : '' }}
         </div>
         @if (pieceSync.state() === 'failed') {
-          <div class="small text-danger mb-2" role="alert">Could not save the pieces, trying again</div>
+          <div class="small text-danger mb-2" role="alert">{{ t('jigsawPlay.couldNotSavePieces') || 'Could not save the pieces, trying again' }}</div>
         }
 
         <!-- the settings of a round are for its player: another player's round shows none of them -->
         @if (!viewOnly()) {
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label small mb-1" for="line-width">Line</label>
-              <select id="line-width" name="lineWidth" class="form-select form-select-sm" [disabled]="viewOnly()" title="How thick the line round each piece and round the picture area is"
+              <label class="form-label small mb-1" for="line-width">{{ t('jigsawPlay.line') || 'Line' }}</label>
+              <select id="line-width" name="lineWidth" class="form-select form-select-sm" [disabled]="viewOnly()" [title]="t('jigsawPlay.lineTitle') || 'How thick the line round each piece and round the picture area is'"
                       (change)="chooseLine(+$any($event.target).value)">
                 @for (l of lineLevels; track l.width) {
-                  <option [value]="l.width" [selected]="lineLevel() === l.width">{{ l.label }}</option>
+                  <option [value]="l.width" [selected]="lineLevel() === l.width">{{ t('jigsawLevels.line.' + l.key) || l.label }}</option>
                 }
               </select>
             </div>
             <div class="col-3">
-              <label class="form-label small mb-1" for="line-color">Colour</label>
-              <input id="line-color" name="lineColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" title="The colour of the line round each piece and round the picture area"
+              <label class="form-label small mb-1" for="line-color">{{ t('jigsawPlay.colour') || 'Colour' }}</label>
+              <input id="line-color" name="lineColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" [title]="t('jigsawPlay.colourTitle') || 'The colour of the line round each piece and round the picture area'"
                      [ngModel]="lineColor()" (ngModelChange)="chooseLineColor($event)">
             </div>
             <div class="col-3">
-              <label class="form-label small mb-1" for="back-color">Back</label>
-              <input id="back-color" name="backColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" title="The background colour of the picture area, inside the frame"
+              <label class="form-label small mb-1" for="back-color">{{ t('jigsawPlay.back') || 'Back' }}</label>
+              <input id="back-color" name="backColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" [title]="t('jigsawPlay.backTitle') || 'The background colour of the picture area, inside the frame'"
                      [ngModel]="backColor()" (ngModelChange)="chooseBackColor($event)">
             </div>
           </div>
@@ -75,16 +76,16 @@
         @if (!viewOnly()) {
           <div class="d-flex flex-wrap gap-1 mb-3">
             @if (confirmingStartOver()) {
-              <div class="w-100 small" role="alert">Start a new round? The pieces are scattered again in a new round; this round stays in your list.</div>
-              <button type="button" class="btn btn-sm btn-danger" (click)="startOver()">Yes, new round</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingStartOver.set(false)">Cancel</button>
+              <div class="w-100 small" role="alert">{{ t('jigsawPlay.startNewAsk') || 'Start a new round? The pieces are scattered again in a new round; this round stays in your list.' }}</div>
+              <button type="button" class="btn btn-sm btn-danger" (click)="startOver()">{{ t('jigsawPlay.yesNew') || 'Yes, new round' }}</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingStartOver.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
             } @else if (confirmingDelete()) {
-              <div class="w-100 small" role="alert">Delete this round for good? Its pieces and progress are lost. The jigsaw stays.</div>
-              <button type="button" class="btn btn-sm btn-danger" (click)="deleteGame()">Yes, delete</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingDelete.set(false)">Cancel</button>
+              <div class="w-100 small" role="alert">{{ t('jigsawPlay.deleteAsk') || 'Delete this round for good? Its pieces and progress are lost. The jigsaw stays.' }}</div>
+              <button type="button" class="btn btn-sm btn-danger" (click)="deleteGame()">{{ t('jigsawPlay.yesDelete') || 'Yes, delete' }}</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingDelete.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
             } @else {
-              <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>New round</button>
-              <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" (click)="confirmingDelete.set(true)"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete round</button>
+              <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>{{ t('jigsawPlay.newRound') || 'New round' }}</button>
+              <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" (click)="confirmingDelete.set(true)"><i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('jigsawPlay.deleteRound') || 'Delete round' }}</button>
             }
           </div>
         }
@@ -93,14 +94,14 @@
           <!-- the cheat: the numbers of the places on the picture and on the pieces, to help find them (a switch, as the helper ones in the menu are) -->
           <div class="form-check form-switch mb-3">
             <input id="cheat" class="form-check-input" type="checkbox" role="switch" [checked]="debug()" (change)="debug.set($any($event.target).checked)">
-            <label class="form-check-label small" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>Cheat <span class="text-body-secondary">(help find pieces)</span></label>
+            <label class="form-check-label small" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>{{ t('jigsawPlay.cheat') || 'Cheat' }} <span class="text-body-secondary">{{ t('jigsawPlay.cheatHelp') || '(help find pieces)' }}</span></label>
           </div>
         }
 
         <!-- saving is automatic: only a problem is said -->
         @if (saveState() === 'failed' || saveState() === 'invalid') {
           <div class="small text-danger" role="alert">
-            @if (saveState() === 'invalid') { Not saved: the settings are not allowed } @else { Could not save, trying again }
+            @if (saveState() === 'invalid') { {{ t('jigsawPlay.notSaved') || 'Not saved: the settings are not allowed' }} } @else { {{ t('jigsawPlay.couldNotSave') || 'Could not save, trying again' }} }
           </div>
         }
         </aside>
@@ -114,3 +115,4 @@
     </div>
   }
 }
+</ng-container>

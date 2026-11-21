@@ -1,45 +1,47 @@
 <!-- the greeting of a user who is known: by name, and what is going on for them (shown above the picture on a phone, and in the welcome on a wide screen) -->
 <ng-template #greeting>
-  <h2 class="section-title mb-2">Welcome back, {{ firstName() }}</h2>
-  <p class="lead text-body-secondary mb-2">Good to see you again.
+  <ng-container *transloco="let t">
+  <h2 class="section-title mb-2">{{ t('jigsawHome.welcomeBack', { name: firstName() }) || 'Welcome back, ' + firstName() }}</h2>
+  <p class="lead text-body-secondary mb-2">{{ t('jigsawHome.goodToSee') || 'Good to see you again.' }}
     @switch (roundsGoing()) {
-      @case (null) { Pick up where you left off, or start a new jigsaw. }
-      @case (0) { Start a new jigsaw whenever you like. }
-      @case (1) { You have one round going: pick it up below, or start a new jigsaw. }
-      @default { You have {{ roundsGoing() }} rounds going: pick one up below, or start a new jigsaw. }
+      @case (null) { {{ t('jigsawHome.pickUp') || 'Pick up where you left off, or start a new jigsaw.' }} }
+      @case (0) { {{ t('jigsawHome.startNew') || 'Start a new jigsaw whenever you like.' }} }
+      @case (1) { {{ t('jigsawHome.oneRound') || 'You have one round going: pick it up below, or start a new jigsaw.' }} }
+      @default { {{ t('jigsawHome.manyRounds', { count: roundsGoing() }) || 'You have ' + roundsGoing() + ' rounds going: pick one up below, or start a new jigsaw.' }} }
     }
   </p>
+  </ng-container>
 </ng-template>
 
-<main class="container py-4 py-lg-5">
-  <section class="row align-items-start g-4 g-lg-5 mb-5" aria-label="Start">
+<main class="container py-4 py-lg-5" *transloco="let t">
+  <section class="row align-items-start g-4 g-lg-5 mb-5" [attr.aria-label]="t('jigsawHome.start') || 'Start'">
     <div class="col-lg-6 order-2 order-lg-1">
       <!-- the logo and the name are in the header: the page keeps only a title for a screen reader -->
-      <h1 class="visually-hidden">Karins jigsaw</h1>
+      <h1 class="visually-hidden">{{ t('jigsawHome.title') || 'Karins jigsaw' }}</h1>
       <!-- the welcome and what this is: on a phone it is left out for now (the picture and the buttons are enough) -->
-      <section class="d-none d-lg-block mb-4" aria-label="Welcome">
+      <section class="d-none d-lg-block mb-4" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
         @if (firstName()) {
           <ng-container *ngTemplateOutlet="greeting" />
         } @else {
-          <h2 class="section-title mb-2">Welcome</h2>
-          <p class="lead text-body-secondary mb-2">Turn any picture into a jigsaw puzzle and put it together, wherever you are.</p>
-          <p class="text-body-secondary mb-0">Choose a picture, say how many pieces, and start.</p>
+          <h2 class="section-title mb-2">{{ t('jigsawHome.welcome') || 'Welcome' }}</h2>
+          <p class="lead text-body-secondary mb-2">{{ t('jigsawHome.intro') || 'Turn any picture into a jigsaw puzzle and put it together, wherever you are.' }}</p>
+          <p class="text-body-secondary mb-0">{{ t('jigsawHome.intro2') || 'Choose a picture, say how many pieces, and start.' }}</p>
         }
       </section>
       <!-- Karin's note: shown on every screen (on a phone it is what is under the picture) -->
-      <p class="text-body-secondary fst-italic mb-3"><i class="bi bi-heart-fill text-danger" aria-hidden="true"></i> I love making jigsaws and puzzles, and I hope you will love my system too. <span class="text-nowrap">&mdash; Karin</span></p>
+      <p class="text-body-secondary fst-italic mb-3"><i class="bi bi-heart-fill text-danger" aria-hidden="true"></i> {{ t('jigsawHome.note') || 'I love making jigsaws and puzzles, and I hope you will love my system too.' }} <span class="text-nowrap">&mdash; Karin</span></p>
       <!-- the buttons come under the text: in the middle on a phone, at the left beside the picture on a wide screen -->
       <div class="toolbar toolbar-stack align-items-center align-items-lg-start mt-lg-5 ps-lg-4 row-gap-lg-3">
-        <a class="link-action large" routerLink="/jigsaw/list"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>See all we have prepared for you</a>
-        <a class="link-action large fw-semibold" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>Add a new jigsaw with your picture</a>
+        <a class="link-action large" routerLink="/jigsaw/list"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawHome.seeAll') || 'See all we have prepared for you' }}</a>
+        <a class="link-action large" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawHome.addNew') || 'Add a new jigsaw with your picture' }}</a>
       </div>
       <!-- where the user left off: their own rounds that are not solved, as small pictures; press one to go on with it -->
       @if (myRounds().length) {
-        <h2 class="subsection-title mt-4 mb-2 ps-lg-4">Continue where you left off</h2>
-        <ul class="thumb-flow list-unstyled mb-0 ps-lg-4" aria-label="Your rounds">
+        <h2 class="subsection-title mt-4 mb-2 ps-lg-4">{{ t('jigsawHome.continue') || 'Continue where you left off' }}</h2>
+        <ul class="thumb-flow list-unstyled mb-0 ps-lg-4" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
           @for (game of myRounds(); track game.play.id) {
             <li>
-              <a class="thumb-tile ratio ratio-4x3 bg-body-secondary" [routerLink]="['/jigsaw', game.jigsaw.id, 'play', game.play.id]" [title]="game.jigsaw.name + ': ' + game.play.matched + ' of ' + game.play.total" [attr.aria-label]="'Continue ' + game.jigsaw.name">
+              <a class="thumb-tile ratio ratio-4x3 bg-body-secondary" [routerLink]="['/jigsaw', game.jigsaw.id, 'play', game.play.id]" [title]="t('jigsawHome.roundTitle', { name: game.jigsaw.name, matched: game.play.matched, total: game.play.total }) || game.jigsaw.name + ': ' + game.play.matched + ' of ' + game.play.total" [attr.aria-label]="t('jigsawHome.continueName', { name: game.jigsaw.name }) || 'Continue ' + game.jigsaw.name">
                 @if (!noPicture().has(game.jigsaw.id)) {
                   <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
                 }
@@ -51,9 +53,9 @@
       <!-- the jigsaws there are, as small pictures that flow over the width and wrap: press one to open it -->
       @if (recent().length) {
         @if (myRounds().length) {
-          <h2 class="subsection-title mt-4 mb-2 ps-lg-4">Popular</h2>
+          <h2 class="subsection-title mt-4 mb-2 ps-lg-4">{{ t('jigsawHome.popular') || 'Popular' }}</h2>
         }
-        <ul class="thumb-flow list-unstyled mb-0 ps-lg-4" [class.mt-4]="!myRounds().length" aria-label="Jigsaws">
+        <ul class="thumb-flow list-unstyled mb-0 ps-lg-4" [class.mt-4]="!myRounds().length" [attr.aria-label]="t('jigsawHome.jigsaws') || 'Jigsaws'">
           @for (item of recent(); track item.id) {
             <li>
               <a class="thumb-tile ratio ratio-4x3 bg-body-secondary" [routerLink]="['/jigsaw', item.id]" [title]="item.name" [attr.aria-label]="item.name">
@@ -72,7 +74,7 @@
         <div class="d-lg-none mb-3"><ng-container *ngTemplateOutlet="greeting" /></div>
       }
       <img class="img-fluid rounded-4 shadow-sm w-100 object-fit-cover" src="images/front.jpg" width="900" height="900"
-           alt="A woman with a colourful parasol on a fort terrace, green hills and a town behind her">
+           [attr.alt]="t('jigsawHome.imageAlt') || 'A woman with a colourful parasol on a fort terrace, green hills and a town behind her'">
     </div>
   </section>
 </main>

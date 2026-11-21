@@ -1,0 +1,11 @@
+{
+  "title": "Justera bilden",
+  "help": "Dra bilden inuti ramen för att hitta urklippet, och zooma med reglaget eller mushjulet. Ramen har samma form som duken.",
+  "unreadable": "Den filen kan inte läsas som en bild.",
+  "frame": "Ramen",
+  "pictureAlt": "Bilden som ska beskäras",
+  "reading": "Läser bilden…",
+  "zoom": "Zoom",
+  "cancel": "Avbryt",
+  "use": "Använd det här urklippet"
+}

@@ -1,0 +1,19 @@
+{
+  "title": "Alla pussel",
+  "view": "Visning",
+  "list": "Lista",
+  "cards": "Kort",
+  "addNew": "Lägg till ett nytt pussel med din egen bild",
+  "countOne": "{{ count }} pussel",
+  "countMany": "{{ count }} pussel",
+  "loadFailed": "Det gick inte att läsa in pusslen.",
+  "playName": "Spela {{ name }}",
+  "pieces": "{{ count }} bitar ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px",
+  "madeSuffix": ", gjort {{ date }}",
+  "made": "Gjort {{ date }}",
+  "by": "av {{ author }}",
+  "none": "Inget pussel ännu.",
+  "makeFirst": "Gör det första",
+  "noneTail": ": välj en bild, säg hur många bitar du vill ha, och sätt igång.",
+  "play": "Spela"
+}

@@ -1,50 +1,51 @@
+<ng-container *transloco="let t">
 <main class="container py-4">
   <form class="form-card card card-body mx-auto" (submit)="$event.preventDefault(); save()">
     <h1 class="page-title mb-3">
-      @if (editId) { <i class="bi bi-pencil text-primary me-2" aria-hidden="true"></i>Edit jigsaw } @else { <i class="bi bi-plus-circle text-primary me-2" aria-hidden="true"></i>New jigsaw }
+      @if (editId) { <i class="bi bi-pencil text-primary me-2" aria-hidden="true"></i>{{ t('jigsawNew.editTitle') || 'Edit jigsaw' }} } @else { <i class="bi bi-plus-circle text-primary me-2" aria-hidden="true"></i>{{ t('jigsawNew.newTitle') || 'New jigsaw' }} }
     </h1>
     @if (loading()) {
-      <div class="text-body-secondary small mb-3" role="status">Opening the jigsaw…</div>
+      <div class="text-body-secondary small mb-3" role="status">{{ t('jigsawNew.opening') || 'Opening the jigsaw…' }}</div>
     }
 
     <div class="mb-3">
-      <label class="form-label" for="jigsaw-name">Name <span class="text-danger" aria-hidden="true">*</span></label>
-      <input id="jigsaw-name" name="name" class="form-control" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required placeholder="Name of the jigsaw" aria-describedby="jigsaw-name-problem"
+      <label class="form-label" for="jigsaw-name">{{ t('jigsawNew.name') || 'Name' }} <span class="text-danger" aria-hidden="true">*</span></label>
+      <input id="jigsaw-name" name="name" class="form-control" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required [attr.placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'" aria-describedby="jigsaw-name-problem"
              [ngModel]="name()" (ngModelChange)="name.set($event)">
       @if (nameMissing()) {
-        <div id="jigsaw-name-problem" class="invalid-feedback d-block">Give the jigsaw a name.</div>
+        <div id="jigsaw-name-problem" class="invalid-feedback d-block">{{ t('jigsawNew.nameMissing') || 'Give the jigsaw a name.' }}</div>
       }
     </div>
 
     <div class="mb-3">
-      <label class="form-label" for="jigsaw-author">Author @if (!editId) { <span class="text-danger" aria-hidden="true">*</span> }</label>
+      <label class="form-label" for="jigsaw-author">{{ t('jigsawNew.author') || 'Author' }} @if (!editId) { <span class="text-danger" aria-hidden="true">*</span> }</label>
       <select id="jigsaw-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
-        @if (!ownerUid()) { <option value="">Choose the author</option> }
+        @if (!ownerUid()) { <option value="">{{ t('jigsawNew.chooseAuthor') || 'Choose the author' }}</option> }
         @for (u of owners(); track u.id) {
           <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
         }
       </select>
-      <div class="form-text">The author is one of the users, and owns the jigsaw.</div>
+      <div class="form-text">{{ t('jigsawNew.authorHelp') || 'The author is one of the users, and owns the jigsaw.' }}</div>
     </div>
 
     <div class="row g-2 mb-2">
       <div class="col-sm-6">
-        <label class="form-label small mb-1" for="jigsaw-size">Size</label>
+        <label class="form-label small mb-1" for="jigsaw-size">{{ t('jigsawNew.size') || 'Size' }}</label>
         <select id="jigsaw-size" name="size" class="form-select" (change)="chooseSize($any($event.target).value)">
           @for (p of sizePresets; track p.key) {
-            <option [value]="p.key" [selected]="sizeChoice() === p.key">{{ p.label }}</option>
+            <option [value]="p.key" [selected]="sizeChoice() === p.key">{{ t('jigsawNew.sizes.' + p.key) || p.label }}</option>
           }
-          <option value="custom" [selected]="sizeChoice() === 'custom'">Custom…</option>
+          <option value="custom" [selected]="sizeChoice() === 'custom'">{{ t('jigsawNew.customSize') || 'Custom…' }}</option>
         </select>
       </div>
       <div class="col-sm-6">
-        <label class="form-label small mb-1" for="piece-count">Pieces</label>
+        <label class="form-label small mb-1" for="piece-count">{{ t('jigsawNew.pieces') || 'Pieces' }}</label>
         <div class="d-flex gap-2">
-          <select id="piece-options" name="pieceOptions" class="form-select w-auto" aria-label="Standard numbers of pieces" (change)="choosePieces($any($event.target).value)">
+          <select id="piece-options" name="pieceOptions" class="form-select w-auto" [attr.aria-label]="t('jigsawNew.standardPieces') || 'Standard numbers of pieces'" (change)="choosePieces($any($event.target).value)">
             @for (o of pieceOptions(); track o.key) {
               <option [value]="o.key" [selected]="pieceChoice() === o.key" [title]="o.columns + ' × ' + o.rows">{{ o.count }}</option>
             }
-            <option value="custom" [selected]="pieceChoice() === 'custom'">Custom</option>
+            <option value="custom" [selected]="pieceChoice() === 'custom'">{{ t('jigsawNew.customPieces') || 'Custom' }}</option>
           </select>
           <input id="piece-count" name="pieceCount" class="form-control" type="number" min="2" max="1000" step="1"
                  [ngModel]="pieceCount()" (ngModelChange)="pieceCount.set($event)" (change)="pieceChoice.set('custom'); relayout('pieces')">
@@ -54,47 +55,47 @@
       <!-- the width and the height are typed only for a custom size; the standard sizes set them -->
       @if (sizeChoice() === 'custom') {
         <div class="col-6 col-sm-3">
-          <label class="form-label small mb-1" for="jigsaw-width">Width (px)</label>
+          <label class="form-label small mb-1" for="jigsaw-width">{{ t('jigsawNew.width') || 'Width (px)' }}</label>
           <input id="jigsaw-width" name="width" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
                  [ngModel]="width()" (ngModelChange)="width.set($event)" (change)="sizeChoice.set('custom'); relayout('width')">
         </div>
         <div class="col-6 col-sm-3">
-          <label class="form-label small mb-1" for="jigsaw-height">Height (px)</label>
+          <label class="form-label small mb-1" for="jigsaw-height">{{ t('jigsawNew.height') || 'Height (px)' }}</label>
           <input id="jigsaw-height" name="height" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
                  [ngModel]="height()" (ngModelChange)="height.set($event)" (change)="sizeChoice.set('custom'); relayout('height')">
         </div>
       }
-      <div class="col-12 form-text mt-1" role="status">Grid {{ gridSize() }} px: {{ pieceInfo().columns }} × {{ pieceInfo().rows }} pieces (worked out from the number of pieces).</div>
+      <div class="col-12 form-text mt-1" role="status">{{ t('jigsawNew.gridInfo', { grid: gridSize(), columns: pieceInfo().columns, rows: pieceInfo().rows }) || 'Grid ' + gridSize() + ' px: ' + pieceInfo().columns + ' × ' + pieceInfo().rows + ' pieces (worked out from the number of pieces).' }}</div>
     </div>
 
     <div class="mb-2">
-      <label class="form-label small mb-1" for="snap-range">Difficulty</label>
-      <select id="snap-range" name="snapLevel" class="form-select" title="How close a piece must be dropped to its place to click into it: the easier, the farther away it can be"
+      <label class="form-label small mb-1" for="snap-range">{{ t('jigsawNew.difficulty') || 'Difficulty' }}</label>
+      <select id="snap-range" name="snapLevel" class="form-select" [title]="t('jigsawNew.difficultyTitle') || 'How close a piece must be dropped to its place to click into it: the easier, the farther away it can be'"
               (change)="chooseLevel($any($event.target).value)">
         @for (l of levels; track l.key) {
-          <option [value]="l.key" [selected]="level() === l.key">{{ l.label }}</option>
+          <option [value]="l.key" [selected]="level() === l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</option>
         }
       </select>
     </div>
 
     <div class="row row-cols-3 g-2 mb-2">
       <div class="col">
-        <label class="form-label small mb-1" for="jigsaw-line-width">Line</label>
-        <select id="jigsaw-line-width" name="lineWidth" class="form-select" title="How thick the line round each piece and round the picture area is"
+        <label class="form-label small mb-1" for="jigsaw-line-width">{{ t('jigsawNew.line') || 'Line' }}</label>
+        <select id="jigsaw-line-width" name="lineWidth" class="form-select" [title]="t('jigsawNew.lineTitle') || 'How thick the line round each piece and round the picture area is'"
                 (change)="lineWidth.set(+$any($event.target).value)">
           @for (l of lineLevels; track l.width) {
-            <option [value]="l.width" [selected]="lineLevel() === l.width">{{ l.label }}</option>
+            <option [value]="l.width" [selected]="lineLevel() === l.width">{{ t('jigsawLevels.line.' + l.key) || l.label }}</option>
           }
         </select>
       </div>
       <div class="col">
-        <label class="form-label small mb-1" for="jigsaw-line-color">Colour</label>
-        <input id="jigsaw-line-color" name="lineColor" class="form-control form-control-color w-100" type="color" title="The colour of the line round each piece and round the picture area"
+        <label class="form-label small mb-1" for="jigsaw-line-color">{{ t('jigsawNew.colour') || 'Colour' }}</label>
+        <input id="jigsaw-line-color" name="lineColor" class="form-control form-control-color w-100" type="color" [title]="t('jigsawNew.colourTitle') || 'The colour of the line round each piece and round the picture area'"
                [ngModel]="lineColor()" (ngModelChange)="lineColor.set($event)">
       </div>
       <div class="col">
-        <label class="form-label small mb-1" for="jigsaw-back-color">Back</label>
-        <input id="jigsaw-back-color" name="backColor" class="form-control form-control-color w-100" type="color" title="The background colour of the picture area, inside the border"
+        <label class="form-label small mb-1" for="jigsaw-back-color">{{ t('jigsawNew.back') || 'Back' }}</label>
+        <input id="jigsaw-back-color" name="backColor" class="form-control form-control-color w-100" type="color" [title]="t('jigsawNew.backTitle') || 'The background colour of the picture area, inside the border'"
                [ngModel]="backColor()" (ngModelChange)="backColor.set($event)">
       </div>
     </div>
@@ -102,13 +103,13 @@
 
     <div class="mb-3">
       @if (!file()) {
-        <label class="form-label" for="jigsaw-picture">Picture</label>
+        <label class="form-label" for="jigsaw-picture">{{ t('jigsawNew.picture') || 'Picture' }}</label>
       }
       <!-- the choice of the file is shown until a picture is chosen; then only a button to choose another is shown (the name of the file is not interesting here; it is kept with the jigsaw) -->
       <input #pictureInput id="jigsaw-picture" name="picture" type="file" class="form-control" [class.d-none]="!!file()" accept="image/jpeg,image/png,image/webp" (change)="choosePicture($event)">
       @if (file()) {
         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="pictureInput.click()">Change picture</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="pictureInput.click()">{{ t('jigsawNew.changePicture') || 'Change picture' }}</button>
         </div>
       }
       @if (preview(); as src) {
@@ -116,19 +117,19 @@
         <div class="mt-2">
           <app-jigsaw-example [picture]="src" [width]="width()" [height]="height()" [gridSize]="gridSize()" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" />
           <div class="small d-flex flex-wrap align-items-center gap-2 mt-2">
-            <span class="text-body-secondary">An example of the jigsaw: the pieces are cut by chance when it is made.</span>
-            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="cropping.set(true)"><i class="bi bi-crop me-1" aria-hidden="true"></i>Adjust the cut</button>
+            <span class="text-body-secondary">{{ t('jigsawNew.exampleNote') || 'An example of the jigsaw: the pieces are cut by chance when it is made.' }}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="cropping.set(true)"><i class="bi bi-crop me-1" aria-hidden="true"></i>{{ t('jigsawNew.adjustCut') || 'Adjust the cut' }}</button>
           </div>
         </div>
       }
       @if (stale()) {
-        <div class="form-text text-danger">The size changed since the picture was cut. <button type="button" class="link-inline" (click)="cropping.set(true)">Adjust the picture again</button>.</div>
+        <div class="form-text text-danger">{{ t('jigsawNew.staleBefore') || 'The size changed since the picture was cut.' }} <button type="button" class="link-inline" (click)="cropping.set(true)">{{ t('jigsawNew.adjustAgain') || 'Adjust the picture again' }}</button>.</div>
       } @else if (lacksPicture()) {
-        <div class="form-text">This jigsaw has no picture. You can save the changes without one (the size and the pieces then stay as they are), or choose a picture (jpeg, png or webp) to give it one and change those too.</div>
+        <div class="form-text">{{ t('jigsawNew.noPicture') || 'This jigsaw has no picture. You can save the changes without one (the size and the pieces then stay as they are), or choose a picture (jpeg, png or webp) to give it one and change those too.' }}</div>
       } @else if (!file()) {
-        <div class="form-text">Choose the picture the jigsaw is made from (jpeg, png or webp).</div>
+        <div class="form-text">{{ t('jigsawNew.choosePicture') || 'Choose the picture the jigsaw is made from (jpeg, png or webp).' }}</div>
       } @else if (!cut()) {
-        <div class="form-text">Find the cut of the picture first. <button type="button" class="link-inline" (click)="cropping.set(true)">Find the cut</button>.</div>
+        <div class="form-text">{{ t('jigsawNew.findCutFirst') || 'Find the cut of the picture first.' }} <button type="button" class="link-inline" (click)="cropping.set(true)">{{ t('jigsawNew.findCut') || 'Find the cut' }}</button>.</div>
       }
     </div>
 
@@ -140,9 +141,9 @@
     }
 
     <div class="d-flex justify-content-end gap-2">
-      <a class="btn btn-outline-secondary" [routerLink]="editId ? ['/jigsaw', editId] : '/jigsaw/list'">Cancel</a>
+      <a class="btn btn-outline-secondary" [routerLink]="editId ? ['/jigsaw', editId] : '/jigsaw/list'">{{ t('jigsawNew.cancel') || 'Cancel' }}</a>
       <button type="submit" class="btn btn-primary" [disabled]="!canSave()">
-        @if (saving()) { @if (editId) { Saving… } @else { Making the jigsaw… } } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>@if (editId) { Save changes } @else { Save and start } }
+        @if (saving()) { @if (editId) { {{ t('jigsawNew.saving') || 'Saving…' }} } @else { {{ t('jigsawNew.making') || 'Making the jigsaw…' }} } } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>@if (editId) { {{ t('jigsawNew.saveChanges') || 'Save changes' }} } @else { {{ t('jigsawNew.saveStart') || 'Save and start' }} } }
       </button>
     </div>
   </form>
@@ -150,3 +151,4 @@
 @if (cropping() && file(); as chosen) {
   <app-picture-cropper [file]="chosen" [width]="width()" [height]="height()" (use)="useCut($event)" (cancel)="cropping.set(false)" />
 }
+</ng-container>

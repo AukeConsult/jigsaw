@@ -1,4 +1,5 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { PictureCrop, SourceRect } from '../../models/shared/geometry';
 
 /** The most room the frame gets on the window, in pixels (the frame has the shape of the canvas and is made as big as it can be in this). */
@@ -11,6 +12,8 @@ const MAX_FRAME_H = 460;
  */
 @Component({
   selector: 'app-picture-cropper',
+  imports: [TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawCropper')],
   templateUrl: './picture-cropper.html',
 })
 export class PictureCropper {

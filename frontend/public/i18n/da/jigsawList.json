@@ -1,0 +1,19 @@
+{
+  "title": "Alle puslespil",
+  "view": "Visning",
+  "list": "Liste",
+  "cards": "Kort",
+  "addNew": "Tilføj et nyt puslespil med dit eget billede",
+  "countOne": "{{ count }} puslespil",
+  "countMany": "{{ count }} puslespil",
+  "loadFailed": "Kunne ikke indlæse puslespillene.",
+  "playName": "Spil {{ name }}",
+  "pieces": "{{ count }} brikker ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px",
+  "madeSuffix": ", lavet {{ date }}",
+  "made": "Lavet {{ date }}",
+  "by": "af {{ author }}",
+  "none": "Intet puslespil endnu.",
+  "makeFirst": "Lav det første",
+  "noneTail": ": vælg et billede, sig hvor mange brikker du vil have, og gå i gang.",
+  "play": "Spil"
+}

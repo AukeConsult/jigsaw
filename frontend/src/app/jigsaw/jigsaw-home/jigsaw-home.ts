@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
@@ -13,7 +14,8 @@ const SHOWN = 36;
 /** The front page of Karins jigsaw (`/jigsaw`): what it is, where to start, and the newest jigsaws as small pictures. The list of all of them is at `/jigsaw/list`. */
 @Component({
   selector: 'app-jigsaw-home',
-  imports: [RouterLink, NgTemplateOutlet],
+  imports: [RouterLink, NgTemplateOutlet, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawHome')],
   templateUrl: './jigsaw-home.html',
 })
 export class JigsawHome implements OnInit {

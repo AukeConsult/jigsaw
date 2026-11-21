@@ -1,0 +1,11 @@
+{
+  "title": "Adjust the picture",
+  "help": "Drag the picture inside the frame to find the cut, and zoom with the slider or the mouse wheel. The frame has the shape of the canvas.",
+  "unreadable": "That file cannot be read as a picture.",
+  "frame": "The frame",
+  "pictureAlt": "The picture to cut",
+  "reading": "Reading the picture…",
+  "zoom": "Zoom",
+  "cancel": "Cancel",
+  "use": "Use this cut"
+}

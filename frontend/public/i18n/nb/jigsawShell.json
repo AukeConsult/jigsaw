@@ -1,0 +1,16 @@
+{
+  "menu": "Meny for Karins puslespill",
+  "jigsaws": "Puslespill",
+  "guide": "Brukerveiledning",
+  "whoPlays": "Hvem spiller?",
+  "whoPlaysTitle": "Hvem spiller: {{ name }}",
+  "choosePlayer": "Velg hvem som spiller",
+  "helper": "Hjelp",
+  "picture": "Bilde",
+  "pictureTitle": "Vis hele bildet i en liten ramme",
+  "edges": "Kanter",
+  "edgesTitle": "Bare hjørne- og kantbrikkene",
+  "showing": "Viser {{ shown }} av {{ total }} brikker",
+  "details": "Detaljer",
+  "language": "Språk"
+}

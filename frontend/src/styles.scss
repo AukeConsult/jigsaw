@@ -337,7 +337,8 @@ small,
   font-size: var(--app-btn-font-size);
   line-height: var(--bs-body-line-height);
   text-decoration: none;
-  white-space: nowrap;
+  max-width: 100%; // a long text (in another language) wraps inside the view, it never flows outside it
+  text-align: start;
   cursor: pointer;
 
   &:hover {

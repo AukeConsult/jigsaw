@@ -1,4 +1,5 @@
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, input, signal, viewChild } from '@angular/core';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { PuzzlePiece } from '../puzzle-piece/puzzle-piece';
 import { JigsawCut } from '../../models/shared/jigsaw';
 import { PiecePlace } from '../../models/shared/placed';
@@ -27,7 +28,8 @@ const MAX_HEIGHT_PX = 340;
  */
 @Component({
   selector: 'app-jigsaw-example',
-  imports: [PuzzlePiece],
+  imports: [PuzzlePiece, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawExample')],
   templateUrl: './jigsaw-example.html',
 })
 export class JigsawExample {

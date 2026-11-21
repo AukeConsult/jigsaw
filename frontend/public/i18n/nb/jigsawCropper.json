@@ -1,0 +1,11 @@
+{
+  "title": "Juster bildet",
+  "help": "Dra bildet inni rammen for å finne utsnittet, og zoom med glidebryteren eller musehjulet. Rammen har samme form som lerretet.",
+  "unreadable": "Den filen kan ikke leses som et bilde.",
+  "frame": "Rammen",
+  "pictureAlt": "Bildet som skal beskjæres",
+  "reading": "Leser bildet…",
+  "zoom": "Zoom",
+  "cancel": "Avbryt",
+  "use": "Bruk dette utsnittet"
+}

@@ -1,54 +1,54 @@
-<main class="container py-4">
+<main class="container py-4" *transloco="let t">
   <div class="form-card card card-body mx-auto">
-    <h1 class="page-title mb-3"><i class="bi bi-person-circle text-primary me-2" aria-hidden="true"></i>Who plays?</h1>
+    <h1 class="page-title mb-3"><i class="bi bi-person-circle text-primary me-2" aria-hidden="true"></i>{{ t('jigsawUser.title') || 'Who plays?' }}</h1>
 
     @if (users.user(); as me) {
       <div class="alert alert-success py-2 small d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
-        <span>You play as <strong>{{ me.name }}</strong> ({{ me.username }}).</span>
+        <span>{{ t('jigsawUser.youPlayAs') || 'You play as' }} <strong>{{ me.name }}</strong> ({{ me.username }}).</span>
         <span class="toolbar">
-          <button type="button" class="link-action" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil" aria-hidden="true"></i>Edit</button>
-          <button type="button" class="link-action" (click)="leave()">Choose another user</button>
+          <button type="button" class="link-action" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil" aria-hidden="true"></i>{{ t('jigsawUser.edit') || 'Edit' }}</button>
+          <button type="button" class="link-action" (click)="leave()">{{ t('jigsawUser.chooseAnother') || 'Choose another user' }}</button>
         </span>
       </div>
       @if (editing()) {
         <form (submit)="$event.preventDefault(); saveEdit()">
           <div class="mb-3">
-            <label class="form-label" for="edit-username">User name</label>
+            <label class="form-label" for="edit-username">{{ t('jigsawUser.usernameLabel') || 'User name' }}</label>
             <input id="edit-username" name="username" class="form-control" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
                    [ngModel]="username()" (ngModelChange)="username.set($event)">
-            <div class="form-text">{{ usernameMin }} to {{ usernameMax }} letters (a-z), digits, _ or -. Your rounds stay yours when you change it.</div>
+            <div class="form-text">{{ t('jigsawUser.usernameHelpEdit', { min: usernameMin, max: usernameMax }) || usernameMin + ' to ' + usernameMax + ' letters (a-z), digits, _ or -. Your rounds stay yours when you change it.' }}</div>
           </div>
           <div class="mb-3">
-            <label class="form-label" for="edit-name">Your name</label>
+            <label class="form-label" for="edit-name">{{ t('jigsawUser.yourName') || 'Your name' }}</label>
             <input id="edit-name" name="name" class="form-control" type="text" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
           </div>
           <div class="mb-3">
-            <label class="form-label" for="edit-email">E-mail <span class="text-body-secondary small">(optional)</span></label>
-            <input id="edit-email" name="email" class="form-control" type="email" autocapitalize="none" spellcheck="false" placeholder="Leave empty to keep the one there is"
+            <label class="form-label" for="edit-email">{{ t('jigsawUser.email') || 'E-mail' }} <span class="text-body-secondary small">{{ t('jigsawUser.optional') || '(optional)' }}</span></label>
+            <input id="edit-email" name="email" class="form-control" type="email" autocapitalize="none" spellcheck="false" [attr.placeholder]="t('jigsawUser.emailPlaceholder') || 'Leave empty to keep the one there is'"
                    [disabled]="removeEmail()" [ngModel]="email()" (ngModelChange)="email.set($event)">
             <div class="form-check mt-2">
               <input id="remove-email" name="removeEmail" class="form-check-input" type="checkbox" [ngModel]="removeEmail()" (ngModelChange)="removeEmail.set($event)">
-              <label class="form-check-label small" for="remove-email">Take my e-mail address away</label>
+              <label class="form-check-label small" for="remove-email">{{ t('jigsawUser.removeEmail') || 'Take my e-mail address away' }}</label>
             </div>
-            <div class="form-text">Nobody sees it, not even you here. It is kept so that you can connect this user to a registration later.</div>
+            <div class="form-text">{{ t('jigsawUser.emailHelpEdit') || 'Nobody sees it, not even you here. It is kept so that you can connect this user to a registration later.' }}</div>
           </div>
           @if (error()) {
             <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
           }
           <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-outline-secondary" (click)="editing.set(false)">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="editing.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawUser.save') || 'Save' }}</button>
           </div>
         </form>
       }
 
-      <h2 class="section-title mt-4 mb-2">Your rounds</h2>
+      <h2 class="section-title mt-4 mb-2">{{ t('jigsawUser.yourRounds') || 'Your rounds' }}</h2>
       @if (games() === null) {
-        <div class="text-body-secondary" role="status">Looking for your rounds…</div>
+        <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingRounds') || 'Looking for your rounds…' }}</div>
       } @else if (gamesFailed()) {
-        <div class="alert alert-warning py-2 small" role="alert">Could not read your rounds: reload the page.</div>
+        <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.roundsFailed') || 'Could not read your rounds: reload the page.' }}</div>
       } @else if (!games()!.length) {
-        <p class="text-body-secondary mb-0">You have not played any jigsaw yet. <a routerLink="/jigsaw/list">Find a jigsaw</a>.</p>
+        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noRounds') || 'You have not played any jigsaw yet.' }} <a routerLink="/jigsaw/list">{{ t('jigsawUser.findJigsaw') || 'Find a jigsaw' }}</a>.</p>
       } @else {
         <ul class="list-group">
           @for (game of games(); track game.play.id) {
@@ -64,23 +64,23 @@
                   <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', game.jigsaw.id]">{{ game.jigsaw.name }}</a>
                   <div class="d-flex align-items-center gap-2 flex-wrap small">
                     @if (game.play.status === 'solved') {
-                      <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Solved</span>
+                      <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawUser.solved') || 'Solved' }}</span>
                     } @else {
-                      <span class="badge text-bg-primary">Playing</span>
+                      <span class="badge text-bg-primary">{{ t('jigsawUser.playing') || 'Playing' }}</span>
                     }
-                    <span>{{ game.play.matched }} of {{ game.play.total }}</span>
+                    <span>{{ t('jigsawUser.ofTotal', { matched: game.play.matched, total: game.play.total }) || game.play.matched + ' of ' + game.play.total }}</span>
                   </div>
                   <div class="tiny text-body-secondary"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ game.play.startedAt | date: 'MMM d, y, HH:mm' }}</div>
                 </div>
                 <div class="round-actions">
                   @if (confirmingPlayId() === game.play.id) {
-                    <button type="button" class="btn btn-sm btn-danger" (click)="removeGame(game)">Yes, delete</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingPlayId.set(null)">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-danger" (click)="removeGame(game)">{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingPlayId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
                   } @else {
                     <a class="btn btn-sm btn-outline-primary text-nowrap" [routerLink]="['/jigsaw', game.jigsaw.id, 'play', game.play.id]">
-                      <i class="bi bi-play-fill" aria-hidden="true"></i>@if (game.play.status === 'solved') { Look } @else { Continue }
+                      <i class="bi bi-play-fill" aria-hidden="true"></i>@if (game.play.status === 'solved') { {{ t('jigsawUser.look') || 'Look' }} } @else { {{ t('jigsawUser.keepPlaying') || 'Continue' }} }
                     </a>
-                    <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" (click)="confirmingPlayId.set(game.play.id)"><i class="bi bi-trash" aria-hidden="true"></i>Delete</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" (click)="confirmingPlayId.set(game.play.id)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.deleteRound') || 'Delete' }}</button>
                   }
                 </div>
               </div>
@@ -92,14 +92,14 @@
       @if (mode() === 'choose') {
         <!-- choosing is done from the list: press a name. The one button here makes a new user. -->
         <div class="toolbar mb-2">
-          <span class="text-body-secondary">Press your name to play as you.</span>
-          <button type="button" class="link-action toolbar-end" (click)="mode.set('make'); error.set('')"><i class="bi bi-plus-lg" aria-hidden="true"></i>Make a user</button>
+          <span class="text-body-secondary">{{ t('jigsawUser.pressName') || 'Press your name to play as you.' }}</span>
+          <button type="button" class="link-action toolbar-end" (click)="mode.set('make'); error.set('')"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.makeUser') || 'Make a user' }}</button>
         </div>
         @if (list() === null) {
-          <div class="text-body-secondary" role="status">Looking for the users…</div>
+          <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingUsers') || 'Looking for the users…' }}</div>
         } @else {
           @if (list()!.length > 8) {
-            <input class="form-control mb-2" type="search" name="filter" placeholder="Find a user" aria-label="Find a user" [ngModel]="filter()" (ngModelChange)="filter.set($event)">
+            <input class="form-control mb-2" type="search" name="filter" [attr.placeholder]="t('jigsawUser.findUser') || 'Find a user'" [attr.aria-label]="t('jigsawUser.findUser') || 'Find a user'" [ngModel]="filter()" (ngModelChange)="filter.set($event)">
           }
           <div class="list-group mb-1">
             @for (user of shown(); track user.id) {
@@ -109,27 +109,27 @@
                 <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
               </button>
             } @empty {
-              <div class="list-group-item text-body-secondary">Nobody fits that.</div>
+              <div class="list-group-item text-body-secondary">{{ t('jigsawUser.nobodyFits') || 'Nobody fits that.' }}</div>
             }
           </div>
         }
       } @else {
         <form (submit)="$event.preventDefault(); submit()">
           <div class="mb-3">
-            <label class="form-label" for="username">User name</label>
+            <label class="form-label" for="username">{{ t('jigsawUser.usernameLabel') || 'User name' }}</label>
             <input id="username" name="username" class="form-control" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"
                    [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required [ngModel]="username()" (ngModelChange)="username.set($event)">
-            <div class="form-text">{{ usernameMin }} to {{ usernameMax }} letters (a-z), digits, _ or -. Nobody else can have the same.</div>
+            <div class="form-text">{{ t('jigsawUser.usernameHelpMake', { min: usernameMin, max: usernameMax }) || usernameMin + ' to ' + usernameMax + ' letters (a-z), digits, _ or -. Nobody else can have the same.' }}</div>
           </div>
           <div class="mb-3">
-            <label class="form-label" for="name">Your name</label>
+            <label class="form-label" for="name">{{ t('jigsawUser.yourName') || 'Your name' }}</label>
             <input id="name" name="name" class="form-control" type="text" autocomplete="name" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
-            <div class="form-text">Shown as the player.</div>
+            <div class="form-text">{{ t('jigsawUser.nameHelp') || 'Shown as the player.' }}</div>
           </div>
           <div class="mb-3">
-            <label class="form-label" for="email">E-mail <span class="text-body-secondary small">(optional)</span></label>
+            <label class="form-label" for="email">{{ t('jigsawUser.email') || 'E-mail' }} <span class="text-body-secondary small">{{ t('jigsawUser.optional') || '(optional)' }}</span></label>
             <input id="email" name="email" class="form-control" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" [ngModel]="email()" (ngModelChange)="email.set($event)">
-            <div class="form-text">Nobody sees it. It is kept so that you can connect this user to a registration later.</div>
+            <div class="form-text">{{ t('jigsawUser.emailHelpMake') || 'Nobody sees it. It is kept so that you can connect this user to a registration later.' }}</div>
           </div>
 
           @if (error()) {
@@ -137,10 +137,10 @@
           }
           <div class="d-flex justify-content-end gap-2">
             @if (list()?.length) {
-              <button type="button" class="btn btn-outline-secondary" (click)="mode.set('choose'); error.set('')">Back to the list</button>
+              <button type="button" class="btn btn-outline-secondary" (click)="mode.set('choose'); error.set('')">{{ t('jigsawUser.backToList') || 'Back to the list' }}</button>
             }
             <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()">
-              <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Make the user and play
+              <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawUser.makeAndPlay') || 'Make the user and play' }}
             </button>
           </div>
         </form>

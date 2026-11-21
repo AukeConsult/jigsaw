@@ -1,0 +1,19 @@
+{
+  "designerHint": "Dra ett objekt från listan in i ritytan och dra det igen för att flytta det. Mitten fastnar på en punkt i rutnätet. Ritytan är lager 0; ett nytt objekt hamnar på lager {{ layer }}.",
+  "layer": "Lager",
+  "removePicked": "Ta bort valda",
+  "helperFrame": "Ram med hjälpbild",
+  "helperTitle": "Hjälpbild",
+  "hideHelper": "Dölj hjälpbilden",
+  "helperAlt": "Hela bilden, mindre",
+  "helperSize": "Storlek på hjälpbilden",
+  "piecesArea": "Område för pusselbitar",
+  "canvasArea": "Ritytan",
+  "piecesStore": "Förråd med pusselbitar",
+  "clickToGet": "Klicka för att hämta bitar",
+  "scrollLeft": "Rulla bitarna åt vänster",
+  "scrollRight": "Rulla bitarna åt höger",
+  "bend": "Böj {{ which }}",
+  "width": "Bredd {{ side }}",
+  "resize": "Ändra storlek {{ id }}"
+}

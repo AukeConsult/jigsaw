@@ -1,26 +1,26 @@
+<ng-container *transloco="let t">
 @if (tools()) {
 <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
-  <span class="small text-body-secondary">Drag an object from the list into the canvas area, and drag it again to move it. Its centre sticks to a grid point.
-    The canvas is layer 0; a new object goes on layer {{ lastLayer() }}.</span>
+  <span class="small text-body-secondary">{{ t('jigsawBoard.designerHint', { layer: lastLayer() }) || 'Drag an object from the list into the canvas area, and drag it again to move it. Its centre sticks to a grid point. The canvas is layer 0; a new object goes on layer ' + lastLayer() + '.' }}</span>
     <div class="d-flex align-items-center gap-2">
-      <label class="small text-body-secondary mb-0" for="layer">Layer</label>
+      <label class="small text-body-secondary mb-0" for="layer">{{ t('jigsawBoard.layer') || 'Layer' }}</label>
       <input id="layer" type="number" min="1" max="1000" step="1" class="form-control form-control-sm layer-input"
              [value]="selectedLayer() ?? ''" [disabled]="!selection().length" (change)="setLayer($any($event.target).value)">
-      <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" [disabled]="!selection().length" (click)="removeSelected()">Remove picked</button>
+      <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" [disabled]="!selection().length" (click)="removeSelected()">{{ t('jigsawBoard.removePicked') || 'Remove picked' }}</button>
     </div>
 </div>
 }
 @if (helperBanner() && helper() && picture(); as src) {
   <!-- the helper picture: a frame on top of the rest of the page, moved by grabbing it anywhere (the close button and the corner do their own things) -->
-  <div class="helper-frame shadow border rounded bg-body" [style.left.px]="shownHelperFrame().x" [style.top.px]="shownHelperFrame().y" aria-label="Helper picture frame"
+  <div class="helper-frame shadow border rounded bg-body" [style.left.px]="shownHelperFrame().x" [style.top.px]="shownHelperFrame().y" [attr.aria-label]="t('jigsawBoard.helperFrame') || 'Helper picture frame'"
        (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame()" (pointercancel)="endHelperFrame()">
     <div class="helper-frame-title d-flex justify-content-between align-items-center gap-2 px-2 py-1 bg-body-secondary border-bottom rounded-top small">
-      <span>Helper picture</span>
-      <button type="button" class="btn-close btn-sm" aria-label="Hide the helper picture" (pointerdown)="$event.stopPropagation()" (click)="helper.set(false)"></button>
+      <span>{{ t('jigsawBoard.helperTitle') || 'Helper picture' }}</span>
+      <button type="button" class="btn-close btn-sm" [attr.aria-label]="t('jigsawBoard.hideHelper') || 'Hide the helper picture'" (pointerdown)="$event.stopPropagation()" (click)="helper.set(false)"></button>
     </div>
-    <img [src]="src" class="helper-frame-picture d-block m-1 border" [style.width.px]="width() * helperScale() * scale()" [style.height.px]="height() * helperScale() * scale()" alt="The whole picture, smaller">
+    <img [src]="src" class="helper-frame-picture d-block m-1 border" [style.width.px]="width() * helperScale() * scale()" [style.height.px]="height() * helperScale() * scale()" [attr.alt]="t('jigsawBoard.helperAlt') || 'The whole picture, smaller'">
     <!-- the corner: drag it to make the picture bigger (up to half its size) or smaller (down to a tenth) -->
-    <div class="helper-frame-grip" aria-label="Size of the helper picture"
+    <div class="helper-frame-grip" [attr.aria-label]="t('jigsawBoard.helperSize') || 'Size of the helper picture'"
          (pointerdown)="startHelperSize($event)" (pointermove)="moveHelperSize($event)" (pointerup)="endHelperSize()" (pointercancel)="endHelperSize()"><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i></div>
   </div>
 }
@@ -28,7 +28,7 @@
   The jigsaw pieces area. The canvas is width × height in the stored pixels the objects are placed in; the whole content is drawn at `scale`, so the picture is always
   shown whole, in its own proportions, whatever the size of the screen (the sizer takes the room the scaled content takes).
 -->
-<div #root class="border rounded bg-body-tertiary" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" aria-label="Jigsaw pieces area"
+<div #root class="border rounded bg-body-tertiary" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
      (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()">
 <div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
 <div class="scale-content position-relative d-flex align-items-start p-2" [class.flex-column]="stacked()" [style.gap.px]="gridSize()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
@@ -36,7 +36,7 @@
        [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null"
        (dragover)="allowDrop($event)" (dragleave)="leaveDrop()" (drop)="drop($event)"
        (pointerdown)="startMarquee($event)">
-    <canvas #area class="d-block" aria-label="Canvas area"></canvas>
+    <canvas #area class="d-block" [attr.aria-label]="t('jigsawBoard.canvasArea') || 'Canvas area'"></canvas>
     @if (!store()) {
       @for (v of view(); track v.p.id) {
         <ng-container *ngTemplateOutlet="item; context: { $implicit: v, shift: 0, shiftY: 0, clip: null }" />
@@ -54,21 +54,21 @@
     <!-- the three points that shape the picked arrow (a quarter, half and three quarters of the way): drag each to a side to curve the arrow, back to the line to make it straight -->
     @for (m of bendHandles(); track m.which) {
       <div class="bend-handle"
-           [style.left.px]="m.x" [style.top.px]="m.y" [attr.aria-label]="'Bend ' + m.which"
+           [style.left.px]="m.x" [style.top.px]="m.y" [attr.aria-label]="t('jigsawBoard.bend', { which: m.which }) || 'Bend ' + m.which"
            (pointerdown)="startBend($event, m.which); $event.stopPropagation()" (pointermove)="moveBend($event)" (pointerup)="endBend()" (pointercancel)="endBend()"
            (click)="$event.stopPropagation()"></div>
     }
     <!-- the two handles for the width across of the picked arrow: drag one to make the arrow wider or thinner -->
     @for (h of acrossHandles(); track h.side) {
       <div class="across-handle"
-           [style.left.px]="h.x" [style.top.px]="h.y" [attr.aria-label]="'Width ' + (h.side === 1 ? 'a' : 'b')"
+           [style.left.px]="h.x" [style.top.px]="h.y" [attr.aria-label]="t('jigsawBoard.width', { side: h.side === 1 ? 'a' : 'b' }) || 'Width ' + (h.side === 1 ? 'a' : 'b')"
            (pointerdown)="startAcross($event, h.side); $event.stopPropagation()" (pointermove)="moveAcross($event)" (pointerup)="endAcross()" (pointercancel)="endAcross()"
            (click)="$event.stopPropagation()"></div>
     }
     <!-- the resize handles of the picked figure, or of the box around the picked objects: drag one to change the size of the figure -->
     @for (h of handles(); track h.id) {
       <div class="resize-handle"
-           [style.left.px]="h.x" [style.top.px]="h.y" [style.cursor]="h.cursor" [attr.aria-label]="'Resize ' + h.id"
+           [style.left.px]="h.x" [style.top.px]="h.y" [style.cursor]="h.cursor" [attr.aria-label]="t('jigsawBoard.resize', { id: h.id }) || 'Resize ' + h.id"
            (pointerdown)="startResize($event, h.id); $event.stopPropagation()" (pointermove)="moveResize($event)" (pointerup)="endResize()" (pointercancel)="endResize()"
            (click)="$event.stopPropagation()"></div>
     }
@@ -76,7 +76,7 @@
   <!-- the store frame of a jigsaw, beside the canvas (below it on a narrow screen, see `stacked`): the pieces wait here, spread out; it scrolls up and down -->
   @if (store(); as s) {
     <div class="position-relative flex-shrink-0">
-    <div #storeFrame class="border rounded bg-body-secondary" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" aria-label="Jigsaw pieces store"
+    <div #storeFrame class="border rounded bg-body-secondary" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" [attr.aria-label]="t('jigsawBoard.piecesStore') || 'Jigsaw pieces store'"
          [style.width.px]="storeFrameWidth()" [style.height.px]="storeViewHeight()" (scroll)="onStoreScroll($event)">
       <div #storeInner class="position-relative" [style.width.px]="storeInnerSize().width" [style.height.px]="storeInnerSize().height" (pointerdown)="startMarquee($event)">
         <!-- the rectangle that is being dragged to pick pieces, in the store frame -->
@@ -88,15 +88,15 @@
     </div>
     <!-- a tiny hint, on top of the pieces: a click on an empty place of the store collects the pieces -->
     @if (storePieceIds().length) {
-      <span class="store-hint text-body-secondary" aria-hidden="true">Click to get pieces</span>
+      <span class="store-hint text-body-secondary" aria-hidden="true">{{ t('jigsawBoard.clickToGet') || 'Click to get pieces' }}</span>
     }
     <!-- below the picture the store scrolls sideways: two buttons over its edges scroll it a step to the left or right (only where there is more to see) -->
     @if (canScrollLeft()) {
-      <button type="button" class="store-scroll store-scroll-left btn btn-secondary rounded-circle" aria-label="Scroll the pieces to the left"
+      <button type="button" class="store-scroll store-scroll-left btn btn-secondary rounded-circle" [attr.aria-label]="t('jigsawBoard.scrollLeft') || 'Scroll the pieces to the left'"
               (pointerdown)="$event.stopPropagation()" (click)="scrollStore(storeFrame, -1)"><i class="bi bi-chevron-left" aria-hidden="true"></i></button>
     }
     @if (canScrollRight()) {
-      <button type="button" class="store-scroll store-scroll-right btn btn-secondary rounded-circle" aria-label="Scroll the pieces to the right"
+      <button type="button" class="store-scroll store-scroll-right btn btn-secondary rounded-circle" [attr.aria-label]="t('jigsawBoard.scrollRight') || 'Scroll the pieces to the right'"
               (pointerdown)="$event.stopPropagation()" (click)="scrollStore(storeFrame, 1)"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
     }
     </div>
@@ -117,6 +117,7 @@
 </div>
 </div>
 </div>
+</ng-container>
 <ng-template #item let-v let-shift="shift" let-shiftY="shiftY" let-clip="clip">
 @if (!v.hidden) {
       @let p = v.p;

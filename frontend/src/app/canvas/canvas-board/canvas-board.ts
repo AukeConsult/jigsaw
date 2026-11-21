@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, HostListener, inject, computed, effect, input, model, output, signal, untracked, viewChild } from '@angular/core';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { CanvasShape } from '../canvas-shape/canvas-shape';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
 import { readSession, writeSession } from '../../core/session-storage';
@@ -79,7 +80,8 @@ const NOT_BENT = [0, 0, 0] as const;
  */
 @Component({
   selector: 'app-canvas-board',
-  imports: [CanvasShape, PuzzlePiece, NgTemplateOutlet],
+  imports: [CanvasShape, PuzzlePiece, NgTemplateOutlet, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawBoard')],
   templateUrl: './canvas-board.html',
 })
 export class CanvasBoard {

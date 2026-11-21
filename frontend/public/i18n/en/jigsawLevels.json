@@ -1,0 +1,14 @@
+{
+  "line": {
+    "none": "None",
+    "hairline": "Hairline",
+    "thin": "Thin",
+    "medium": "Medium",
+    "thick": "Thick"
+  },
+  "snap": {
+    "hard": "Hard",
+    "medium": "Medium",
+    "easy": "Easy"
+  }
+}

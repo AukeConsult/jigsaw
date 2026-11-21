@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { tr } from '../core/i18n';
 import { environment } from '../../environments/environment';
 import { JigsawUserSpec, JigsawUsers } from '../models/shared/jigsaw-user';
 
@@ -11,7 +12,7 @@ const LEGACY_KEY = 'jigsaw.username';
 /** Why a request about a user failed, in words for the person (the API says why when it can). */
 function reasonOf(err: unknown): string {
   const body = err instanceof HttpErrorResponse ? (err.error as { error?: string } | null) : null;
-  return body?.error ?? 'Could not reach the server: try again.';
+  return body?.error ?? tr('jigsawUser.couldNotReach', 'Could not reach the server: try again.');
 }
 
 /**
@@ -96,7 +97,7 @@ export class JigsawUserService {
       this.choose(await firstValueFrom(this.http.get<JigsawUserSpec>(`${environment.apiBase}/jigsaw-users/by-username/${encodeURIComponent(JigsawUsers.normalised(username))}`)));
       return '';
     } catch (err) {
-      return err instanceof HttpErrorResponse && err.status === 404 ? 'There is no user with that user name.' : reasonOf(err);
+      return err instanceof HttpErrorResponse && err.status === 404 ? tr('jigsawUser.noSuchUser', 'There is no user with that user name.') : reasonOf(err);
     }
   }
 
@@ -106,7 +107,7 @@ export class JigsawUserService {
    */
   async update(change: { name?: string; username?: string; email?: string | null }): Promise<string> {
     const me = this.user();
-    if (!me) return 'Choose a user first.';
+    if (!me) return tr('jigsawUser.chooseFirst', 'Choose a user first.');
     try {
       this.user.set(await firstValueFrom(this.http.put<JigsawUserSpec>(this.url(me.id), change)));
       return '';
