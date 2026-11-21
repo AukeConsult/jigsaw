@@ -1,4 +1,4 @@
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../core/language.service';
@@ -13,34 +13,21 @@ import { JigsawUserService } from './jigsaw-user.service';
   template: `
     <nav class="app-navbar navbar navbar-expand bg-body-tertiary border-bottom" *transloco="let t" [attr.aria-label]="t('jigsawShell.menu') || 'Karins jigsaw menu'">
       <div class="container-fluid flex-wrap gap-1">
-        <a class="navbar-brand d-flex align-items-center gap-2" routerLink="/jigsaw">
-          <img class="brand-logo" src="logo.svg" alt="" width="28" height="28">
-          <span>Karins jigsaw</span>
+        <a class="navbar-brand brand-lockup d-flex align-items-center gap-2" routerLink="/jigsaw" aria-label="Karins jigsaw">
+          <img class="brand-logo" src="logo.svg" alt="" width="32" height="32">
+          <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
         </a>
-        <ul class="navbar-nav me-auto flex-shrink-0">
+        <ul class="navbar-nav flex-shrink-0">
           <li class="nav-item">
             <a class="nav-link" routerLink="/jigsaw/list" routerLinkActive="active" [title]="t('jigsawShell.jigsaws') || 'Jigsaws'"><i class="bi bi-grid-3x3-gap me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.jigsaws') || 'Jigsaws' }}</span></a>
           </li>
           <li class="nav-item">
             <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'User guide'"><i class="bi bi-book me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.guide') || 'User guide' }}</span></a>
           </li>
-          <li class="nav-item">
-            <!-- who plays: the name of the user, and a way to choose another -->
-            <a class="nav-link text-nowrap" routerLink="/jigsaw/user" routerLinkActive="active" [title]="users.user() ? (t('jigsawShell.whoPlaysTitle', { name: users.user()!.username }) || 'Who plays: ' + users.user()!.username) : (t('jigsawShell.choosePlayer') || 'Choose who plays')">
-              <i class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ users.user()?.name ?? (t('jigsawShell.whoPlays') || 'Who plays?') }}</span>
-            </a>
-          </li>
         </ul>
-        <!-- the language of the texts, chosen on this device -->
-        <label class="visually-hidden" for="language">{{ t('jigsawShell.language') || 'Language' }}</label>
-        <select id="language" class="form-select form-select-sm w-auto" [value]="language.lang()" (change)="language.use($any($event.target).value)">
-          @for (l of languages; track l.code) {
-            <option [value]="l.code" [selected]="l.code === language.lang()">{{ l.name }}</option>
-          }
-        </select>
         @if (tools.active()) {
           <!-- the helper, on the page of a jigsaw: the helper picture (a frame on top of the page with the whole picture), only the corner and edge pieces -->
-          <div class="d-flex align-items-center flex-wrap gap-2 gap-sm-3 ms-auto" [attr.aria-label]="t('jigsawShell.helper') || 'Helper'">
+          <div class="jigsaw-helper-bar d-flex align-items-center flex-wrap gap-2 gap-sm-3" [attr.aria-label]="t('jigsawShell.helper') || 'Helper'">
             <div class="form-check form-switch mb-0">
               <input id="helper-picture" class="form-check-input" type="checkbox" role="switch" [checked]="tools.helper()" [disabled]="!tools.hasPicture()"
                      (change)="tools.helper.set($any($event.target).checked)">
@@ -59,6 +46,35 @@ import { JigsawUserService } from './jigsaw-user.service';
                     (click)="tools.sidebarOpen.set(true)"><i class="bi bi-layout-sidebar me-1" aria-hidden="true"></i>{{ t('jigsawShell.details') || 'Details' }}</button>
           </div>
         }
+        <!-- who plays and the language: always at the right end of the menu -->
+        <div class="d-flex align-items-center gap-2 ms-auto order-1">
+          <ul class="navbar-nav flex-shrink-0">
+            <li class="nav-item">
+            <!-- who plays: the name of the user, and a way to choose another -->
+            <a class="nav-link text-nowrap" routerLink="/jigsaw/user" routerLinkActive="active" [title]="users.user() ? (t('jigsawShell.whoPlaysTitle', { name: users.user()!.username }) || 'Who plays: ' + users.user()!.username) : (t('jigsawShell.choosePlayer') || 'Choose who plays')">
+              <i class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ users.user()?.name ?? (t('jigsawShell.whoPlays') || 'Who plays?') }}</span>
+            </a>
+            </li>
+          </ul>
+          <!-- the language of the texts, chosen on this device: the flag of the language in use, and a list of flags with the names of the languages -->
+          <div class="position-relative">
+            <button id="language" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-2" aria-haspopup="listbox" [attr.aria-expanded]="languageOpen()"
+                    [attr.aria-label]="(t('jigsawShell.language') || 'Language') + ': ' + current().name" [title]="current().name" (click)="toggleLanguages($event)">
+              <img class="flag" [src]="'flags/' + current().code + '.svg'" alt="" width="24" height="16"><i class="bi bi-chevron-down small" aria-hidden="true"></i>
+            </button>
+            @if (languageOpen()) {
+              <ul class="dropdown-menu language-menu show" role="listbox" [style.top.px]="languageTop()" [attr.aria-label]="t('jigsawShell.language') || 'Language'">
+                @for (l of languages; track l.code) {
+                  <li role="option" [attr.aria-selected]="l.code === language.lang()">
+                    <button type="button" class="dropdown-item d-flex align-items-center gap-2" [class.active]="l.code === language.lang()" (click)="chooseLanguage(l.code)">
+                      <img class="flag" [src]="'flags/' + l.code + '.svg'" alt="" width="24" height="16">{{ l.name }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
       </div>
     </nav>
     <router-outlet />
@@ -69,6 +85,28 @@ export class JigsawShell {
   protected readonly users = inject(JigsawUserService);
   protected readonly language = inject(LanguageService);
   protected readonly languages = LANGUAGES;
+  /** the list of languages is open */
+  protected readonly languageOpen = signal(false);
+  protected readonly current = computed(() => LANGUAGES.find((l) => l.code === this.language.lang()) ?? LANGUAGES[0]);
+
+  /** where the list starts: just under the button (the list is fixed to the window, so it is always inside the view, whatever clips the menu) */
+  protected readonly languageTop = signal(48);
+
+  protected toggleLanguages(event: MouseEvent): void {
+    this.languageTop.set(Math.round((event.currentTarget as HTMLElement).getBoundingClientRect().bottom) + 4);
+    this.languageOpen.set(!this.languageOpen());
+  }
+
+  protected chooseLanguage(code: string): void {
+    this.language.use(code);
+    this.languageOpen.set(false);
+  }
+
+  /** a click anywhere else closes the list of languages */
+  @HostListener('document:click', ['$event'])
+  closeLanguages(event: MouseEvent): void {
+    if (this.languageOpen() && !(event.target as Element | null)?.closest?.('#language, .dropdown-menu')) this.languageOpen.set(false);
+  }
 
   constructor() {
     void this.users.load(); // the user who played here last is read, so the menu can show the name

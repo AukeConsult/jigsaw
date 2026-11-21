@@ -1,0 +1,19 @@
+{
+  "designerHint": "Arrastra un objeto de la lista al área del lienzo y arrástralo de nuevo para moverlo. Su centro se pega a un punto de la cuadrícula. El lienzo es la capa 0; un objeto nuevo va en la capa {{ layer }}.",
+  "layer": "Capa",
+  "removePicked": "Quitar el elegido",
+  "helperFrame": "Marco de la imagen de ayuda",
+  "helperTitle": "Imagen de ayuda",
+  "hideHelper": "Ocultar la imagen de ayuda",
+  "helperAlt": "La imagen completa, más pequeña",
+  "helperSize": "Tamaño de la imagen de ayuda",
+  "piecesArea": "Zona de las piezas del puzle",
+  "canvasArea": "Zona del lienzo",
+  "piecesStore": "Almacén de piezas del puzle",
+  "clickToGet": "Haz clic para coger piezas",
+  "scrollLeft": "Desplazar las piezas a la izquierda",
+  "scrollRight": "Desplazar las piezas a la derecha",
+  "bend": "Curvar {{ which }}",
+  "width": "Ancho {{ side }}",
+  "resize": "Cambiar el tamaño de {{ id }}"
+}

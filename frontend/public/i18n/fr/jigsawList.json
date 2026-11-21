@@ -1,0 +1,20 @@
+{
+  "title": "Tous les puzzles",
+  "view": "Affichage",
+  "list": "Liste",
+  "cards": "Cartes",
+  "addNew": "Ajouter un nouveau puzzle avec ton image",
+  "countOne": "{{ count }} puzzle",
+  "countMany": "{{ count }} puzzles",
+  "loadFailed": "Impossible de charger les puzzles.",
+  "playName": "Jouer à {{ name }}",
+  "pieces": "{{ count }} pièces ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px",
+  "madeSuffix": ", créé le {{ date }}",
+  "made": "Créé le {{ date }}",
+  "by": "par {{ author }}",
+  "none": "Aucun puzzle pour le moment.",
+  "makeFirst": "Crée le premier",
+  "noneTail": " : choisis une image, dis combien de pièces tu veux, et c'est parti.",
+  "play": "Jouer",
+  "onlyYou": "Toi seul le vois"
+}

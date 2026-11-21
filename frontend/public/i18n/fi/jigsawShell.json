@@ -1,0 +1,16 @@
+{
+  "menu": "Karinin palapelien valikko",
+  "jigsaws": "Palapelit",
+  "guide": "Käyttöohje",
+  "whoPlays": "Kuka pelaa?",
+  "whoPlaysTitle": "Pelaaja: {{ name }}",
+  "choosePlayer": "Valitse, kuka pelaa",
+  "helper": "Apu",
+  "picture": "Kuva",
+  "pictureTitle": "Näytä koko kuva pienessä kehyksessä",
+  "edges": "Reunat",
+  "edgesTitle": "Vain kulma- ja reunapalat",
+  "showing": "Näytetään {{ shown }} / {{ total }} palaa",
+  "details": "Tiedot",
+  "language": "Kieli"
+}

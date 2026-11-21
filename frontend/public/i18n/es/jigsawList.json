@@ -1,0 +1,20 @@
+{
+  "title": "Todos los puzles",
+  "view": "Vista",
+  "list": "Lista",
+  "cards": "Tarjetas",
+  "addNew": "Añade un puzle nuevo con tu imagen",
+  "countOne": "{{ count }} puzle",
+  "countMany": "{{ count }} puzles",
+  "loadFailed": "No se pudieron cargar los puzles.",
+  "playName": "Jugar a {{ name }}",
+  "pieces": "{{ count }} piezas ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px",
+  "madeSuffix": ", creado el {{ date }}",
+  "made": "Creado el {{ date }}",
+  "by": "por {{ author }}",
+  "none": "Todavía no hay ningún puzle.",
+  "makeFirst": "Crea el primero",
+  "noneTail": ": elige una imagen, di cuántas piezas quieres y empieza.",
+  "play": "Jugar",
+  "onlyYou": "Solo lo ves tú"
+}

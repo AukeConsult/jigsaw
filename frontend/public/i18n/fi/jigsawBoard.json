@@ -1,0 +1,19 @@
+{
+  "designerHint": "Vedä kohde listasta piirtoalueelle ja vedä se uudelleen siirtääksesi sitä. Sen keskipiste tarttuu ruudukon pisteeseen. Piirtoalue on taso 0; uusi kohde menee tasolle {{ layer }}.",
+  "layer": "Taso",
+  "removePicked": "Poista valittu",
+  "helperFrame": "Apukuvan kehys",
+  "helperTitle": "Apukuva",
+  "hideHelper": "Piilota apukuva",
+  "helperAlt": "Koko kuva pienempänä",
+  "helperSize": "Apukuvan koko",
+  "piecesArea": "Palapelin palojen alue",
+  "canvasArea": "Piirtoalue",
+  "piecesStore": "Palapelin palojen varasto",
+  "clickToGet": "Napsauta hakeaksesi palat",
+  "scrollLeft": "Vieritä paloja vasemmalle",
+  "scrollRight": "Vieritä paloja oikealle",
+  "bend": "Taivuta {{ which }}",
+  "width": "Leveys {{ side }}",
+  "resize": "Muuta kokoa {{ id }}"
+}

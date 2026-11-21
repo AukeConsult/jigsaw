@@ -1,0 +1,14 @@
+{
+  "line": {
+    "none": "Ninguna",
+    "hairline": "Muy fina",
+    "thin": "Fina",
+    "medium": "Media",
+    "thick": "Gruesa"
+  },
+  "snap": {
+    "hard": "Difícil",
+    "medium": "Media",
+    "easy": "Fácil"
+  }
+}

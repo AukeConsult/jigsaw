@@ -1,0 +1,19 @@
+{
+  "designerHint": "Zieh ein Objekt aus der Liste in den Leinwandbereich und zieh es noch einmal, um es zu verschieben. Seine Mitte rastet an einem Gitterpunkt ein. Die Leinwand ist Ebene 0; ein neues Objekt kommt auf Ebene {{ layer }}.",
+  "layer": "Ebene",
+  "removePicked": "Ausgewähltes entfernen",
+  "helperFrame": "Rahmen für das Hilfsbild",
+  "helperTitle": "Hilfsbild",
+  "hideHelper": "Das Hilfsbild ausblenden",
+  "helperAlt": "Das ganze Bild, kleiner",
+  "helperSize": "Größe des Hilfsbilds",
+  "piecesArea": "Bereich der Puzzleteile",
+  "canvasArea": "Leinwandbereich",
+  "piecesStore": "Ablage der Puzzleteile",
+  "clickToGet": "Klicken, um Teile zu holen",
+  "scrollLeft": "Die Teile nach links scrollen",
+  "scrollRight": "Die Teile nach rechts scrollen",
+  "bend": "{{ which }} biegen",
+  "width": "Breite {{ side }}",
+  "resize": "Größe von {{ id }} ändern"
+}

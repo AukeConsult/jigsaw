@@ -1,0 +1,20 @@
+{
+  "title": "Alle Puzzles",
+  "view": "Ansicht",
+  "list": "Liste",
+  "cards": "Karten",
+  "addNew": "Neues Puzzle mit deinem Bild hinzufügen",
+  "countOne": "{{ count }} Puzzle",
+  "countMany": "{{ count }} Puzzles",
+  "loadFailed": "Die Puzzles konnten nicht geladen werden.",
+  "playName": "{{ name }} spielen",
+  "pieces": "{{ count }} Teile ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px",
+  "madeSuffix": ", erstellt am {{ date }}",
+  "made": "Erstellt am {{ date }}",
+  "by": "von {{ author }}",
+  "none": "Noch kein Puzzle.",
+  "makeFirst": "Erstell das erste",
+  "noneTail": ": Such ein Bild aus, wähl die Anzahl der Teile und leg los.",
+  "play": "Spielen",
+  "onlyYou": "Nur du siehst es"
+}

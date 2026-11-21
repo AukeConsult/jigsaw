@@ -1,0 +1,16 @@
+{
+  "menu": "Menú del puzle de Karin",
+  "jigsaws": "Puzles",
+  "guide": "Guía del usuario",
+  "whoPlays": "¿Quién juega?",
+  "whoPlaysTitle": "Quién juega: {{ name }}",
+  "choosePlayer": "Elige quién juega",
+  "helper": "Ayuda",
+  "picture": "Imagen",
+  "pictureTitle": "Muestra la imagen completa en un marco pequeño",
+  "edges": "Bordes",
+  "edgesTitle": "Solo las piezas de las esquinas y los bordes",
+  "showing": "Mostrando {{ shown }} de {{ total }} piezas",
+  "details": "Detalles",
+  "language": "Idioma"
+}

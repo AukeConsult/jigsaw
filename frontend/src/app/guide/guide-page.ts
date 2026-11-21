@@ -46,16 +46,24 @@ export class GuidePage {
 
   private async load(lang: string): Promise<void> {
     const name: string = this.route.snapshot.data['guide'] ?? 'user-guide.md';
-    const url = (file: string) => new URL(`docs/${file}`, document.baseURI).href;
+    const url = (file: string) => new URL(file, document.baseURI).href;
     const read = (file: string) => firstValueFrom(this.http.get(url(file), { responseType: 'text' }));
     this.failed.set(false);
+    // the guide of the language (`i18n/<language>/<name>`), else the English one, else the one of `docs` (the guide of Canvas has only that)
+    const places = [`i18n/${lang}/${name}`, `i18n/en/${name}`, `docs/${name}`];
     try {
-      let text: string;
-      try {
-        text = lang === 'en' ? await read(name) : await read(name.replace(/\.md$/, `.${lang}.md`));
-      } catch {
-        text = await read(name);
+      let text: string | null = null;
+      for (const place of places) {
+        try {
+          const got = await read(place);
+          if (/^\s*<(!doctype|html)/i.test(got)) continue; // a host that answers a missing file with the page of the app (it is not a guide)
+          text = got;
+          break;
+        } catch {
+          /* not there: the next place */
+        }
       }
+      if (text === null) throw new Error('no guide');
       this.html.set(renderMarkdown(text));
     } catch {
       this.failed.set(true);

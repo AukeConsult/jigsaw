@@ -1,0 +1,16 @@
+{
+  "menu": "Menu van Karins puzzel",
+  "jigsaws": "Puzzels",
+  "guide": "Gebruikershandleiding",
+  "whoPlays": "Wie speelt?",
+  "whoPlaysTitle": "Wie speelt: {{ name }}",
+  "choosePlayer": "Kies wie er speelt",
+  "helper": "Hulp",
+  "picture": "Afbeelding",
+  "pictureTitle": "Toon de hele afbeelding in een klein kader",
+  "edges": "Randen",
+  "edgesTitle": "Alleen de hoek- en randstukjes",
+  "showing": "{{ shown }} van {{ total }} stukjes zichtbaar",
+  "details": "Details",
+  "language": "Taal"
+}

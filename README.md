@@ -13,4 +13,4 @@ npm test
 ```
 
 ## Documentation
-See [docs/guide](docs/guide/README.md): [Karins jigsaw](docs/guide/jigsaw-guide.md), [using Canvas](docs/guide/user-guide.md), [the model](docs/guide/model.md), [API, code and running](docs/guide/api-and-code.md). Rules for working on the code are in [CLAUDE.md](CLAUDE.md).
+See [docs/guide](docs/guide/README.md): [Karins jigsaw](frontend/public/i18n/en/jigsaw-guide.md), [using Canvas](docs/guide/user-guide.md), [the model](docs/guide/model.md), [API, code and running](docs/guide/api-and-code.md). Rules for working on the code are in [CLAUDE.md](CLAUDE.md).

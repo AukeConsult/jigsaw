@@ -1,0 +1,14 @@
+{
+  "line": {
+    "none": "Geen",
+    "hairline": "Haarfijn",
+    "thin": "Dun",
+    "medium": "Middel",
+    "thick": "Dik"
+  },
+  "snap": {
+    "hard": "Moeilijk",
+    "medium": "Middel",
+    "easy": "Makkelijk"
+  }
+}

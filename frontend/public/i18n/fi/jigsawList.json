@@ -1,0 +1,20 @@
+{
+  "title": "Kaikki palapelit",
+  "view": "Näkymä",
+  "list": "Lista",
+  "cards": "Kortit",
+  "addNew": "Lisää uusi palapeli omalla kuvallasi",
+  "countOne": "{{ count }} palapeli",
+  "countMany": "{{ count }} palapeliä",
+  "loadFailed": "Palapelejä ei voitu ladata.",
+  "playName": "Pelaa: {{ name }}",
+  "pieces": "{{ count }} palaa ({{ columns }} × {{ rows }}), {{ width }} × {{ height }} px",
+  "madeSuffix": ", tehty {{ date }}",
+  "made": "Tehty {{ date }}",
+  "by": "tekijä {{ author }}",
+  "none": "Ei vielä yhtään palapeliä.",
+  "makeFirst": "Tee ensimmäinen",
+  "noneTail": ": valitse kuva, kerro palojen määrä ja aloita.",
+  "play": "Pelaa",
+  "onlyYou": "Vain sinä näet sen"
+}

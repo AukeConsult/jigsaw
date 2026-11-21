@@ -1,0 +1,19 @@
+{
+  "designerHint": "Sleep een object uit de lijst naar het canvas en sleep het opnieuw om het te verplaatsen. Het midden blijft op een rasterpunt vastzitten. Het canvas is laag 0; een nieuw object komt op laag {{ layer }}.",
+  "layer": "Laag",
+  "removePicked": "Gekozen object verwijderen",
+  "helperFrame": "Kader met hulpafbeelding",
+  "helperTitle": "Hulpafbeelding",
+  "hideHelper": "De hulpafbeelding verbergen",
+  "helperAlt": "De hele afbeelding, kleiner",
+  "helperSize": "Grootte van de hulpafbeelding",
+  "piecesArea": "Gebied met puzzelstukjes",
+  "canvasArea": "Canvasgebied",
+  "piecesStore": "Voorraad puzzelstukjes",
+  "clickToGet": "Klik om stukjes te halen",
+  "scrollLeft": "Scroll de stukjes naar links",
+  "scrollRight": "Scroll de stukjes naar rechts",
+  "bend": "Buig {{ which }}",
+  "width": "Breedte {{ side }}",
+  "resize": "Formaat van {{ id }} wijzigen"
+}

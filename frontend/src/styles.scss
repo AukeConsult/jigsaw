@@ -439,6 +439,70 @@ small,
   }
 }
 
+// the helper switches in the menu of a jigsaw: on a narrow screen they have a line of their own under the brand, the user and the language (which stay on the top line,
+// at the right end); on a wide screen they sit beside the menu
+.jigsaw-helper-bar {
+  order: 2;
+  flex-basis: 100%;
+}
+
+@media (min-width: 992px) {
+  .jigsaw-helper-bar {
+    order: 0;
+    flex-basis: auto;
+  }
+}
+
+// the list of languages: fixed to the window at the right, so it always shows inside the view (on a very narrow window it takes the width there is)
+.language-menu {
+  position: fixed;
+  right: 0.5rem;
+  left: auto;
+  min-width: 0;
+  max-width: calc(100vw - 1rem);
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+// the name of the app in the menu: the mark, "Karins" in bold, and "jigsaw" small under it
+.brand-lockup {
+  padding-block: 0;
+
+  .brand-logo {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .brand-sub {
+    margin-top: 0.125rem;
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    color: var(--bs-secondary-color);
+  }
+}
+
+// a small flag (the flags are files in `public/flags`, one for each language)
+.flag {
+  width: 1.5rem;
+  height: 1rem;
+  border-radius: 0.125rem;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+  object-fit: cover;
+}
+
 .min-w-0 {
   min-width: 0; // a part of a row that may shrink (and wrap its text) instead of pushing the buttons out
 }
@@ -845,11 +909,6 @@ small,
 }
 
 // ---- the pages of Karins jigsaw ----------------------------------------------------------------------------------------------------------------
-.brand-logo {
-  height: 1.75rem; // the logo in the header, left of the name
-  width: auto;
-}
-
 .guide {
   max-width: 50rem; // the user guide, shown from Markdown
 

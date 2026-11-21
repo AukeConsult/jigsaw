@@ -1,0 +1,11 @@
+{
+  "title": "Ajusta la imagen",
+  "help": "Arrastra la imagen dentro del marco para encontrar el recorte y haz zoom con el control deslizante o la rueda del ratón. El marco tiene la forma del lienzo.",
+  "unreadable": "Ese archivo no se puede leer como imagen.",
+  "frame": "El marco",
+  "pictureAlt": "La imagen que se va a recortar",
+  "reading": "Leyendo la imagen…",
+  "zoom": "Zoom",
+  "cancel": "Cancelar",
+  "use": "Usar este recorte"
+}
