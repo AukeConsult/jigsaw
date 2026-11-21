@@ -22,11 +22,11 @@ export function tr(key: string, fallback: string, params?: Params): string {
   return (translator.translate(key, params) as string | undefined) || english();
 }
 
-/** The part of the file a key belongs to (`safebox.common.file` -> `safebox`) is loaded for the language of the app. */
+/** The key is loaded for the language of the app. Transloco keeps every text under its whole dotted key (`jigsawBoard.helperTitle`), so the whole key is looked up, not the scope part of it. */
 function isLoaded(service: TranslocoService, key: string): boolean {
   try {
     const loaded = service.getTranslation(service.getActiveLang()) as Record<string, unknown> | undefined;
-    return !!loaded && key.split('.')[0] in loaded;
+    return !!loaded && key in loaded;
   } catch {
     return false;
   }

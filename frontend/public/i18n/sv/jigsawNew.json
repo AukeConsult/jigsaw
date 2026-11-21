@@ -57,5 +57,9 @@
   "visibilityOwner": "Bara ägaren",
   "visibilityHelp": "Ett pussel för alla finns i allas listor. Ett som bara ägaren ser finns bara i ägarens listor.",
   "timed": "Tidtagning",
-  "timedHelp": "En klocka mäter hur lång tid varje omgång tar."
+  "timedHelp": "En klocka mäter hur lång tid varje omgång tar.",
+  "sectionBasics": "Grundläggande",
+  "sectionSize": "Storlek och bitar",
+  "sectionPlay": "Spel och utseende",
+  "sectionOwner": "Ägare och delning"
 }

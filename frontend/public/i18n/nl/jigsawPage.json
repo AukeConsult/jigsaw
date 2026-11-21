@@ -43,5 +43,8 @@
   "onlyYou": "Alleen jij ziet hem",
   "timePlayed": "Speeltijd",
   "timed": "Met tijdmeting",
-  "timedHelp": "een klok meet hoe lang elke ronde duurt"
+  "timedHelp": "een klok meet hoe lang elke ronde duurt",
+  "sectionBasics": "Basis",
+  "sectionPlay": "Spel en uiterlijk",
+  "sectionOwner": "Eigenaar en delen"
 }

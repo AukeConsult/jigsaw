@@ -43,5 +43,8 @@
   "onlyYou": "Nur du siehst es",
   "timePlayed": "Spielzeit",
   "timed": "Mit Zeitmessung",
-  "timedHelp": "eine Uhr misst, wie lange jede Runde dauert"
+  "timedHelp": "eine Uhr misst, wie lange jede Runde dauert",
+  "sectionBasics": "Grundlagen",
+  "sectionPlay": "Spiel und Aussehen",
+  "sectionOwner": "Besitzer und Freigabe"
 }

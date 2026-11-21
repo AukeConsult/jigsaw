@@ -1,7 +1,7 @@
 {
   "menu": "Menu van Karins puzzel",
   "jigsaws": "Puzzels",
-  "guide": "Gebruikershandleiding",
+  "guide": "Help",
   "whoPlays": "Wie speelt?",
   "whoPlaysTitle": "Wie speelt: {{ name }}",
   "choosePlayer": "Kies wie er speelt",

@@ -8,6 +8,7 @@
       <div class="text-body-secondary small mb-3" role="status">{{ t('jigsawNew.opening') || 'Opening the jigsaw…' }}</div>
     }
 
+    <h2 class="form-section first"><i class="bi bi-tag" aria-hidden="true"></i>{{ t('jigsawNew.sectionBasics') || 'Basics' }}</h2>
     <div class="mb-3">
       <label class="form-label" for="jigsaw-name">{{ t('jigsawNew.name') || 'Name' }} <span class="text-danger" aria-hidden="true">*</span></label>
       <input id="jigsaw-name" name="name" class="form-control" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required [attr.placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'" aria-describedby="jigsaw-name-problem"
@@ -17,26 +18,24 @@
       }
     </div>
 
+    <h2 class="form-section"><i class="bi bi-image" aria-hidden="true"></i>{{ t('jigsawNew.picture') || 'Picture' }}</h2>
     <div class="mb-3">
-      @if (!file()) {
-        <label class="form-label" for="jigsaw-picture">{{ t('jigsawNew.picture') || 'Picture' }}</label>
-      }
-      <!-- the choice of the file is shown until a picture is chosen; then only a button to choose another is shown (the name of the file is not interesting here; it is kept with the jigsaw) -->
-      <input #pictureInput id="jigsaw-picture" name="picture" type="file" class="form-control" [class.d-none]="!!file()" accept="image/jpeg,image/png,image/webp" (change)="choosePicture($event)">
-      @if (file()) {
-        <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="pictureInput.click()">{{ t('jigsawNew.changePicture') || 'Change picture' }}</button>
-        </div>
-      }
+      <!-- the choice of the file is shown until a picture is chosen; then only a link to choose another is shown (the name of the file is not interesting here; it is kept with the jigsaw) -->
+      <input #pictureInput id="jigsaw-picture" name="picture" type="file" class="form-control" [attr.aria-label]="t('jigsawNew.picture') || 'Picture'" [class.d-none]="!!file()" accept="image/jpeg,image/png,image/webp" (change)="choosePicture($event)">
       @if (preview(); as src) {
-        <!-- an example of the jigsaw: the cut picture in pieces, with the line and the colours chosen above -->
-        <div class="mt-2">
-          <app-jigsaw-example [picture]="src" [width]="width()" [height]="height()" [gridSize]="gridSize()" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" />
-          <div class="small d-flex flex-wrap align-items-center gap-2 mt-2">
-            <span class="text-body-secondary">{{ t('jigsawNew.exampleNote') || 'An example of the jigsaw: the pieces are cut by chance when it is made.' }}</span>
-            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="cropping.set(true)"><i class="bi bi-crop me-1" aria-hidden="true"></i>{{ t('jigsawNew.adjustCut') || 'Adjust the cut' }}</button>
-          </div>
+        <!-- an example of the jigsaw: the cut picture in pieces, with the line and the colours chosen below -->
+        <app-jigsaw-example [picture]="src" [width]="width()" [height]="height()" [gridSize]="gridSize()" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" />
+      }
+      @if (file()) {
+        <div class="toolbar mt-2">
+          <button type="button" class="link-action" (click)="pictureInput.click()"><i class="bi bi-upload" aria-hidden="true"></i>{{ t('jigsawNew.changePicture') || 'Change picture' }}</button>
+          @if (preview()) {
+            <button type="button" class="link-action" (click)="cropping.set(true)"><i class="bi bi-crop" aria-hidden="true"></i>{{ t('jigsawNew.adjustCut') || 'Adjust the cut' }}</button>
+          }
         </div>
+        @if (preview()) {
+          <div class="toolbar-note">{{ t('jigsawNew.exampleNote') || 'An example of the jigsaw: the pieces are cut by chance when it is made.' }}</div>
+        }
       }
       @if (stale()) {
         <div class="form-text text-danger">{{ t('jigsawNew.staleBefore') || 'The size changed since the picture was cut.' }} <button type="button" class="link-inline" (click)="cropping.set(true)">{{ t('jigsawNew.adjustAgain') || 'Adjust the picture again' }}</button>.</div>
@@ -49,9 +48,10 @@
       }
     </div>
 
-    <div class="row g-2 mb-2">
+    <h2 class="form-section"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawNew.sectionSize') || 'Size and pieces' }}</h2>
+    <div class="row g-3 mb-3">
       <div class="col-sm-6">
-        <label class="form-label small mb-1" for="jigsaw-size">{{ t('jigsawNew.size') || 'Size' }}</label>
+        <label class="form-label" for="jigsaw-size">{{ t('jigsawNew.size') || 'Size' }}</label>
         <select id="jigsaw-size" name="size" class="form-select" (change)="chooseSize($any($event.target).value)">
           @for (p of sizePresets; track p.key) {
             <option [value]="p.key" [selected]="sizeChoice() === p.key">{{ t('jigsawNew.sizes.' + p.key) || p.label }}</option>
@@ -60,7 +60,7 @@
         </select>
       </div>
       <div class="col-sm-6">
-        <label class="form-label small mb-1" for="piece-count">{{ t('jigsawNew.pieces') || 'Pieces' }}</label>
+        <label class="form-label" for="piece-count">{{ t('jigsawNew.pieces') || 'Pieces' }}</label>
         <div class="d-flex gap-2">
           <select id="piece-options" name="pieceOptions" class="form-select w-auto" [attr.aria-label]="t('jigsawNew.standardPieces') || 'Standard numbers of pieces'" (change)="choosePieces($any($event.target).value)">
             @for (o of pieceOptions(); track o.key) {
@@ -76,12 +76,12 @@
       <!-- the width and the height are typed only for a custom size; the standard sizes set them -->
       @if (sizeChoice() === 'custom') {
         <div class="col-6 col-sm-3">
-          <label class="form-label small mb-1" for="jigsaw-width">{{ t('jigsawNew.width') || 'Width (px)' }}</label>
+          <label class="form-label" for="jigsaw-width">{{ t('jigsawNew.width') || 'Width (px)' }}</label>
           <input id="jigsaw-width" name="width" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
                  [ngModel]="width()" (ngModelChange)="width.set($event)" (change)="sizeChoice.set('custom'); relayout('width')">
         </div>
         <div class="col-6 col-sm-3">
-          <label class="form-label small mb-1" for="jigsaw-height">{{ t('jigsawNew.height') || 'Height (px)' }}</label>
+          <label class="form-label" for="jigsaw-height">{{ t('jigsawNew.height') || 'Height (px)' }}</label>
           <input id="jigsaw-height" name="height" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
                  [ngModel]="height()" (ngModelChange)="height.set($event)" (change)="sizeChoice.set('custom'); relayout('height')">
         </div>
@@ -89,8 +89,9 @@
       <div class="col-12 form-text mt-1" role="status">{{ t('jigsawNew.gridInfo', { grid: gridSize(), columns: pieceInfo().columns, rows: pieceInfo().rows }) || 'Grid ' + gridSize() + ' px: ' + pieceInfo().columns + ' × ' + pieceInfo().rows + ' pieces (worked out from the number of pieces).' }}</div>
     </div>
 
-    <div class="mb-2">
-      <label class="form-label small mb-1" for="snap-range">{{ t('jigsawNew.difficulty') || 'Difficulty' }}</label>
+    <h2 class="form-section"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawNew.sectionPlay') || 'Play and look' }}</h2>
+    <div class="mb-3">
+      <label class="form-label" for="snap-range">{{ t('jigsawNew.difficulty') || 'Difficulty' }}</label>
       <select id="snap-range" name="snapLevel" class="form-select" [title]="t('jigsawNew.difficultyTitle') || 'How close a piece must be dropped to its place to click into it: the easier, the farther away it can be'"
               (change)="chooseLevel($any($event.target).value)">
         @for (l of levels; track l.key) {
@@ -105,9 +106,9 @@
       <div class="form-text mt-0">{{ t('jigsawNew.timedHelp') || 'A clock counts how long each round takes.' }}</div>
     </div>
 
-    <div class="row row-cols-3 g-2 mb-2">
+    <div class="row row-cols-3 g-3 mb-3">
       <div class="col">
-        <label class="form-label small mb-1" for="jigsaw-line-width">{{ t('jigsawNew.line') || 'Line' }}</label>
+        <label class="form-label" for="jigsaw-line-width">{{ t('jigsawNew.line') || 'Line' }}</label>
         <select id="jigsaw-line-width" name="lineWidth" class="form-select" [title]="t('jigsawNew.lineTitle') || 'How thick the line round each piece and round the picture area is'"
                 (change)="lineWidth.set(+$any($event.target).value)">
           @for (l of lineLevels; track l.width) {
@@ -116,17 +117,18 @@
         </select>
       </div>
       <div class="col">
-        <label class="form-label small mb-1" for="jigsaw-line-color">{{ t('jigsawNew.colour') || 'Colour' }}</label>
+        <label class="form-label" for="jigsaw-line-color">{{ t('jigsawNew.colour') || 'Colour' }}</label>
         <input id="jigsaw-line-color" name="lineColor" class="form-control form-control-color w-100" type="color" [title]="t('jigsawNew.colourTitle') || 'The colour of the line round each piece and round the picture area'"
                [ngModel]="lineColor()" (ngModelChange)="lineColor.set($event)">
       </div>
       <div class="col">
-        <label class="form-label small mb-1" for="jigsaw-back-color">{{ t('jigsawNew.back') || 'Back' }}</label>
+        <label class="form-label" for="jigsaw-back-color">{{ t('jigsawNew.back') || 'Back' }}</label>
         <input id="jigsaw-back-color" name="backColor" class="form-control form-control-color w-100" type="color" [title]="t('jigsawNew.backTitle') || 'The background colour of the picture area, inside the border'"
                [ngModel]="backColor()" (ngModelChange)="backColor.set($event)">
       </div>
     </div>
 
+    <h2 class="form-section"><i class="bi bi-people" aria-hidden="true"></i>{{ t('jigsawNew.sectionOwner') || 'Owner and sharing' }}</h2>
     <div class="mb-3">
       <label class="form-label" for="jigsaw-author">{{ t('jigsawNew.author') || 'Author' }} @if (!editId) { <span class="text-danger" aria-hidden="true">*</span> }</label>
       <select id="jigsaw-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">

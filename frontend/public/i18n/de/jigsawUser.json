@@ -39,5 +39,7 @@
   "couldNotReach": "Der Server ist nicht erreichbar: Versuch es noch einmal.",
   "noSuchUser": "Es gibt keinen Benutzer mit diesem Benutzernamen.",
   "chooseFirst": "Wähl zuerst einen Benutzer aus.",
-  "timePlayed": "Spielzeit"
+  "timePlayed": "Spielzeit",
+  "sectionWho": "Wer du bist",
+  "sectionContact": "Kontakt"
 }

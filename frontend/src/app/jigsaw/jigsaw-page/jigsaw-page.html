@@ -22,10 +22,10 @@
           <!-- the name, and Edit at the right corner of the same line -->
           <div class="d-flex justify-content-between align-items-start gap-2">
             <h1 class="page-title mb-1">{{ it.name }}</h1>
-            <div class="d-flex gap-1 flex-shrink-0">
-              <button type="button" class="btn btn-outline-secondary" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil" aria-hidden="true"></i>{{ t('jigsawPage.edit') || 'Edit' }}</button>
+            <div class="toolbar flex-shrink-0">
+              <button type="button" class="link-action" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil" aria-hidden="true"></i>{{ t('jigsawPage.edit') || 'Edit' }}</button>
               @if (canDelete()) {
-                <button type="button" class="btn btn-outline-danger" [disabled]="confirmingDelete()" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawPage.delete') || 'Delete' }}</button>
+                <button type="button" class="link-action danger" [disabled]="confirmingDelete()" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawPage.delete') || 'Delete' }}</button>
               }
             </div>
           </div>
@@ -62,62 +62,66 @@
           @if (editing()) {
             <!-- the edit form: the name, the author and the defaults; the picture, size and pieces are fixed -->
             <form class="card card-body mt-3" (submit)="$event.preventDefault(); save()">
-              <div class="row g-2">
-                <div class="col-sm-6">
-                  <label class="form-label small mb-1" for="edit-name">{{ t('jigsawPage.name') || 'Name' }} <span class="text-danger" aria-hidden="true">*</span></label>
-                  <input id="edit-name" name="name" class="form-control" type="text" required [attr.maxlength]="maxName" [ngModel]="name()" (ngModelChange)="name.set($event)">
-                </div>
-                <div class="col-sm-6">
-                  <label class="form-label small mb-1" for="edit-author">{{ t('jigsawPage.author') || 'Author' }}</label>
-                  <select id="edit-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
-                    @if (!ownerUid()) { <option value="">{{ t('jigsawPage.chooseAuthor') || 'Choose the author' }}</option> }
-                    @for (u of owners(); track u.id) {
-                      <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
-                    }
-                  </select>
-                </div>
-                <div class="col-sm-6">
-                  <label class="form-label small mb-1" for="edit-visibility">{{ t('jigsawPage.visibility') || 'Who sees it' }}</label>
-                  <select id="edit-visibility" name="visibility" class="form-select" [ngModel]="visibility()" (ngModelChange)="visibility.set($event)">
-                    <option value="everyone">{{ t('jigsawPage.visibilityEveryone') || 'Everyone' }}</option>
-                    <option value="owner" [disabled]="!ownerUid()">{{ t('jigsawPage.visibilityOwner') || 'Only the owner' }}</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <div class="form-check form-switch">
-                    <input id="edit-timed" name="timed" class="form-check-input" type="checkbox" role="switch" [ngModel]="timed()" (ngModelChange)="timed.set($event)">
-                    <label class="form-check-label small" for="edit-timed"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawPage.timed') || 'Timed' }} <span class="text-body-secondary">({{ t('jigsawPage.timedHelp') || 'a clock counts how long each round takes' }})</span></label>
-                  </div>
-                </div>
-                <div class="col-6 col-sm-3">
-                  <label class="form-label small mb-1" for="edit-level">{{ t('jigsawPage.difficulty') || 'Difficulty' }}</label>
-                  <select id="edit-level" name="level" class="form-select" [title]="t('jigsawPage.difficultyHint') || 'The difficulty of the jigsaw: every round of it is played with it'" (change)="chooseLevel($any($event.target).value)">
-                    @for (l of levels; track l.key) {
-                      <option [value]="l.key" [selected]="level() === l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</option>
-                    }
-                  </select>
-                </div>
-                <div class="col-6 col-sm-3">
-                  <label class="form-label small mb-1" for="edit-line">{{ t('jigsawPage.line') || 'Line' }}</label>
+              <h2 class="form-section first"><i class="bi bi-tag" aria-hidden="true"></i>{{ t('jigsawPage.sectionBasics') || 'Basics' }}</h2>
+              <div class="mb-3">
+                <label class="form-label" for="edit-name">{{ t('jigsawPage.name') || 'Name' }} <span class="text-danger" aria-hidden="true">*</span></label>
+                <input id="edit-name" name="name" class="form-control" type="text" required [attr.maxlength]="maxName" [ngModel]="name()" (ngModelChange)="name.set($event)">
+              </div>
+
+              <h2 class="form-section"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawPage.sectionPlay') || 'Play and look' }}</h2>
+              <div class="mb-3">
+                <label class="form-label" for="edit-level">{{ t('jigsawPage.difficulty') || 'Difficulty' }}</label>
+                <select id="edit-level" name="level" class="form-select" [title]="t('jigsawPage.difficultyHint') || 'The difficulty of the jigsaw: every round of it is played with it'" (change)="chooseLevel($any($event.target).value)">
+                  @for (l of levels; track l.key) {
+                    <option [value]="l.key" [selected]="level() === l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input id="edit-timed" name="timed" class="form-check-input" type="checkbox" role="switch" [ngModel]="timed()" (ngModelChange)="timed.set($event)">
+                <label class="form-check-label" for="edit-timed"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawPage.timed') || 'Timed' }}</label>
+                <div class="form-text mt-0">{{ t('jigsawPage.timedHelp') || 'a clock counts how long each round takes' }}</div>
+              </div>
+              <div class="row row-cols-3 g-3 mb-3">
+                <div class="col">
+                  <label class="form-label" for="edit-line">{{ t('jigsawPage.line') || 'Line' }}</label>
                   <select id="edit-line" name="line" class="form-select" [title]="t('jigsawPage.lineHint') || 'How thick the line round the pieces is in a new round'" (change)="lineWidth.set(+$any($event.target).value)">
                     @for (l of lineLevels; track l.width) {
                       <option [value]="l.width" [selected]="lineLevel() === l.width">{{ t('jigsawLevels.line.' + l.key) || l.label }}</option>
                     }
                   </select>
                 </div>
-                <div class="col-6 col-sm-3">
-                  <label class="form-label small mb-1" for="edit-line-color">{{ t('jigsawPage.colour') || 'Colour' }}</label>
+                <div class="col">
+                  <label class="form-label" for="edit-line-color">{{ t('jigsawPage.colour') || 'Colour' }}</label>
                   <input id="edit-line-color" name="lineColor" class="form-control form-control-color w-100" type="color" [ngModel]="lineColor()" (ngModelChange)="lineColor.set($event)">
                 </div>
-                <div class="col-6 col-sm-3">
-                  <label class="form-label small mb-1" for="edit-back-color">{{ t('jigsawPage.back') || 'Back' }}</label>
+                <div class="col">
+                  <label class="form-label" for="edit-back-color">{{ t('jigsawPage.back') || 'Back' }}</label>
                   <input id="edit-back-color" name="backColor" class="form-control form-control-color w-100" type="color" [ngModel]="backColor()" (ngModelChange)="backColor.set($event)">
                 </div>
               </div>
-              <div class="form-text mt-2">{{ t('jigsawPage.editNote') || 'Somebody has started playing this jigsaw, so its picture, size and pieces are fixed: every round of it shares them. The difficulty here is the jigsaw\'s: every round of it is played with it, also the ones already started. The look here is what a round starts with; a round that has chosen its own keeps it. (When nobody has a round of it, the whole jigsaw can be edited.)' }}</div>
-              <div class="d-flex justify-content-end gap-2 mt-3">
+
+              <h2 class="form-section"><i class="bi bi-people" aria-hidden="true"></i>{{ t('jigsawPage.sectionOwner') || 'Owner and sharing' }}</h2>
+              <div class="mb-3">
+                <label class="form-label" for="edit-author">{{ t('jigsawPage.author') || 'Author' }}</label>
+                <select id="edit-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
+                  @if (!ownerUid()) { <option value="">{{ t('jigsawPage.chooseAuthor') || 'Choose the author' }}</option> }
+                  @for (u of owners(); track u.id) {
+                    <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
+                  }
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="edit-visibility">{{ t('jigsawPage.visibility') || 'Who sees it' }}</label>
+                <select id="edit-visibility" name="visibility" class="form-select" [ngModel]="visibility()" (ngModelChange)="visibility.set($event)">
+                  <option value="everyone">{{ t('jigsawPage.visibilityEveryone') || 'Everyone' }}</option>
+                  <option value="owner" [disabled]="!ownerUid()">{{ t('jigsawPage.visibilityOwner') || 'Only the owner' }}</option>
+                </select>
+              </div>
+              <div class="form-text mb-3">{{ t('jigsawPage.editNote') || 'Somebody has started playing this jigsaw, so its picture, size and pieces are fixed: every round of it shares them. The difficulty here is the jigsaw's: every round of it is played with it, also the ones already started. The look here is what a round starts with; a round that has chosen its own keeps it. (When nobody has a round of it, the whole jigsaw can be edited.)' }}</div>
+              <div class="d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-outline-secondary" (click)="editing.set(false)">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
-                <button type="submit" class="btn btn-primary" [disabled]="saving() || !name().trim()"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawPage.save') || 'Save' }}</button>
+                <button type="submit" class="btn btn-primary" [disabled]="saving() || !name().trim()"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawPage.save') || 'Save' }}</button>
               </div>
             </form>
           }

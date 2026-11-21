@@ -121,6 +121,7 @@ $fluid-to: 87.5; // 1400px in rem
   --app-z-pieces: 1;
   --app-z-controls: 1001;
   --app-z-sidebar: 1020;
+  --app-z-bar: 1030;
   --app-z-helper: 1040;
   --app-z-dialog: 1060;
 
@@ -588,6 +589,44 @@ small,
   flex-wrap: wrap;
 }
 
+// On a phone or a tablet (narrower than the width where the sidebar folds) the menu is at the bottom of the screen, where the thumb is, and stays there when the page
+// scrolls: the shell is a column whose page is above the menu (`order`), and the menu is sticky to the bottom of the window, so it takes its own room and covers nothing.
+@include below($bp-xl) {
+  app-jigsaw-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+
+  app-jigsaw-shell > :not(.app-navbar) {
+    order: 1;
+  }
+
+  app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet) {
+    flex: 1 0 auto;
+  }
+
+  // the helper of a round (the clock, Picture, Edges, Details): stuck to the top, where the menu used to be
+  app-jigsaw-shell > .app-toolbar {
+    order: 0;
+    position: sticky;
+    top: 0;
+    z-index: var(--app-z-bar);
+    padding: 0.25rem 0.75rem;
+    padding-top: calc(0.25rem + env(safe-area-inset-top));
+  }
+
+  app-jigsaw-shell > .app-navbar {
+    order: 2;
+    position: sticky;
+    bottom: 0;
+    z-index: var(--app-z-bar);
+    border-top: var(--bs-border-width) solid var(--bs-border-color);
+    border-bottom: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 // ---- the canvas board ------------------------------------------------------------------------------------------------------------------------------
 .layer-input {
   width: var(--app-layer-input-width);
@@ -965,6 +1004,28 @@ small,
   @include below($bp-sm) {
     --bs-card-spacer-x: 0.75rem;
     --bs-card-spacer-y: 0.75rem;
+  }
+}
+
+// a heading that groups the fields of a long form: a small icon and words over a thin rule (`first` has no room above it)
+.form-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  font-size: var(--app-fs-body); // the same size as the labels and the fields under it; it stands out by its weight and colour, not by being smaller
+  font-weight: 600;
+  color: var(--bs-emphasis-color);
+
+  &.first {
+    margin-top: 0;
+  }
+
+  > .bi {
+    font-size: 1.15em;
+    line-height: 1;
   }
 }
 

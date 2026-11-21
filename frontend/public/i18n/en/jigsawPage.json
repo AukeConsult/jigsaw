@@ -43,5 +43,8 @@
   "onlyYou": "Only you see it",
   "timePlayed": "Time played",
   "timed": "Timed",
-  "timedHelp": "a clock counts how long each round takes"
+  "timedHelp": "a clock counts how long each round takes",
+  "sectionBasics": "Basics",
+  "sectionPlay": "Play and look",
+  "sectionOwner": "Owner and sharing"
 }

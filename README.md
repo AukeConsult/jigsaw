@@ -4,7 +4,7 @@ Make a jigsaw puzzle from any picture and put it together on the screen, alone o
 
 The project has the same layout as Seven Friends: an Angular web app (`frontend/`), an Express backend as a Firebase Cloud Function (`functions/`), and an Android shell (Capacitor, `client-wrappers/android`).
 
-It shares the Firebase project `sevenfriends` but has its own Hosting site (`karins-jigsaw`, target `jigsaw`) and its own function (`jigsawApi`, served at `/jigsaw/api`, codebase `canvas`).
+It shares the Firebase project `sevenfriends` but has its own Hosting site (`karins-jigsaw`, target `jigsaw`) and its own function (`jigsawApi`, served at `/jigsaw/api`, codebase `jigsaw`).
 
 ```
 npm run install:all

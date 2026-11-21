@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, effect, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { LanguageService } from '../core/language.service';
@@ -12,15 +12,20 @@ import { renderMarkdown } from '../core/markdown';
  */
 @Component({
   selector: 'app-guide-page',
-  imports: [TranslocoDirective],
+  imports: [TranslocoDirective, RouterLink, RouterLinkActive],
   providers: [provideTranslocoScope('guide')],
   template: `
     <main class="container py-4" *transloco="let t">
-      <article class="guide mx-auto" aria-label="User guide">
+      <!-- the two documents: the user guide and the about page -->
+      <nav class="toolbar guide mx-auto mb-3" [attr.aria-label]="t('guide.documents') || 'Documents'">
+        <a class="link-action" routerLink="/jigsaw/guide" routerLinkActive="fw-semibold"><i class="bi bi-book" aria-hidden="true"></i>{{ t('guide.tabGuide') || 'Help' }}</a>
+        <a class="link-action" routerLink="/jigsaw/about" routerLinkActive="fw-semibold"><i class="bi bi-info-circle" aria-hidden="true"></i>{{ t('guide.tabAbout') || 'About' }}</a>
+      </nav>
+      <article class="guide mx-auto" aria-label="Help">
         @if (failed()) {
-          <div class="alert alert-danger py-2 small" role="alert">{{ t('guide.failed') || 'Could not load the user guide.' }}</div>
+          <div class="alert alert-danger py-2 small" role="alert">{{ t('guide.failed') || 'Could not load the help.' }}</div>
         } @else if (html() === null) {
-          <p class="text-body-secondary">{{ t('guide.opening') || 'Opening the user guide…' }}</p>
+          <p class="text-body-secondary">{{ t('guide.opening') || 'Opening the help…' }}</p>
         } @else {
           <div [innerHTML]="html()"></div>
         }

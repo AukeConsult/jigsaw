@@ -43,5 +43,8 @@
   "onlyYou": "Solo lo ves tú",
   "timePlayed": "Tiempo de juego",
   "timed": "Cronometrado",
-  "timedHelp": "un reloj mide cuánto dura cada partida"
+  "timedHelp": "un reloj mide cuánto dura cada partida",
+  "sectionBasics": "Básico",
+  "sectionPlay": "Juego y aspecto",
+  "sectionOwner": "Propietario y uso compartido"
 }

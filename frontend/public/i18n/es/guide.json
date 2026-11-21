@@ -1,4 +1,7 @@
 {
-  "failed": "No se pudo cargar la guía del usuario.",
-  "opening": "Abriendo la guía del usuario…"
+  "failed": "No se pudo cargar la ayuda.",
+  "opening": "Abriendo la ayuda…",
+  "tabGuide": "Ayuda",
+  "tabAbout": "Acerca de",
+  "documents": "Documentos"
 }

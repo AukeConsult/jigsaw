@@ -39,5 +39,7 @@
   "couldNotReach": "De server is niet bereikbaar: probeer het opnieuw.",
   "noSuchUser": "Er is geen gebruiker met die gebruikersnaam.",
   "chooseFirst": "Kies eerst een gebruiker.",
-  "timePlayed": "Speeltijd"
+  "timePlayed": "Speeltijd",
+  "sectionWho": "Wie je bent",
+  "sectionContact": "Contact"
 }

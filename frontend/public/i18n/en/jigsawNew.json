@@ -57,5 +57,9 @@
   "visibilityOwner": "Only the owner",
   "visibilityHelp": "A jigsaw for everyone is in the lists of all. One only the owner sees is in the lists of the owner only.",
   "timed": "Timed",
-  "timedHelp": "A clock counts how long each round takes."
+  "timedHelp": "A clock counts how long each round takes.",
+  "sectionBasics": "Basics",
+  "sectionSize": "Size and pieces",
+  "sectionPlay": "Play and look",
+  "sectionOwner": "Owner and sharing"
 }

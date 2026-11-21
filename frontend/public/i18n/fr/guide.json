@@ -1,4 +1,7 @@
 {
-  "failed": "Impossible de charger le guide d'utilisation.",
-  "opening": "Ouverture du guide d'utilisation…"
+  "failed": "Impossible de charger l’aide.",
+  "opening": "Ouverture de l’aide…",
+  "tabGuide": "Aide",
+  "tabAbout": "À propos",
+  "documents": "Documents"
 }

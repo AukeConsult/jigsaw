@@ -39,5 +39,7 @@
   "couldNotReach": "Kunne ikke få kontakt til serveren: prøv igen.",
   "noSuchUser": "Der er ingen bruger med det brugernavn.",
   "chooseFirst": "Vælg en bruger først.",
-  "timePlayed": "Tid brugt"
+  "timePlayed": "Tid brugt",
+  "sectionWho": "Hvem du er",
+  "sectionContact": "Kontakt"
 }

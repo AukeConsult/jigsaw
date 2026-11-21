@@ -57,5 +57,9 @@
   "visibilityOwner": "Bare eieren",
   "visibilityHelp": "Et puslespill for alle står i listene til alle. Et som bare eieren ser, står bare i eierens lister.",
   "timed": "Tidtaking",
-  "timedHelp": "En klokke måler hvor lang tid hver runde tar."
+  "timedHelp": "En klokke måler hvor lang tid hver runde tar.",
+  "sectionBasics": "Grunnleggende",
+  "sectionSize": "Størrelse og brikker",
+  "sectionPlay": "Spill og utseende",
+  "sectionOwner": "Eier og deling"
 }

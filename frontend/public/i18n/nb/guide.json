@@ -1,4 +1,7 @@
 {
-  "failed": "Kunne ikke laste brukerveiledningen.",
-  "opening": "Åpner brukerveiledningen…"
+  "failed": "Kunne ikke laste hjelpen.",
+  "opening": "Åpner hjelpen…",
+  "tabGuide": "Hjelp",
+  "tabAbout": "Om",
+  "documents": "Dokumenter"
 }

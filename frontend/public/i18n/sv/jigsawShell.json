@@ -1,7 +1,7 @@
 {
   "menu": "Meny för Karins pussel",
   "jigsaws": "Pussel",
-  "guide": "Användarguide",
+  "guide": "Hjälp",
   "whoPlays": "Vem spelar?",
   "whoPlaysTitle": "Vem spelar: {{ name }}",
   "choosePlayer": "Välj vem som spelar",

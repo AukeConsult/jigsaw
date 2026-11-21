@@ -1,4 +1,7 @@
 {
-  "failed": "Kunne ikke indlæse brugervejledningen.",
-  "opening": "Åbner brugervejledningen…"
+  "failed": "Kunne ikke hente hjælpen.",
+  "opening": "Åbner hjælpen…",
+  "tabGuide": "Hjælp",
+  "tabAbout": "Om",
+  "documents": "Dokumenter"
 }

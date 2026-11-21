@@ -43,5 +43,8 @@
   "onlyYou": "Kun du ser det",
   "timePlayed": "Tid brugt",
   "timed": "Tidtagning",
-  "timedHelp": "et ur måler, hvor lang tid hver runde tager"
+  "timedHelp": "et ur måler, hvor lang tid hver runde tager",
+  "sectionBasics": "Grundlæggende",
+  "sectionPlay": "Spil og udseende",
+  "sectionOwner": "Ejer og deling"
 }

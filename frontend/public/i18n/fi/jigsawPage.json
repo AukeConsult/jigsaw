@@ -43,5 +43,8 @@
   "onlyYou": "Vain sinä näet sen",
   "timePlayed": "Peliaika",
   "timed": "Ajastettu",
-  "timedHelp": "kello mittaa, kuinka kauan kukin kierros kestää"
+  "timedHelp": "kello mittaa, kuinka kauan kukin kierros kestää",
+  "sectionBasics": "Perustiedot",
+  "sectionPlay": "Peli ja ulkoasu",
+  "sectionOwner": "Omistaja ja jakaminen"
 }

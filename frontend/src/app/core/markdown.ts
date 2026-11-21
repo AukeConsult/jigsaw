@@ -1,7 +1,7 @@
 /**
  * A small Markdown to HTML converter for the user guide: headings, paragraphs, bullet and numbered lists (nested by indenting), code (inline and in fences),
  * bold, italics, links and rules. Everything the text says is escaped first, so the result only has the tags this file makes (and a link only goes to a web
- * address, a page of the app or a place on the same page).
+ * address, an e-mail address, a page of the app or a place on the same page).
  */
 
 const escapeHtml = (text: string): string => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -16,7 +16,7 @@ function inline(text: string): string {
   out = out
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[\s(])\*([^*\s][^*]*)\*(?=$|[\s).,;:!?])/g, '$1<em>$2</em>')
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, label: string, href: string) => (/^(https?:\/\/|\/|#)/.test(href) ? `<a href="${href}">${label}</a>` : label));
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, label: string, href: string) => (/^(https?:\/\/|mailto:|\/|#)/.test(href) ? `<a href="${href}">${label}</a>` : label));
   return out.replace(/\u0000(\d+)\u0000/g, (_m, i: string) => codes[Number(i)]);
 }
 

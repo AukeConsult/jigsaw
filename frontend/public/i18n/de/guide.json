@@ -1,4 +1,7 @@
 {
-  "failed": "Die Anleitung konnte nicht geladen werden.",
-  "opening": "Die Anleitung wird geöffnet…"
+  "failed": "Die Hilfe konnte nicht geladen werden.",
+  "opening": "Die Hilfe wird geöffnet…",
+  "tabGuide": "Hilfe",
+  "tabAbout": "Über",
+  "documents": "Dokumente"
 }

@@ -1,67 +1,50 @@
-Make a jigsaw puzzle from any picture, and put it together on the screen. Everything is saved by itself, so you can stop and come back where you left off any time.
+Make a jigsaw puzzle from any picture and put it together on the screen. Everything is saved by itself, so you can stop and come back any time.
 
 ## Who plays
 
-* The first time you open or make a jigsaw you are asked who plays. Press your name in the list to play as you.
-* New here? Press **Make a user**. Choose a **user name** (3 to 30 letters a-z, digits, _ or -; nobody else can have the same) and give your **name**. An **e-mail** is optional: nobody sees it, it is only kept so you can connect the user to a registration later.
-* There is no password for now, so anyone can pick any user from the list.
-* Your name is in the menu at the top. Press it to see **Your rounds**, to press **Edit** (change your user name, your name or your e-mail) or to press **Choose another user**.
-* The e-mail is never shown, not even to you: type a new one, or tick the box to take it away.
-* Your rounds stay yours when you change your user name.
+* The first time, you are asked who plays. Press your name in the list, or press **Make a user**: choose a **User name** (3 to 30 letters a-z, digits, _ or -) and your name. The **E-mail** is optional and is never shown.
+* There is no password for now, so anyone can pick any user.
+* Press your name in the menu to see **Your rounds**, to press **Edit**, or to press **Choose another user**.
 
 ## Make a jigsaw
 
-1. On the front page, or at the top of the list of all jigsaws, press **Add a new jigsaw with your picture**.
-2. Type a **Name**. Choose the **Author** from the users: it starts as you, and the author owns the jigsaw.
-3. Choose a **Size** (the shape of the puzzle) and the number of **Pieces**, up to 1000. Press **Custom** under Size to type your own width and height.
-4. Choose the **Difficulty**, and the **Line**, **Colour** and **Back** of the picture area.
-5. Choose a **Picture**. A window opens: drag the picture to find the part you want, zoom with the slider or the mouse wheel, then press **Use this cut**.
-6. An example of the jigsaw is shown, so you can see it before you save: the picture put together from its pieces on the back colour, with a few pieces lifted out.
-7. Press **Save and start**. The jigsaw is made and your first round of it starts.
-
-The puzzle is cut into whole pieces, so the size can come out a little different from what you chose. The numbers of pieces offered fit the shape of the size in whole rows and columns, and the size is adjusted a little so the pieces fit exactly.
+1. Press **Add a new jigsaw with your picture** (on the front page and at the top of the list).
+2. Type a **Name** and choose a **Picture**. A window opens: drag the picture to find the part you want, zoom, then press **Use this cut**.
+3. Choose the **Size** and the number of **Pieces** (up to 1000). The size is adjusted a little so the pieces fit exactly.
+4. Choose the **Difficulty**, whether it is **Timed**, and the **Line**, **Colour** and **Back** of the picture area.
+5. Choose the **Author** and **Who sees it**.
+6. Press **Save and start**.
 
 ## Play
 
-* The pieces wait in a frame next to the picture (below it on a small screen). Drag a piece to the picture to build it. You can put a piece anywhere, and it stays where you leave it.
-* When you let go of a piece close to its right place, it **clicks into place**: it blinks and your device vibrates. A piece in its place looks like the others.
-* Pieces that fit each other **stick together**, and you move them as one. Hold **Shift** while you take a piece to pull it loose.
-* Drag a frame on the empty space to pick several pieces and move them together.
-* The sidebar shows how many pieces are in place (**Matched**).
-* **Line**, **Colour** and **Back** are your own choice in each round. The line looks the same on a big window and a small one.
-* **Cheat (help find pieces)** is a switch that shows the number of each place on the picture.
-* **New round** starts another round of the same jigsaw, with the pieces scattered again. You are asked first, and the round you leave stays in your list.
-* **Delete round** removes the round you are playing for good. You are asked first. The jigsaw and your other rounds stay.
-
-The **difficulty** (Hard, Medium or Easy) is how close a piece must be to its place to click in: the easier, the farther away. It belongs to the jigsaw and is the same in every round, so you cannot change it in a round.
+* Drag the pieces from the frame next to the picture (below it on a small screen) to the picture. A piece stays where you leave it.
+* Let go of a piece close to its right place and it **clicks into place**: it blinks and your device vibrates.
+* Pieces that fit each other **stick together** and move as one. Hold **Shift** to pull one piece loose. Drag a frame on the empty space to pick several pieces.
+* The sidebar shows how many pieces are in place (**Matched:**). There you can change the look of your round, press **New round** or **Delete round** (you are asked first), and use **Cheat** to see the number of each place.
+* The **Difficulty** belongs to the jigsaw and is the same in every round: the easier, the farther away a piece can be and still click in.
+* A **Timed** jigsaw has a clock, which runs while your own round is open.
 
 ## Help for building
 
-These are in the menu at the top while you play. On a narrow screen they move to a line of their own under the menu.
-
-* **Picture** shows the whole picture in a small frame on top of the page. Drag it anywhere on the frame to move it, and its corner to make it bigger or smaller.
+* **Picture** shows the whole picture in a small frame. Drag the frame to move it, and its corner to change its size.
 * **Edges** hides the inside pieces, so you can build the border first.
-* **Collect pieces:** click on the empty part of the store frame, and the pieces in it are put together at the top so you can find them.
+* Click on the empty part of the frame with the pieces, and they are put together at the top so you can find them.
 
 ## Rounds
 
-* Every jigsaw can be played many times, by many people. The page of a jigsaw lists the rounds of **everybody**. Yours are marked **Yours** and shown first.
-* A round only counts once you have moved a piece in it. If you just open a jigsaw and go back, no round is made, and it is not listed.
-* For each round you see who plays it, how many pieces are in place, and when it started.
-* Press **Continue** to go on with one of yours (**Look** for a solved one), **New round** to start another, or **Delete** to remove one of yours for good (you are asked first).
-* You can press **Look** on another player's round to see how far they have come. You can never change or delete it: the pieces cannot be moved, and the settings and buttons that change a round are not shown. You can start your own round from there.
+* One game of a jigsaw is a **round**. The page of a jigsaw lists the rounds of everybody; yours are marked **Yours** and come first.
+* Press **Continue** to go on with one of yours, **New round** to start another, or **Delete** to remove one of yours (you are asked first).
+* Press **Look** to see another player's round. You can never change it, but you can start your own.
+* A round counts once you have moved a piece in it. If you only open a jigsaw and go back, no round is listed.
+* **Challenge a friend:** make the jigsaw **Timed** and ask your friend to play a round of it too. The time of every round is in the list, so you can see who is fastest.
 
 ## Edit or delete a jigsaw
 
-* Press **Edit** at the top right of the page of a jigsaw. While nobody has started a round of it, everything can be changed: you get the form of a new jigsaw filled in, with the picture too.
-* Once somebody has started a round, only the name, the author, the difficulty (every round follows it) and the look a new round starts with can be changed. The picture, size and pieces are fixed, because every round shares them. Delete the rounds, if they are only yours, to be able to edit it all again.
-* **Delete**, beside **Edit**, removes the jigsaw for good, with its picture and all its rounds, also other players'. Only the owner sees it, and you are asked first.
-
-## All jigsaws
-
-The list shows all jigsaws with a small picture, who made them and when. Switch between **List** and **Cards** at the top. Press **Play** to open the page of a jigsaw.
+* Press **Edit** on the page of a jigsaw. While nobody has played it, everything can be changed. Once somebody has, the picture, size and pieces are fixed, but the name, the author, the difficulty and the look can still be changed.
+* **Delete** removes the jigsaw and all its rounds for good. Only its owner sees it, and you are asked first.
 
 ## Small screens
 
-* On a phone or a small window the sidebar is folded away. Press **Details** in the menu at the top to open it, and click anywhere else, also on the empty parts of it, to close it again.
-* The whole picture always fits on the screen. The pieces wait in a strip below it, which you scroll sideways with the arrows over it or with your finger.
+* On a phone or a tablet the menu is at the bottom, and the helpers (clock, **Picture**, **Edges**, **Details**) are at the top while you play.
+* Press **Details** to open the sidebar, and click anywhere else to close it.
+* The pieces wait in a strip below the picture: scroll it sideways with the arrows or your finger.

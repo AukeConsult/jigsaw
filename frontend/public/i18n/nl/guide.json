@@ -1,4 +1,7 @@
 {
-  "failed": "De gebruikershandleiding kon niet worden geladen.",
-  "opening": "De gebruikershandleiding wordt geopend…"
+  "failed": "De help kon niet worden geladen.",
+  "opening": "De help wordt geopend…",
+  "tabGuide": "Help",
+  "tabAbout": "Over",
+  "documents": "Documenten"
 }

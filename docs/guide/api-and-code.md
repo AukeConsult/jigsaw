@@ -1,7 +1,7 @@
 # API, code layout and running
 
 ## API
-One Express app as a Cloud Function (europe-west1, codebase `canvas`): `jigsawApi`, served under `/jigsaw/api` (`functions/src/jigsaw/`); what its routes share is in `functions/src/common/`. JSON bodies up to 600 kB (the pieces of a jigsaw with their graphics: up to 30 MB). Errors are `400 {error}` with the model's message.
+One Express app as a Cloud Function (europe-west1, codebase `jigsaw`): `jigsawApi`, served under `/jigsaw/api` (`functions/src/jigsaw/`); what its routes share is in `functions/src/common/`. JSON bodies up to 600 kB (the pieces of a jigsaw with their graphics: up to 30 MB). Errors are `400 {error}` with the model's message.
 
 | route | |
 |---|---|
@@ -33,4 +33,4 @@ npm run build
 Emulator ports: UI 4010, Functions 5011, Firestore 8090, Auth 9109, Storage 9209, Hosting 5010. If the emulator runs old code after a model change, run `npm --prefix functions run build`.
 
 ## Deploying
-Shared Firebase project `sevenfriends`: deploy only `hosting:jigsaw` and `functions:canvas` (`npm run deploy`; `npm run deploy:jigsaw` for the jigsaw site alone). Never deploy rules or indexes from here; change the live ones in the Seven Friends repo.
+Shared Firebase project `sevenfriends`: deploy only `hosting:jigsaw` and `functions:jigsaw` (`npm run deploy`; `npm run deploy:jigsaw` for the jigsaw site alone). Never deploy rules or indexes from here; change the live ones in the Seven Friends repo.

@@ -1,7 +1,7 @@
 {
   "menu": "Menú del puzle de Karin",
   "jigsaws": "Puzles",
-  "guide": "Guía del usuario",
+  "guide": "Ayuda",
   "whoPlays": "¿Quién juega?",
   "whoPlaysTitle": "Quién juega: {{ name }}",
   "choosePlayer": "Elige quién juega",

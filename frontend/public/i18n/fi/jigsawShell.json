@@ -1,7 +1,7 @@
 {
   "menu": "Karinin palapelien valikko",
   "jigsaws": "Palapelit",
-  "guide": "Käyttöohje",
+  "guide": "Ohje",
   "whoPlays": "Kuka pelaa?",
   "whoPlaysTitle": "Pelaaja: {{ name }}",
   "choosePlayer": "Valitse, kuka pelaa",

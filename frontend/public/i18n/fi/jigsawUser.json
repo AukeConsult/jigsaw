@@ -39,5 +39,7 @@
   "couldNotReach": "Palvelimeen ei saatu yhteyttä: yritä uudelleen.",
   "noSuchUser": "Tällä käyttäjätunnuksella ei ole käyttäjää.",
   "chooseFirst": "Valitse ensin käyttäjä.",
-  "timePlayed": "Peliaika"
+  "timePlayed": "Peliaika",
+  "sectionWho": "Kuka olet",
+  "sectionContact": "Yhteystiedot"
 }

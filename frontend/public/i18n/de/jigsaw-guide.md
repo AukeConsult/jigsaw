@@ -1,67 +1,50 @@
-Mach aus jedem Bild ein Puzzle und setz es auf dem Bildschirm zusammen. Alles wird von allein gespeichert, du kannst also jederzeit aufhören und später da weitermachen, wo du aufgehört hast.
+Mach aus jedem Bild ein Puzzle und setze es am Bildschirm zusammen. Alles wird von selbst gespeichert, du kannst also jederzeit aufhören und wiederkommen.
 
 ## Wer spielt
 
-* Wenn du zum ersten Mal ein Puzzle öffnest oder erstellst, wirst du gefragt, wer spielt. Tipp in der Liste auf deinen Namen, um als du zu spielen.
-* Neu hier? Drück auf **Benutzer erstellen**. Wähl einen **Benutzernamen** (3 bis 30 Buchstaben a-z, Ziffern, _ oder -; niemand sonst kann denselben haben) und gib deinen **Namen** ein. Eine **E-Mail** ist optional: Niemand sieht sie, sie wird nur gespeichert, damit du den Benutzer später mit einer Registrierung verbinden kannst.
-* Im Moment gibt es kein Passwort, deshalb kann jeder jeden Benutzer aus der Liste auswählen.
-* Dein Name steht im Menü oben. Drück darauf, um **Deine Runden** zu sehen, auf **Bearbeiten** zu drücken (um deinen Benutzernamen, deinen Namen oder deine E-Mail zu ändern) oder auf **Anderen Benutzer wählen**.
-* Die E-Mail wird nie angezeigt, nicht einmal dir: Gib eine neue ein oder setz das Häkchen, um sie zu entfernen.
-* Deine Runden bleiben deine, wenn du deinen Benutzernamen änderst.
+* Beim ersten Mal wirst du gefragt, wer spielt. Drücke auf deinen Namen in der Liste oder auf **Benutzer erstellen**: Wähle einen **Benutzername** (3 bis 30 Buchstaben a-z, Ziffern, _ oder -) und deinen Namen. Die **E-Mail** ist freiwillig und wird nie angezeigt.
+* Es gibt vorerst kein Passwort, jeder kann also jeden Benutzer wählen.
+* Drücke im Menü auf deinen Namen, um **Deine Runden** zu sehen, **Bearbeiten** zu drücken oder **Anderen Benutzer wählen** zu drücken.
 
-## Ein Puzzle erstellen
+## Ein Puzzle machen
 
-1. Drück auf der Startseite oder oben in der Liste aller Puzzles auf **Neues Puzzle mit deinem Bild hinzufügen**.
-2. Gib einen **Namen** ein. Wähl den **Autor** unter den Benutzern aus: Am Anfang bist das du, und der Autor besitzt das Puzzle.
-3. Wähl eine **Größe** (die Form des Puzzles) und die Anzahl der **Teile**, bis zu 1000. Drück bei Größe auf **Eigene**, um deine eigene Breite und Höhe einzugeben.
-4. Wähl die **Schwierigkeit** sowie **Linie**, **Farbe** und **Hintergrund** des Bildbereichs.
-5. Wähl ein **Bild** aus. Ein Fenster öffnet sich: Zieh das Bild, um den gewünschten Teil zu finden, zoome mit dem Regler oder dem Mausrad und drück dann auf **Diesen Ausschnitt verwenden**.
-6. Ein Beispiel für das Puzzle wird angezeigt, damit du es vor dem Speichern sehen kannst: das aus seinen Teilen zusammengesetzte Bild auf der Hintergrundfarbe, mit ein paar herausgehobenen Teilen.
-7. Drück auf **Speichern und starten**. Das Puzzle wird erstellt und deine erste Runde damit beginnt.
-
-Das Puzzle wird in ganze Teile geschnitten, deshalb kann die Größe etwas anders ausfallen, als du gewählt hast. Die angebotenen Anzahlen von Teilen passen zur Form der Größe in ganzen Reihen und Spalten, und die Größe wird ein wenig angepasst, damit die Teile genau passen.
+1. Drücke **Neues Puzzle mit deinem Bild hinzufügen** (auf der Startseite und oben in der Liste).
+2. Gib einen **Name** ein und wähle ein **Bild**. Ein Fenster öffnet sich: Ziehe das Bild, um den gewünschten Teil zu finden, zoome und drücke **Diesen Ausschnitt verwenden**.
+3. Wähle die **Größe** und die Anzahl der **Teile** (bis zu 1000). Die Größe wird etwas angepasst, damit die Teile genau passen.
+4. Wähle die **Schwierigkeit**, ob es **Mit Zeitmessung** sein soll, und **Linie**, **Farbe** und **Hintergrund** der Bildfläche.
+5. Wähle den **Autor** und **Wer es sieht**.
+6. Drücke **Speichern und starten**.
 
 ## Spielen
 
-* Die Teile warten in einem Rahmen neben dem Bild (auf einem kleinen Bildschirm darunter). Zieh ein Teil zum Bild, um es zusammenzubauen. Du kannst ein Teil überall ablegen, und es bleibt dort, wo du es lässt.
-* Wenn du ein Teil nahe an seinem richtigen Platz loslässt, **rastet es ein**: Es blinkt und dein Gerät vibriert. Ein Teil an seinem Platz sieht aus wie die anderen.
-* Teile, die zueinander passen, **bleiben aneinander haften**, und du bewegst sie gemeinsam. Halte die **Umschalttaste** gedrückt, während du ein Teil nimmst, um es loszureißen.
-* Zieh auf dem leeren Platz einen Rahmen auf, um mehrere Teile auszuwählen und gemeinsam zu bewegen.
-* Die Seitenleiste zeigt, wie viele Teile an ihrem Platz sind (**Richtig gelegt**).
-* **Linie**, **Farbe** und **Hintergrund** wählst du in jeder Runde selbst. Die Linie sieht in einem großen und in einem kleinen Fenster gleich aus.
-* **Schummeln (hilft beim Finden der Teile)** ist ein Schalter, der die Nummer jedes Platzes auf dem Bild anzeigt.
-* **Neue Runde** startet eine weitere Runde desselben Puzzles, mit wieder verstreuten Teilen. Du wirst vorher gefragt, und die Runde, die du verlässt, bleibt in deiner Liste.
-* **Runde löschen** entfernt die Runde, die du gerade spielst, endgültig. Du wirst vorher gefragt. Das Puzzle und deine anderen Runden bleiben.
+* Ziehe die Teile aus dem Rahmen neben dem Bild (auf einem kleinen Bildschirm darunter) auf das Bild. Ein Teil bleibt liegen, wo du es loslässt.
+* Lass ein Teil nahe an seinem richtigen Platz los, dann **rastet es ein**: Es blinkt und dein Gerät vibriert.
+* Teile, die zueinander passen, **haften aneinander** und werden zusammen bewegt. Halte **Shift** gedrückt, um ein Teil zu lösen. Ziehe einen Rahmen auf die leere Fläche, um mehrere Teile auszuwählen.
+* Die Seitenleiste zeigt, wie viele Teile richtig liegen (**Richtig gelegt:**). Dort kannst du das Aussehen deiner Runde ändern, **Neue Runde** oder **Runde löschen** drücken (du wirst vorher gefragt) und mit **Schummeln** die Nummer jedes Platzes sehen.
+* Die **Schwierigkeit** gehört zum Puzzle und ist in jeder Runde gleich: Je leichter, desto weiter weg darf ein Teil sein und rastet trotzdem ein.
+* Ein Puzzle **Mit Zeitmessung** hat eine Uhr, die läuft, solange deine eigene Runde offen ist.
 
-Die **Schwierigkeit** (Schwer, Mittel oder Leicht) bestimmt, wie nah ein Teil an seinem Platz sein muss, um einzurasten: Je leichter, desto weiter weg. Sie gehört zum Puzzle und ist in jeder Runde gleich, deshalb kannst du sie in einer Runde nicht ändern.
+## Hilfe beim Legen
 
-## Hilfe beim Bauen
-
-Diese stehen im Menü oben, während du spielst. Auf einem schmalen Bildschirm wandern sie in eine eigene Zeile unter dem Menü.
-
-* **Bild** zeigt das ganze Bild in einem kleinen Rahmen oben auf der Seite. Zieh es irgendwo am Rahmen, um es zu verschieben, und an seiner Ecke, um es größer oder kleiner zu machen.
-* **Ränder** blendet die inneren Teile aus, sodass du zuerst den Rand bauen kannst.
-* **Teile sammeln:** Klick auf den leeren Teil des Ablagerahmens, dann werden die Teile darin oben zusammengelegt, damit du sie finden kannst.
+* **Bild** zeigt das ganze Bild in einem kleinen Rahmen. Ziehe den Rahmen, um ihn zu verschieben, und die Ecke, um seine Größe zu ändern.
+* **Ränder** blendet die inneren Teile aus, damit du zuerst den Rand legen kannst.
+* Klicke auf die leere Stelle im Rahmen mit den Teilen, dann werden die Teile oben zusammengelegt, damit du sie findest.
 
 ## Runden
 
-* Jedes Puzzle kann oft und von vielen Leuten gespielt werden. Die Seite eines Puzzles listet die Runden von **allen** auf. Deine sind mit **Deine** markiert und stehen zuerst.
-* Eine Runde zählt erst, wenn du darin ein Teil bewegt hast. Wenn du ein Puzzle nur öffnest und zurückgehst, wird keine Runde erstellt, und sie steht nicht in der Liste.
-* Bei jeder Runde siehst du, wer sie spielt, wie viele Teile an ihrem Platz sind und wann sie begonnen hat.
-* Drück auf **Fortsetzen**, um mit einer deiner Runden weiterzumachen (**Ansehen** bei einer gelösten), auf **Neue Runde**, um eine weitere zu starten, oder auf **Löschen**, um eine deiner Runden endgültig zu entfernen (du wirst vorher gefragt).
-* Du kannst bei der Runde eines anderen Spielers auf **Ansehen** drücken, um zu sehen, wie weit er gekommen ist. Du kannst sie nie ändern oder löschen: Die Teile lassen sich nicht bewegen, und die Einstellungen und Schaltflächen, die eine Runde ändern, werden nicht angezeigt. Von dort aus kannst du deine eigene Runde starten.
+* Ein Spiel eines Puzzles ist eine **Runde**. Die Seite eines Puzzles listet die Runden aller auf; deine sind mit **Deine** markiert und stehen zuerst.
+* Drücke **Fortsetzen**, um mit einer deiner Runden weiterzumachen, **Neue Runde**, um eine weitere zu beginnen, oder **Löschen**, um eine deiner Runden zu entfernen (du wirst vorher gefragt).
+* Drücke **Ansehen**, um die Runde eines anderen Spielers zu sehen. Du kannst sie nie ändern, aber du kannst deine eigene beginnen.
+* Eine Runde zählt erst, wenn du darin ein Teil bewegt hast. Wenn du ein Puzzle nur öffnest und zurückgehst, steht keine Runde in der Liste.
+* **Fordere einen Freund heraus:** Stelle das Puzzle auf **Mit Zeitmessung** und bitte deinen Freund, auch eine Runde zu spielen. Die Zeit jeder Runde steht in der Liste, so siehst du, wer am schnellsten ist.
 
 ## Ein Puzzle bearbeiten oder löschen
 
-* Drück oben rechts auf der Seite eines Puzzles auf **Bearbeiten**. Solange noch niemand eine Runde davon begonnen hat, kann alles geändert werden: Du bekommst das Formular eines neuen Puzzles, ausgefüllt, auch mit dem Bild.
-* Sobald jemand eine Runde begonnen hat, können nur der Name, der Autor, die Schwierigkeit (jede Runde folgt ihr) und das Aussehen, mit dem eine neue Runde startet, geändert werden. Bild, Größe und Teile sind festgelegt, weil jede Runde sie teilt. Lösch die Runden, wenn sie nur deine sind, um wieder alles bearbeiten zu können.
-* **Löschen**, neben **Bearbeiten**, entfernt das Puzzle endgültig, mit seinem Bild und allen seinen Runden, auch denen anderer Spieler. Nur der Besitzer sieht es, und du wirst vorher gefragt.
-
-## Alle Puzzles
-
-Die Liste zeigt alle Puzzles mit einem kleinen Bild, wer sie erstellt hat und wann. Wechsle oben zwischen **Liste** und **Karten**. Drück auf **Spielen**, um die Seite eines Puzzles zu öffnen.
+* Drücke **Bearbeiten** auf der Seite eines Puzzles. Solange niemand es gespielt hat, kann alles geändert werden. Sobald jemand gespielt hat, sind Bild, Größe und Teile fest, aber Name, Autor, Schwierigkeit und Aussehen können weiter geändert werden.
+* **Löschen** entfernt das Puzzle mit allen Runden endgültig. Nur der Besitzer sieht es, und du wirst vorher gefragt.
 
 ## Kleine Bildschirme
 
-* Auf einem Handy oder in einem kleinen Fenster ist die Seitenleiste eingeklappt. Drück im Menü oben auf **Details**, um sie zu öffnen, und klick irgendwo anders, auch auf die leeren Stellen darin, um sie wieder zu schließen.
-* Das ganze Bild passt immer auf den Bildschirm. Die Teile warten in einem Streifen darunter, den du mit den Pfeilen darüber oder mit dem Finger seitlich scrollst.
+* Auf Handy und Tablet ist das Menü unten, und die Hilfen (Uhr, **Bild**, **Ränder**, **Details**) sind beim Spielen oben.
+* Drücke **Details**, um die Seitenleiste zu öffnen, und klicke woanders, um sie zu schließen.
+* Die Teile warten in einem Streifen unter dem Bild: Scrolle ihn seitwärts mit den Pfeilen oder dem Finger.

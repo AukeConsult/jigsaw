@@ -43,5 +43,8 @@
   "onlyYou": "Bare du ser det",
   "timePlayed": "Tid brukt",
   "timed": "Tidtaking",
-  "timedHelp": "en klokke måler hvor lang tid hver runde tar"
+  "timedHelp": "en klokke måler hvor lang tid hver runde tar",
+  "sectionBasics": "Grunnleggende",
+  "sectionPlay": "Spill og utseende",
+  "sectionOwner": "Eier og deling"
 }

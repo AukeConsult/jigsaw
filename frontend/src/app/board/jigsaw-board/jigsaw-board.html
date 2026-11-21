@@ -14,7 +14,7 @@
   <div class="helper-frame shadow border rounded bg-body" [style.left.px]="shownHelperFrame().x" [style.top.px]="shownHelperFrame().y" [attr.aria-label]="t('jigsawBoard.helperFrame') || 'Helper picture frame'"
        (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame()" (pointercancel)="endHelperFrame()">
     <div class="helper-frame-title d-flex justify-content-between align-items-center gap-2 px-2 py-1 bg-body-secondary border-bottom rounded-top small">
-      <span>{{ t('jigsawBoard.helperTitle') || 'Helper picture' }}</span>
+      <span>{{ t('jigsawBoard.helperTitle') || 'Picture' }}</span>
       <button type="button" class="btn-close btn-sm" [attr.aria-label]="t('jigsawBoard.hideHelper') || 'Hide the helper picture'" (pointerdown)="$event.stopPropagation()" (click)="helper.set(false)"></button>
     </div>
     <img [src]="src" class="helper-frame-picture d-block m-1 border" [style.width.px]="width() * helperScale() * scale()" [style.height.px]="height() * helperScale() * scale()" [attr.alt]="t('jigsawBoard.helperAlt') || 'The whole picture, smaller'">

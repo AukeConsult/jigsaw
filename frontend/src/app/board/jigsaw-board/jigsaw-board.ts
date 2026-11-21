@@ -1,12 +1,14 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, HostListener, inject, computed, effect, input, model, output, signal, untracked, viewChild } from '@angular/core';
-import { provideTranslocoScope } from '@jsverse/transloco';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoService, provideTranslocoScope } from '@jsverse/transloco';
+import { switchMap } from 'rxjs';
 import { tr } from '../../core/i18n';
 import { BoardShape } from '../board-shape/board-shape';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
 import { readSession, writeSession } from '../../core/session-storage';
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
-import { cssNumber, cssVar } from '../../core/theme';
+import { bottomBarHeight, cssNumber, cssVar } from '../../core/theme';
 import { CANVAS_OBJECT_DRAG_TYPE } from '../drag';
 import { CanvasObject } from '../../models/shared/canvas-object';
 import { CANVAS_MAX_SIDE, CANVAS_MIN_SIDE, CanvasArea } from '../../models/shared/canvas';
@@ -529,6 +531,9 @@ export class JigsawBoard {
   private marqueeInStore = false;
 
   constructor() {
+    // the texts of the board are read through `t()` (not the `*transloco` directive, which is what loads a scope), so the board loads its own file, for each language chosen
+    const transloco = inject(TranslocoService);
+    transloco.langChanges$.pipe(switchMap((lang) => transloco.load(`jigsawBoard/${lang}`)), takeUntilDestroyed(this.destroyRef)).subscribe();
     // the pieces area fills the screen: measured when the page is drawn, and again when the window is resized or scrolled
     afterNextRender(() => {
       this.measureArea();
@@ -571,7 +576,7 @@ export class JigsawBoard {
   @HostListener('window:scroll')
   measureArea(): void {
     const root = this.root().nativeElement;
-    this.areaHeight.set(this.fillScreen() ? Math.max(200, Math.floor(window.innerHeight - root.getBoundingClientRect().top - SCREEN_MARGIN_PX)) : null);
+    this.areaHeight.set(this.fillScreen() ? Math.max(200, Math.floor(window.innerHeight - bottomBarHeight() - root.getBoundingClientRect().top - SCREEN_MARGIN_PX)) : null);
     const width = root.clientWidth; // the room is what the page gives the area: it does not grow with its content
     const now = this.room();
     if (now?.width !== width || now.view !== window.innerWidth) this.room.set({ width, height: 0, view: window.innerWidth });

@@ -43,5 +43,8 @@
   "onlyYou": "Toi seul le vois",
   "timePlayed": "Temps de jeu",
   "timed": "Chronométré",
-  "timedHelp": "un chrono mesure la durée de chaque partie"
+  "timedHelp": "un chrono mesure la durée de chaque partie",
+  "sectionBasics": "Bases",
+  "sectionPlay": "Jeu et apparence",
+  "sectionOwner": "Propriétaire et partage"
 }

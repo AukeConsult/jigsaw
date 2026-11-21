@@ -1,7 +1,7 @@
 {
   "menu": "Karins jigsaw menu",
   "jigsaws": "Jigsaws",
-  "guide": "User guide",
+  "guide": "Help",
   "whoPlays": "Who plays?",
   "whoPlaysTitle": "Who plays: {{ name }}",
   "choosePlayer": "Choose who plays",

@@ -1,4 +1,7 @@
 {
-  "failed": "Kunde inte läsa in användarguiden.",
-  "opening": "Öppnar användarguiden…"
+  "failed": "Kunde inte läsa hjälpen.",
+  "opening": "Öppnar hjälpen…",
+  "tabGuide": "Hjälp",
+  "tabAbout": "Om",
+  "documents": "Dokument"
 }

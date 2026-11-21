@@ -57,5 +57,9 @@
   "visibilityOwner": "Solo el dueño",
   "visibilityHelp": "Un puzle para todos aparece en las listas de todos. Uno que solo ve el dueño aparece únicamente en las listas del dueño.",
   "timed": "Cronometrado",
-  "timedHelp": "Un reloj mide cuánto dura cada partida."
+  "timedHelp": "Un reloj mide cuánto dura cada partida.",
+  "sectionBasics": "Básico",
+  "sectionSize": "Tamaño y piezas",
+  "sectionPlay": "Juego y aspecto",
+  "sectionOwner": "Propietario y uso compartido"
 }

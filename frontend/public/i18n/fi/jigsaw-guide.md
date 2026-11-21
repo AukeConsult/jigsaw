@@ -1,67 +1,50 @@
-Tee palapeli mistä tahansa kuvasta ja kokoa se ruudulla. Kaikki tallentuu itsestään, joten voit lopettaa ja palata siihen, mihin jäit, milloin vain.
+Tee palapeli mistä tahansa kuvasta ja kokoa se ruudulla. Kaikki tallentuu itsestään, joten voit lopettaa ja palata milloin tahansa.
 
 ## Kuka pelaa
 
-* Kun avaat tai teet palapelin ensimmäisen kerran, sinulta kysytään, kuka pelaa. Paina nimeäsi listasta pelataksesi omana itsenäsi.
-* Uusi täällä? Paina **Luo käyttäjä**. Valitse **käyttäjätunnus** (3–30 kirjainta a-z, numeroita, _ tai -; kenelläkään muulla ei voi olla samaa) ja kirjoita **nimesi**. **Sähköposti** on valinnainen: kukaan ei näe sitä, se vain säilytetään, jotta voit myöhemmin yhdistää käyttäjän rekisteröitymiseen.
-* Salasanaa ei toistaiseksi ole, joten kuka tahansa voi valita minkä tahansa käyttäjän listasta.
-* Nimesi näkyy ylhäällä valikossa. Paina sitä nähdäksesi **Kierroksesi**, painaaksesi **Muokkaa** (vaihda käyttäjätunnuksesi, nimesi tai sähköpostisi) tai painaaksesi **Valitse toinen käyttäjä**.
-* Sähköpostia ei koskaan näytetä, ei edes sinulle: kirjoita uusi tai rastita ruutu poistaaksesi sen.
-* Kierroksesi pysyvät ominasi, kun vaihdat käyttäjätunnuksesi.
+* Ensimmäisellä kerralla sinulta kysytään, kuka pelaa. Paina nimeäsi luettelossa tai paina **Luo käyttäjä**: valitse **Käyttäjätunnus** (3–30 kirjainta a-z, numeroita, _ tai -) ja nimesi. **Sähköposti** on valinnainen, eikä sitä näytetä koskaan.
+* Salasanaa ei toistaiseksi ole, joten kuka tahansa voi valita minkä tahansa käyttäjän.
+* Paina nimeäsi valikossa nähdäksesi **Kierroksesi**, painaaksesi **Muokkaa** tai painaaksesi **Valitse toinen käyttäjä**.
 
 ## Tee palapeli
 
-1. Etusivulla tai kaikkien palapelien listan ylälaidassa paina **Lisää uusi palapeli omalla kuvallasi**.
-2. Kirjoita **Nimi**. Valitse **Tekijä** käyttäjistä: se on aluksi sinä, ja tekijä omistaa palapelin.
-3. Valitse **Koko** (palapelin muoto) ja **Palat**-määrä, enintään 1000. Paina Koko-kohdasta **Oma…** kirjoittaaksesi oman leveyden ja korkeuden.
-4. Valitse **Vaikeustaso** sekä kuva-alueen **Viiva**, **Väri** ja **Tausta**.
-5. Valitse **Kuva**. Ikkuna aukeaa: vedä kuvaa löytääksesi haluamasi osan, zoomaa liukusäätimellä tai hiiren rullalla ja paina sitten **Käytä tätä rajausta**.
-6. Palapelistä näytetään esimerkki, jotta näet sen ennen tallennusta: kuva koottuna paloistaan taustavärin päälle, muutama pala nostettuna irti.
-7. Paina **Tallenna ja aloita**. Palapeli tehdään ja ensimmäinen kierroksesi alkaa.
-
-Palapeli leikataan kokonaisiin paloihin, joten koko voi tulla hieman erilainen kuin valitsit. Tarjotut palamäärät sopivat koon muotoon kokonaisina riveinä ja sarakkeina, ja kokoa säädetään hieman, jotta palat sopivat täsmälleen.
+1. Paina **Lisää uusi palapeli omalla kuvallasi** (etusivulla ja luettelon yläreunassa).
+2. Kirjoita **Nimi** ja valitse **Kuva**. Ikkuna aukeaa: vedä kuvaa löytääksesi haluamasi osan, zoomaa ja paina **Käytä tätä rajausta**.
+3. Valitse **Koko** ja **Palat** (enintään 1000). Kokoa säädetään hieman, jotta palat sopivat täsmälleen.
+4. Valitse **Vaikeustaso**, onko se **Ajastettu**, sekä kuva-alueen **Viiva**, **Väri** ja **Tausta**.
+5. Valitse **Tekijä** ja **Kuka näkee**.
+6. Paina **Tallenna ja aloita**.
 
 ## Pelaa
 
-* Palat odottavat kehyksessä kuvan vieressä (pienellä näytöllä sen alapuolella). Vedä pala kuvaan rakentaaksesi sitä. Palan voi laittaa mihin tahansa, ja se pysyy siinä, mihin sen jätät.
-* Kun päästät palan irti lähellä sen oikeaa paikkaa, se **napsahtaa paikalleen**: se vilkkuu ja laitteesi värähtää. Paikallaan oleva pala näyttää samalta kuin muut.
-* Toisiinsa sopivat palat **tarttuvat yhteen**, ja siirrät niitä yhtenä. Pidä **Shift** painettuna, kun otat palan, irrottaaksesi sen.
-* Vedä kehys tyhjän tilan päälle valitaksesi useita paloja ja siirtääksesi ne yhdessä.
-* Sivupalkki näyttää, kuinka monta palaa on paikallaan (**Paikallaan**).
-* **Viiva**, **Väri** ja **Tausta** ovat sinun omia valintojasi jokaisella kierroksella. Viiva näyttää samalta isossa ikkunassa ja pienessä.
-* **Huijaa (auta etsimään paloja)** on kytkin, joka näyttää jokaisen paikan numeron kuvassa.
-* **Uusi kierros** aloittaa saman palapelin toisen kierroksen, palat sirotellaan uudelleen. Sinulta kysytään ensin, ja kierros, jonka jätät, pysyy listallasi.
-* **Poista kierros** poistaa pelaamasi kierroksen lopullisesti. Sinulta kysytään ensin. Palapeli ja muut kierroksesi säilyvät.
-
-**Vaikeustaso** (Vaikea, Keskitaso tai Helppo) kertoo, kuinka lähellä paikkaansa palan on oltava napsahtaakseen paikalleen: mitä helpompi, sitä kauempaa se käy. Se kuuluu palapelille ja on sama jokaisella kierroksella, joten et voi muuttaa sitä kesken kierroksen.
+* Vedä palat kuvan vieressä olevasta kehyksestä (pienellä näytöllä sen alta) kuvaan. Pala jää siihen, mihin sen jätät.
+* Päästä pala irti lähellä oikeaa paikkaa, niin se **napsahtaa paikalleen**: se vilkkuu ja laite värähtää.
+* Toisiinsa sopivat palat **pysyvät yhdessä** ja liikkuvat yhtenä. Pidä **Shift** painettuna irrottaaksesi yhden palan. Vedä kehys tyhjälle alueelle valitaksesi useita paloja.
+* Sivupaneeli näyttää, kuinka monta palaa on paikallaan (**Paikallaan:**). Siellä voit muuttaa kierroksesi ulkoasua, painaa **Uusi kierros** tai **Poista kierros** (sinulta kysytään ensin) ja käyttää **Huijaa**-kytkintä nähdäksesi kunkin paikan numeron.
+* **Vaikeustaso** kuuluu palapelille ja on sama jokaisella kierroksella: mitä helpompi, sitä kauempana pala voi olla ja silti napsahtaa paikalleen.
+* **Ajastetussa** palapelissä on kello, joka käy, kun oma kierroksesi on auki.
 
 ## Apua kokoamiseen
 
-Nämä ovat ylhäällä valikossa pelatessasi. Kapealla näytöllä ne siirtyvät omalle rivilleen valikon alle.
-
-* **Kuva** näyttää koko kuvan pienessä kehyksessä sivun päällä. Vedä sitä mistä tahansa kehyksestä siirtääksesi sitä ja sen kulmasta tehdäksesi siitä suuremman tai pienemmän.
-* **Reunat** piilottaa sisäpalat, jotta voit koota ensin reunan.
-* **Kerää palat:** napsauta varaston kehyksen tyhjää kohtaa, niin sen palat kootaan ylös yhteen, jotta löydät ne.
+* **Kuva** näyttää koko kuvan pienessä kehyksessä. Vedä kehystä siirtääksesi sitä ja kulmaa muuttaaksesi sen kokoa.
+* **Reunat** piilottaa sisäpalat, jotta voit koota reunan ensin.
+* Napsauta palakehyksen tyhjää kohtaa, niin palat kerätään yläreunaan, jotta löydät ne.
 
 ## Kierrokset
 
-* Jokaista palapeliä voi pelata monta kertaa, ja monet voivat pelata sitä. Palapelin sivulla on **kaikkien** kierrokset. Omasi on merkitty **Omasi** ja ne näytetään ensin.
-* Kierros lasketaan vasta, kun olet siirtänyt siinä palaa. Jos vain avaat palapelin ja palaat takaisin, kierrosta ei tehdä eikä sitä näytetä listalla.
-* Jokaisesta kierroksesta näet, kuka sitä pelaa, kuinka monta palaa on paikallaan ja milloin se alkoi.
-* Paina **Jatka** jatkaaksesi omaa kierrostasi (**Katso** ratkaistun kohdalla), **Uusi kierros** aloittaaksesi toisen tai **Poista** poistaaksesi oman kierroksesi lopullisesti (sinulta kysytään ensin).
-* Voit painaa **Katso** toisen pelaajan kierroksella nähdäksesi, kuinka pitkällä hän on. Et voi koskaan muuttaa tai poistaa sitä: palojen siirtäminen ei onnistu, eikä kierrosta muuttavia asetuksia ja painikkeita näytetä. Voit aloittaa oman kierroksesi sieltä.
+* Yksi palapelin peli on **kierros**. Palapelin sivu luettelee kaikkien kierrokset; omasi on merkitty **Omasi** ja ne ovat ensin.
+* Paina **Jatka** jatkaaksesi yhtä omistasi, **Uusi kierros** aloittaaksesi uuden tai **Poista** poistaaksesi yhden omistasi (sinulta kysytään ensin).
+* Paina **Katso** nähdäksesi toisen pelaajan kierroksen. Et voi koskaan muuttaa sitä, mutta voit aloittaa oman.
+* Kierros lasketaan vasta, kun olet siirtänyt siinä palaa. Jos vain avaat palapelin ja palaat takaisin, luettelossa ei näy kierrosta.
+* **Haasta ystävä:** tee palapelistä **Ajastettu** ja pyydä ystävääsi pelaamaan siitä myös kierros. Jokaisen kierroksen aika näkyy luettelossa, joten näet kuka on nopein.
 
 ## Muokkaa tai poista palapeli
 
-* Paina **Muokkaa** palapelin sivun oikeassa yläkulmassa. Kun kukaan ei ole aloittanut sen kierrosta, kaiken voi muuttaa: saat uuden palapelin lomakkeen täytettynä, myös kuvan kanssa.
-* Kun joku on aloittanut kierroksen, vain nimeä, tekijää, vaikeustasoa (jokainen kierros noudattaa sitä) ja uuden kierroksen aloitusulkoasua voi muuttaa. Kuva, koko ja palat ovat lukittuja, koska jokainen kierros jakaa ne. Poista kierrokset, jos ne ovat vain sinun, jotta voit taas muokata kaikkea.
-* **Poista** **Muokkaa**-painikkeen vieressä poistaa palapelin lopullisesti kuvineen ja kaikkine kierroksineen, myös muiden pelaajien. Vain omistaja näkee sen, ja sinulta kysytään ensin.
-
-## Kaikki palapelit
-
-Lista näyttää kaikki palapelit pienen kuvan, tekijän ja tekoajan kanssa. Vaihda **Lista**- ja **Kortit**-näkymän välillä ylhäällä. Paina **Pelaa** avataksesi palapelin sivun.
+* Paina **Muokkaa** palapelin sivulla. Kunnes kukaan on pelannut sitä, kaiken voi muuttaa. Kun joku on pelannut, kuva, koko ja palat ovat lukittuja, mutta nimeä, tekijää, vaikeustasoa ja ulkoasua voi yhä muuttaa.
+* **Poista** poistaa palapelin ja kaikki sen kierrokset lopullisesti. Vain omistaja näkee sen, ja sinulta kysytään ensin.
 
 ## Pienet näytöt
 
-* Puhelimella tai pienessä ikkunassa sivupalkki on piilossa. Paina ylhäällä valikossa **Tiedot** avataksesi sen ja napsauta mitä tahansa muuta kohtaa, myös sen tyhjiä osia, sulkeaksesi sen taas.
-* Koko kuva mahtuu aina näytölle. Palat odottavat sen alapuolella olevassa kaistassa, jota vieritetään sivusuunnassa sen päällä olevilla nuolilla tai sormella.
+* Puhelimessa ja tabletissa valikko on alhaalla ja apuvälineet (kello, **Kuva**, **Reunat**, **Tiedot**) ovat ylhäällä pelatessasi.
+* Paina **Tiedot** avataksesi sivupaneelin ja napsauta muualle sulkeaksesi sen.
+* Palat odottavat kuvan alla olevassa kaistassa: vieritä sitä sivuttain nuolilla tai sormella.

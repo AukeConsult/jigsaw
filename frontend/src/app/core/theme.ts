@@ -18,6 +18,12 @@ export function cssNumber(name: string, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
 }
 
+/** The height of the menu when it is stuck to the bottom of the screen (a screen narrower than `--app-sidebar-fold`), else 0: what a page that fills the screen must leave. */
+export function bottomBarHeight(): number {
+  const bar = document.querySelector('.app-navbar');
+  return bar && getComputedStyle(bar).position === 'sticky' ? Math.ceil(bar.getBoundingClientRect().height) : 0;
+}
+
 /** Whether the screen is as wide as the layout of a wide screen needs (the sidebar docked at the left): from the width `--app-sidebar-fold` up. */
 export function isWideScreen(): boolean {
   return window.matchMedia(`(min-width: ${cssNumber('--app-sidebar-fold', 1200)}px)`).matches;

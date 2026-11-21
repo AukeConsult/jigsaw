@@ -39,5 +39,7 @@
   "couldNotReach": "Kunde inte nå servern: försök igen.",
   "noSuchUser": "Det finns ingen användare med det användarnamnet.",
   "chooseFirst": "Välj en användare först.",
-  "timePlayed": "Speltid"
+  "timePlayed": "Speltid",
+  "sectionWho": "Vem du är",
+  "sectionContact": "Kontakt"
 }

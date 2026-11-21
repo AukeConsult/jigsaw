@@ -1,67 +1,50 @@
-Maak van elke afbeelding een puzzel en leg hem op het scherm. Alles wordt vanzelf opgeslagen, dus je kunt altijd stoppen en later verdergaan waar je gebleven was.
+Maak een puzzel van elke afbeelding en leg hem op het scherm. Alles wordt vanzelf opgeslagen, dus je kunt altijd stoppen en terugkomen.
 
 ## Wie speelt
 
-* De eerste keer dat je een puzzel opent of maakt, wordt gevraagd wie er speelt. Tik in de lijst op je naam om als jezelf te spelen.
-* Nieuw hier? Kies **Een gebruiker maken**. Kies een **Gebruikersnaam** (3 tot 30 letters a-z, cijfers, _ of -; niemand anders mag dezelfde hebben) en vul je **Je naam** in. Een **E-mail** is niet verplicht: niemand ziet het, het wordt alleen bewaard zodat je de gebruiker later aan een registratie kunt koppelen.
-* Er is voorlopig geen wachtwoord, dus iedereen kan elke gebruiker uit de lijst kiezen.
-* Je naam staat in het menu bovenaan. Tik erop om **Je rondes** te zien, om **Bewerken** te kiezen (je gebruikersnaam, je naam of je e-mail wijzigen) of om **Een andere gebruiker kiezen** te kiezen.
-* Het e-mailadres wordt nooit getoond, ook niet aan jou: typ een nieuw adres, of vink het vakje aan om het te verwijderen.
-* Je rondes blijven van jou als je je gebruikersnaam wijzigt.
+* De eerste keer word je gevraagd wie er speelt. Tik op je naam in de lijst, of tik op **Een gebruiker maken**: kies een **Gebruikersnaam** (3 tot 30 letters a-z, cijfers, _ of -) en je naam. **E-mail** is optioneel en wordt nooit getoond.
+* Er is voorlopig geen wachtwoord, dus iedereen kan elke gebruiker kiezen.
+* Tik in het menu op je naam om **Je rondes** te zien, op **Bewerken** te tikken of op **Een andere gebruiker kiezen** te tikken.
 
 ## Een puzzel maken
 
-1. Kies op de voorpagina, of bovenaan de lijst met alle puzzels, **Een nieuwe puzzel toevoegen met je afbeelding**.
-2. Typ een **Naam**. Kies de **Maker** uit de gebruikers: dat ben standaard jijzelf, en de maker is de eigenaar van de puzzel.
-3. Kies een **Formaat** (de vorm van de puzzel) en het aantal **Stukjes**, tot 1000. Kies **Eigen formaat…** onder Formaat om zelf een breedte en hoogte in te typen.
-4. Kies de **Moeilijkheid**, en de **Lijn**, **Kleur** en **Achtergrond** van het afbeeldingsgebied.
-5. Kies een **Afbeelding**. Er opent een venster: sleep de afbeelding naar het deel dat je wilt, zoom met de schuifbalk of het muiswiel en kies dan **Deze uitsnede gebruiken**.
-6. Er wordt een voorbeeld van de puzzel getoond, zodat je hem kunt bekijken voordat je opslaat: de afbeelding, samengesteld uit zijn stukjes op de achtergrondkleur, met een paar stukjes eruit gelicht.
-7. Kies **Opslaan en beginnen**. De puzzel wordt gemaakt en je eerste ronde ervan begint.
-
-De puzzel wordt in hele stukjes gesneden, dus het formaat kan een beetje afwijken van wat je koos. De aantallen stukjes die worden aangeboden passen bij de vorm van het formaat in hele rijen en kolommen, en het formaat wordt een klein beetje aangepast zodat de stukjes precies passen.
+1. Tik op **Een nieuwe puzzel toevoegen met je afbeelding** (op de voorpagina en bovenaan de lijst).
+2. Typ een **Naam** en kies een **Afbeelding**. Een venster opent: sleep de afbeelding om het gewenste deel te vinden, zoom en tik op **Deze uitsnede gebruiken**.
+3. Kies het **Formaat** en het aantal **Stukjes** (tot 1000). Het formaat wordt een beetje aangepast zodat de stukjes precies passen.
+4. Kies de **Moeilijkheid**, of het **Met tijdmeting** is, en de **Lijn**, **Kleur** en **Achtergrond** van het afbeeldingsvlak.
+5. Kies de **Maker** en **Wie ziet hem**.
+6. Tik op **Opslaan en beginnen**.
 
 ## Spelen
 
-* De stukjes wachten in een kader naast de afbeelding (op een klein scherm eronder). Sleep een stukje naar de afbeelding om te bouwen. Je kunt een stukje overal neerleggen, en het blijft liggen waar je het laat.
-* Als je een stukje dicht bij zijn juiste plek loslaat, **klikt het vast**: het knippert en je apparaat trilt. Een stukje op zijn plek ziet er net zo uit als de andere.
-* Stukjes die bij elkaar passen, **blijven aan elkaar zitten** en je verplaatst ze samen. Houd **Shift** ingedrukt terwijl je een stukje pakt om het los te trekken.
-* Sleep een kader over de lege ruimte om meerdere stukjes te kiezen en ze samen te verplaatsen.
-* De zijbalk laat zien hoeveel stukjes op hun plek liggen (**Op hun plek**).
-* **Lijn**, **Kleur** en **Achtergrond** kies je zelf, in elke ronde apart. De lijn ziet er in een groot en een klein venster hetzelfde uit.
-* **Valsspelen (help stukjes vinden)** is een schakelaar die het nummer van elke plek op de afbeelding laat zien.
-* **Nieuwe ronde** begint nog een ronde van dezelfde puzzel, met de stukjes weer door elkaar. Eerst wordt het je gevraagd, en de ronde die je verlaat blijft in je lijst staan.
-* **Ronde verwijderen** verwijdert de ronde die je speelt definitief. Eerst wordt het je gevraagd. De puzzel en je andere rondes blijven bestaan.
+* Sleep de stukjes uit het kader naast de afbeelding (op een klein scherm eronder) naar de afbeelding. Een stukje blijft liggen waar je het loslaat.
+* Laat een stukje los vlak bij zijn juiste plek en het **klikt vast**: het knippert en je apparaat trilt.
+* Stukjes die bij elkaar passen **blijven aan elkaar zitten** en worden samen verplaatst. Houd **Shift** ingedrukt om één stukje los te trekken. Sleep een kader over de lege ruimte om meerdere stukjes te kiezen.
+* De zijbalk toont hoeveel stukjes op hun plek liggen (**Op hun plek:**). Daar kun je het uiterlijk van je ronde wijzigen, op **Nieuwe ronde** of **Ronde verwijderen** tikken (je wordt eerst gevraagd) en **Valsspelen** gebruiken om het nummer van elke plek te zien.
+* De **Moeilijkheid** hoort bij de puzzel en is in elke ronde hetzelfde: hoe makkelijker, hoe verder een stukje weg mag zijn en toch vastklikt.
+* Een puzzel **Met tijdmeting** heeft een klok, die loopt zolang je eigen ronde openstaat.
 
-De **moeilijkheid** (Moeilijk, Middel of Makkelijk) is hoe dicht bij zijn plek een stukje moet liggen om vast te klikken: hoe makkelijker, hoe verder weg. Ze hoort bij de puzzel en is in elke ronde hetzelfde, dus je kunt haar in een ronde niet veranderen.
+## Hulp bij het leggen
 
-## Hulp bij het bouwen
-
-Je vindt deze in het menu bovenaan terwijl je speelt. Op een smal scherm staan ze op een eigen regel onder het menu.
-
-* **Afbeelding** toont de hele afbeelding in een klein kader bovenop de pagina. Sleep het ergens aan het kader om het te verplaatsen, en aan de hoek om het groter of kleiner te maken.
-* **Randen** verbergt de stukjes uit het midden, zodat je eerst de rand kunt bouwen.
-* **Stukjes verzamelen:** klik op het lege deel van het voorraadkader, en de stukjes erin worden bovenaan bij elkaar gezet zodat je ze kunt vinden.
+* **Afbeelding** toont de hele afbeelding in een klein kader. Sleep het kader om het te verplaatsen en de hoek om de grootte te wijzigen.
+* **Randen** verbergt de binnenste stukjes, zodat je eerst de rand kunt leggen.
+* Klik op het lege deel van het kader met de stukjes en ze worden bovenaan bij elkaar gelegd, zodat je ze vindt.
 
 ## Rondes
 
-* Elke puzzel kan vaak worden gespeeld, door veel mensen. De pagina van een puzzel toont de rondes van **iedereen**. Die van jou zijn gemarkeerd met **Van jou** en staan bovenaan.
-* Een ronde telt pas als je er een stukje in hebt verplaatst. Als je een puzzel alleen opent en weer teruggaat, wordt er geen ronde gemaakt en staat er niets in de lijst.
-* Bij elke ronde zie je wie hem speelt, hoeveel stukjes op hun plek liggen en wanneer hij begon.
-* Kies **Verder** om met een van je eigen rondes door te gaan (**Kijken** bij een opgeloste), **Nieuwe ronde** om een andere te beginnen, of **Verwijderen** om een van je eigen rondes definitief te verwijderen (eerst wordt het je gevraagd).
-* Je kunt **Kijken** kiezen bij de ronde van een andere speler om te zien hoe ver die is gekomen. Je kunt hem nooit veranderen of verwijderen: de stukjes kunnen niet worden verplaatst en de instellingen en knoppen die een ronde veranderen worden niet getoond. Vanaf daar kun je je eigen ronde beginnen.
+* Eén spel van een puzzel is een **ronde**. De pagina van een puzzel toont de rondes van iedereen; die van jou zijn gemarkeerd als **Van jou** en staan bovenaan.
+* Tik op **Verder** om met een van jouw rondes door te gaan, op **Nieuwe ronde** om een andere te beginnen, of op **Verwijderen** om een van jouw rondes te verwijderen (je wordt eerst gevraagd).
+* Tik op **Kijken** om de ronde van een andere speler te zien. Je kunt hem nooit wijzigen, maar je kunt je eigen ronde beginnen.
+* Een ronde telt pas als je er een stukje in hebt verplaatst. Als je een puzzel alleen opent en teruggaat, staat er geen ronde in de lijst.
+* **Daag een vriend uit:** zet de puzzel op **Met tijdmeting** en vraag je vriend ook een ronde te spelen. De tijd van elke ronde staat in de lijst, zodat je ziet wie het snelst is.
 
 ## Een puzzel bewerken of verwijderen
 
-* Kies **Bewerken** rechtsboven op de pagina van een puzzel. Zolang niemand een ronde ervan is begonnen, kan alles worden gewijzigd: je krijgt het formulier van een nieuwe puzzel, ingevuld, ook met de afbeelding.
-* Zodra iemand een ronde is begonnen, kunnen alleen de naam, de maker, de moeilijkheid (elke ronde volgt die) en de look waarmee een nieuwe ronde begint worden gewijzigd. De afbeelding, het formaat en de stukjes liggen vast, omdat elke ronde ze deelt. Verwijder de rondes, als ze alleen van jou zijn, om weer alles te kunnen bewerken.
-* **Verwijderen**, naast **Bewerken**, verwijdert de puzzel definitief, met zijn afbeelding en alle rondes, ook die van andere spelers. Alleen de eigenaar ziet het, en eerst wordt het je gevraagd.
-
-## Alle puzzels
-
-De lijst toont alle puzzels met een kleine afbeelding, wie ze maakte en wanneer. Schakel bovenaan tussen **Lijst** en **Kaarten**. Kies **Spelen** om de pagina van een puzzel te openen.
+* Tik op **Bewerken** op de pagina van een puzzel. Zolang niemand hem heeft gespeeld, kan alles worden gewijzigd. Zodra iemand hem heeft gespeeld, liggen afbeelding, formaat en stukjes vast, maar de naam, de maker, de moeilijkheid en het uiterlijk kunnen nog worden gewijzigd.
+* **Verwijderen** haalt de puzzel met alle rondes voorgoed weg. Alleen de eigenaar ziet het, en je wordt eerst gevraagd.
 
 ## Kleine schermen
 
-* Op een telefoon of in een klein venster is de zijbalk weggeklapt. Kies **Details** in het menu bovenaan om hem te openen, en klik ergens anders, ook op de lege delen ervan, om hem weer te sluiten.
-* De hele afbeelding past altijd op het scherm. De stukjes wachten in een strook eronder, die je zijwaarts scrolt met de pijlen erboven of met je vinger.
+* Op een telefoon of tablet staat het menu onderaan, en de hulpmiddelen (klok, **Afbeelding**, **Randen**, **Details**) staan bovenaan terwijl je speelt.
+* Tik op **Details** om de zijbalk te openen en klik ergens anders om hem te sluiten.
+* De stukjes wachten in een strook onder de afbeelding: scroll die zijwaarts met de pijlen of je vinger.

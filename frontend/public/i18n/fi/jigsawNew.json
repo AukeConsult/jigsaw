@@ -57,5 +57,9 @@
   "visibilityOwner": "Vain omistaja",
   "visibilityHelp": "Kaikille näkyvä palapeli on kaikkien listoilla. Vain omistajalle näkyvä palapeli on vain omistajan listoilla.",
   "timed": "Ajastettu",
-  "timedHelp": "Kello mittaa, kuinka kauan kukin kierros kestää."
+  "timedHelp": "Kello mittaa, kuinka kauan kukin kierros kestää.",
+  "sectionBasics": "Perustiedot",
+  "sectionSize": "Koko ja palat",
+  "sectionPlay": "Peli ja ulkoasu",
+  "sectionOwner": "Omistaja ja jakaminen"
 }

@@ -57,5 +57,9 @@
   "visibilityOwner": "Kun ejeren",
   "visibilityHelp": "Et puslespil for alle står i alles lister. Et som kun ejeren ser, står kun i ejerens lister.",
   "timed": "Tidtagning",
-  "timedHelp": "Et ur måler, hvor lang tid hver runde tager."
+  "timedHelp": "Et ur måler, hvor lang tid hver runde tager.",
+  "sectionBasics": "Grundlæggende",
+  "sectionSize": "Størrelse og brikker",
+  "sectionPlay": "Spil og udseende",
+  "sectionOwner": "Ejer og deling"
 }

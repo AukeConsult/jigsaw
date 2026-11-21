@@ -12,6 +12,7 @@
       </div>
       @if (editing()) {
         <form (submit)="$event.preventDefault(); saveEdit()">
+          <h2 class="form-section first"><i class="bi bi-person" aria-hidden="true"></i>{{ t('jigsawUser.sectionWho') || 'Who you are' }}</h2>
           <div class="mb-3">
             <label class="form-label" for="edit-username">{{ t('jigsawUser.usernameLabel') || 'User name' }}</label>
             <input id="edit-username" name="username" class="form-control" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
@@ -22,6 +23,7 @@
             <label class="form-label" for="edit-name">{{ t('jigsawUser.yourName') || 'Your name' }}</label>
             <input id="edit-name" name="name" class="form-control" type="text" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
           </div>
+          <h2 class="form-section"><i class="bi bi-envelope" aria-hidden="true"></i>{{ t('jigsawUser.sectionContact') || 'Contact' }}</h2>
           <div class="mb-3">
             <label class="form-label" for="edit-email">{{ t('jigsawUser.email') || 'E-mail' }} <span class="text-body-secondary small">{{ t('jigsawUser.optional') || '(optional)' }}</span></label>
             <input id="edit-email" name="email" class="form-control" type="email" autocapitalize="none" spellcheck="false" [attr.placeholder]="t('jigsawUser.emailPlaceholder') || 'Leave empty to keep the one there is'"
@@ -37,7 +39,7 @@
           }
           <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-outline-secondary" (click)="editing.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
-            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawUser.save') || 'Save' }}</button>
+            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.save') || 'Save' }}</button>
           </div>
         </form>
       }
@@ -64,7 +66,7 @@
                   <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', game.jigsaw.id]">{{ game.jigsaw.name }}</a>
                   <div class="d-flex align-items-center gap-2 flex-wrap small">
                     @if (game.play.status === 'solved') {
-                      <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawUser.solved') || 'Solved' }}</span>
+                      <span class="badge text-bg-success"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.solved') || 'Solved' }}</span>
                     } @else {
                       <span class="badge text-bg-primary">{{ t('jigsawUser.playing') || 'Playing' }}</span>
                     }
@@ -115,6 +117,7 @@
         }
       } @else {
         <form (submit)="$event.preventDefault(); submit()">
+          <h2 class="form-section first"><i class="bi bi-person" aria-hidden="true"></i>{{ t('jigsawUser.sectionWho') || 'Who you are' }}</h2>
           <div class="mb-3">
             <label class="form-label" for="username">{{ t('jigsawUser.usernameLabel') || 'User name' }}</label>
             <input id="username" name="username" class="form-control" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"
@@ -126,6 +129,7 @@
             <input id="name" name="name" class="form-control" type="text" autocomplete="name" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
             <div class="form-text">{{ t('jigsawUser.nameHelp') || 'Shown as the player.' }}</div>
           </div>
+          <h2 class="form-section"><i class="bi bi-envelope" aria-hidden="true"></i>{{ t('jigsawUser.sectionContact') || 'Contact' }}</h2>
           <div class="mb-3">
             <label class="form-label" for="email">{{ t('jigsawUser.email') || 'E-mail' }} <span class="text-body-secondary small">{{ t('jigsawUser.optional') || '(optional)' }}</span></label>
             <input id="email" name="email" class="form-control" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" [ngModel]="email()" (ngModelChange)="email.set($event)">
@@ -140,7 +144,7 @@
               <button type="button" class="btn btn-outline-secondary" (click)="mode.set('choose'); error.set('')">{{ t('jigsawUser.backToList') || 'Back to the list' }}</button>
             }
             <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()">
-              <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawUser.makeAndPlay') || 'Make the user and play' }}
+              <i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.makeAndPlay') || 'Make the user and play' }}
             </button>
           </div>
         </form>

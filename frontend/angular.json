@@ -29,7 +29,8 @@
                 { "type": "initial", "maximumWarning": "1.25MB", "maximumError": "1.4MB" },
                 { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": { "scripts": true, "fonts": true, "styles": { "minify": true, "inlineCritical": false } }
             },
             "development": {
               "optimization": false,
