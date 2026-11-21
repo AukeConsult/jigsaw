@@ -107,6 +107,12 @@ export class JigsawNew implements OnDestroy {
   /** why the settings are not allowed ('' when they are) */
   readonly problem = computed(() => new CanvasArea(this.settings()).error());
 
+  /** the name is missing: said under the name field (the shared check talks about a canvas, this is a jigsaw) */
+  readonly nameMissing = computed(() => !this.name().trim());
+
+  /** the problem for the box above the buttons: the missing name is already said under its own field */
+  readonly otherProblem = computed(() => (this.nameMissing() ? '' : this.problem()));
+
   readonly canSave = computed(() => !this.saving() && !this.problem() && !!this.file() && !!this.cut() && !this.stale());
 
   /**

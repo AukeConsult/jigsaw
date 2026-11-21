@@ -21,7 +21,7 @@
               { "glob": "**/*", "input": "public" },
               { "glob": "bootstrap{,.rtl}.min.css", "input": "node_modules/bootstrap/dist/css", "output": "/vendor" }
             ],
-            "styles": ["src/styles.scss"]
+            "styles": ["node_modules/bootstrap-icons/font/bootstrap-icons.min.css", "src/styles.scss"]
           },
           "configurations": {
             "production": {

@@ -1,0 +1,77 @@
+<main class="container py-4 py-lg-5">
+  <section class="row align-items-center g-4 g-lg-5 mb-5" aria-label="Welcome">
+    <div class="col-lg-6 order-2 order-lg-1">
+      <img class="brand-hero mb-3" src="logo.svg" alt="" width="72" height="72">
+      <h1 class="display-5 fw-bold mb-2">Karins jigsaw</h1>
+      <p class="lead text-body-secondary mb-4">Turn any picture into a jigsaw puzzle and put it together, wherever you are.</p>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary btn-lg" routerLink="/jigsaw/new"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Make a jigsaw</a>
+        <a class="btn btn-outline-secondary btn-lg" routerLink="/jigsaw/list"><i class="bi bi-grid-3x3-gap me-2" aria-hidden="true"></i>My jigsaws</a>
+      </div>
+    </div>
+    <div class="col-lg-6 order-1 order-lg-2">
+      <img class="img-fluid rounded-4 shadow-sm w-100 object-fit-cover" src="images/front.jpg" width="900" height="900"
+           alt="A woman with a colourful parasol on a fort terrace, green hills and a town behind her">
+    </div>
+  </section>
+
+  <section class="row row-cols-1 row-cols-md-3 g-3 mb-5" aria-label="What you can do">
+    <div class="col">
+      <div class="card h-100 border-0 bg-body-tertiary"><div class="card-body">
+        <i class="bi bi-image fs-3 text-primary" aria-hidden="true"></i>
+        <h2 class="h6 mt-2 mb-1">Your own picture</h2>
+        <p class="small text-body-secondary mb-0">Choose a photo and find the cut you like.</p>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 border-0 bg-body-tertiary"><div class="card-body">
+        <i class="bi bi-puzzle fs-3 text-success" aria-hidden="true"></i>
+        <h2 class="h6 mt-2 mb-1">24 to 500 pieces</h2>
+        <p class="small text-body-secondary mb-0">Easy or hard, you decide.</p>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 border-0 bg-body-tertiary"><div class="card-body">
+        <i class="bi bi-phone fs-3 text-primary" aria-hidden="true"></i>
+        <h2 class="h6 mt-2 mb-1">Fits every screen</h2>
+        <p class="small text-body-secondary mb-0">Phone, tablet or desktop, and it keeps your game.</p>
+      </div></div>
+    </div>
+  </section>
+
+  @if (loaded()) {
+    <section aria-label="Your jigsaws">
+      @if (recent().length) {
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <h2 class="h5 mb-0">Continue where you left off</h2>
+          <a routerLink="/jigsaw/list">All jigsaws</a>
+        </div>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+          @for (item of recent(); track item.id) {
+            <div class="col">
+              <a class="card h-100 text-decoration-none" [routerLink]="['/jigsaw', item.id]">
+                <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
+                  @if (!noPicture().has(item.id)) {
+                    <img class="object-fit-cover" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
+                  }
+                </div>
+                <div class="card-body p-2">
+                  <strong class="text-body">{{ item.name }}</strong>
+                  <div class="small text-body-secondary">
+                    <i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ pieces(item) }} pieces
+                    @if (item.createdAt) {<span class="ms-2"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ item.createdAt | date: 'mediumDate' }}</span>}
+                  </div>
+                </div>
+              </a>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="text-center text-body-secondary py-3">
+          <h2 class="h5">Start your first jigsaw</h2>
+          <p class="mb-0">Choose a picture, say how many pieces, and start building.</p>
+        </div>
+      }
+    </section>
+  }
+</main>

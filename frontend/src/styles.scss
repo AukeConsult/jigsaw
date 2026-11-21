@@ -459,6 +459,15 @@ $bp-xl: 1200px;
 }
 
 // ---- the pages of Karins jigsaw ----------------------------------------------------------------------------------------------------------------
+.brand-hero {
+  display: block; // the big logo on the front page
+}
+
+.brand-logo {
+  height: 1.75rem; // the logo in the header, left of the name
+  width: auto;
+}
+
 .guide {
   max-width: 50rem; // the user guide, shown from Markdown
 

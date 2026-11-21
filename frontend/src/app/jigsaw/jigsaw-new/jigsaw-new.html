@@ -1,10 +1,14 @@
 <main class="container py-4">
   <form class="form-card card card-body mx-auto" (submit)="$event.preventDefault(); save()">
-    <h1 class="h4 mb-3">New jigsaw</h1>
+    <h1 class="h4 mb-3"><i class="bi bi-plus-circle text-primary me-2" aria-hidden="true"></i>New jigsaw</h1>
 
     <div class="mb-3">
       <label class="form-label" for="jigsaw-name">Name <span class="text-danger" aria-hidden="true">*</span></label>
-      <input id="jigsaw-name" name="name" class="form-control" type="text" [maxlength]="maxName" required placeholder="Name of the jigsaw" [ngModel]="name()" (ngModelChange)="name.set($event)">
+      <input id="jigsaw-name" name="name" class="form-control" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required placeholder="Name of the jigsaw" aria-describedby="jigsaw-name-problem"
+             [ngModel]="name()" (ngModelChange)="name.set($event)">
+      @if (nameMissing()) {
+        <div id="jigsaw-name-problem" class="invalid-feedback d-block">Give the jigsaw a name.</div>
+      }
     </div>
 
     <div class="mb-3">
@@ -81,7 +85,7 @@
           <img [src]="src" class="cut-preview border rounded" alt="The picture as it is cut">
           <div class="small">
             <div class="text-body-secondary">The cut of the picture, in the shape of the canvas.</div>
-            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" (click)="cropping.set(true)">Adjust the cut</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" (click)="cropping.set(true)"><i class="bi bi-crop me-1" aria-hidden="true"></i>Adjust the cut</button>
           </div>
         </div>
       }
@@ -94,17 +98,17 @@
       }
     </div>
 
-    @if (problem()) {
-      <div class="alert alert-warning py-2 small" role="alert">{{ problem() }}</div>
+    @if (otherProblem()) {
+      <div class="alert alert-warning py-2 small" role="alert">{{ otherProblem() }}</div>
     }
     @if (error()) {
       <div class="alert alert-danger py-2 small" role="alert">{{ error() }}</div>
     }
 
     <div class="d-flex justify-content-end gap-2">
-      <a class="btn btn-outline-secondary" routerLink="/jigsaw">Cancel</a>
+      <a class="btn btn-outline-secondary" routerLink="/jigsaw/list">Cancel</a>
       <button type="submit" class="btn btn-primary" [disabled]="!canSave()">
-        @if (saving()) { Making the jigsaw… } @else { Save and start }
+        @if (saving()) { Making the jigsaw… } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save and start }
       </button>
     </div>
   </form>

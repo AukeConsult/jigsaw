@@ -4,7 +4,7 @@ Make a jigsaw puzzle from any picture, and put it together on the screen. Everyt
 
 ## Make a jigsaw
 
-1. Open **Jigsaws** in the menu and press **New jigsaw**.
+1. On the front page press **Make a jigsaw** (or open **Jigsaws** in the menu and press **New jigsaw**).
 2. Type a **Name**. The **Author** is optional.
 3. Choose a **Size** (the shape of the puzzle) and the number of **Pieces**. Press **Custom** under Size if you want to type your own width and height.
 4. Choose a **Picture**. A window opens: drag the picture to find the part you want, zoom with the slider or the mouse wheel, then press **Use this cut**.

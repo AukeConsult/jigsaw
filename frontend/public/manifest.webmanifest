@@ -1,10 +1,10 @@
 {
-  "name": "Canvas",
-  "short_name": "Canvas",
+  "name": "Karins jigsaw",
+  "short_name": "Karins jigsaw",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
-  "icons": []
+  "icons": [{ "src": "logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

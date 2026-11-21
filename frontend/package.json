@@ -18,7 +18,14 @@
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,
-    "overrides": [{ "files": "*.html", "options": { "parser": "angular" } }]
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
   },
   "private": true,
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -34,6 +41,7 @@
     "@capacitor/core": "^8.6.0",
     "@jsverse/transloco": "^8.4.0",
     "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
     "firebase": "^11.10.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

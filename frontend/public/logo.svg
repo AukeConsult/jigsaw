@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-68 -68 136 136" role="img" aria-label="Karins jigsaw">
+  <title>Karins jigsaw</title>
+  <path transform="translate(3 3) scale(0.68)" d="M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z" fill="#0d6efd"/>
+  <path transform="rotate(90) translate(3 3) scale(0.68)" d="M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z" fill="#198754"/>
+  <path transform="rotate(180) translate(3 3) scale(0.68)" d="M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z" fill="#20c997"/>
+  <path transform="rotate(270) translate(3 3) scale(0.68)" d="M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z" fill="#084298"/>
+</svg>

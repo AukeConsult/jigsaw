@@ -11,13 +11,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
         <a class="navbar-brand" routerLink="/canvas">Canvas</a>
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link" routerLink="/canvas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Canvas area</a>
+            <a class="nav-link" routerLink="/canvas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><i class="bi bi-easel me-1" aria-hidden="true"></i>Canvas area</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/canvas/objects" routerLinkActive="active">Objects</a>
+            <a class="nav-link" routerLink="/canvas/objects" routerLinkActive="active"><i class="bi bi-shapes me-1" aria-hidden="true"></i>Objects</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/canvas/guide" routerLinkActive="active">User guide</a>
+            <a class="nav-link" routerLink="/canvas/guide" routerLinkActive="active"><i class="bi bi-book me-1" aria-hidden="true"></i>User guide</a>
           </li>
         </ul>
       </div>

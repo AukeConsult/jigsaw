@@ -4,12 +4,12 @@
   }
   @case ('missing') {
     <main class="container py-4">
-      <div class="alert alert-warning" role="alert">There is no such jigsaw. <a routerLink="/jigsaw">Go to the jigsaws</a>.</div>
+      <div class="alert alert-warning" role="alert">There is no such jigsaw. <a routerLink="/jigsaw/list">Go to the jigsaws</a>.</div>
     </main>
   }
   @case ('failed') {
     <main class="container py-4">
-      <div class="alert alert-danger" role="alert">Could not open the jigsaw. <a routerLink="/jigsaw">Go to the jigsaws</a>.</div>
+      <div class="alert alert-danger" role="alert">Could not open the jigsaw. <a routerLink="/jigsaw/list">Go to the jigsaws</a>.</div>
     </main>
   }
   @case ('ready') {
@@ -21,7 +21,7 @@
         <button type="button" class="d-flex d-xl-none w-100 align-items-center justify-content-between gap-2 btn btn-light border-bottom rounded-0 text-start"
                 aria-controls="jigsaw-sidebar" [attr.aria-expanded]="sidebarOpen()" (click)="sidebarOpen.set(!sidebarOpen())">
           <span class="text-truncate"><strong>{{ it.name }}</strong> <span class="text-body-secondary small">Matched {{ m.count }} of {{ m.total }}</span></span>
-          <span aria-hidden="true">{{ sidebarOpen() ? '\u25B2' : '\u25BC' }}</span>
+          <i class="bi" [class.bi-chevron-up]="sidebarOpen()" [class.bi-chevron-down]="!sidebarOpen()" aria-hidden="true"></i>
         </button>
         <!-- the sidebar, docked at the left edge on a wide screen: how far the game has come and what can be done in it -->
         <aside id="jigsaw-sidebar" class="jigsaw-sidebar border-end bg-body-tertiary p-3" [class.is-open]="sidebarOpen()" [style.height.px]="sidebarHeight()" aria-label="The jigsaw">
@@ -29,7 +29,7 @@
         <input id="jigsaw-title" name="title" class="form-control form-control-plaintext h4 fw-bold mb-1 px-0 py-0" type="text" aria-label="Name of the jigsaw" [maxlength]="maxName"
                [ngModel]="it.name" (ngModelChange)="rename($event)" (blur)="leaveTitle()">
         @if (it.author) {
-          <div class="small text-body-secondary">by {{ it.author }}</div>
+          <div class="small text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
         }
         <div class="small text-body-secondary mb-3">{{ m.total }} pieces ({{ pieceInfo().columns }} × {{ pieceInfo().rows }}), {{ it.width }} × {{ it.height }} px, grid {{ it.gridSize }} px</div>
 
@@ -53,9 +53,9 @@
         }
 
         <div class="d-flex flex-wrap gap-1 mb-3">
-          <button type="button" class="btn btn-sm btn-outline-primary" (click)="reset()">Reset</button>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="reset()"><i class="bi bi-shuffle me-1" aria-hidden="true"></i>Reset</button>
           <button type="button" class="btn btn-sm text-nowrap" [class.btn-secondary]="debug()" [class.btn-outline-secondary]="!debug()" [attr.aria-pressed]="debug()"
-                  (click)="debug.set(!debug())">Debug</button>
+                  (click)="debug.set(!debug())"><i class="bi bi-bug me-1" aria-hidden="true"></i>Debug</button>
         </div>
 
         <div class="small" role="status" aria-live="polite"
@@ -69,7 +69,7 @@
             @default { Saved }
           }
         </div>
-        <a class="btn btn-sm btn-outline-secondary mt-3" routerLink="/jigsaw">All jigsaws</a>
+        <a class="btn btn-sm btn-outline-secondary mt-3" routerLink="/jigsaw/list"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>All jigsaws</a>
         </aside>
       </div>
 
