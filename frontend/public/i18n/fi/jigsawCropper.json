@@ -1,6 +1,6 @@
 {
   "title": "Säädä kuvaa",
-  "help": "Vedä kuvaa kehyksen sisällä löytääksesi oikean rajauksen ja zoomaa liukusäätimellä tai hiiren rullalla. Kehyksellä on piirtoalueen muoto.",
+  "help": "Vedä kuvaa kehyksen sisällä löytääksesi oikean rajauksen ja zoomaa liukusäätimellä tai hiiren rullalla. Kehyksellä on kuva-alueen muoto.",
   "unreadable": "Tiedostoa ei voi lukea kuvana.",
   "frame": "Kehys",
   "pictureAlt": "Rajattava kuva",

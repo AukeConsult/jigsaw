@@ -11,6 +11,6 @@ describe("health", () => {
 
   it("answers nothing at the old addresses", async () => {
     expect((await request(createJigsawApp()).get("/api/health")).status).toBe(404);
-    expect((await request(createJigsawApp()).get("/jigsaw/api/canvas-list")).status).toBe(404);
+    expect((await request(createJigsawApp()).get("/jigsaw/api/jigsaw-list")).status).toBe(404);
   });
 });

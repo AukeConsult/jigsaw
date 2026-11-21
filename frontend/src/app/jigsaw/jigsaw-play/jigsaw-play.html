@@ -108,8 +108,8 @@
 
       <div class="jigsaw-main">
         <app-jigsaw-board [width]="it.width" [height]="it.height" [gridSize]="it.gridSize" [gridVisible]="it.gridVisible" [gridInset]="true" [numberPoints]="debug()"
-                          [storeWidth]="it.storeWidth ?? 0" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" [snapRange]="snapRangePx()" [picture]="picture()" [tools]="false" [fillScreen]="true" [helperBanner]="true" [viewOnly]="viewOnly()"
-                          [(placed)]="placed" (notice)="tell($event)" (storeWidthChange)="widenStore($event)" />
+                          [storeWidth]="it.storeWidth ?? 0" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" [snapRange]="snapRangePx()" [picture]="picture()" [fillScreen]="true" [helperBanner]="true" [viewOnly]="viewOnly()"
+                          [(placed)]="placed" (storeWidthChange)="widenStore($event)" />
       </div>
     </div>
   }

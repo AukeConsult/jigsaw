@@ -1,19 +1,13 @@
 {
-  "designerHint": "Dra et objekt fra listen inn i tegneflaten, og dra det igjen for å flytte det. Midten fester seg til et punkt i rutenettet. Tegneflaten er lag 0; et nytt objekt havner på lag {{ layer }}.",
-  "layer": "Lag",
-  "removePicked": "Fjern valgte",
   "helperFrame": "Ramme med hjelpebilde",
   "helperTitle": "Bilde",
   "hideHelper": "Skjul hjelpebildet",
   "helperAlt": "Hele bildet, mindre",
   "helperSize": "Størrelse på hjelpebildet",
   "piecesArea": "Område for puslespillbrikker",
-  "canvasArea": "Tegneflate",
+  "pictureArea": "Bildeflate",
   "piecesStore": "Lager med puslespillbrikker",
   "clickToGet": "Klikk for å hente brikker",
   "scrollLeft": "Rull brikkene til venstre",
-  "scrollRight": "Rull brikkene til høyre",
-  "bend": "Bøy {{ which }}",
-  "width": "Bredde {{ side }}",
-  "resize": "Endre størrelse {{ id }}"
+  "scrollRight": "Rull brikkene til høyre"
 }

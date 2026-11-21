@@ -1,19 +1,13 @@
 {
-  "designerHint": "Drag an object from the list into the canvas area, and drag it again to move it. Its centre sticks to a grid point. The canvas is layer 0; a new object goes on layer {{ layer }}.",
-  "layer": "Layer",
-  "removePicked": "Remove picked",
   "helperFrame": "Helper picture frame",
   "helperTitle": "Picture",
   "hideHelper": "Hide the helper picture",
   "helperAlt": "The whole picture, smaller",
   "helperSize": "Size of the helper picture",
   "piecesArea": "Jigsaw pieces area",
-  "canvasArea": "Canvas area",
+  "pictureArea": "Picture area",
   "piecesStore": "Jigsaw pieces store",
   "clickToGet": "Click to get pieces",
   "scrollLeft": "Scroll the pieces to the left",
-  "scrollRight": "Scroll the pieces to the right",
-  "bend": "Bend {{ which }}",
-  "width": "Width {{ side }}",
-  "resize": "Resize {{ id }}"
+  "scrollRight": "Scroll the pieces to the right"
 }

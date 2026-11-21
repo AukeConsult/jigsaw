@@ -1,16 +1,16 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
-import type { CanvasStore } from "../src/common/canvas-list";
+import type { JigsawStore } from "../src/common/jigsaw-list";
 import type { PieceStore } from "../src/jigsaw/jigsaw-pieces";
 import { memoryPlays, memoryUsers } from "./memory-plays";
-import { CanvasArea, JigsawCut, JigsawPiece, JigsawPieces, JigsawUsers, PlayPositions, PlaySpec, Plays } from "../src/models";
-import type { CanvasSpec } from "../src/models";
+import { JigsawSettings, JigsawCut, JigsawPiece, JigsawPieces, JigsawUsers, PlayPositions, PlaySpec, Plays } from "../src/models";
+import type { JigsawSpec } from "../src/models";
 
 // ---- the stores in memory: what Firestore and Storage are in the app ----
 
-function memoryJigsaws(): CanvasStore {
-  const items: CanvasSpec[] = [];
+function memoryJigsaws(): JigsawStore {
+  const items: JigsawSpec[] = [];
   return {
     async list() {
       return [...items].reverse();
@@ -79,7 +79,7 @@ async function setup() {
   const cut = JigsawCut.cut(200, 150, 50, () => 0.3);
   if ("error" in cut) throw new Error(cut.error);
   const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], storeWidth: cut.storeWidth, snapPercent: 25, lineWidth: 1, lineColor: "#212529", backColor: "#ffffff" };
-  const made = (await request(app).post("/jigsaw/api/jigsaw").send(settings)).body as CanvasSpec;
+  const made = (await request(app).post("/jigsaw/api/jigsaw").send(settings)).body as JigsawSpec;
   await pieces.replaceAll(made.id, cut.placed.flatMap((p) => JigsawPieces.of(p, cut.columns) ?? []), new Map());
   return { app, jigsaws, pieces, plays, made, settings, cut, tick: () => (time += 1000) };
 }
@@ -102,7 +102,7 @@ describe("what a play can choose", () => {
 
   it("is the play's own choice, else the jigsaw's, else the model's", () => {
     const jigsaw = { snapPercent: 10, lineWidth: undefined, lineColor: "#000000", backColor: undefined };
-    expect(Plays.effective(jigsaw, { overrides: {} })).toEqual({ snapPercent: 10, lineWidth: CanvasArea.DEFAULT_LINE_WIDTH, lineColor: "#000000", backColor: CanvasArea.DEFAULT_BACK_COLOR });
+    expect(Plays.effective(jigsaw, { overrides: {} })).toEqual({ snapPercent: 10, lineWidth: JigsawSettings.DEFAULT_LINE_WIDTH, lineColor: "#000000", backColor: JigsawSettings.DEFAULT_BACK_COLOR });
     expect(Plays.effective(jigsaw, { overrides: { lineColor: "#ffffff" } })).toMatchObject({ snapPercent: 10, lineColor: "#ffffff" }); // the difficulty is the jigsaw's
     expect(Plays.changed({ lineColor: "#112233", lineWidth: 2 }, { lineColor: null, backColor: "#AABBCC" })).toEqual({ lineWidth: 2, backColor: "#aabbcc" });
   });
@@ -316,14 +316,14 @@ describe("a timed jigsaw", () => {
 
   it("is timed unless it says it is not, and only knows yes and no", async () => {
     const app = createJigsawApp({ jigsaw: memoryJigsaws(), users: memoryUsers("anna"), plays: memoryPlays() });
-    const timed = (await request(app).post("/jigsaw/api/jigsaw").send(settings)).body as CanvasSpec;
+    const timed = (await request(app).post("/jigsaw/api/jigsaw").send(settings)).body as JigsawSpec;
     expect(timed.timed).toBeUndefined(); // no word: timed
-    const untimed = (await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, timed: false })).body as CanvasSpec;
+    const untimed = (await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, timed: false })).body as JigsawSpec;
     expect(untimed.timed).toBe(false);
     expect((await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, timed: "no" })).status).toBe(400);
-    const back = (await request(app).put(`/jigsaw/api/jigsaw/${untimed.id}`).send({ ...settings, timed: true })).body as CanvasSpec;
+    const back = (await request(app).put(`/jigsaw/api/jigsaw/${untimed.id}`).send({ ...settings, timed: true })).body as JigsawSpec;
     expect(back.timed).toBeUndefined(); // timed again: stored as none says
-    expect(((await request(app).get("/jigsaw/api/jigsaw")).body as CanvasSpec[]).map((c) => c.timed)).toEqual([undefined, undefined]);
+    expect(((await request(app).get("/jigsaw/api/jigsaw")).body as JigsawSpec[]).map((c) => c.timed)).toEqual([undefined, undefined]);
   });
 });
 
@@ -336,7 +336,7 @@ describe("who sees a jigsaw", () => {
     await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, name: "Open", ownerUid: "anna" });
     await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, name: "Private", ownerUid: "anna", visibility: "owner" });
     await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, name: "Old" }); // from before owners: for everyone
-    const names = async (who?: string) => ((await (who === undefined ? request(a).get("/jigsaw/api/jigsaw") : request(a).get("/jigsaw/api/jigsaw").set("X-Jigsaw-User", who))).body as CanvasSpec[]).map((c) => c.name).sort();
+    const names = async (who?: string) => ((await (who === undefined ? request(a).get("/jigsaw/api/jigsaw") : request(a).get("/jigsaw/api/jigsaw").set("X-Jigsaw-User", who))).body as JigsawSpec[]).map((c) => c.name).sort();
     expect(await names("anna")).toEqual(["Old", "Open", "Private"]);
     expect(await names("bob")).toEqual(["Old", "Open"]);
     expect(await names()).toEqual(["Old", "Open"]);
@@ -346,7 +346,7 @@ describe("who sees a jigsaw", () => {
     const a = app();
     expect((await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, visibility: "owner" })).status).toBe(400);
     expect((await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, ownerUid: "anna", visibility: "nobody" })).status).toBe(400);
-    const made = (await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, ownerUid: "anna", visibility: "owner" })).body as CanvasSpec;
+    const made = (await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, ownerUid: "anna", visibility: "owner" })).body as JigsawSpec;
     expect(made.visibility).toBe("owner");
     expect((await request(a).put(`/jigsaw/api/jigsaw/${made.id}`).set("X-Jigsaw-User", "bob").send({ ...settings, ownerUid: "anna", visibility: "everyone" })).status).toBe(404);
     const opened = await request(a).put(`/jigsaw/api/jigsaw/${made.id}`).set("X-Jigsaw-User", "anna").send({ ...settings, ownerUid: "anna", visibility: "everyone" });
@@ -362,7 +362,7 @@ describe("deleting a jigsaw", () => {
 
   it("can be done by the owner only, when the jigsaw has an owner", async () => {
     const a = app();
-    const made = (await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, ownerUid: "anna" })).body as CanvasSpec;
+    const made = (await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, ownerUid: "anna" })).body as JigsawSpec;
     for (const who of ["bob", "", undefined]) {
       const res = await (who === undefined ? request(a).delete(`/jigsaw/api/jigsaw/${made.id}`) : request(a).delete(`/jigsaw/api/jigsaw/${made.id}`).set("X-Jigsaw-User", who));
       expect(res.status).toBe(403);
@@ -375,7 +375,7 @@ describe("deleting a jigsaw", () => {
 
   it("can be done by anyone when the jigsaw has no owner (one from before owners)", async () => {
     const a = app();
-    const made = (await request(a).post("/jigsaw/api/jigsaw").send(settings)).body as CanvasSpec;
+    const made = (await request(a).post("/jigsaw/api/jigsaw").send(settings)).body as JigsawSpec;
     expect((await request(a).delete(`/jigsaw/api/jigsaw/${made.id}`)).status).toBe(204);
     expect((await request(a).delete(`/jigsaw/api/jigsaw/nothing`)).status).toBe(404);
   });
@@ -384,7 +384,7 @@ describe("deleting a jigsaw", () => {
 describe("the games of a user", () => {
   it("are listed over all the jigsaws, newest first, with the jigsaw each is a game of, and only the user's own", async () => {
     const { app, made, pieces, cut, settings } = await setup();
-    const second = (await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, name: "Second" })).body as CanvasSpec;
+    const second = (await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, name: "Second" })).body as JigsawSpec;
     await pieces.replaceAll(second.id, cut.placed.flatMap((p) => JigsawPieces.of(p, cut.columns) ?? []), new Map());
     const start = async (jigsawId: string, userId: string) => (await started(app, jigsawId, { userId }));
     const first = await start(made.id, "anna");
@@ -481,7 +481,7 @@ describe("a jigsaw that has been played", () => {
       await request(app).patch(`/jigsaw/api/jigsaw-pieces/${made.id}`).send({ moves: [] }),
     ]) {
       expect(res.status).toBe(409);
-      expect(res.body.error).toBe(CanvasArea.PLAYED_MESSAGE);
+      expect(res.body.error).toBe(JigsawSettings.PLAYED_MESSAGE);
     }
   });
 
@@ -489,7 +489,7 @@ describe("a jigsaw that has been played", () => {
     const jigsaws = memoryJigsaws();
     const plays = memoryPlays();
     const a = createJigsawApp({ jigsaw: jigsaws, jigsawPieces: memoryPieces(), jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo") });
-    const made = (await request(a).post("/jigsaw/api/jigsaw").send({ name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], ownerUid: "anna" })).body as CanvasSpec;
+    const made = (await request(a).post("/jigsaw/api/jigsaw").send({ name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], ownerUid: "anna" })).body as JigsawSpec;
     await plays.create(made.id, { jigsawId: made.id, userId: "anna", userName: "Anna", status: "active", startedAt: 1, matched: 0, total: 0, storeWidth: 0, overrides: {} }, {});
     expect((await request(a).delete(`/jigsaw/api/jigsaw-pieces/${made.id}`).set("X-Jigsaw-User", "bo")).status).toBe(403);
     expect((await request(a).delete(`/jigsaw/api/jigsaw-pieces/${made.id}`).set("X-Jigsaw-User", "anna")).status).toBe(409);
@@ -514,11 +514,11 @@ describe("a jigsaw only its owner sees", () => {
     const cut = JigsawCut.cut(200, 150, 50, () => 0.3);
     if ("error" in cut) throw new Error(cut.error);
     const settings = { name: "Secret", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], storeWidth: cut.storeWidth, snapPercent: 25, ownerUid: "anna", visibility: "owner" };
-    const made = (await request(app).post("/jigsaw/api/jigsaw").send(settings)).body as CanvasSpec;
+    const made = (await request(app).post("/jigsaw/api/jigsaw").send(settings)).body as JigsawSpec;
     await pieces.replaceAll(made.id, cut.placed.flatMap((p) => JigsawPieces.of(p, cut.columns) ?? []), new Map());
     if (bosRound !== "none") await plays.create(made.id, { jigsawId: made.id, userId: "bo", userName: "Bo", status: "active", startedAt: 1, matched: 0, total: 12, storeWidth: cut.storeWidth, overrides: {}, ...(bosRound === "fresh" ? { fresh: true } : {}) }, {});
     const as = (who: string | null) => (who ? request.agent(app).set("X-Jigsaw-User", who) : request.agent(app));
-    const listed = async (who: string | null) => ((await as(who).get("/jigsaw/api/jigsaw")).body as CanvasSpec[]).map((j) => j.id);
+    const listed = async (who: string | null) => ((await as(who).get("/jigsaw/api/jigsaw")).body as JigsawSpec[]).map((j) => j.id);
     return { app, as, made, plays, listed };
   }
 
@@ -588,7 +588,7 @@ describe("the owner of a jigsaw", () => {
 
   it("is the only one who changes or deletes the jigsaw; a jigsaw from before owners is anybody's; the owner can hand it over", async () => {
     const a = app();
-    const made = (await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, ownerUid: "anna" })).body as CanvasSpec;
+    const made = (await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, ownerUid: "anna" })).body as JigsawSpec;
     const put = (who: string | null, body: object = { ...settings, ownerUid: "anna", name: "New name" }) => {
       const r = request(a).put(`/jigsaw/api/jigsaw/${made.id}`);
       return (who ? r.set("X-Jigsaw-User", who) : r).send(body);
@@ -603,7 +603,7 @@ describe("the owner of a jigsaw", () => {
     expect((await put("anna", { ...settings, ownerUid: "bo" })).body).toMatchObject({ ownerUid: "bo", author: "Bo" }); // handed over
     expect((await put("anna", { ...settings, ownerUid: "bo" })).status).toBe(403); // and it is no longer the old owner's
     expect((await put("bo", { ...settings, ownerUid: "bo" })).status).toBe(200);
-    const old = (await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, author: "Karin" })).body as CanvasSpec; // no owner
+    const old = (await request(a).post("/jigsaw/api/jigsaw").send({ ...settings, author: "Karin" })).body as JigsawSpec; // no owner
     expect((await request(a).put(`/jigsaw/api/jigsaw/${old.id}`).set("X-Jigsaw-User", "bo").send({ ...settings, author: "Karin", name: "Anybody" })).status).toBe(200);
   });
 
@@ -625,10 +625,10 @@ describe("the owner of a jigsaw", () => {
 
   it("is kept by the model: stored, read back, and checked as an id", () => {
     const input = { ...settings };
-    expect(new CanvasArea({ ...input, ownerUid: "abc123" }).stored().ownerUid).toBe("abc123");
-    expect("ownerUid" in new CanvasArea(input).stored()).toBe(false);
-    expect(CanvasArea.fromStored("x", { ...input, ownerUid: "abc123", createdAt: 1 }).ownerUid).toBe("abc123");
-    expect(new CanvasArea({ ...input, ownerUid: "a b" }).error()).toContain("owner");
+    expect(new JigsawSettings({ ...input, ownerUid: "abc123" }).stored().ownerUid).toBe("abc123");
+    expect("ownerUid" in new JigsawSettings(input).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, ownerUid: "abc123", createdAt: 1 }).ownerUid).toBe("abc123");
+    expect(new JigsawSettings({ ...input, ownerUid: "a b" }).error()).toContain("owner");
   });
 });
 
@@ -741,7 +741,7 @@ describe("the users of the jigsaws", () => {
 describe("the list of jigsaws", () => {
   const body = { name: "Puzzle", width: 800, height: 600, gridSize: 5, gridVisible: true, placed: [] };
 
-  it("works like canvas-list but keeps its pages in a store of its own", async () => {
+  it("works like jigsaw-list but keeps its pages in a store of its own", async () => {
     const app = createJigsawApp({ jigsaw: memoryJigsaws(), plays: memoryPlays() });
     const made = await request(app).post("/jigsaw/api/jigsaw").send(body);
     expect(made.status).toBe(201);

@@ -1,19 +1,13 @@
 {
-  "designerHint": "Fais glisser un objet de la liste vers la zone de travail, puis refais-le glisser pour le déplacer. Son centre se cale sur un point de la grille. La zone de travail est le calque 0 ; un nouvel objet va sur le calque {{ layer }}.",
-  "layer": "Calque",
-  "removePicked": "Retirer la sélection",
   "helperFrame": "Cadre de l'image d'aide",
   "helperTitle": "Image",
   "hideHelper": "Cacher l'image d'aide",
   "helperAlt": "L'image entière, en plus petit",
   "helperSize": "Taille de l'image d'aide",
   "piecesArea": "Zone des pièces du puzzle",
-  "canvasArea": "Zone de travail",
+  "pictureArea": "Zone de l'image",
   "piecesStore": "Réserve de pièces du puzzle",
   "clickToGet": "Clique pour récupérer des pièces",
   "scrollLeft": "Faire défiler les pièces vers la gauche",
-  "scrollRight": "Faire défiler les pièces vers la droite",
-  "bend": "Courber {{ which }}",
-  "width": "Largeur {{ side }}",
-  "resize": "Redimensionner {{ id }}"
+  "scrollRight": "Faire défiler les pièces vers la droite"
 }

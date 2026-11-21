@@ -4,7 +4,7 @@ import { getStorage } from "firebase-admin/storage";
 import express from "express";
 import { JIGSAW } from "../models";
 
-// The files of a jigsaw (jcanvas): its background picture and the graphics of its pieces. They are kept in Firebase Storage under `jigsaw/<id of the
+// The files of a jigsaw: its background picture and the graphics of its pieces. They are kept in Firebase Storage under `jigsaw/<id of the
 // jigsaw>/`, the way Seven Friends keeps its files: written and read by the backend only (the Admin SDK ignores the storage rules, which let nobody
 // in, so they are not touched), the app sends the bytes as the request body, the type is found from the first bytes (never from what the app says), and
 // a file comes back through the API. What describes the jigsaw (its settings, its pieces and where they are) is in Firestore.
@@ -79,7 +79,7 @@ export function jigsawImageRouter(images: ImageStore, exists: (id: string) => Pr
 
   router.use("/:id", (req, res, next) => {
     if (!isPictureId(req.params.id)) {
-      res.status(400).json({ error: "Not a jcanvas id." });
+      res.status(400).json({ error: "Not a jigsaw id." });
       return;
     }
     next();
@@ -97,7 +97,7 @@ export function jigsawImageRouter(images: ImageStore, exists: (id: string) => Pr
       return;
     }
     if (!(await exists(req.params.id))) {
-      res.status(404).json({ error: "No such canvas." });
+      res.status(404).json({ error: "No such jigsaw." });
       return;
     }
     await images.put(req.params.id, bytes, mime);

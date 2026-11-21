@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { PieceStore } from "./jigsaw-pieces";
-import { CANVAS_MAX_SIDE, CanvasSpec, JIGSAW, PLAYS, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayPositions, PlaySpec, Plays } from "../models";
+import { JIGSAW_MAX_SIDE, JigsawSpec, JIGSAW, PLAYS, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayPositions, PlaySpec, Plays } from "../models";
 
 // The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`. A play can only
 // choose the look (see `Plays.overridesError`); the difficulty, the size, the picture and the pieces are the jigsaw's.
@@ -102,7 +102,7 @@ export interface UserGame {
  * The games of one user over all the jigsaws, `/jigsaw-users/:id/plays`: GET: newest first. Each jigsaw is asked for the user's games (one equality on the plays of that
  * jigsaw, so no index is needed); a jigsaw the user has not played adds nothing. At most `LIST_LIMIT` games.
  */
-export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise<CanvasSpec[]>; userOf: (userId: string) => Promise<{ id: string } | null> }): express.Router {
+export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise<JigsawSpec[]>; userOf: (userId: string) => Promise<{ id: string } | null> }): express.Router {
   const router = express.Router({ mergeParams: true });
   router.get("/", async (req, res) => {
     const userId = String((req.params as { id?: string }).id);
@@ -122,7 +122,7 @@ export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise
 
 /** Where the plays come from: the jigsaw a play belongs to, and its pieces (the cut, which all plays share). */
 export interface PlayDeps {
-  jigsaw: (id: string) => Promise<CanvasSpec | null>;
+  jigsaw: (id: string) => Promise<JigsawSpec | null>;
   pieces: PieceStore;
   /** the user with this UID, or null (a play is played by a user that exists: it keeps the UID and the name of the user) */
   userOf: (userId: string) => Promise<{ id: string; name: string } | null>;
@@ -145,7 +145,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
   const idOf = (req: express.Request) => String(req.params.id);
 
   /** the jigsaw of the request, or the answer that there is none */
-  const jigsawOf = async (req: express.Request, res: express.Response): Promise<CanvasSpec | null> => {
+  const jigsawOf = async (req: express.Request, res: express.Response): Promise<JigsawSpec | null> => {
     const jigsaw = await deps.jigsaw(idOf(req));
     if (!jigsaw) bad(res, "No such jigsaw.", 404);
     return jigsaw;
@@ -222,8 +222,8 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
       const late = Plays.elapsedError(elapsedMs);
       if (late) return bad(res, late);
     }
-    if (storeWidth !== undefined && !(typeof storeWidth === "number" && Number.isInteger(storeWidth) && storeWidth >= 0 && storeWidth <= CANVAS_MAX_SIDE)) {
-      return bad(res, `The store must be a whole number of pixels from 0 to ${CANVAS_MAX_SIDE} wide.`);
+    if (storeWidth !== undefined && !(typeof storeWidth === "number" && Number.isInteger(storeWidth) && storeWidth >= 0 && storeWidth <= JIGSAW_MAX_SIDE)) {
+      return bad(res, `The store must be a whole number of pixels from 0 to ${JIGSAW_MAX_SIDE} wide.`);
     }
     const pieces = await deps.pieces.list(jigsaw.id);
     const saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {

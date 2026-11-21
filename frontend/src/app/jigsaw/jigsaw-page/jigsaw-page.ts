@@ -10,7 +10,7 @@ import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { PlaysService } from '../plays.service';
-import { CANVAS_MAX_DESCRIPTION, CANVAS_MAX_NAME, CanvasArea, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
+import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { PlaySpec } from '../../models/shared/play';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
@@ -42,7 +42,7 @@ export class JigsawPage implements OnInit {
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
   readonly status = signal<'loading' | 'ready' | 'missing' | 'failed'>('loading');
-  readonly item = signal<CanvasSpec | null>(null);
+  readonly item = signal<JigsawSpec | null>(null);
   readonly games = signal<PlaySpec[]>([]);
   readonly hasPicture = signal(true);
   readonly busy = signal(false);
@@ -51,7 +51,7 @@ export class JigsawPage implements OnInit {
   readonly confirmingDelete = signal(false);
   /** the game whose Delete button was pressed and waits for "Yes" */
   readonly confirmingId = signal<string | null>(null);
-  readonly maxName = CANVAS_MAX_NAME;
+  readonly maxName = JIGSAW_MAX_NAME;
 
   /** the edit form is open, and what is in it (it starts from the jigsaw as it is) */
   readonly editing = signal(false);
@@ -60,11 +60,11 @@ export class JigsawPage implements OnInit {
   readonly ownerUid = signal('');
   /** the description in the edit form */
   readonly description = signal('');
-  readonly maxDescription = CANVAS_MAX_DESCRIPTION;
+  readonly maxDescription = JIGSAW_MAX_DESCRIPTION;
   readonly visibility = signal<'everyone' | 'owner'>('everyone');
-  readonly lineWidth = signal<number>(CanvasArea.DEFAULT_LINE_WIDTH);
-  readonly lineColor = signal<string>(CanvasArea.DEFAULT_LINE_COLOR);
-  readonly backColor = signal<string>(CanvasArea.DEFAULT_BACK_COLOR);
+  readonly lineWidth = signal<number>(JigsawSettings.DEFAULT_LINE_WIDTH);
+  readonly lineColor = signal<string>(JigsawSettings.DEFAULT_LINE_COLOR);
+  readonly backColor = signal<string>(JigsawSettings.DEFAULT_BACK_COLOR);
   /** the difficulty the jigsaw has (shown under its name and in the panel, where it cannot be changed) */
   readonly itemLevel = computed(() => snapLevelOfJigsaw(this.item() ?? {}));
   readonly lineLevels = LINE_LEVELS;
@@ -158,7 +158,7 @@ export class JigsawPage implements OnInit {
    * What the edit panel holds, as the API takes it: the jigsaw keeps its picture, size, pieces and difficulty (the API refuses a change of them once it has been played) and has
    * the new name, description, author and look. null while there is no jigsaw.
    */
-  private panelInput(): CanvasInput | null {
+  private panelInput(): JigsawInput | null {
     const item = this.item();
     if (!item) return null;
     const owner = this.owners().find((u) => u.id === this.ownerUid()) ?? null;
@@ -183,7 +183,7 @@ export class JigsawPage implements OnInit {
   }
 
   /** What is changed in the panel is saved by itself, a pause after the last change; nothing is saved while the name is empty. */
-  private readonly autosave = new Autosave<CanvasInput | null, CanvasSpec>({
+  private readonly autosave = new Autosave<JigsawInput | null, JigsawSpec>({
     input: () => this.panelInput(),
     invalid: () => (!this.item() || !this.name().trim() ? 'name' : ''),
     create: () => Promise.reject(new Error('A jigsaw is made on the page for a new one.')),
@@ -221,9 +221,9 @@ export class JigsawPage implements OnInit {
     this.description.set(item.description ?? '');
     this.ownerUid.set(item.ownerUid ?? '');
     this.visibility.set(item.visibility ?? 'everyone');
-    this.lineWidth.set(item.lineWidth ?? CanvasArea.DEFAULT_LINE_WIDTH);
-    this.lineColor.set(item.lineColor ?? CanvasArea.DEFAULT_LINE_COLOR);
-    this.backColor.set(item.backColor ?? CanvasArea.DEFAULT_BACK_COLOR);
+    this.lineWidth.set(item.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH);
+    this.lineColor.set(item.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR);
+    this.backColor.set(item.backColor ?? JigsawSettings.DEFAULT_BACK_COLOR);
     this.error.set('');
     this.editing.set(true);
     this.autosave.markSaved(item.id); // what is open is what is saved: only a change after this is saved

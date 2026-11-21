@@ -1,9 +1,9 @@
-<!-- a window on top of the page: the picture behind a frame of the shape of the canvas, to be dragged to find the cut -->
+<!-- a window on top of the page: the picture behind a frame of the shape of the picture area, to be dragged to find the cut -->
 <div class="crop-backdrop" *transloco="let t"
      role="dialog" aria-modal="true" [attr.aria-label]="t('jigsawCropper.title') || 'Adjust the picture'">
   <div class="crop-dialog card shadow p-3">
     <h2 class="subsection-title mb-1">{{ t('jigsawCropper.title') || 'Adjust the picture' }}</h2>
-    <p class="small text-body-secondary mb-2">{{ t('jigsawCropper.help') || 'Drag the picture inside the frame to find the cut, and zoom with the slider or the mouse wheel. The frame has the shape of the canvas.' }}</p>
+    <p class="small text-body-secondary mb-2">{{ t('jigsawCropper.help') || 'Drag the picture inside the frame to find the cut, and zoom with the slider or the mouse wheel. The frame has the shape of the picture area.' }}</p>
 
     @if (failed()) {
       <div class="alert alert-danger py-1 px-2 small mb-2" role="alert">{{ t('jigsawCropper.unreadable') || 'That file cannot be read as a picture.' }}</div>

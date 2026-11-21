@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
 import { etagOf } from "../src/jigsaw/jigsaw-image";
 import { memoryPlays } from "./memory-plays";
-import type { CanvasStore } from "../src/common/canvas-list";
-import type { CanvasSpec } from "../src/models";
+import type { JigsawStore } from "../src/common/jigsaw-list";
+import type { JigsawSpec } from "../src/models";
 import { MAX_PIECE_GRAPHIC_BYTES, PieceGraphic, PieceStore } from "../src/jigsaw/jigsaw-pieces";
 import { JIGSAW_MAX_PIECES, DEFAULT_OBJECT, JigsawCut, JigsawPiece, JigsawPieces, PieceMove } from "../src/models";
 
@@ -56,7 +56,7 @@ function cutPieces(graphic?: string) {
 describe("the pieces of a jigsaw in the database", () => {
   const setup = (jigsaws = [id]) => {
     const m = memoryPieces(jigsaws);
-    const app = createJigsawApp({ jigsawPieces: m.store, jigsawExists: async (x) => jigsaws.includes(x), plays: memoryPlays(), jigsaw: { ...({} as CanvasStore), list: async () => jigsaws.map((x) => ({ id: x }) as CanvasSpec) } });
+    const app = createJigsawApp({ jigsawPieces: m.store, jigsawExists: async (x) => jigsaws.includes(x), plays: memoryPlays(), jigsaw: { ...({} as JigsawStore), list: async () => jigsaws.map((x) => ({ id: x }) as JigsawSpec) } });
     return { ...m, app };
   };
 

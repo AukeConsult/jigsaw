@@ -1,4 +1,4 @@
-// The Canvas web app (its own app id) in the shared Firebase project `sevenfriends`. The web apiKey is a public identifier, not a secret.
+// The Karins jigsaw web app (its own app id) in the shared Firebase project `sevenfriends`. The web apiKey is a public identifier, not a secret.
 export const environment = {
   useEmulators: false,
   // the API of the app: a Cloud Function (Hosting and the dev proxy send this address to it)

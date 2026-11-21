@@ -1,19 +1,13 @@
 {
-  "designerHint": "Træk et objekt fra listen ind i tegnefladen, og træk det igen for at flytte det. Midten klæber til et punkt i gitteret. Tegnefladen er lag 0; et nyt objekt kommer på lag {{ layer }}.",
-  "layer": "Lag",
-  "removePicked": "Fjern valgte",
   "helperFrame": "Ramme med hjælpebillede",
   "helperTitle": "Billede",
   "hideHelper": "Skjul hjælpebilledet",
   "helperAlt": "Hele billedet, mindre",
   "helperSize": "Størrelse på hjælpebilledet",
   "piecesArea": "Område til puslespilsbrikker",
-  "canvasArea": "Tegneflade",
+  "pictureArea": "Billedflade",
   "piecesStore": "Lager med puslespilsbrikker",
   "clickToGet": "Klik for at hente brikker",
   "scrollLeft": "Rul brikkerne til venstre",
-  "scrollRight": "Rul brikkerne til højre",
-  "bend": "Bøj {{ which }}",
-  "width": "Bredde {{ side }}",
-  "resize": "Skift størrelse {{ id }}"
+  "scrollRight": "Rul brikkerne til højre"
 }

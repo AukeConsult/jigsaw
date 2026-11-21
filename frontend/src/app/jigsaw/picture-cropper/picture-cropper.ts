@@ -2,12 +2,12 @@ import { Component, computed, effect, input, output, signal } from '@angular/cor
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { PictureCrop, SourceRect } from '../../models/shared/geometry';
 
-/** The most room the frame gets on the window, in pixels (the frame has the shape of the canvas and is made as big as it can be in this). */
+/** The most room the frame gets on the window, in pixels (the frame has the shape of the picture area and is made as big as it can be in this). */
 const MAX_FRAME_W = 720;
 const MAX_FRAME_H = 460;
 
 /**
- * Where the person finds the right cut of a picture they chose: the picture lies behind a frame with the shape of the canvas, and is dragged inside it
+ * Where the person finds the right cut of a picture they chose: the picture lies behind a frame with the shape of the picture area, and is dragged inside it
  * (and zoomed with the slider or the wheel). "Use this cut" tells which part of the picture the frame shows (see `PictureCrop`); nothing is cut here.
  */
 @Component({
@@ -19,7 +19,7 @@ const MAX_FRAME_H = 460;
 export class PictureCropper {
   /** the picture that was chosen */
   readonly file = input.required<File>();
-  /** the size of the canvas: the frame has its shape */
+  /** the size of the picture area: the frame has its shape */
   readonly width = input.required<number>();
   readonly height = input.required<number>();
 
@@ -33,7 +33,7 @@ export class PictureCropper {
   /** the picture seen through the frame (null until the picture is read) */
   readonly crop = signal<PictureCrop | null>(null);
 
-  /** how big the frame is on the page: the shape of the canvas, as big as fits in the room and on the window */
+  /** how big the frame is on the page: the shape of the picture area, as big as fits in the room and on the window */
   readonly frame = computed(() => {
     const k = Math.min(MAX_FRAME_W / this.width(), MAX_FRAME_H / this.height(), (window.innerWidth - 80) / this.width());
     return { w: Math.max(40, Math.round(this.width() * k)), h: Math.max(30, Math.round(this.height() * k)) };

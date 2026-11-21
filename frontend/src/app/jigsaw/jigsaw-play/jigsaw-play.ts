@@ -15,7 +15,7 @@ import { JigsawService } from '../jigsaw.service';
 import { PieceSync, PieceSyncApi } from '../piece-sync';
 import { clockOf } from '../duration';
 import { PlaysService } from '../plays.service';
-import { CanvasArea, CanvasSpec } from '../../models/shared/canvas';
+import { JigsawSettings, JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
 import { PlacedObject } from '../../models/shared/placed';
 import { PlayOverrides, PlaySpec } from '../../models/shared/play';
@@ -46,7 +46,7 @@ export class JigsawPlay implements OnDestroy {
   /** loading: being read, ready, missing: there is no such jigsaw or game, failed: it could not be read */
   readonly status = signal<'loading' | 'ready' | 'missing' | 'failed'>('loading');
   /** the jigsaw (its store is as wide as this game has made it) and the game */
-  readonly item = signal<CanvasSpec | null>(null);
+  readonly item = signal<JigsawSpec | null>(null);
   readonly play = signal<PlaySpec | null>(null);
   /** the round is another player's: it can be looked at, never changed */
   readonly viewOnly = computed(() => {
@@ -69,11 +69,11 @@ export class JigsawPlay implements OnDestroy {
   readonly confirmingDelete = signal(false);
 
   /** the difficulty, the jigsaw's own (not a choice of a round): how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never) */
-  readonly snapPercent = signal(CanvasArea.DEFAULT_SNAP_PERCENT);
+  readonly snapPercent = signal(JigsawSettings.DEFAULT_SNAP_PERCENT);
   /** the line round each piece: how thick in pixels, and what colour (#rrggbb), and the background colour of the picture area */
-  readonly lineWidth = signal(CanvasArea.DEFAULT_LINE_WIDTH);
-  readonly lineColor = signal(CanvasArea.DEFAULT_LINE_COLOR);
-  readonly backColor = signal(CanvasArea.DEFAULT_BACK_COLOR);
+  readonly lineWidth = signal(JigsawSettings.DEFAULT_LINE_WIDTH);
+  readonly lineColor = signal(JigsawSettings.DEFAULT_LINE_COLOR);
+  readonly backColor = signal(JigsawSettings.DEFAULT_BACK_COLOR);
   /** what this game has chosen for itself (the rest is the jigsaw's): only this is sent when it is saved */
   private readonly own = signal<PlayOverrides>({});
   /** the thicknesses of the line to choose from, in words, and the one the line is closest to */
@@ -108,7 +108,7 @@ export class JigsawPlay implements OnDestroy {
   readonly width = computed(() => this.item()?.width ?? 0);
   readonly height = computed(() => this.item()?.height ?? 0);
   readonly gridSize = computed(() => this.item()?.gridSize ?? 0);
-  readonly snapRangePx = computed(() => CanvasArea.snapRangePx(this.snapPercent(), this.gridSize()));
+  readonly snapRangePx = computed(() => JigsawSettings.snapRangePx(this.snapPercent(), this.gridSize()));
   /** how many pieces the grid makes across and down */
   readonly pieceInfo = computed(() => pieceGrid(this.width(), this.height(), this.gridSize()));
 

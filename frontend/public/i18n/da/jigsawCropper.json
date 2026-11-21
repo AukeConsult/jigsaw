@@ -1,6 +1,6 @@
 {
   "title": "Justér billedet",
-  "help": "Træk billedet inde i rammen for at finde udsnittet, og zoom med skyderen eller musehjulet. Rammen har samme form som lærredet.",
+  "help": "Træk billedet inde i rammen for at finde udsnittet, og zoom med skyderen eller musehjulet. Rammen har samme form som billedfladen.",
   "unreadable": "Den fil kan ikke læses som et billede.",
   "frame": "Rammen",
   "pictureAlt": "Billedet der skal beskæres",

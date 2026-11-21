@@ -1,4 +1,4 @@
-import { CanvasSpec } from '../models/shared/canvas';
+import { JigsawSpec } from '../models/shared/jigsaw-settings';
 
 /** A contributor: someone who has made at least one jigsaw, with how many. */
 export interface Contributor {
@@ -9,12 +9,12 @@ export interface Contributor {
 }
 
 /** Who made a jigsaw: the key of its author, or '' when it has none. */
-export function contributorKey(item: Pick<CanvasSpec, 'ownerUid' | 'author'>): string {
+export function contributorKey(item: Pick<JigsawSpec, 'ownerUid' | 'author'>): string {
   return item.ownerUid || (item.author?.trim() ? `name:${item.author.trim().toLowerCase()}` : '');
 }
 
 /** The people who have made the jigsaws, by name, each with the number of jigsaws they made. */
-export function contributorsOf(items: readonly CanvasSpec[]): Contributor[] {
+export function contributorsOf(items: readonly JigsawSpec[]): Contributor[] {
   const found = new Map<string, Contributor>();
   for (const item of items) {
     const key = contributorKey(item);
@@ -27,6 +27,6 @@ export function contributorsOf(items: readonly CanvasSpec[]): Contributor[] {
 }
 
 /** The jigsaws one contributor made, or all of them when none is chosen (`null`). */
-export function madeBy(items: readonly CanvasSpec[], key: string | null): CanvasSpec[] {
+export function madeBy(items: readonly JigsawSpec[], key: string | null): JigsawSpec[] {
   return key === null ? [...items] : items.filter((item) => contributorKey(item) === key);
 }

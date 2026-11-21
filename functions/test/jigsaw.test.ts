@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JIGSAW_MAX_PIECES, CanvasArea, CanvasDiagram, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedBase, PlacedFigure, pieceGrid } from "../src/models";
+import { JIGSAW_MAX_PIECES, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid } from "../src/models";
 
 /** a steady "random" so the tests give the same cut every time */
 function seeded(seed: number) {
@@ -15,7 +15,7 @@ const cut = (w = 200, h = 150, grid = 50, seed = 1) => {
   return result;
 };
 
-describe("cutting a canvas into jigsaw pieces", () => {
+describe("cutting a picture into jigsaw pieces", () => {
   it("makes one piece for each whole cell of the grid", () => {
     expect(pieceGrid(850, 600, 50)).toEqual({ columns: 17, rows: 12 });
     expect(pieceGrid(830, 610, 50)).toEqual({ columns: 16, rows: 12 }); // what is left at the far edges is not a piece
@@ -23,22 +23,22 @@ describe("cutting a canvas into jigsaw pieces", () => {
     const { placed, columns, rows } = cut();
     expect([columns, rows, placed.length]).toEqual([4, 3, 12]);
     expect(new Set(placed.map((p) => p.id)).size).toBe(12);
-    for (const p of placed) expect([p.object.width, p.object.height, p.object.shape]).toEqual([50, 50, "square"]);
+    for (const p of placed) expect([p.object.width, p.object.height]).toEqual([50, 50]);
   });
 
-  it("scatters the pieces in the store frame beside the canvas, all inside it", () => {
+  it("scatters the pieces in the store frame beside the picture area, all inside it", () => {
     const { placed, storeWidth } = cut(200, 150, 50); // 12 pieces; the frame is 3 × 150 = 450 high
-    const frame = CanvasArea.storeFrame(200, 150, 50, storeWidth)!;
+    const frame = JigsawSettings.storeFrame(200, 150, 50, storeWidth)!;
     expect(frame).toEqual({ left: 250, width: storeWidth, height: 450 });
     expect(storeWidth).toBeGreaterThan(0);
     for (const p of placed) {
-      expect(p.centerX - 25).toBeGreaterThanOrEqual(frame.left); // the whole piece is in the frame, none on the canvas
+      expect(p.centerX - 25).toBeGreaterThanOrEqual(frame.left); // the whole piece is in the frame, none on the picture area
       expect(p.centerX + 25).toBeLessThanOrEqual(frame.left + frame.width);
       expect(p.centerY - 25).toBeGreaterThanOrEqual(0);
       expect(p.centerY + 25).toBeLessThanOrEqual(frame.height);
       expect(Number.isInteger(p.centerX * 2) && Number.isInteger(p.centerY * 2)).toBe(true); // whole or half pixels
     }
-    expect(Math.max(...placed.map((p) => p.centerY))).toBeGreaterThan(150); // spread down the frame, further than the height of the canvas
+    expect(Math.max(...placed.map((p) => p.centerY))).toBeGreaterThan(150); // spread down the frame, further than the height of the picture area
     expect(cut(200, 150, 50, 2).placed.map((p) => p.centerX)).not.toEqual(placed.map((p) => p.centerX)); // another chance, another scatter
   });
 
@@ -90,16 +90,16 @@ describe("cutting a canvas into jigsaw pieces", () => {
     }
   });
 
-  it("makes pieces that are allowed on the jigsaw pieces area: the canvas and its store frame", () => {
+  it("makes pieces that are allowed on the jigsaw pieces area: the picture area and its store frame", () => {
     const { placed, storeWidth } = cut(850, 600, 50);
     const input = { name: "Puzzle", width: 850, height: 600, gridSize: 50, gridVisible: true, placed, storeWidth };
-    expect(new CanvasArea(input).error()).toBe("");
-    expect(CanvasDiagram.validate(placed, 850, 600)).toContain("does not fit"); // not on the canvas alone
-    expect(new CanvasArea({ ...input, storeWidth: 100 }).error()).toContain("does not fit"); // nor in a store that is too narrow
-    expect(new CanvasArea({ ...input, storeWidth: -1 }).error()).toContain("store");
-    expect(new CanvasArea(input).stored().storeWidth).toBe(storeWidth);
-    expect("storeWidth" in new CanvasArea({ ...input, placed: [], storeWidth: 0 }).stored()).toBe(false);
-    expect(CanvasArea.fromStored("x", { ...input, createdAt: 1 }).storeWidth).toBe(storeWidth);
+    expect(new JigsawSettings(input).error()).toBe("");
+    expect(Puzzle.validate(placed, 850, 600)).toContain("does not fit"); // not on the picture area alone
+    expect(new JigsawSettings({ ...input, storeWidth: 100 }).error()).toContain("does not fit"); // nor in a store that is too narrow
+    expect(new JigsawSettings({ ...input, storeWidth: -1 }).error()).toContain("store");
+    expect(new JigsawSettings(input).stored().storeWidth).toBe(storeWidth);
+    expect("storeWidth" in new JigsawSettings({ ...input, placed: [], storeWidth: 0 }).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, createdAt: 1 }).storeWidth).toBe(storeWidth);
   });
 
   it("refuses when there is no grid, no room, or too many pieces", () => {
@@ -125,8 +125,8 @@ describe("cutting a canvas into jigsaw pieces", () => {
 describe("a piece that is dropped close to its own place", () => {
   const piece = { col: 2, row: 1, top: 1, right: 0, bottom: -1, left: 1 } as const; // belongs at the centre 125, 75 of 50 px pieces
   const base = { id: "p", centerX: 475, centerY: 25, object: { ...DEFAULT_OBJECT, width: 50, height: 50 }, piece };
-  const diagram = () => CanvasDiagram.from([base], 800, 600);
-  const at = (d: CanvasDiagram, id = "p") => [d.get(id)!.centerX, d.get(id)!.centerY];
+  const puzzle = () => Puzzle.from([base], 800, 600);
+  const at = (d: Puzzle, id = "p") => [d.get(id)!.centerX, d.get(id)!.centerY];
   const put = (x: number, y: number) => ({ ...base, centerX: x, centerY: y });
 
   it("knows where it belongs: the centre of its cell of the picture", () => {
@@ -135,12 +135,12 @@ describe("a piece that is dropped close to its own place", () => {
   });
 
   it("does not click into place while it is moved, however close it comes", () => {
-    expect(at(diagram().moveFigure("p", 128, 77, 50, 25))).toEqual([128, 77]); // right by its place: still where it is put
-    expect(at(diagram().moveFigure("p", 125, 75, 50, 25))).toEqual([125, 75]);
+    expect(at(puzzle().moveFigure("p", 128, 77, 50, 25))).toEqual([128, 77]); // right by its place: still where it is put
+    expect(at(puzzle().moveFigure("p", 125, 75, 50, 25))).toEqual([125, 75]);
   });
 
   it("clicks into place when it is dropped within the range, exactly on its place", () => {
-    const d = (x: number, y: number, range: number) => at(CanvasDiagram.from([put(x, y)], 800, 600).dropPieces(["p"], range));
+    const d = (x: number, y: number, range: number) => at(Puzzle.from([put(x, y)], 800, 600).dropPieces(["p"], range));
     expect(d(140, 90, 25)).toEqual([125, 75]); // about 21 px off, in a range of 25
     expect(d(100, 75, 25)).toEqual([125, 75]); // exactly 25 px off: just in
     expect(d(99, 75, 25)).toEqual([99, 75]); // 26 px off: out
@@ -150,11 +150,11 @@ describe("a piece that is dropped close to its own place", () => {
   });
 
   it("never clicks when the range is 0, and is not changed when there is nothing to change", () => {
-    const near = CanvasDiagram.from([put(126, 76)], 800, 600);
+    const near = Puzzle.from([put(126, 76)], 800, 600);
     expect(near.dropPieces(["p"], 0)).toBe(near);
     expect(near.dropPieces(["p"], -5)).toBe(near);
     expect(near.dropPieces(["p"], Number.NaN)).toBe(near);
-    const there = CanvasDiagram.from([put(125, 75)], 800, 600);
+    const there = Puzzle.from([put(125, 75)], 800, 600);
     expect(there.dropPieces(["p"], 25)).toBe(there); // already exactly there
     expect(there.dropPieces(["nobody"], 25)).toBe(there);
   });
@@ -163,7 +163,7 @@ describe("a piece that is dropped close to its own place", () => {
     const other = { ...put(130, 80), id: "q", piece: { ...piece, col: 5, row: 4 } }; // belongs at 275, 225: not near
     const near = { ...put(130, 80), id: "r" }; // near its own place, but was not dropped
     const plain = { id: "s", centerX: 125, centerY: 77, object: { ...DEFAULT_OBJECT, width: 50, height: 50 } }; // not a piece
-    const d = CanvasDiagram.from([put(130, 80), other, near, plain], 800, 600).dropPieces(["p", "q", "s"], 25);
+    const d = Puzzle.from([put(130, 80), other, near, plain], 800, 600).dropPieces(["p", "q", "s"], 25);
     expect(at(d, "p")).toEqual([125, 75]);
     expect(at(d, "q")).toEqual([130, 80]); // at the place of another piece: stays
     expect(at(d, "r")).toEqual([130, 80]); // not dropped
@@ -172,31 +172,31 @@ describe("a piece that is dropped close to its own place", () => {
 
   it("clicks several dropped pieces at once", () => {
     const other = { ...put(60, 120), id: "q", piece: { ...piece, col: 1, row: 2 } }; // belongs at 75, 125
-    const d = CanvasDiagram.from([put(130, 80), other], 800, 600).dropPieces(["p", "q"], 25);
+    const d = Puzzle.from([put(130, 80), other], 800, 600).dropPieces(["p", "q"], 25);
     expect([at(d, "p"), at(d, "q")]).toEqual([[125, 75], [75, 125]]);
   });
 
   it("moves in steps 50 times smaller than the grid, not from grid point to grid point", () => {
-    expect(at(diagram().moveFigure("p", 333.4, 222.6, 50, 25))).toEqual([333, 223]); // a 50 px grid: steps of 1 px
-    expect(at(diagram().moveFigure("p", 333.4, 222.6, 100, 50))).toEqual([334, 222]); // a 100 px grid: steps of 2 px from 50 (..., 332, 334, ...)
-    expect(at(diagram().moveFigure("p", 400, 300, 50, 25))).toEqual([400, 300]); // the grid points are among the steps
-    expect(at(diagram().moveFigure("p", 333.4, 222.6, 10, 5))).toEqual([333.5, 222.5]); // never finer than half a pixel
-    expect(at(diagram().moveFigure("p", 333.4, 222.6, 1, 0))).toEqual([333.5, 222.5]);
+    expect(at(puzzle().moveFigure("p", 333.4, 222.6, 50, 25))).toEqual([333, 223]); // a 50 px grid: steps of 1 px
+    expect(at(puzzle().moveFigure("p", 333.4, 222.6, 100, 50))).toEqual([334, 222]); // a 100 px grid: steps of 2 px from 50 (..., 332, 334, ...)
+    expect(at(puzzle().moveFigure("p", 400, 300, 50, 25))).toEqual([400, 300]); // the grid points are among the steps
+    expect(at(puzzle().moveFigure("p", 333.4, 222.6, 10, 5))).toEqual([333.5, 222.5]); // never finer than half a pixel
+    expect(at(puzzle().moveFigure("p", 333.4, 222.6, 1, 0))).toEqual([333.5, 222.5]);
     // a grid that is not a multiple of 25 (the grid worked out from a number of pieces): the step is still a whole number of half pixels, so a piece is always on a whole or a half pixel
-    expect(at(diagram().moveFigure("p", 333.4, 222.6, 101, 50.5))).toEqual([332.5, 222.5]); // 101 / 50 = 2.02, made 2
+    expect(at(puzzle().moveFigure("p", 333.4, 222.6, 101, 50.5))).toEqual([332.5, 222.5]); // 101 / 50 = 2.02, made 2
     for (const grid of [101, 58, 77, 33, 71, 123, 19]) {
       for (const [x, y] of [[333.37, 222.61], [150.9, 99.1], [401.23, 301.77]]) {
-        const [px, py] = at(diagram().moveFigure("p", x, y, grid, grid / 2));
+        const [px, py] = at(puzzle().moveFigure("p", x, y, grid, grid / 2));
         expect(Number.isInteger(px * 2) && Number.isInteger(py * 2)).toBe(true);
       }
     }
     // a figure that is not a piece still sticks to the grid points
-    const plain = CanvasDiagram.from([{ ...base, piece: undefined }], 800, 600).moveFigure("p", 333.4, 222.6, 50, 25);
+    const plain = Puzzle.from([{ ...base, piece: undefined }], 800, 600).moveFigure("p", 333.4, 222.6, 50, 25);
     expect(at(plain)).toEqual([325, 225]);
   });
 
   it("can be moved away from its place again", () => {
-    const placed = diagram().moveFigure("p", 130, 80, 50, 25).dropPieces(["p"], 25);
+    const placed = puzzle().moveFigure("p", 130, 80, 50, 25).dropPieces(["p"], 25);
     expect(at(placed)).toEqual([125, 75]);
     expect(at(placed.moveFigure("p", 325, 225, 50, 25))).toEqual([325, 225]);
   });
@@ -206,14 +206,14 @@ describe("the author of a jigsaw", () => {
   const input = { name: "Puzzle", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [] };
 
   it("is kept trimmed, left out when empty, and checked", () => {
-    expect(new CanvasArea({ ...input, author: "  Karin  " }).stored().author).toBe("Karin");
-    expect("author" in new CanvasArea({ ...input, author: "   " }).stored()).toBe(false);
-    expect("author" in new CanvasArea(input).stored()).toBe(false);
-    expect(new CanvasArea({ ...input, author: "Karin" }).error()).toBe("");
-    expect(new CanvasArea({ ...input, author: 5 }).error()).toMatch(/author/);
-    expect(new CanvasArea({ ...input, author: "x".repeat(200) }).error()).toMatch(/author/);
-    expect(CanvasArea.fromStored("a", { ...input, author: "Karin" }).author).toBe("Karin");
-    expect("author" in CanvasArea.fromStored("a", input)).toBe(false); // a jigsaw saved before there was an author
+    expect(new JigsawSettings({ ...input, author: "  Karin  " }).stored().author).toBe("Karin");
+    expect("author" in new JigsawSettings({ ...input, author: "   " }).stored()).toBe(false);
+    expect("author" in new JigsawSettings(input).stored()).toBe(false);
+    expect(new JigsawSettings({ ...input, author: "Karin" }).error()).toBe("");
+    expect(new JigsawSettings({ ...input, author: 5 }).error()).toMatch(/author/);
+    expect(new JigsawSettings({ ...input, author: "x".repeat(200) }).error()).toMatch(/author/);
+    expect(JigsawSettings.fromStored("a", { ...input, author: "Karin" }).author).toBe("Karin");
+    expect("author" in JigsawSettings.fromStored("a", input)).toBe(false); // a jigsaw saved before there was an author
   });
 });
 
@@ -221,22 +221,22 @@ describe("how close a piece has to be dropped, a setting of the jigsaw", () => {
   const input = { name: "Puzzle", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [] };
 
   it("is a percent of the grid size, 25 when the jigsaw says nothing", () => {
-    expect(CanvasArea.DEFAULT_SNAP_PERCENT).toBe(25);
-    expect([CanvasArea.snapRangePx(50, 50), CanvasArea.snapRangePx(20, 50), CanvasArea.snapRangePx(100, 80), CanvasArea.snapRangePx(0, 50)]).toEqual([25, 10, 80, 0]);
-    expect([CanvasArea.snapRangePx(50, 0), CanvasArea.snapRangePx(-5, 50)]).toEqual([0, 0]); // no grid or a bad percent: never
+    expect(JigsawSettings.DEFAULT_SNAP_PERCENT).toBe(25);
+    expect([JigsawSettings.snapRangePx(50, 50), JigsawSettings.snapRangePx(20, 50), JigsawSettings.snapRangePx(100, 80), JigsawSettings.snapRangePx(0, 50)]).toEqual([25, 10, 80, 0]);
+    expect([JigsawSettings.snapRangePx(50, 0), JigsawSettings.snapRangePx(-5, 50)]).toEqual([0, 0]); // no grid or a bad percent: never
   });
 
   it("is saved with the jigsaw (also 0, which means never), and a jigsaw without it has none", () => {
-    expect(new CanvasArea({ ...input, snapPercent: 30 }).stored().snapPercent).toBe(30);
-    expect(new CanvasArea({ ...input, snapPercent: 0 }).stored().snapPercent).toBe(0);
-    expect("snapPercent" in new CanvasArea(input).stored()).toBe(false);
-    expect(CanvasArea.fromStored("x", { ...input, snapPercent: 70, createdAt: 1 }).snapPercent).toBe(70);
-    expect("snapPercent" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+    expect(new JigsawSettings({ ...input, snapPercent: 30 }).stored().snapPercent).toBe(30);
+    expect(new JigsawSettings({ ...input, snapPercent: 0 }).stored().snapPercent).toBe(0);
+    expect("snapPercent" in new JigsawSettings(input).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, snapPercent: 70, createdAt: 1 }).snapPercent).toBe(70);
+    expect("snapPercent" in JigsawSettings.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
   });
 
   it("is a whole number of percent from 0 to 100", () => {
-    for (const bad of [-1, 1.5, "5", null, 101, 5000, Number.NaN]) expect(new CanvasArea({ ...input, snapPercent: bad }).error()).toContain("snap range");
-    for (const good of [0, 1, 50, 100]) expect(new CanvasArea({ ...input, snapPercent: good }).error()).toBe("");
+    for (const bad of [-1, 1.5, "5", null, 101, 5000, Number.NaN]) expect(new JigsawSettings({ ...input, snapPercent: bad }).error()).toContain("snap range");
+    for (const good of [0, 1, 50, 100]) expect(new JigsawSettings({ ...input, snapPercent: good }).error()).toBe("");
   });
 });
 
@@ -273,21 +273,21 @@ describe("the frame around the picture area, a setting of the jigsaw", () => {
   const input = { name: "Puzzle", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [] };
 
   it("is a frame that can be seen, 4 pixels, when the jigsaw says nothing", () => {
-    expect(CanvasArea.DEFAULT_FRAME_WIDTH).toBe(4);
-    expect(CanvasArea.MAX_FRAME_WIDTH).toBe(20);
+    expect(JigsawSettings.DEFAULT_FRAME_WIDTH).toBe(4);
+    expect(JigsawSettings.MAX_FRAME_WIDTH).toBe(20);
   });
 
   it("is saved with the jigsaw (also 0, which means no frame), and a jigsaw without it has none", () => {
-    expect(new CanvasArea({ ...input, frameWidth: 8 }).stored().frameWidth).toBe(8);
-    expect(new CanvasArea({ ...input, frameWidth: 0 }).stored().frameWidth).toBe(0);
-    expect("frameWidth" in new CanvasArea(input).stored()).toBe(false);
-    expect(CanvasArea.fromStored("x", { ...input, frameWidth: 6, createdAt: 1 }).frameWidth).toBe(6);
-    expect("frameWidth" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+    expect(new JigsawSettings({ ...input, frameWidth: 8 }).stored().frameWidth).toBe(8);
+    expect(new JigsawSettings({ ...input, frameWidth: 0 }).stored().frameWidth).toBe(0);
+    expect("frameWidth" in new JigsawSettings(input).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, frameWidth: 6, createdAt: 1 }).frameWidth).toBe(6);
+    expect("frameWidth" in JigsawSettings.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
   });
 
   it("is a whole number of pixels from 0 to 20", () => {
-    for (const bad of [-1, 1.5, "4", null, 21, 500, Number.NaN]) expect(new CanvasArea({ ...input, frameWidth: bad }).error()).toContain("frame");
-    for (const good of [0, 1, 4, 20]) expect(new CanvasArea({ ...input, frameWidth: good }).error()).toBe("");
+    for (const bad of [-1, 1.5, "4", null, 21, 500, Number.NaN]) expect(new JigsawSettings({ ...input, frameWidth: bad }).error()).toContain("frame");
+    for (const good of [0, 1, 4, 20]) expect(new JigsawSettings({ ...input, frameWidth: good }).error()).toBe("");
   });
 });
 
@@ -295,16 +295,16 @@ describe("the name of the picture file", () => {
   const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
 
   it("is kept with the jigsaw (trimmed), and a jigsaw without it has none", () => {
-    expect(new CanvasArea({ ...input, pictureName: "  IMG_1.jpg " }).stored().pictureName).toBe("IMG_1.jpg");
-    expect("pictureName" in new CanvasArea({ ...input, pictureName: "  " }).stored()).toBe(false);
-    expect("pictureName" in new CanvasArea(input).stored()).toBe(false);
-    expect(CanvasArea.fromStored("x", { ...input, pictureName: "a.png", createdAt: 1 }).pictureName).toBe("a.png");
-    expect("pictureName" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+    expect(new JigsawSettings({ ...input, pictureName: "  IMG_1.jpg " }).stored().pictureName).toBe("IMG_1.jpg");
+    expect("pictureName" in new JigsawSettings({ ...input, pictureName: "  " }).stored()).toBe(false);
+    expect("pictureName" in new JigsawSettings(input).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, pictureName: "a.png", createdAt: 1 }).pictureName).toBe("a.png");
+    expect("pictureName" in JigsawSettings.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
   });
 
   it("is at most 200 characters", () => {
-    expect(new CanvasArea({ ...input, pictureName: "a".repeat(200) }).error()).toBe("");
-    for (const bad of ["a".repeat(201), 5, null]) expect(new CanvasArea({ ...input, pictureName: bad }).error()).toContain("picture file");
+    expect(new JigsawSettings({ ...input, pictureName: "a".repeat(200) }).error()).toBe("");
+    for (const bad of ["a".repeat(201), 5, null]) expect(new JigsawSettings({ ...input, pictureName: bad }).error()).toContain("picture file");
   });
 });
 
@@ -312,23 +312,23 @@ describe("what the players of a jigsaw share", () => {
   const before = { width: 200, height: 150, gridSize: 50, storeWidth: 300, snapPercent: 10, timed: false };
 
   it("is the size, the cut (grid and store), the difficulty and the clock: a change of any is a change", () => {
-    expect(CanvasArea.changesWhatPlayersShare(before, { ...before })).toBe(false);
+    expect(JigsawSettings.changesWhatPlayersShare(before, { ...before })).toBe(false);
     for (const change of [{ width: 201 }, { height: 1 }, { gridSize: 25 }, { storeWidth: 0 }, { storeWidth: 301 }, { snapPercent: 11 }, { snapPercent: undefined }, { timed: true }, { timed: undefined }]) {
-      expect(CanvasArea.changesWhatPlayersShare(before, { ...before, ...change })).toBe(true);
+      expect(JigsawSettings.changesWhatPlayersShare(before, { ...before, ...change })).toBe(true);
     }
   });
 
   it("takes what a jigsaw says nothing about as the default: timed, the default difficulty, no store", () => {
     const plain = { width: 200, height: 150, gridSize: 50 };
-    expect(CanvasArea.changesWhatPlayersShare(plain, { ...plain })).toBe(false);
-    expect(CanvasArea.changesWhatPlayersShare(plain, { ...plain, timed: true, snapPercent: CanvasArea.DEFAULT_SNAP_PERCENT, storeWidth: 0 })).toBe(false);
-    expect(CanvasArea.changesWhatPlayersShare(plain, { ...plain, timed: false })).toBe(true);
-    expect(CanvasArea.changesWhatPlayersShare(plain, { ...plain, snapPercent: 40 })).toBe(true);
+    expect(JigsawSettings.changesWhatPlayersShare(plain, { ...plain })).toBe(false);
+    expect(JigsawSettings.changesWhatPlayersShare(plain, { ...plain, timed: true, snapPercent: JigsawSettings.DEFAULT_SNAP_PERCENT, storeWidth: 0 })).toBe(false);
+    expect(JigsawSettings.changesWhatPlayersShare(plain, { ...plain, timed: false })).toBe(true);
+    expect(JigsawSettings.changesWhatPlayersShare(plain, { ...plain, snapPercent: 40 })).toBe(true);
   });
 
   it("leaves the name, the description, the author, who sees it and the look free", () => {
     const next = { ...before, name: "Other", description: "d", author: "a", ownerUid: "u", visibility: "owner", lineWidth: 3, lineColor: "#ff0000", backColor: "#000000" };
-    expect(CanvasArea.changesWhatPlayersShare(before, next)).toBe(false);
+    expect(JigsawSettings.changesWhatPlayersShare(before, next)).toBe(false);
   });
 });
 
@@ -336,17 +336,17 @@ describe("the description of a jigsaw", () => {
   const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
 
   it("is optional, kept trimmed, and a jigsaw without one has none", () => {
-    expect(new CanvasArea({ ...input, description: "  A day at the harbour  " }).stored().description).toBe("A day at the harbour");
-    expect("description" in new CanvasArea({ ...input, description: "  " }).stored()).toBe(false);
-    expect("description" in new CanvasArea(input).stored()).toBe(false);
-    expect(CanvasArea.fromStored("x", { ...input, description: "Summer", createdAt: 1 }).description).toBe("Summer");
-    expect("description" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+    expect(new JigsawSettings({ ...input, description: "  A day at the harbour  " }).stored().description).toBe("A day at the harbour");
+    expect("description" in new JigsawSettings({ ...input, description: "  " }).stored()).toBe(false);
+    expect("description" in new JigsawSettings(input).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, description: "Summer", createdAt: 1 }).description).toBe("Summer");
+    expect("description" in JigsawSettings.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
   });
 
   it("is at most 500 characters, and text", () => {
-    expect(new CanvasArea({ ...input, description: "a".repeat(500) }).error()).toBe("");
-    expect(new CanvasArea({ ...input, description: "" }).error()).toBe("");
-    for (const bad of ["a".repeat(501), 5, null]) expect(new CanvasArea({ ...input, description: bad }).error()).toContain("description");
+    expect(new JigsawSettings({ ...input, description: "a".repeat(500) }).error()).toBe("");
+    expect(new JigsawSettings({ ...input, description: "" }).error()).toBe("");
+    for (const bad of ["a".repeat(501), 5, null]) expect(new JigsawSettings({ ...input, description: bad }).error()).toContain("description");
   });
 });
 
@@ -354,19 +354,19 @@ describe("the line round the pieces", () => {
   const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
 
   it("is saved with the jigsaw (also 0, no line), and a jigsaw without it has none", () => {
-    const stored = new CanvasArea({ ...input, lineWidth: 0, lineColor: "#FF0000" }).stored();
+    const stored = new JigsawSettings({ ...input, lineWidth: 0, lineColor: "#FF0000" }).stored();
     expect(stored.lineWidth).toBe(0);
     expect(stored.lineColor).toBe("#ff0000");
-    expect("lineWidth" in new CanvasArea(input).stored()).toBe(false);
-    expect(CanvasArea.fromStored("x", { ...input, lineWidth: 3, lineColor: "#00ff00", createdAt: 1 }).lineWidth).toBe(3);
-    expect("lineColor" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+    expect("lineWidth" in new JigsawSettings(input).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, lineWidth: 3, lineColor: "#00ff00", createdAt: 1 }).lineWidth).toBe(3);
+    expect("lineColor" in JigsawSettings.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
   });
 
   it("is a whole number of pixels from 0 to 6, in a colour written #rrggbb", () => {
-    for (const bad of [-1, 1.5, "2", null, 7]) expect(new CanvasArea({ ...input, lineWidth: bad }).error()).toContain("line");
-    for (const good of [0, 1, 6]) expect(new CanvasArea({ ...input, lineWidth: good }).error()).toBe("");
-    for (const bad of ["red", "#fff", "#12345g", 5, null]) expect(new CanvasArea({ ...input, lineColor: bad }).error()).toContain("colour");
-    expect(new CanvasArea({ ...input, lineColor: "#a1B2c3" }).error()).toBe("");
+    for (const bad of [-1, 1.5, "2", null, 7]) expect(new JigsawSettings({ ...input, lineWidth: bad }).error()).toContain("line");
+    for (const good of [0, 1, 6]) expect(new JigsawSettings({ ...input, lineWidth: good }).error()).toBe("");
+    for (const bad of ["red", "#fff", "#12345g", 5, null]) expect(new JigsawSettings({ ...input, lineColor: bad }).error()).toContain("colour");
+    expect(new JigsawSettings({ ...input, lineColor: "#a1B2c3" }).error()).toBe("");
   });
 });
 
@@ -374,16 +374,16 @@ describe("the background colour of the picture area", () => {
   const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
 
   it("is saved with the jigsaw as #rrggbb, and a jigsaw without it has none", () => {
-    expect(new CanvasArea({ ...input, backColor: "#AABBCC" }).stored().backColor).toBe("#aabbcc");
-    expect("backColor" in new CanvasArea(input).stored()).toBe(false);
-    expect(CanvasArea.fromStored("x", { ...input, backColor: "#112233", createdAt: 1 }).backColor).toBe("#112233");
-    expect(new CanvasArea({ ...input, backColor: "#abcdef" }).error()).toBe("");
-    for (const bad of ["white", "#fff", 3, null]) expect(new CanvasArea({ ...input, backColor: bad }).error()).toContain("background");
+    expect(new JigsawSettings({ ...input, backColor: "#AABBCC" }).stored().backColor).toBe("#aabbcc");
+    expect("backColor" in new JigsawSettings(input).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, backColor: "#112233", createdAt: 1 }).backColor).toBe("#112233");
+    expect(new JigsawSettings({ ...input, backColor: "#abcdef" }).error()).toBe("");
+    for (const bad of ["white", "#fff", 3, null]) expect(new JigsawSettings({ ...input, backColor: bad }).error()).toContain("background");
   });
 });
 
 describe("the standard numbers of pieces for a shape", () => {
-  it("are whole columns and rows in the shape of the canvas, smallest first", () => {
+  it("are whole columns and rows in the shape of the picture area, smallest first", () => {
     expect(JigsawCut.pieceChoices(800, 600).map((c) => [c.columns, c.rows, c.count])).toEqual([[8, 6, 48], [12, 9, 108], [16, 12, 192], [20, 15, 300], [24, 18, 432], [32, 24, 768], [36, 27, 972]]);
     for (const [w, h] of [[900, 600], [960, 540], [700, 700], [600, 800], [1200, 400]]) {
       const choices = JigsawCut.pieceChoices(w, h);
@@ -399,7 +399,7 @@ describe("the standard numbers of pieces for a shape", () => {
     }
   });
 
-  it("make a canvas that fits them exactly, as near the size asked for as it can be", () => {
+  it("make a picture area that fits them exactly, as near the size asked for as it can be", () => {
     expect(JigsawCut.layoutOf(800, 600, 16, 12)).toEqual({ grid: 50, width: 800, height: 600, columns: 16, rows: 12 });
     expect(JigsawCut.layoutOf(800, 600, 24, 18)).toEqual({ grid: 33, width: 792, height: 594, columns: 24, rows: 18 });
   });
@@ -408,7 +408,7 @@ describe("the standard numbers of pieces for a shape", () => {
 describe("the grid size from the number of pieces", () => {
   const layout = (w: number, h: number, n: number) => JigsawCut.layoutFor(w, h, n);
 
-  it("makes square pieces and a canvas of a whole number of them, as near the number asked for as it can", () => {
+  it("makes square pieces and a picture area of a whole number of them, as near the number asked for as it can", () => {
     const l = layout(800, 600, 192);
     expect(l).toEqual({ grid: 50, width: 800, height: 600, columns: 16, rows: 12 });
     expect(l.columns * l.rows).toBe(192);
@@ -418,13 +418,13 @@ describe("the grid size from the number of pieces", () => {
     expect([e.grid, e.width, e.height, e.columns * e.rows]).toEqual([200, 800, 600, 12]);
   });
 
-  it("fits the canvas to the pieces, a few pieces more or fewer than asked when that is what whole squares give", () => {
+  it("fits the picture area to the pieces, a few pieces more or fewer than asked when that is what whole squares give", () => {
     const l = layout(830, 610, 100); // 830 × 610 / 100: a piece about 71 px
     expect(l.width % l.grid).toBe(0);
     expect(l.height % l.grid).toBe(0);
     expect(l.columns * l.rows).toBe((l.width / l.grid) * (l.height / l.grid));
     expect(Math.abs(l.columns * l.rows - 100)).toBeLessThanOrEqual(12);
-    expect(Math.abs(l.width - 830)).toBeLessThan(l.grid); // the canvas is made about as big as it was
+    expect(Math.abs(l.width - 830)).toBeLessThan(l.grid); // the picture area is made about as big as it was
     const odd = layout(1000, 700, 77);
     expect(odd.width % odd.grid).toBe(0);
     expect(Math.abs(odd.columns * odd.rows - 77)).toBeLessThanOrEqual(10);
@@ -435,13 +435,13 @@ describe("the grid size from the number of pieces", () => {
       const l = layout(w, h, n);
       const miss = Math.abs(l.columns * l.rows - n);
       for (let g = 5; g <= 300; g++) {
-        const count = Math.round(CanvasArea.fittedSide(w, g) / g) * Math.round(CanvasArea.fittedSide(h, g) / g);
+        const count = Math.round(JigsawSettings.fittedSide(w, g) / g) * Math.round(JigsawSettings.fittedSide(h, g) / g);
         if (count <= 1000 && count >= 2) expect(miss).toBeLessThanOrEqual(Math.abs(count - n) + 1e-9 + (Math.abs(g - Math.sqrt((w * h) / n)) <= 3 ? 0 : Infinity));
       }
     }
   });
 
-  it("keeps the number of pieces within what can be, and the layout allowed as a canvas", () => {
+  it("keeps the number of pieces within what can be, and the layout allowed as a picture area", () => {
     expect(layout(800, 600, 100000).columns * layout(800, 600, 100000).rows).toBeLessThanOrEqual(JIGSAW_MAX_PIECES);
     expect(layout(800, 600, 1).columns * layout(800, 600, 1).rows).toBeGreaterThanOrEqual(2);
     expect(layout(800, 600, Number.NaN).columns * layout(800, 600, Number.NaN).rows).toBeGreaterThanOrEqual(2);
@@ -452,7 +452,7 @@ describe("the grid size from the number of pieces", () => {
     expect([cut.columns, cut.rows]).toEqual([l.columns, l.rows]);
   });
 
-  it("still gives a layout for a canvas that is tiny or huge for the number", () => {
+  it("still gives a layout for a picture area that is tiny or huge for the number", () => {
     const tiny = layout(3, 2, 50);
     expect(tiny.grid).toBeGreaterThanOrEqual(1);
     expect(tiny.width % tiny.grid).toBe(0);
@@ -474,8 +474,8 @@ describe("pieces that stick together", () => {
     object: square,
     piece: { col, row, top: 0, right: 0, bottom: 0, left: 0 } as const,
   });
-  const world = (...pieces: ReturnType<typeof mk>[]) => CanvasDiagram.from(pieces, 1000, 800);
-  const at = (d: CanvasDiagram, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
+  const world = (...pieces: ReturnType<typeof mk>[]) => Puzzle.from(pieces, 1000, 800);
+  const at = (d: Puzzle, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
   const names = (ids: string[]) => [...ids].sort();
 
   describe("what sticks", () => {
@@ -503,7 +503,7 @@ describe("pieces that stick together", () => {
 
     it("sticks nothing to an object that is not a piece, and gives back what it was asked about", () => {
       const plain = { id: "box", centerX: 400, centerY: 300, object: square };
-      const d = CanvasDiagram.from([plain, mk(2, 1, 450, 300)], 1000, 800);
+      const d = Puzzle.from([plain, mk(2, 1, 450, 300)], 1000, 800);
       expect(d.stuckGroup(["box"])).toEqual(["box"]);
       expect(d.stuckGroup(["nobody"])).toEqual(["nobody"]);
       expect(d.stuckGroup([])).toEqual([]);
@@ -565,11 +565,11 @@ describe("pieces that stick together", () => {
     });
 
     it("clicks exactly or not at all: when the area has no room for the step, the group stays where it was dropped", () => {
-      const room = CanvasDiagram.from([mk(0, 0, 25, 25), mk(1, 0, 90, 25)], 200, 100); // piece 1,0 is 15 px from fitting, to the right: there is room
+      const room = Puzzle.from([mk(0, 0, 25, 25), mk(1, 0, 90, 25)], 200, 100); // piece 1,0 is 15 px from fitting, to the right: there is room
       expect(at(room.dropPieces(["piece-1-0"], 25), "piece-1-0")).toEqual([75, 25]);
-      const edge = CanvasDiagram.from([mk(6, 5, 30, 100), mk(5, 5, 12, 100)], 200, 300); // piece 5,5 would have to go to x = 30 - 50 = -20, outside the area
+      const edge = Puzzle.from([mk(6, 5, 30, 100), mk(5, 5, 12, 100)], 200, 300); // piece 5,5 would have to go to x = 30 - 50 = -20, outside the area
       expect(edge.dropPieces(["piece-5-5"], 40)).toBe(edge); // not moved a little towards it
-      const group = CanvasDiagram.from([mk(6, 5, 30, 100), mk(5, 5, 12, 100), mk(5, 6, 12, 150)], 200, 300); // the group of 5,5 and 5,6 has no room either
+      const group = Puzzle.from([mk(6, 5, 30, 100), mk(5, 5, 12, 100), mk(5, 6, 12, 150)], 200, 300); // the group of 5,5 and 5,6 has no room either
       expect(group.dropPieces(["piece-5-5"], 40)).toBe(group);
     });
 
@@ -600,12 +600,12 @@ describe("collecting the pieces in the store frame", () => {
     object: square,
     piece: { col, row, top: 0, right: 0, bottom: 0, left: 0 } as const,
   });
-  // the area: a canvas 400 wide, then the store frame from x = 450, 300 wide, and 1200 high
+  // the area: a picture area 400 wide, then the store frame from x = 450, 300 wide, and 1200 high
   const frame = { left: 450, top: 0, width: 300 };
-  const world = (...pieces: ReturnType<typeof mk>[]) => CanvasDiagram.from(pieces, 750, 1200);
-  const at = (d: CanvasDiagram, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
-  const left = (d: CanvasDiagram, id: string) => d.get(id)!.centerX - size / 2;
-  const top = (d: CanvasDiagram, id: string) => d.get(id)!.centerY - size / 2;
+  const world = (...pieces: ReturnType<typeof mk>[]) => Puzzle.from(pieces, 750, 1200);
+  const at = (d: Puzzle, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
+  const left = (d: Puzzle, id: string) => d.get(id)!.centerX - size / 2;
+  const top = (d: Puzzle, id: string) => d.get(id)!.centerY - size / 2;
 
   it("puts the pieces together at the top of the frame, in rows from the top left, close to each other", () => {
     const d = world(mk(0, 0, 700, 900), mk(1, 0, 500, 400), mk(2, 0, 600, 700), mk(3, 0, 480, 1100));
@@ -686,7 +686,7 @@ describe("collecting the pieces in the store frame", () => {
 
   it("collects only the pieces it is asked for, and not a group that has a piece that is not in the frame", () => {
     const d = world(mk(2, 1, 600, 800), mk(3, 1, 650, 800), mk(7, 7, 520, 200), mk(0, 0, 100, 100));
-    const c = d.collectPieces(["piece-2-1", "piece-7-7"], frame); // 3,1 sticks to 2,1 but is not asked for: the group stays; 0,0 is on the canvas
+    const c = d.collectPieces(["piece-2-1", "piece-7-7"], frame); // 3,1 sticks to 2,1 but is not asked for: the group stays; 0,0 is on the picture area
     expect(at(c, "piece-2-1")).toEqual(at(d, "piece-2-1"));
     expect(at(c, "piece-3-1")).toEqual(at(d, "piece-3-1"));
     expect(at(c, "piece-0-0")).toEqual([100, 100]);
@@ -695,7 +695,7 @@ describe("collecting the pieces in the store frame", () => {
 
   it("keeps the layers, ignores what is not a piece, and changes nothing when there is nothing to collect or it is collected already", () => {
     const plain = { id: "box", centerX: 600, centerY: 600, object: square };
-    const d = CanvasDiagram.from([plain, mk(1, 0, 500, 400, 33)], 750, 1200);
+    const d = Puzzle.from([plain, mk(1, 0, 500, 400, 33)], 750, 1200);
     const c = d.collectPieces(["box", "piece-1-0", "nobody"], frame);
     expect(c.get("piece-1-0")!.layer).toBe(33);
     expect(at(c, "box")).toEqual([600, 600]);
@@ -707,7 +707,7 @@ describe("collecting the pieces in the store frame", () => {
   it("is a valid arrangement: places are whole or half pixels and everything is inside the area", () => {
     const pieces = Array.from({ length: 30 }, (_, i) => mk(i % 6, Math.floor(i / 6), 470 + ((i * 53) % 250), 60 + i * 37));
     const c = world(...pieces).collectPieces(pieces.map((p) => p.id), frame);
-    expect(CanvasDiagram.validate(c.toData(), 750, 1200)).toBe("");
+    expect(Puzzle.validate(c.toData(), 750, 1200)).toBe("");
   });
 });
 
@@ -716,7 +716,7 @@ describe("a piece that is picked up goes to the front", () => {
   const mk = (id: string, layer: number) => ({ id, centerX: 100, centerY: 100, layer, object: square, piece: { col: 0, row: 0, top: 0, right: 0, bottom: 0, left: 0 } as const });
 
   it("is put on a layer above all the others, and stays there", () => {
-    const d = CanvasDiagram.from([mk("a", 10), mk("b", 40), mk("c", 25)], 400, 400);
+    const d = Puzzle.from([mk("a", 10), mk("b", 40), mk("c", 25)], 400, 400);
     const front = d.bringToFront("a");
     expect(front.get("a")!.layer).toBe(41);
     expect(front.get("b")!.layer).toBe(40); // the others are as they were
@@ -726,17 +726,17 @@ describe("a piece that is picked up goes to the front", () => {
   });
 
   it("stays within the layers there are", () => {
-    const d = CanvasDiagram.from([mk("a", 5), mk("b", 1000)], 400, 400);
+    const d = Puzzle.from([mk("a", 5), mk("b", 1000)], 400, 400);
     expect(d.bringToFront("a").get("a")!.layer).toBe(1000);
-    expect(CanvasDiagram.validate(d.bringToFront("a").toData(), 400, 400)).toBe("");
+    expect(Puzzle.validate(d.bringToFront("a").toData(), 400, 400)).toBe("");
   });
 });
 
 describe("moving several pieces at once", () => {
   const square = { ...DEFAULT_OBJECT, width: 50, height: 50 };
   const mk = (id: string, x: number, y: number) => ({ id, centerX: x, centerY: y, layer: 10, object: square, piece: { col: 0, row: 0, top: 0, right: 0, bottom: 0, left: 0 } as const });
-  const group = () => CanvasDiagram.from([mk("a", 100, 100), mk("b", 160, 130), mk("c", 400, 300), mk("other", 500, 350)], 600, 400);
-  const at = (d: CanvasDiagram, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
+  const group = () => Puzzle.from([mk("a", 100, 100), mk("b", 160, 130), mk("c", 400, 300), mk("other", 500, 350)], 600, 400);
+  const at = (d: Puzzle, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
 
   it("moves them all by the same amount, so they keep their places in relation to each other, and leaves the others", () => {
     const d = group().moveGroup(["a", "b", "c"], 30, -20);
@@ -758,7 +758,7 @@ describe("moving several pieces at once", () => {
     const down = group().moveGroup(["a", "b", "c"], 0, 500);
     expect(at(down, "c")[1]).toBe(375);
     expect(at(down, "a")[1]).toBe(175);
-    expect(CanvasDiagram.validate(down.toData(), 600, 400)).toBe("");
+    expect(Puzzle.validate(down.toData(), 600, 400)).toBe("");
   });
 
   it("changes nothing when it cannot move, or the move is nothing, and ignores what is not a figure", () => {
@@ -768,7 +768,7 @@ describe("moving several pieces at once", () => {
     expect(d.moveGroup([], 10, 10)).toBe(d);
     expect(d.moveGroup(["nobody"], 10, 10)).toBe(d);
     expect(d.moveGroup(["a"], Number.NaN, 1)).toBe(d);
-    const edge = CanvasDiagram.from([mk("a", 25, 100)], 600, 400);
+    const edge = Puzzle.from([mk("a", 25, 100)], 600, 400);
     expect(edge.moveGroup(["a"], -40, 0)).toBe(edge); // already at the left edge
   });
 });
@@ -783,12 +783,12 @@ describe("starting a cut jigsaw over (reset)", () => {
     expect(again.placed.map((p) => [p.centerX, p.centerY])).not.toEqual(first.placed.map((p) => [p.centerX, p.centerY]));
     expect(again.placed.map((p) => p.layer)).not.toEqual(first.placed.map((p) => p.layer));
     const input = { name: "Puzzle", width: 400, height: 300, gridSize: 50, gridVisible: true, placed: again.placed, storeWidth: again.storeWidth };
-    expect(new CanvasArea(input).error()).toBe(""); // inside the frame
+    expect(new JigsawSettings(input).error()).toBe(""); // inside the frame
     const left = 450;
     for (const p of again.placed) expect(p.centerX - 25).toBeGreaterThanOrEqual(left);
   });
 
-  it("brings back a piece that was moved onto the canvas, and leaves what is not a piece alone", () => {
+  it("brings back a piece that was moved onto the picture area, and leaves what is not a piece alone", () => {
     const first = cut(400, 300, 50, 4);
     const moved = { ...first.placed[0], centerX: 125, centerY: 125 }; // dragged onto the picture
     const other = { id: "x", centerX: 75, centerY: 75, object: { ...DEFAULT_OBJECT, width: 50, height: 50 } };
@@ -809,47 +809,39 @@ describe("a jigsaw piece as a placed figure", () => {
   const piece = { col: 1, row: 2, top: 1, right: -1, bottom: 0, left: 1 } as const;
 
   it("is stored with its piece, and only the known fields of it", () => {
-    expect(PlacedBase.stored({ ...base, piece: { ...piece, extra: 1 } as never }).piece).toEqual(piece);
-    expect("piece" in PlacedBase.stored(base)).toBe(false);
+    expect(PlacedFigure.stored({ ...base, piece: { ...piece, extra: 1 } as never }).piece).toEqual(piece);
+    expect("piece" in PlacedFigure.stored(base)).toBe(false);
   });
 
-  it("is refused when the piece is bad, or when an arrow says it is a piece", () => {
-    const bad = (p: unknown) => CanvasDiagram.validate([{ ...base, piece: p }], 200, 200);
+  it("is refused when the piece is bad", () => {
+    const bad = (p: unknown) => Puzzle.validate([{ ...base, piece: p }], 200, 200);
     expect(bad(piece)).toBe("");
     for (const p of [null, 5, { ...piece, col: -1 }, { ...piece, row: 1.5 }, { ...piece, top: 2 }, { ...piece, left: "1" }, { col: 1, row: 1 }]) {
       expect(bad(p)).toContain("bad jigsaw piece");
     }
-    const arrow = { id: "a", centerX: 100, centerY: 100, object: { ...DEFAULT_OBJECT, kind: "connector", shape: "line", height: 2, borderWidth: 2 }, piece };
-    expect(CanvasDiagram.validate([arrow], 400, 400)).toContain("cannot be a jigsaw piece");
   });
 
   it("keeps its piece when it is moved", () => {
-    const { diagram } = CanvasDiagram.from([{ ...base, piece }], 200, 200).place(DEFAULT_OBJECT, 0, 0, 50) as { diagram: CanvasDiagram };
-    const moved = diagram.moveFigure("p", 125, 75, 50, 25);
+    const moved = Puzzle.from([{ ...base, piece }], 200, 200).moveFigure("p", 125, 75, 50, 25);
     expect(moved.get("p")?.data.piece).toEqual(piece);
   });
 });
 
 describe("a grid whose points are half a step in from the edge", () => {
-  const empty = () => CanvasDiagram.from([], 200, 150);
-  const piece = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const object = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const at = () => Puzzle.from([{ id: "o", centerX: 25, centerY: 25, object }], 200, 150);
 
   it("sticks an object's centre to those points: 25, 75, 125 ...", () => {
-    const placed = (x: number, y: number) => {
-      const r = empty().place(piece, x, y, 50, 25);
-      if ("error" in r) throw new Error(r.error);
-      return r.diagram.items[0];
-    };
+    const placed = (x: number, y: number) => at().moveFigure("o", x, y, 50, 25).items[0];
     expect([placed(60, 40).centerX, placed(60, 40).centerY]).toEqual([75, 25]);
     expect([placed(110, 140).centerX, placed(110, 140).centerY]).toEqual([125, 125]);
-    expect([placed(0, 0).centerX, placed(0, 0).centerY]).toEqual([25, 25]); // a piece at the corner fits in the cell
+    expect([placed(0, 0).centerX, placed(0, 0).centerY]).toEqual([25, 25]); // an object at the corner fits in the cell
     expect([placed(199, 149).centerX, placed(199, 149).centerY]).toEqual([175, 125]);
   });
 
-  it("moves a figure to those points too, and the plain grid is as it was without an origin", () => {
-    const first = empty().place(piece, 25, 25, 50, 25) as { diagram: CanvasDiagram; id: string };
-    expect(first.diagram.moveFigure(first.id, 100, 80, 50, 25).get(first.id)).toMatchObject({ data: { centerX: 125, centerY: 75 } });
-    const plain = empty().place(piece, 60, 40, 50) as { diagram: CanvasDiagram };
-    expect([plain.diagram.items[0].centerX, plain.diagram.items[0].centerY]).toEqual([50, 50]);
+  it("moves to those points too, and the plain grid is as it was without an origin", () => {
+    expect(at().moveFigure("o", 100, 80, 50, 25).get("o")).toMatchObject({ data: { centerX: 125, centerY: 75 } });
+    const plain = at().moveFigure("o", 60, 40, 50);
+    expect([plain.items[0].centerX, plain.items[0].centerY]).toEqual([50, 50]);
   });
 });

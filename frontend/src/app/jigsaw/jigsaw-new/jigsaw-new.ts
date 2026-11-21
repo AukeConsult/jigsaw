@@ -16,7 +16,7 @@ import { LINE_LEVELS, lineLevelOf } from '../line-level';
 import { JigsawExample } from '../jigsaw-example/jigsaw-example';
 import { PictureCropper } from '../picture-cropper/picture-cropper';
 import { renderPieceGraphics } from '../piece-graphics';
-import { CANVAS_MAX_DESCRIPTION, CANVAS_MAX_NAME, CANVAS_MAX_PICTURE_NAME, CANVAS_MAX_SIDE, CANVAS_MIN_SIDE, CanvasArea, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
+import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { SourceRect } from '../../models/shared/geometry';
 import { JigsawCut, JigsawPieces, PieceLayout, pieceGrid } from '../../models/shared/jigsaw';
 
@@ -76,11 +76,11 @@ export class JigsawNew implements OnDestroy {
   /** the jigsaw that is edited (null: a new one is made) */
   readonly editId = inject(ActivatedRoute).snapshot.paramMap.get('id');
   /** the jigsaw as it was when the edit began, and whether its picture was changed since (a new file, or another cut of it) */
-  private original: CanvasSpec | null = null;
+  private original: JigsawSpec | null = null;
   private readonly pictureChanged = signal(false);
   readonly loading = signal(!!this.editId);
 
-  /** the standard shapes to choose from (the canvas is then made a whole number of pieces wide and high, which can differ a little) */
+  /** the standard shapes to choose from (the picture area is then made a whole number of pieces wide and high, which can differ a little) */
   readonly sizePresets = [
     { key: 'standard', label: 'Standard 4:3 (800 × 600)', width: 800, height: 600 },
     { key: 'photo', label: 'Photo 3:2 (900 × 600)', width: 900, height: 600 },
@@ -90,9 +90,9 @@ export class JigsawNew implements OnDestroy {
     { key: 'panorama', label: 'Panorama 3:1 (1200 × 400)', width: 1200, height: 400 },
     { key: 'large', label: 'Large 4:3 (1200 × 900)', width: 1200, height: 900 },
   ] as const;
-  /** the size as the person asked for it (the canvas itself is made a whole number of pieces wide and high, which can differ a little) */
+  /** the size as the person asked for it (the picture area itself is made a whole number of pieces wide and high, which can differ a little) */
   private readonly asked = signal({ width: 800, height: 600 });
-  /** the standard numbers of pieces to choose from: whole columns and rows in the shape of the canvas (see `JigsawCut.pieceChoices`) */
+  /** the standard numbers of pieces to choose from: whole columns and rows in the shape of the picture area (see `JigsawCut.pieceChoices`) */
   readonly pieceOptions = computed(() => JigsawCut.pieceChoices(this.asked().width, this.asked().height).map((c) => ({ ...c, key: `${c.columns}x${c.rows}` })));
   /** which standard size and number of pieces is chosen ('custom': typed by hand; a number of pieces is 'columns x rows') */
   readonly sizeChoice = signal<string>('standard');
@@ -102,7 +102,7 @@ export class JigsawNew implements OnDestroy {
   readonly name = signal('');
   /** a few words about the picture (optional), shown on the page of the jigsaw */
   readonly description = signal('');
-  readonly maxDescription = CANVAS_MAX_DESCRIPTION;
+  readonly maxDescription = JIGSAW_MAX_DESCRIPTION;
   /** who made the jigsaw: a user chosen from the users (the UID is kept on the jigsaw as its owner, and the user's name is its author) */
   readonly owners = signal<JigsawUserSpec[]>([]);
   readonly ownerUid = signal('');
@@ -117,7 +117,7 @@ export class JigsawNew implements OnDestroy {
   readonly pieceCount = signal(16 * 12);
   readonly gridSize = signal(50);
   /** how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never) */
-  readonly snapPercent = signal(CanvasArea.DEFAULT_SNAP_PERCENT);
+  readonly snapPercent = signal(JigsawSettings.DEFAULT_SNAP_PERCENT);
   readonly levels = SNAP_LEVELS;
   readonly level = computed(() => snapLevelOf(this.snapPercent()));
 
@@ -128,17 +128,17 @@ export class JigsawNew implements OnDestroy {
   }
   /** how thick the frame around the picture area is, in pixels (0: none) */
   /** the line round each piece: how thick in pixels, and what colour (#rrggbb) */
-  readonly lineWidth = signal(CanvasArea.DEFAULT_LINE_WIDTH);
-  readonly lineColor = signal(CanvasArea.DEFAULT_LINE_COLOR);
+  readonly lineWidth = signal(JigsawSettings.DEFAULT_LINE_WIDTH);
+  readonly lineColor = signal(JigsawSettings.DEFAULT_LINE_COLOR);
   /** the background colour of the picture area (#rrggbb) */
-  readonly backColor = signal(CanvasArea.DEFAULT_BACK_COLOR);
+  readonly backColor = signal(JigsawSettings.DEFAULT_BACK_COLOR);
   /** the thicknesses of the line to choose from, in words, and the one the line is closest to */
   readonly lineLevels = LINE_LEVELS;
   readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
 
   readonly pieceInfo = computed(() => pieceGrid(this.width(), this.height(), this.gridSize()));
 
-  /** the picture file that was chosen, and the cut of it that was found (with the shape of the canvas it was found for) */
+  /** the picture file that was chosen, and the cut of it that was found (with the shape of the picture area it was found for) */
   readonly file = signal<File | null>(null);
   readonly cut = signal<{ rect: SourceRect; shape: number } | null>(null);
 
@@ -205,18 +205,18 @@ export class JigsawNew implements OnDestroy {
   readonly saving = signal(false);
   readonly error = signal('');
 
-  readonly minSide = CANVAS_MIN_SIDE;
-  readonly maxSide = CANVAS_MAX_SIDE;
-  readonly maxName = CANVAS_MAX_NAME;
+  readonly minSide = JIGSAW_MIN_SIDE;
+  readonly maxSide = JIGSAW_MAX_SIDE;
+  readonly maxName = JIGSAW_MAX_NAME;
 
-  /** the cut was found for another shape of canvas: the size changed since, so the picture has to be adjusted again */
+  /** the cut was found for another shape of picture area: the size changed since, so the picture has to be adjusted again */
   readonly stale = computed(() => {
     const c = this.cut();
     return !!c && Math.abs(c.shape - this.width() / this.height()) > 0.002;
   });
 
   /** the settings as the API takes them (the store of the pieces is added when the picture is cut) */
-  private settings(storeWidth?: number): CanvasInput {
+  private settings(storeWidth?: number): JigsawInput {
     return {
       name: this.name().trim(),
       ...(this.owner() ? { author: this.owner()!.name, ownerUid: this.owner()!.id } : this.ownerUid() ? { ownerUid: this.ownerUid() } : {}), // the API puts the name of the user in `author` itself
@@ -238,9 +238,9 @@ export class JigsawNew implements OnDestroy {
   }
 
   /** why the settings are not allowed ('' when they are) */
-  readonly problem = computed(() => new CanvasArea(this.settings()).error());
+  readonly problem = computed(() => new JigsawSettings(this.settings()).error());
 
-  /** the name is missing: said under the name field (the shared check talks about a canvas, this is a jigsaw) */
+  /** the name is missing: said under the name field */
   readonly nameMissing = computed(() => !this.name().trim());
 
   /** the problem for the box above the buttons: the missing name is already said under its own field */
@@ -248,7 +248,7 @@ export class JigsawNew implements OnDestroy {
 
   /** the name of the picture file that is kept with the jigsaw: the chosen file's, or else the one the jigsaw had */
   private pictureNameOf(): string {
-    return (this.file()?.name ?? this.original?.pictureName ?? '').trim().slice(0, CANVAS_MAX_PICTURE_NAME);
+    return (this.file()?.name ?? this.original?.pictureName ?? '').trim().slice(0, JIGSAW_MAX_PICTURE_NAME);
   }
 
   /** the size or the cut into pieces is not what the jigsaw had when the edit began (editing only) */
@@ -272,11 +272,11 @@ export class JigsawNew implements OnDestroy {
   readonly lacksPicture = computed(() => !!this.editId && !this.loading() && !this.file());
 
   /**
-   * The person gave a size or a number of pieces: the grid size is worked out from the number of pieces, and the canvas is made a whole number of pieces
+   * The person gave a size or a number of pieces: the grid size is worked out from the number of pieces, and the picture area is made a whole number of pieces
    * wide and high (see `JigsawCut.layoutFor`). The number shown is the number of pieces that really comes out.
    */
   relayout(changed: 'width' | 'height' | 'pieces'): void {
-    // the sides as the person typed them, each on its own: not what the canvas was made last time (that is a little different when the pieces are whole squares)
+    // the sides as the person typed them, each on its own: not what the picture area was made last time (that is a little different when the pieces are whole squares)
     if (changed === 'width') this.asked.update((a) => ({ ...a, width: this.width() }));
     if (changed === 'height') this.asked.update((a) => ({ ...a, height: this.height() }));
     if (changed !== 'pieces' && this.pieceChoice() !== 'custom') return this.choosePiecesNear(); // a standard number stays a standard number of the new shape
@@ -300,7 +300,7 @@ export class JigsawNew implements OnDestroy {
     this.choosePieces(near.key);
   }
 
-  /** A standard size was chosen: the canvas gets that shape, and the grid is worked out again for the number of pieces. */
+  /** A standard size was chosen: the picture area gets that shape, and the grid is worked out again for the number of pieces. */
   chooseSize(key: string): void {
     this.sizeChoice.set(key);
     const preset = this.sizePresets.find((p) => p.key === key);
@@ -312,7 +312,7 @@ export class JigsawNew implements OnDestroy {
     this.relayout('pieces');
   }
 
-  /** A standard number of pieces was chosen (columns × rows): the canvas is made to fit exactly that many pieces. */
+  /** A standard number of pieces was chosen (columns × rows): the picture area is made to fit exactly that many pieces. */
   choosePieces(value: string): void {
     this.pieceChoice.set(value);
     const option = this.pieceOptions().find((o) => o.key === value);
@@ -321,7 +321,7 @@ export class JigsawNew implements OnDestroy {
     this.applyLayout(JigsawCut.layoutOf(asked.width, asked.height, option.columns, option.rows));
   }
 
-  /** A picture file was chosen: it is shown behind a frame of the shape of the canvas to find the cut. */
+  /** A picture file was chosen: it is shown behind a frame of the shape of the picture area to find the cut. */
   choosePicture(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -380,10 +380,10 @@ export class JigsawNew implements OnDestroy {
       this.sizeChoice.set(this.sizePresets.find((p) => p.width === item.width && p.height === item.height)?.key ?? 'custom');
       const key = `${grid.columns}x${grid.rows}`;
       this.pieceChoice.set(this.pieceOptions().some((o) => o.key === key) ? key : 'custom');
-      this.snapPercent.set(item.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT);
-      this.lineWidth.set(item.lineWidth ?? CanvasArea.DEFAULT_LINE_WIDTH);
-      this.lineColor.set(item.lineColor ?? CanvasArea.DEFAULT_LINE_COLOR);
-      this.backColor.set(item.backColor ?? CanvasArea.DEFAULT_BACK_COLOR);
+      this.snapPercent.set(item.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT);
+      this.lineWidth.set(item.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH);
+      this.lineColor.set(item.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR);
+      this.backColor.set(item.backColor ?? JigsawSettings.DEFAULT_BACK_COLOR);
       const response = await fetch(this.images.url(id, 1));
       if (response.ok) {
         const blob = await response.blob();
@@ -451,7 +451,7 @@ export class JigsawNew implements OnDestroy {
     const pieces = cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []);
     let madeId: string | null = null;
     try {
-      const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut.rect); // cut to the shape of the canvas
+      const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut.rect); // cut to the shape of the picture area
       const made = await this.service.create(this.settings(cutting.storeWidth));
       madeId = made.id;
       await this.images.upload(made.id, picture);

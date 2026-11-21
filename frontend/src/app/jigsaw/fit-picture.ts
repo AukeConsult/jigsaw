@@ -14,15 +14,15 @@ function inside(cut: SourceRect, width: number, height: number): SourceRect {
 }
 
 /**
- * The picture made to fit the jigsaw: cut to the shape of the canvas (`width` : `height`: the cut the person found, or the middle of the picture, the way it covers the canvas) and
- * small enough to keep in the document of the jcanvas (a Firestore document holds at most 1 MiB): drawn as a jpeg at up to twice the size of the canvas
+ * The picture made to fit the jigsaw: cut to the shape of the picture area (`width` : `height`: the cut the person found, or the middle of the picture, the way it covers the picture area) and
+ * small enough to keep in the document of the jigsaw (a Firestore document holds at most 1 MiB): drawn as a jpeg at up to twice the size of the picture area
  * (and no more than the picture has), with less quality and then fewer pixels until it is at most `maxBytes`. Throws when it cannot be read or cannot
  * be made small enough.
  */
 export async function fitPicture(file: Blob, width: number, height: number, maxBytes: number, cut?: SourceRect): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const shape = width > 0 && height > 0 ? width / height : bitmap.width / bitmap.height;
-  // the part of the picture that is used: the cut the person found, or what covers the canvas: all of one side, the middle of the other
+  // the part of the picture that is used: the cut the person found, or what covers the picture area: all of one side, the middle of the other
   const wide = bitmap.width / bitmap.height > shape;
   const covering = wide
     ? { w: bitmap.height * shape, h: bitmap.height, x: (bitmap.width - bitmap.height * shape) / 2, y: 0 }

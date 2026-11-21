@@ -10,7 +10,7 @@ import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawService } from '../jigsaw.service';
 import { PlaysService, UserGame } from '../plays.service';
 import { JigsawUserService } from '../jigsaw-user.service';
-import { CanvasSpec } from '../../models/shared/canvas';
+import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../../models/shared/jigsaw-user';
 
 /**
@@ -79,7 +79,7 @@ export class JigsawUser implements OnInit {
   }
 
   /** the jigsaws the user who plays has made (null: not read yet) */
-  readonly mine = signal<CanvasSpec[] | null>(null);
+  readonly mine = signal<JigsawSpec[] | null>(null);
   /** the jigsaw whose Delete was pressed and waits for "Yes" */
   readonly confirmingJigsawId = signal<string | null>(null);
 
@@ -93,7 +93,7 @@ export class JigsawUser implements OnInit {
   }
 
   /** The jigsaw is deleted for good, with its picture and all its rounds (only its owner can). */
-  async removeJigsaw(item: CanvasSpec): Promise<void> {
+  async removeJigsaw(item: JigsawSpec): Promise<void> {
     const me = this.users.user();
     this.confirmingJigsawId.set(null);
     if (!me) return;

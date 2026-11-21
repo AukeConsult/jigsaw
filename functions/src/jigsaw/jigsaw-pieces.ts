@@ -123,19 +123,19 @@ export function jigsawPiecesRouter(store: PieceStore, exists: (id: string) => Pr
   const bad = (res: express.Response, error: string, status = 400) => void res.status(status).json({ error });
 
   router.use("/:id", (req, res, next) => {
-    if (!isPictureId(req.params.id)) return bad(res, "Not a jcanvas id.");
+    if (!isPictureId(req.params.id)) return bad(res, "Not a jigsaw id.");
     next();
   });
 
   router.get("/:id", async (req, res) => {
-    if (!(await exists(req.params.id))) return bad(res, "No such canvas.", 404);
+    if (!(await exists(req.params.id))) return bad(res, "No such jigsaw.", 404);
     res.json({ pieces: await store.list(req.params.id) });
   });
 
   router.put("/:id", json, async (req, res) => {
     const list = (req.body as { pieces?: (JigsawPiece & { graphic?: unknown })[] } | undefined)?.pieces;
     if (!Array.isArray(list)) return bad(res, "Send the pieces as a list.");
-    if (list.length > JIGSAW_MAX_PIECES) return bad(res, `At most ${JIGSAW_MAX_PIECES} pieces fit on a canvas.`);
+    if (list.length > JIGSAW_MAX_PIECES) return bad(res, `At most ${JIGSAW_MAX_PIECES} pieces fit in a jigsaw.`);
     const ids = new Set<string>();
     const graphics = new Map<string, PieceGraphic>();
     for (const piece of list) {
@@ -149,19 +149,19 @@ export function jigsawPiecesRouter(store: PieceStore, exists: (id: string) => Pr
         graphics.set(piece.id, read);
       }
     }
-    if (!(await store.replaceAll(req.params.id, list.map((p) => JigsawPieces.stored(p)), graphics))) return bad(res, "No such canvas.", 404);
+    if (!(await store.replaceAll(req.params.id, list.map((p) => JigsawPieces.stored(p)), graphics))) return bad(res, "No such jigsaw.", 404);
     res.json({ pieces: list.length, graphics: graphics.size });
   });
 
   router.patch("/:id", json, async (req, res) => {
     const moves = (req.body as { moves?: PieceMove[] } | undefined)?.moves;
     if (!Array.isArray(moves)) return bad(res, "Send the moves as a list.");
-    if (moves.length > JIGSAW_MAX_PIECES) return bad(res, `At most ${JIGSAW_MAX_PIECES} pieces fit on a canvas.`);
+    if (moves.length > JIGSAW_MAX_PIECES) return bad(res, `At most ${JIGSAW_MAX_PIECES} pieces fit in a jigsaw.`);
     for (const move of moves) {
       const error = JigsawPieces.moveError(move);
       if (error) return bad(res, error);
     }
-    if (!(await store.move(req.params.id, moves.map((m) => ({ id: m.id, centerX: m.centerX, centerY: m.centerY, layer: m.layer }))))) return bad(res, "No such canvas.", 404);
+    if (!(await store.move(req.params.id, moves.map((m) => ({ id: m.id, centerX: m.centerX, centerY: m.centerY, layer: m.layer }))))) return bad(res, "No such jigsaw.", 404);
     res.json({ moved: moves.length });
   });
 

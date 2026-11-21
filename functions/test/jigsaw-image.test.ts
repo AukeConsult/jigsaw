@@ -2,10 +2,10 @@ import request from "supertest";
 import { memoryPlays } from "./memory-plays";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
-import type { CanvasStore } from "../src/common/canvas-list";
+import type { JigsawStore } from "../src/common/jigsaw-list";
 import { ImageStore, MAX_PICTURE_BYTES, Picture, etagOf, pictureType } from "../src/jigsaw/jigsaw-image";
 import type { PieceStore } from "../src/jigsaw/jigsaw-pieces";
-import type { CanvasSpec } from "../src/models";
+import type { JigsawSpec } from "../src/models";
 
 /** the pictures in memory: what the Storage bucket is in the app */
 function memoryImages() {
@@ -25,14 +25,14 @@ function memoryImages() {
   return { files, store };
 }
 
-function memoryCanvases(): CanvasStore {
-  const items: CanvasSpec[] = [];
+function memoryJigsaws(): JigsawStore {
+  const items: JigsawSpec[] = [];
   return {
     async list() {
       return [...items];
     },
     async add(input) {
-      const item = { ...input, id: `canvas-${items.length + 1}0000`, createdAt: 1 } as CanvasSpec;
+      const item = { ...input, id: `jigsaw-${items.length + 1}0000`, createdAt: 1 } as JigsawSpec;
       items.push(item);
       return item;
     },
@@ -53,12 +53,12 @@ const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a
 const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(20)]);
 const id = "AbCdEf123456";
 
-describe("the background picture of a jcanvas", () => {
+describe("the background picture of a jigsaw", () => {
   const setup = (existing: string[] = [id]) => {
     const images = memoryImages();
     const removedPieces: string[] = [];
     const pieces = { removeAll: async (jigsawId: string) => void removedPieces.push(jigsawId) } as unknown as PieceStore;
-    const app = createJigsawApp({ plays: memoryPlays(), jigsaw: memoryCanvases(), jigsawImages: images.store, jigsawPieces: pieces, jigsawExists: async (x) => existing.includes(x) });
+    const app = createJigsawApp({ plays: memoryPlays(), jigsaw: memoryJigsaws(), jigsawImages: images.store, jigsawPieces: pieces, jigsawExists: async (x) => existing.includes(x) });
     return { ...images, app, removedPieces };
   };
 

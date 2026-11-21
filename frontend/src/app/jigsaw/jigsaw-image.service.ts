@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-/** The background picture of a jcanvas, kept by the API in Storage (the picture of a jcanvas is read at `url`, sent and taken away by id). */
+/** The background picture of a jigsaw, kept by the API in Storage (the picture of a jigsaw is read at `url`, sent and taken away by id). */
 @Injectable({ providedIn: 'root' })
 export class JigsawImageService {
   private readonly http = inject(HttpClient);
@@ -17,7 +17,7 @@ export class JigsawImageService {
     return `${this.base(id)}?v=${version}`;
   }
 
-  /** whether the jcanvas has a picture */
+  /** whether the jigsaw has a picture */
   async has(id: string): Promise<boolean> {
     try {
       await firstValueFrom(this.http.head(this.base(id)));

@@ -6,7 +6,7 @@ import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
-import { CanvasSpec } from '../../models/shared/canvas';
+import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 
 /** How many of the newest jigsaws the front page shows as small pictures. */
 const SHOWN = 36;
@@ -32,7 +32,7 @@ export class JigsawHome implements OnInit {
   readonly myRounds = signal<UserGame[]>([]);
 
   /** the newest jigsaws (the API gives the newest first) */
-  readonly recent = signal<CanvasSpec[]>([]);
+  readonly recent = signal<JigsawSpec[]>([]);
   readonly loaded = signal(false);
   /** the jigsaws whose picture could not be read: they get an empty box */
   readonly noPicture = signal<ReadonlySet<string>>(new Set());

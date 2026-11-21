@@ -6,8 +6,8 @@ One Express app as a Cloud Function (europe-west1, codebase `jigsaw`): `jigsawAp
 | route | |
 |---|---|
 | `GET /jigsaw/api/health` | health check |
-| `/jigsaw/api/jigsaw` | the same four routes for jigsaw canvases (collection `jigsaw`) |
-| `PUT/GET/HEAD/DELETE /jigsaw/api/jigsaw-image/:id` | the background picture of a jigsaw canvas: a file in Storage (`jigsaw/<id>/picture`), the raw bytes as the body, at most about 5 MB, jpeg, png or webp |
+| `/jigsaw/api/jigsaw` | the list of jigsaws, newest first: `GET`, `POST`, `PUT /:id`, `DELETE /:id` (collection `jigsaw`) |
+| `PUT/GET/HEAD/DELETE /jigsaw/api/jigsaw-image/:id` | the background picture of a jigsaw: a file in Storage (`jigsaw/<id>/picture`), the raw bytes as the body, at most about 5 MB, jpeg, png or webp |
 | `/jigsaw/api/jigsaw-pieces/:id` | the pieces of a jigsaw: `GET` the list, `PUT` all the pieces with their graphics (a cut), `PATCH` where pieces are now, `GET /graphic/:pieceId`, `DELETE`. Each piece is a document under the jigsaw (`jigsaw/<id>/pieces/<piece id>`) and its graphic a file in Storage |
 | `/jigsaw/api/jigsaw/:id/plays` | the plays of a jigsaw (one game of one user each; documents under the jigsaw, `jigsaw/<id>/plays/<play id>`, with the positions of the pieces in one document, `state/positions`). `GET ?userId=` the plays, newest first; `POST {userId}` starts one for the user with that UID (the play keeps `userId`, the UID, and `userName`, the user's name when it started: both are put there by the server; pieces scattered); `GET /:playId` the play, its settings and its pieces; `PATCH /:playId/settings {overrides}` (everyone's rounds can be read, but changing or deleting a round needs the header `X-Jigsaw-User` to be the UID of its player, else 403; there is no sign-in yet, so this is not a lock) the look a play chooses (the line and the colours; the difficulty is the jigsaw's, and anything about size, picture or pieces is refused with 400 too); `PATCH /:playId/positions {moves}` where pieces are now (matched and solved follow from that); `DELETE /:playId`. A jigsaw that has plays can not change its width, height or grid (`PUT /jigsaw/api/jigsaw/:id` gives 409); deleting a jigsaw deletes its plays. The user id is the UID of a user in `/jigsaw/api/jigsaw-users`; a play can only be started for a user that exists. `PATCH /:playId/positions` also takes `storeWidth` |
 | `/jigsaw/api/jigsaw` (owner) | A jigsaw has an optional `ownerUid`: the UID of a user, who is its author. `POST` and `PUT` refuse (400) an `ownerUid` that is not a user that exists, and put that user's name in `author` themselves (the request's `author` is overwritten). A jigsaw from before owners has no `ownerUid` and keeps its `author` text |
@@ -17,9 +17,9 @@ One Express app as a Cloud Function (europe-west1, codebase `jigsaw`): `jigsawAp
 Firestore collections: `jigsaw` (limit 100, with the subcollection `pieces` under each document). Files (the picture of a jigsaw and the graphics of its pieces) are in Storage under `jigsaw/<id>/`, written by the backend only; the page never sends a file to Storage itself. Routes only call `error()`, `stored()` and the store (`functions/src/common/document-store.ts`).
 
 ## Code layout
-- `functions/src/`: `index.ts` (the function `jigsawApi`), `jigsaw/` (`app.ts` and the routes: jigsaws, pieces, pictures, users, plays), `common/` (`canvas-list.ts`, `document-store.ts`, `cors.ts`), `models/` (the shared model).
+- `functions/src/`: `index.ts` (the function `jigsawApi`), `jigsaw/` (`app.ts` and the routes: jigsaws, pieces, pictures, users, plays), `common/` (`jigsaw-list.ts`, `document-store.ts`, `cors.ts`), `models/` (the shared model).
 - `functions/test/`: Vitest tests of every rule on the classes. `functions/test-emulator/`: the real stores on a Firestore emulator.
-- `frontend/src/app/`: `jigsaw/` (the pages, `puzzle-piece/`, `picture-cropper/`, `fit-picture.ts`, `piece-graphics.ts`, `piece-sync.ts` and the API services), `board/` (the board the pieces are played on: `jigsaw-board/`, `board-shape/`, `drag.ts`), `guide/`, `core/` (`autosave.ts`, `api-collection.ts`, the Transloco files).
+- `frontend/src/app/`: `jigsaw/` (the pages, `puzzle-piece/`, `picture-cropper/`, `fit-picture.ts`, `piece-graphics.ts`, `piece-sync.ts` and the API services), `board/` (the board the pieces are played on: `jigsaw-board/`), `guide/`, `core/` (`autosave.ts`, `api-collection.ts`, the Transloco files).
 - Autosave: saves 800 ms after the last change, creates then updates, retries after 5 s, flushes when the page closes.
 
 ## Running

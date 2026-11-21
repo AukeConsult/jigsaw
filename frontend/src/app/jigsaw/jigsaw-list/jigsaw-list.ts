@@ -7,7 +7,7 @@ import { contributorsOf, madeBy } from '../contributors';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
-import { CanvasSpec } from '../../models/shared/canvas';
+import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { snapLevelOfJigsaw } from '../snap-level';
 
@@ -55,7 +55,7 @@ export class JigsawList implements OnInit {
   }
 
   /** where the picture of a jigsaw is read */
-  pictureUrl(item: CanvasSpec): string {
+  pictureUrl(item: JigsawSpec): string {
     return this.images.url(item.id, 1);
   }
 
@@ -64,7 +64,7 @@ export class JigsawList implements OnInit {
     this.noPicture.update((now) => new Set([...now, id]));
   }
 
-  readonly items = signal<CanvasSpec[]>([]);
+  readonly items = signal<JigsawSpec[]>([]);
   /** who has made jigsaws (for the choice of a contributor), and the one chosen: null shows everybody's */
   readonly contributors = computed(() => contributorsOf(this.items()));
   readonly contributor = signal<string | null>(this.saved.contributor);
@@ -93,12 +93,12 @@ export class JigsawList implements OnInit {
   }
 
   /** the difficulty of the jigsaw (hard, medium or easy) */
-  level(item: CanvasSpec): string {
+  level(item: JigsawSpec): string {
     return snapLevelOfJigsaw(item);
   }
 
   /** how many pieces the jigsaw is cut into: the cells of its grid */
-  pieces(item: CanvasSpec): { columns: number; rows: number } {
+  pieces(item: JigsawSpec): { columns: number; rows: number } {
     return pieceGrid(item.width, item.height, item.gridSize);
   }
 }

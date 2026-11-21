@@ -32,9 +32,6 @@ function isLoaded(service: TranslocoService, key: string): boolean {
   }
 }
 
-/** The language the app is shown in now ('en' until the language service has started). */
-export const activeLang = (): string => translator?.getActiveLang() ?? 'en';
-
 /**
  * A signal that changes each time a language file has been loaded. A text that is made once (a list of kinds with their names) and read through `tr()` while the
  * file is still on its way would stay English; a `computed` that reads this signal is made again when the file arrives. Call it in a field of a component.

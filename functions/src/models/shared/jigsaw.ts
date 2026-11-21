@@ -1,13 +1,13 @@
-import { CANVAS_MAX_SIDE, CanvasArea, STORE_HEIGHT_FACTOR } from './canvas';
-import { DEFAULT_OBJECT, OBJECT_MAX_SIDE } from './canvas-object';
+import { JIGSAW_MAX_SIDE, JigsawSettings, STORE_HEIGHT_FACTOR } from './jigsaw-settings';
+import { DEFAULT_OBJECT, OBJECT_MAX_SIDE } from './base-object';
 import { DEFAULT_LAYER, MAX_LAYER, MAX_PIECE_INDEX, PiecePlace, PlacedObject } from './placed';
 
-// The jigsaw: a canvas cut into pieces, one for each cell of the grid, with the edges of a jigsaw puzzle.
+// The jigsaw: a picture cut into pieces, one for each cell of the grid, with the edges of a jigsaw puzzle.
 
 /** What the cutting makes: the pieces as placed objects, or why it cannot. */
 export type JigsawCutResult = { placed: PlacedObject[]; columns: number; rows: number; storeWidth: number } | { error: string };
 
-/** How many pieces a canvas of this size and grid is cut into: a whole cell of the grid each (what is left over at the far edges is not a piece). */
+/** How many pieces a picture area of this size and grid is cut into: a whole cell of the grid each (what is left over at the far edges is not a piece). */
 export function pieceGrid(width: number, height: number, grid: number): { columns: number; rows: number } {
   if (!(grid > 0)) return { columns: 0, rows: 0 };
   return { columns: Math.floor(width / grid), rows: Math.floor(height / grid) };
@@ -17,33 +17,33 @@ export function pieceGrid(width: number, height: number, grid: number): { column
 export const PIECE_GAP_MIN = -0.3;
 export const PIECE_GAP_MAX = 0.8;
 
-/** The most pieces a jigsaw is cut into (the pieces are kept apart from the objects of a canvas, which can be fewer: `CANVAS_MAX_PLACED`). */
+/** The most pieces a jigsaw is cut into (the pieces are kept apart from the objects of a picture area, which can be fewer: `JIGSAW_MAX_PLACED`). */
 export const JIGSAW_MAX_PIECES = 1000;
 
 /** The fewest pieces a jigsaw is cut into. */
 export const MIN_PIECES = 2;
 
-/** What a number of pieces makes of a canvas: the grid size and the size of the canvas that goes with it, and how many pieces that really is. */
+/** What a number of pieces makes of a picture area: the grid size and the size of the picture area that goes with it, and how many pieces that really is. */
 export interface PieceLayout {
   /** the side of a piece, and the grid size, in pixels */
   grid: number;
-  /** the width and the height of the canvas, a whole number of pieces each */
+  /** the width and the height of the picture area, a whole number of pieces each */
   width: number;
   height: number;
   columns: number;
   rows: number;
 }
 
-/** The numbers of pieces a person is offered, about: for each, the columns × rows that fit the shape of the canvas best are found (see `JigsawCut.pieceChoices`). */
+/** The numbers of pieces a person is offered, about: for each, the columns × rows that fit the shape of the picture area best are found (see `JigsawCut.pieceChoices`). */
 const PIECE_TARGETS = [24, 48, 100, 200, 300, 500, 750, 1000];
-/** How much the shape of the pieces' columns × rows may differ from the shape of the canvas, as a share of it, for the number to be offered. */
+/** How much the shape of the pieces' columns × rows may differ from the shape of the picture area, as a share of it, for the number to be offered. */
 const SHAPE_TOLERANCE = 0.04;
 /** How much the shape of columns × rows being off counts, against the number of pieces being off. */
 const SHAPE_WEIGHT = 10;
 /** How far (as a factor) an offered number of pieces may be from the number it stands for. */
 const TARGET_REACH = 1.5;
 
-/** One way to cut a canvas into whole rows and columns of square pieces. */
+/** One way to cut a picture area into whole rows and columns of square pieces. */
 export interface PieceChoice {
   columns: number;
   rows: number;
@@ -52,8 +52,8 @@ export interface PieceChoice {
 
 export class JigsawCut {
   /**
-   * The numbers of pieces to offer for a canvas of this shape: each is a whole number of columns and rows that has (nearly) the shape of the canvas, so the
-   * canvas can be made to fit it (see `layoutOf`) without changing its shape. For each of the usual numbers (24, 48, 100, 200, 300, 500, 750, 1000) the nearest of
+   * The numbers of pieces to offer for a picture area of this shape: each is a whole number of columns and rows that has (nearly) the shape of the picture area, so the
+   * picture area can be made to fit it (see `layoutOf`) without changing its shape. For each of the usual numbers (24, 48, 100, 200, 300, 500, 750, 1000) the nearest of
    * these is offered (none when there is nothing near it), smallest first.
    */
   static pieceChoices(width: number, height: number): PieceChoice[] {
@@ -65,7 +65,7 @@ export class JigsawCut {
       if (rows < 2 || count < MIN_PIECES || count > JIGSAW_MAX_PIECES) continue;
       if (Math.abs(columns / rows - shape) / shape <= SHAPE_TOLERANCE) fits.push({ columns, rows, count });
     }
-    // near the number, and as exactly in the shape of the canvas as it can be (the shape counts more than a few pieces more or less)
+    // near the number, and as exactly in the shape of the picture area as it can be (the shape counts more than a few pieces more or less)
     const score = (fit: PieceChoice, target: number): number => Math.abs(Math.log(fit.count / target)) + (SHAPE_WEIGHT * Math.abs(fit.columns / fit.rows - shape)) / shape;
     const chosen = new Map<number, PieceChoice>();
     for (const target of PIECE_TARGETS) {
@@ -81,7 +81,7 @@ export class JigsawCut {
   }
 
   /**
-   * The canvas that fits exactly `columns` × `rows` square pieces and is as near the size asked for as it can be: the pieces are as big as the two sides
+   * The picture area that fits exactly `columns` × `rows` square pieces and is as near the size asked for as it can be: the pieces are as big as the two sides
    * allow on average, and each side is a whole number of pieces (so a side can differ a little from the one asked for).
    */
   static layoutOf(width: number, height: number, columns: number, rows: number): PieceLayout {
@@ -90,9 +90,9 @@ export class JigsawCut {
   }
 
   /**
-   * The grid size for a canvas that is to be cut into about `pieces` pieces, and the canvas made a whole number of pieces wide and high: the pieces are
+   * The grid size for a picture area that is to be cut into about `pieces` pieces, and the picture area made a whole number of pieces wide and high: the pieces are
    * square, a piece is the square root of (area / pieces) on each side, and of the grids near that the one that gives the number of pieces closest to
-   * what was asked for is taken (never more pieces than fit on a canvas, never fewer than `MIN_PIECES`). The pieces that come out can be a few more or
+   * what was asked for is taken (never more pieces than fit in a jigsaw, never fewer than `MIN_PIECES`). The pieces that come out can be a few more or
    * fewer than asked for, since they are whole squares.
    */
   static layoutFor(width: number, height: number, pieces: number): PieceLayout {
@@ -100,8 +100,8 @@ export class JigsawCut {
     const ideal = Math.sqrt((Math.max(1, width) * Math.max(1, height)) / wanted);
     let best: (PieceLayout & { miss: number; away: number }) | null = null;
     for (let grid = Math.max(1, Math.floor(ideal) - 3); grid <= Math.ceil(ideal) + 3; grid++) {
-      const w = CanvasArea.fittedSide(width, grid);
-      const h = CanvasArea.fittedSide(height, grid);
+      const w = JigsawSettings.fittedSide(width, grid);
+      const h = JigsawSettings.fittedSide(height, grid);
       const columns = Math.round(w / grid);
       const rows = Math.round(h / grid);
       const count = columns * rows;
@@ -110,24 +110,24 @@ export class JigsawCut {
       if (!best || candidate.miss < best.miss || (candidate.miss === best.miss && candidate.away < best.away)) best = candidate;
     }
     if (best) return { grid: best.grid, width: best.width, height: best.height, columns: best.columns, rows: best.rows };
-    // nothing near fits (a canvas that is very small or very big for this number): the smallest grid that does not give too many pieces
+    // nothing near fits (a picture area that is very small or very big for this number): the smallest grid that does not give too many pieces
     let grid = Math.max(1, Math.ceil(ideal));
-    while (grid < CANVAS_MAX_SIDE && Math.round(CanvasArea.fittedSide(width, grid) / grid) * Math.round(CanvasArea.fittedSide(height, grid) / grid) > JIGSAW_MAX_PIECES) grid++;
-    const w = CanvasArea.fittedSide(width, grid);
-    const h = CanvasArea.fittedSide(height, grid);
+    while (grid < JIGSAW_MAX_SIDE && Math.round(JigsawSettings.fittedSide(width, grid) / grid) * Math.round(JigsawSettings.fittedSide(height, grid) / grid) > JIGSAW_MAX_PIECES) grid++;
+    const w = JigsawSettings.fittedSide(width, grid);
+    const h = JigsawSettings.fittedSide(height, grid);
     return { grid, width: w, height: h, columns: Math.round(w / grid), rows: Math.round(h / grid) };
   }
 
   /**
-   * Cuts a canvas into pieces of `grid` × `grid` pixels. Each piece is a placed square (so it moves, saves and snaps like any figure) that says which
+   * Cuts a picture area into pieces of `grid` × `grid` pixels. Each piece is a placed square (so it moves, saves and snaps like any figure) that says which
    * cell of the picture it is (`piece`: column, row and its four edges). Every edge between two pieces is a tab on one and the matching blank on the
-   * other, chosen by chance; the edges on the border of the canvas are flat. The pieces are put in the store frame beside the canvas (see
-   * `CanvasArea.storeFrame`), scattered over it (see `scatter`), none over another and each on a random layer; `storeWidth` is how wide the frame has to be. `random` gives numbers from 0 up to 1.
+   * other, chosen by chance; the edges on the border of the picture area are flat. The pieces are put in the store frame beside the picture area (see
+   * `JigsawSettings.storeFrame`), scattered over it (see `scatter`), none over another and each on a random layer; `storeWidth` is how wide the frame has to be. `random` gives numbers from 0 up to 1.
    */
   static cut(width: number, height: number, grid: number, random: () => number = Math.random): JigsawCutResult {
     const { columns, rows } = pieceGrid(width, height, grid);
-    if (columns * rows < 2) return { error: 'The canvas needs a grid and room for at least two pieces.' };
-    if (columns * rows > JIGSAW_MAX_PIECES) return { error: `That would be ${columns * rows} pieces, and at most ${JIGSAW_MAX_PIECES} fit on a canvas: use a bigger grid.` };
+    if (columns * rows < 2) return { error: 'The jigsaw needs a grid and room for at least two pieces.' };
+    if (columns * rows > JIGSAW_MAX_PIECES) return { error: `That would be ${columns * rows} pieces, and at most ${JIGSAW_MAX_PIECES} fit in a jigsaw: use a bigger grid.` };
 
     const sign = () => (random() < 0.5 ? -1 : 1) as -1 | 1;
     // the tab of each edge between two pieces: right of (c, r) is the left of (c + 1, r), bottom of (c, r) is the top of (c, r + 1), opposite for the neighbour
@@ -156,7 +156,7 @@ export class JigsawCut {
   }
 
   /**
-   * The pieces put in the store frame beside the canvas (see `CanvasArea.storeFrame`), scattered over it (see `scatter`), none over another, in a random
+   * The pieces put in the store frame beside the picture area (see `JigsawSettings.storeFrame`), scattered over it (see `scatter`), none over another, in a random
    * order and each on a random layer; they keep their own edges. `storeWidth` is how wide the frame has to be.
    */
   static scatterPieces(pieces: PlacedObject[], width: number, height: number, grid: number, random: () => number): { placed: PlacedObject[]; storeWidth: number } {
@@ -177,7 +177,7 @@ export class JigsawCut {
 
   /**
    * Starts a cut jigsaw over: all its pieces are scattered again in the store frame, in new places and on new layers, with the edges they have. What is
-   * on the canvas that is not a piece stays as it is. `error` when there is nothing to shuffle.
+   * on the picture area that is not a piece stays as it is. `error` when there is nothing to shuffle.
    */
   static reshuffle(placed: readonly PlacedObject[], width: number, height: number, grid: number, random: () => number = Math.random): JigsawCutResult | { error: string } {
     const pieces = placed.filter((p) => p.piece);

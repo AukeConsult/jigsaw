@@ -1,4 +1,4 @@
-// The look of Canvas and Karins jigsaw: the one place for fonts, colours, sizes, layers and the classes the components use.
+// The look of Karins jigsaw: the one place for fonts, colours, sizes, layers and the classes the components use.
 //
 // Bootstrap (`vendor/bootstrap.min.css`) is loaded before this file. Its own variables (`--bs-*`) are set here from our tokens (`--app-*`).
 // The rule: a component takes its fonts, colours and sizes from here, by a class or by a token. No colour, font or fixed size is written in a template or a
@@ -70,7 +70,7 @@ $fluid-to: 87.5; // 1400px in rem
   --app-btn-gap: 0.4em; // between the icon and the text
   --app-font-size: var(--app-fs-text);
   --app-line-height: 1.5;
-  /* the numbers drawn on the grid of the canvas, in pixels (a number: the canvas draws them) */
+  /* the numbers drawn on the grid, in pixels (a number, not a reference: the code that draws them reads it) */
   --app-grid-number-size: 10;
   --app-piece-number-weight: 600;
 
@@ -90,8 +90,6 @@ $fluid-to: 87.5; // 1400px in rem
   --app-frame: var(--app-primary); // the frame around the picture area of a jigsaw
   --app-picked: var(--app-primary); // what is picked: the outline, the frame dragged to pick
   --app-matched: var(--app-success); // the blink when a piece clicks into place
-  --app-point-fastened: var(--app-success); // a connection point something is fastened to
-  --app-point: var(--app-primary); // the other connection points
   --app-piece-outline: rgba(33, 37, 41, 0.55);
   --app-piece-blank: var(--app-blank); // a piece without a picture
   --app-piece-number: var(--app-white); // the number on a piece (debug), with the ink round it
@@ -103,11 +101,6 @@ $fluid-to: 87.5; // 1400px in rem
   --app-sidebar-width: 17rem;
   --app-form-width: 40rem;
   --app-list-width: 48rem;
-  --app-layer-input-width: 5rem;
-  --app-palette-thumb: 64px;
-  --app-shape-editor-height: 320px;
-  --app-handle-size: 10px; // the squares that resize a figure
-  --app-handle-size-large: 12px; // the handles that bend an arrow and change its width
   --app-grip-size: 28px; // the corner that sizes the helper picture
   --app-tile-gap: 0.25rem;
 
@@ -146,8 +139,6 @@ $fluid-to: 87.5; // 1400px in rem
     --app-btn-sm-pad-y: 0.5em;
     --app-btn-pad-y: 0.6em;
     --app-btn-main-pad-y: 0.7em;
-    --app-handle-size: 20px;
-    --app-handle-size-large: 24px;
     --app-grip-size: 28px;
   }
 }
@@ -653,17 +644,13 @@ small,
   }
 }
 
-// ---- the canvas board ------------------------------------------------------------------------------------------------------------------------------
-.layer-input {
-  width: var(--app-layer-input-width);
-}
-
-.canvas-surface {
+// ---- the jigsaw board ------------------------------------------------------------------------------------------------------------------------------
+.picture-surface {
   background-size: cover;
   background-position: center;
 }
 
-.canvas-frame {
+.picture-frame {
   // the width is the setting of the jigsaw (`outline-width` is bound); an outline takes no room, so what is placed does not move
   outline-style: solid;
   outline-color: var(--app-frame);
@@ -700,7 +687,7 @@ small,
   display: none;
 }
 
-/** the layer the pieces are drawn in, over the canvas and the store frame: as big as the whole area, takes no room, lets the pointer through */
+/** the layer the pieces are drawn in, over the picture area and the store frame: as big as the whole area, takes no room, lets the pointer through */
 /** the jigsaw pieces area is drawn at a scale (see the board): the sizer is as big as the scaled content, the content is scaled from its top left corner */
 .scale-sizer {
   overflow: hidden;
@@ -770,50 +757,12 @@ small,
   right: calc(0.5rem / var(--app-scale, 1));
 }
 
-.group-box {
-  @extend %board-control;
-  pointer-events: none;
-  outline: 2px dashed var(--app-picked);
-  outline-offset: 4px;
-}
-
-/** the frame that is dragged to pick objects */
+/** the frame that is dragged to pick pieces */
 .marquee {
   @extend %board-control;
   pointer-events: none;
   border: 1px solid var(--app-primary);
   background: rgba(var(--app-primary-rgb), 0.1);
-}
-
-// the handles are placed by their centre (the page gives where the centre is), so they can be any size, and bigger for a finger
-.resize-handle {
-  @extend %board-control;
-  width: calc(var(--app-handle-size) / var(--app-scale, 1)); // the handles keep their size on the screen when the board is scaled
-  height: calc(var(--app-handle-size) / var(--app-scale, 1));
-  transform: translate(-50%, -50%);
-  background: var(--app-white);
-  border: 1px solid var(--app-primary);
-}
-
-.bend-handle {
-  @extend %board-control;
-  width: calc(var(--app-handle-size-large) / var(--app-scale, 1));
-  height: calc(var(--app-handle-size-large) / var(--app-scale, 1));
-  transform: translate(-50%, -50%) rotate(45deg);
-  background: var(--app-white);
-  border: 1px solid var(--app-primary);
-  cursor: move;
-}
-
-.across-handle {
-  @extend %board-control;
-  width: calc(var(--app-handle-size-large) / var(--app-scale, 1));
-  height: calc(var(--app-handle-size-large) / var(--app-scale, 1));
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: var(--app-primary);
-  border: 1px solid var(--app-white);
-  cursor: move;
 }
 
 // ---- the helper: the banner, and the picture that floats over the page ----------------------------------------------------------------------------
@@ -955,53 +904,6 @@ small,
   font-weight: var(--app-piece-number-weight);
   pointer-events: none;
   user-select: none;
-}
-
-.shape-svg {
-  display: block;
-  overflow: visible;
-}
-
-// the connection points: a point something is fastened to is a point in a point; a start is a ring, an end a dot, and both a ring with a dot in it
-.point-fastened-ring {
-  fill: var(--app-white);
-  stroke: var(--app-point-fastened);
-}
-
-.point-fastened-dot {
-  fill: var(--app-point-fastened);
-}
-
-.point-ring {
-  fill: var(--app-white);
-  stroke: var(--app-point);
-
-  &.is-end {
-    fill: var(--app-point);
-  }
-}
-
-.point-dot {
-  fill: var(--app-point);
-}
-
-// ---- the list of objects, and the drawing of an object's size ----------------------------------------------------------------------------------
-.palette-item {
-  cursor: grab;
-}
-
-.palette-thumb {
-  width: var(--app-palette-thumb);
-}
-
-.shape-editor {
-  height: var(--app-shape-editor-height);
-  touch-action: none;
-  cursor: crosshair;
-
-  @include below($bp-md) {
-    --app-shape-editor-height: 240px;
-  }
 }
 
 // ---- the pages of Karins jigsaw ----------------------------------------------------------------------------------------------------------------

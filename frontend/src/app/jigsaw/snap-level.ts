@@ -1,4 +1,4 @@
-import { CanvasArea } from '../models/shared/canvas';
+import { JigsawSettings } from '../models/shared/jigsaw-settings';
 
 /** How easy it is to make a piece click into place: the choices of the snap range (in percent of the grid; stored in the jigsaw as that number). */
 export const SNAP_LEVELS = [
@@ -16,7 +16,7 @@ export function snapLevelOf(percent: number): SnapLevelKey {
 
 /** The level of a saved jigsaw (one saved without a snap range has the model's default). */
 export function snapLevelOfJigsaw(jigsaw: { snapPercent?: number }): SnapLevelKey {
-  return snapLevelOf(jigsaw.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT);
+  return snapLevelOf(jigsaw.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT);
 }
 
 /** The snap range of a level, in percent of the grid. */

@@ -1,4 +1,4 @@
-import { CanvasArea, CanvasSpec } from './canvas';
+import { JigsawSettings, JigsawSpec } from './jigsaw-settings';
 import { JigsawCut, JigsawPiece, JigsawPieces, PieceMove, JIGSAW_MAX_PIECES } from './jigsaw';
 
 // A play: one game of a jigsaw, by one user. The jigsaw is what is fixed (its picture, size, grid and the cut into pieces, and the defaults of difficulty and look);
@@ -20,9 +20,9 @@ export const PLAY_MAX_USER_ID = 128;
 /** The settings a play may choose for itself: the look (the line and the colours). Nothing else, ever (see `Plays.overridesError`). */
 export const PLAY_OVERRIDE_KEYS = ['lineWidth', 'lineColor', 'backColor'] as const;
 export type PlayOverrideKey = (typeof PLAY_OVERRIDE_KEYS)[number];
-export type PlayOverrides = Partial<Pick<CanvasSpec, PlayOverrideKey>>;
+export type PlayOverrides = Partial<Pick<JigsawSpec, PlayOverrideKey>>;
 /** What a request that changes the settings of a play says: a value sets that setting for the play, null takes the choice away (the jigsaw's default is used again). */
-export type PlayOverridesChange = { [K in PlayOverrideKey]?: NonNullable<CanvasSpec[K]> | null };
+export type PlayOverridesChange = { [K in PlayOverrideKey]?: NonNullable<JigsawSpec[K]> | null };
 
 export type PlayStatus = 'active' | 'solved';
 
@@ -76,7 +76,7 @@ export class Plays {
     for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
       if (!(PLAY_OVERRIDE_KEYS as readonly string[]).includes(key)) return `A play can not change "${key}": only the look (the line and the colours) can be chosen for a play.`;
       if (v === null) continue;
-      if (key === 'lineWidth' && !(typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= CanvasArea.MAX_LINE_WIDTH)) return `The line must be a whole number of pixels from 0 to ${CanvasArea.MAX_LINE_WIDTH}.`;
+      if (key === 'lineWidth' && !(typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= JigsawSettings.MAX_LINE_WIDTH)) return `The line must be a whole number of pixels from 0 to ${JigsawSettings.MAX_LINE_WIDTH}.`;
       if ((key === 'lineColor' || key === 'backColor') && !(typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v))) return `The ${key === 'lineColor' ? 'line' : 'background'} colour must be written as #rrggbb.`;
     }
     return '';
@@ -93,13 +93,13 @@ export class Plays {
   }
 
   /** The settings a play is played with. */
-  static effective(jigsaw: Pick<CanvasSpec, PlayOverrideKey | 'snapPercent'>, play: Pick<PlaySpec, 'overrides'>): PlaySettings {
+  static effective(jigsaw: Pick<JigsawSpec, PlayOverrideKey | 'snapPercent'>, play: Pick<PlaySpec, 'overrides'>): PlaySettings {
     const own = play.overrides;
     return {
-      snapPercent: jigsaw.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT, // the difficulty is the jigsaw's
-      lineWidth: own.lineWidth ?? jigsaw.lineWidth ?? CanvasArea.DEFAULT_LINE_WIDTH,
-      lineColor: own.lineColor ?? jigsaw.lineColor ?? CanvasArea.DEFAULT_LINE_COLOR,
-      backColor: own.backColor ?? jigsaw.backColor ?? CanvasArea.DEFAULT_BACK_COLOR,
+      snapPercent: jigsaw.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT, // the difficulty is the jigsaw's
+      lineWidth: own.lineWidth ?? jigsaw.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH,
+      lineColor: own.lineColor ?? jigsaw.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR,
+      backColor: own.backColor ?? jigsaw.backColor ?? JigsawSettings.DEFAULT_BACK_COLOR,
     };
   }
 
@@ -117,7 +117,7 @@ export class Plays {
    * Starts a play: the pieces of the jigsaw are scattered over a store frame (as for a jigsaw that was just cut, see `JigsawCut.reshuffle`), and nothing is in place. The pieces are the jigsaw's (they are not changed); `error` when the jigsaw has too few pieces to play.
    */
   static start(
-    jigsaw: Pick<CanvasSpec, 'id' | 'width' | 'height' | 'gridSize'>,
+    jigsaw: Pick<JigsawSpec, 'id' | 'width' | 'height' | 'gridSize'>,
     user: { id: string; name: string },
     pieces: readonly JigsawPiece[],
     now: number,
@@ -186,7 +186,7 @@ export class Plays {
   /** The reason a list of moves is not allowed, or ''. */
   static movesError(moves: unknown): string {
     if (!Array.isArray(moves)) return 'Send the moves as a list.';
-    if (moves.length > JIGSAW_MAX_PIECES) return `At most ${JIGSAW_MAX_PIECES} pieces fit on a canvas.`;
+    if (moves.length > JIGSAW_MAX_PIECES) return `At most ${JIGSAW_MAX_PIECES} pieces fit in a jigsaw.`;
     for (const move of moves) {
       const error = JigsawPieces.moveError(move);
       if (error) return error;

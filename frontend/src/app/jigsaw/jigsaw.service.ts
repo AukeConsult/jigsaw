@@ -2,12 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { CanvasInput, CanvasSpec } from '../models/shared/canvas';
+import { JigsawInput, JigsawSpec } from '../models/shared/jigsaw-settings';
 import { ApiCollection } from '../core/api-collection';
 
-/** The saved jigsaw pages (collection `jigsaw`, through the API): canvas areas like the others, kept in their own collection. */
+/** The saved jigsaw pages (collection `jigsaw`, through the API): jigsaws like the others, kept in their own collection. */
 @Injectable({ providedIn: 'root' })
-export class JigsawService extends ApiCollection<CanvasInput, CanvasSpec> {
+export class JigsawService extends ApiCollection<JigsawInput, JigsawSpec> {
   private readonly client = inject(HttpClient);
 
   constructor() {

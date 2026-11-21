@@ -1,6 +1,6 @@
 {
   "title": "Ajuste l'image",
-  "help": "Fais glisser l'image dans le cadre pour trouver le bon découpage, et zoome avec le curseur ou la molette de la souris. Le cadre a la forme de la zone de travail.",
+  "help": "Fais glisser l'image dans le cadre pour trouver le bon découpage, et zoome avec le curseur ou la molette de la souris. Le cadre a la forme de la zone de l'image.",
   "unreadable": "Ce fichier ne peut pas être lu comme une image.",
   "frame": "Le cadre",
   "pictureAlt": "L'image à découper",

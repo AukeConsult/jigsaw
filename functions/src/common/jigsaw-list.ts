@@ -1,0 +1,66 @@
+import { getFirestore } from "firebase-admin/firestore";
+import express from "express";
+import { DocumentStore, documentStore } from "./document-store";
+import { JigsawSettings, JigsawInput, JigsawSpec } from "../models";
+
+/** Where the jigsaws are kept (Firestore in the app, a memory store in the tests). */
+export type JigsawStore = DocumentStore<JigsawInput, JigsawSpec>;
+
+/** The jigsaws in a Firestore collection (`jigsaw`): the newest 100; a jigsaw that an older version saved is read as the model says (see `JigsawSettings.fromStored`). */
+export function firestoreJigsawStore(collection: string): JigsawStore {
+  return documentStore<JigsawInput, JigsawSpec>(() => getFirestore().collection(collection), 100, (id, doc) => JigsawSettings.fromStored(id, doc as Partial<JigsawSpec>));
+}
+
+/** The checked jigsaw of a request body, as it is stored (only the known fields), or the reason it is not allowed. */
+function readInput(body: Record<string, unknown>): { input: JigsawInput } | { error: string } {
+  const settings = new JigsawSettings(body);
+  const error = settings.error();
+  return error ? { error } : { input: settings.stored() };
+}
+
+/** The routes of the list of jigsaws (mounted at `/jigsaw`). GET: the saved jigsaws, newest first. POST: save a new one. PUT /:id: change a saved one (the page autosaves with these). DELETE /:id: delete one. */
+export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec, me: string | undefined) => Promise<boolean> = async (j, me) => j.visibility !== "owner" || (!!me && j.ownerUid === me)): express.Router {
+  const router = express.Router();
+
+  // a jigsaw its owner keeps to themselves is listed for those `canSee` says (the owner, and whoever the app adds: the header `X-Jigsaw-User` is the UID of who asks; there is no
+  // sign-in yet, so this keeps the lists honest, it is not a lock)
+  router.get("/", async (req, res) => {
+    const me = req.get("X-Jigsaw-User");
+    const all = await store.list();
+    const seen = await Promise.all(all.map((j) => canSee(j, me)));
+    res.json(all.filter((_, i) => seen[i]));
+  });
+
+  router.post("/", async (req, res) => {
+    const read = readInput((req.body ?? {}) as Record<string, unknown>);
+    if ("error" in read) {
+      res.status(400).json({ error: read.error });
+      return;
+    }
+    res.status(201).json(await store.add(read.input));
+  });
+
+  router.put("/:id", async (req, res) => {
+    const read = readInput((req.body ?? {}) as Record<string, unknown>);
+    if ("error" in read) {
+      res.status(400).json({ error: read.error });
+      return;
+    }
+    const saved = await store.update(req.params.id, read.input);
+    if (!saved) {
+      res.status(404).json({ error: "No such jigsaw." });
+      return;
+    }
+    res.json(saved);
+  });
+
+  router.delete("/:id", async (req, res) => {
+    if (!(await store.remove(req.params.id))) {
+      res.status(404).json({ error: "No such jigsaw." });
+      return;
+    }
+    res.status(204).end();
+  });
+
+  return router;
+}

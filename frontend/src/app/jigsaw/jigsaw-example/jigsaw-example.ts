@@ -33,9 +33,9 @@ const MAX_HEIGHT_PX = 340;
   templateUrl: './jigsaw-example.html',
 })
 export class JigsawExample {
-  /** the cut picture (in the shape of the canvas) */
+  /** the cut picture (in the shape of the picture area) */
   readonly picture = input.required<string>();
-  /** the canvas: its size and the grid that cuts it into pieces */
+  /** the picture area: its size and the grid that cuts it into pieces */
   readonly width = input.required<number>();
   readonly height = input.required<number>();
   readonly gridSize = input.required<number>();

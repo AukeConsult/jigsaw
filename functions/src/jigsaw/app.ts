@@ -1,10 +1,10 @@
 import cors from "cors";
 import express from "express";
-import { CanvasStore, canvasListRouter, firestoreCanvasStore } from "../common/canvas-list";
+import { JigsawStore, jigsawListRouter, firestoreJigsawStore } from "../common/jigsaw-list";
 import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
-import { CanvasArea, JIGSAW, JigsawUsers } from "../models";
+import { JigsawSettings, JIGSAW, JigsawUsers } from "../models";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
 import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./plays";
 
@@ -12,7 +12,7 @@ import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./p
 export const JIGSAW_API = "/jigsaw/api";
 
 /** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
-export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore } = {}): express.Express {
+export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
@@ -25,7 +25,7 @@ export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: I
   });
   // a jigsaw: its settings are a document in Firestore; its pieces are documents under it, and its picture and the graphics of its pieces are files in
   // Storage. A jigsaw that is deleted takes all of that with it.
-  const jigsaw = stores.jigsaw ?? firestoreCanvasStore(JIGSAW);
+  const jigsaw = stores.jigsaw ?? firestoreJigsawStore(JIGSAW);
   const pieces = stores.jigsawPieces ?? firestorePieceStore();
   const jigsawExists = stores.jigsawExists ?? firestoreJigsawExists;
   const plays = stores.plays ?? firestorePlayStore();
@@ -68,7 +68,7 @@ export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: I
     next();
   };
   const notWhenPlayed: express.RequestHandler = async (req, res, next) => {
-    if (await plays.has(req.params.id)) return void res.status(409).json({ error: CanvasArea.PLAYED_MESSAGE });
+    if (await plays.has(req.params.id)) return void res.status(409).json({ error: JigsawSettings.PLAYED_MESSAGE });
     next();
   };
   router.delete("/jigsaw/:id", ownerOnly("delete"));
@@ -77,11 +77,11 @@ export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: I
   // a jigsaw only its owner sees can be changed by its owner only (for anyone else it is not there)
   router.put("/jigsaw/:id", async (req, res, next) => {
     const now = await jigsawById(req.params.id);
-    if (now?.visibility === "owner" && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(404).json({ error: "No such canvas." });
+    if (now?.visibility === "owner" && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(404).json({ error: "No such jigsaw." });
     next();
   });
   router.put("/jigsaw/:id", ownerOnly("change"));
-  // a jigsaw that has been played keeps what every round shares (see `CanvasArea.changesWhatPlayersShare`): a change of it is refused
+  // a jigsaw that has been played keeps what every round shares (see `JigsawSettings.changesWhatPlayersShare`): a change of it is refused
   router.put("/jigsaw/:id", async (req, res, next) => {
     const now = await jigsawById(req.params.id);
     if (!now) return next();
@@ -89,7 +89,7 @@ export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: I
       await plays.removeFresh(req.params.id); // not played: the rounds that are only opened go, their pieces would be out of date after the change
       return next();
     }
-    if (CanvasArea.changesWhatPlayersShare(now, (req.body ?? {}) as Record<string, unknown>)) return void res.status(409).json({ error: CanvasArea.PLAYED_MESSAGE });
+    if (JigsawSettings.changesWhatPlayersShare(now, (req.body ?? {}) as Record<string, unknown>)) return void res.status(409).json({ error: JigsawSettings.PLAYED_MESSAGE });
     next();
   });
   // nor can its picture or its cut into pieces be put in again, taken away or moved once it has been played (the pieces of every round are the ones it has); a jigsaw that
@@ -99,7 +99,7 @@ export function createJigsawApp(stores: { jigsaw?: CanvasStore; jigsawImages?: I
   router.patch("/jigsaw-pieces/:id", ownerOnly("change"), notWhenPlayed);
   router.use(
     "/jigsaw",
-    canvasListRouter(
+    jigsawListRouter(
       {
         ...jigsaw,
         remove: async (id) => (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id)]).then(() => true, () => true)),
