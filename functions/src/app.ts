@@ -47,13 +47,24 @@ export function createApp(stores: { canvasList?: CanvasStore; jigsaw?: CanvasSto
     body.author = user.name;
     next();
   };
+  // a jigsaw is deleted by its owner only (the header `X-Jigsaw-User` is the UID of who asks; a jigsaw from before owners has none and can be deleted by anyone). There is
+  // no sign-in yet, so this keeps the app honest, it is not a lock.
+  router.delete("/jigsaw/:id", async (req, res, next) => {
+    const now = await jigsawById(req.params.id);
+    if (now?.ownerUid && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(403).json({ error: "Only the owner of a jigsaw can delete it." });
+    next();
+  });
   router.post("/jigsaw", stampOwner);
   router.put("/jigsaw/:id", stampOwner);
   // a jigsaw that has been played keeps its size, grid and pieces (every play shares them): a change of them is refused
   router.put("/jigsaw/:id", async (req, res, next) => {
     const body = (req.body ?? {}) as { width?: unknown; height?: unknown; gridSize?: unknown };
     const now = await jigsawById(req.params.id);
-    if (!now || !(await plays.has(req.params.id))) return next();
+    if (!now) return next();
+    if (!(await plays.has(req.params.id))) {
+      await plays.removeFresh(req.params.id); // not played: the rounds that are only opened go, their pieces would be out of date after the change
+      return next();
+    }
     if (body.width !== now.width || body.height !== now.height || body.gridSize !== now.gridSize) {
       return void res.status(409).json({ error: "This jigsaw has been played: its size and pieces can not change." });
     }

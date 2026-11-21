@@ -39,6 +39,8 @@ export class JigsawPage implements OnInit {
   readonly hasPicture = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
+  /** Delete (the jigsaw) was pressed and waits for "Yes" */
+  readonly confirmingDelete = signal(false);
   /** the game whose Delete button was pressed and waits for "Yes" */
   readonly confirmingId = signal<string | null>(null);
   readonly maxName = CANVAS_MAX_NAME;
@@ -82,6 +84,27 @@ export class JigsawPage implements OnInit {
       if (this.route.snapshot.queryParamMap.get('edit')) this.edit(); // the Edit button of the list opens the page with the form open
     } catch {
       this.status.set('failed');
+    }
+  }
+
+  /** the user may delete the jigsaw: it is theirs (or it is one from before owners, which has none) */
+  readonly canDelete = computed(() => {
+    const owner = this.item()?.ownerUid;
+    return !owner || owner === this.users.user()?.id;
+  });
+
+  /** The jigsaw is deleted for good (its pieces, picture and rounds go too), and the person goes to the list. */
+  async deleteJigsaw(): Promise<void> {
+    const me = this.users.user();
+    if (!me || this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.jigsaws.removeAs(this.id, me.id);
+      await this.router.navigate(['/jigsaw/list']);
+    } catch {
+      this.error.set('Could not delete the jigsaw: only its owner can.');
+      this.confirmingDelete.set(false);
+      this.busy.set(false);
     }
   }
 

@@ -22,7 +22,7 @@ export class PuzzlePiece {
   readonly picture = input<string | null>(null);
   /** whether the number of its grid point is drawn on it (only in debug) */
   readonly numbered = input(false);
-  /** the piece lies on its own place: it is drawn with a green outline */
+  /** the piece lies on its own place (it is drawn like the others, with the line of the jigsaw) */
   readonly matched = input(false);
   /** the line round the piece: how thick (in pixels) and what colour (#rrggbb); none: the usual line */
   readonly lineWidth = input<number | null>(null);

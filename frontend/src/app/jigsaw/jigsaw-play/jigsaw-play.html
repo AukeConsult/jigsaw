@@ -20,7 +20,7 @@
         <!-- the sidebar, docked at the left edge on a wide screen: how far the round has come and what can be done in it; on a narrow screen it is folded away until the Sidebar switch in the top menu opens it over the board -->
         <aside id="jigsaw-sidebar" class="jigsaw-sidebar border-end bg-body-tertiary p-3" [class.is-open]="tools.sidebarOpen()" [style.height.px]="sidebarHeight()" aria-label="The jigsaw">
         <!-- the title of the jigsaw (it is changed on the page of the jigsaw), with a way back to its rounds -->
-        <h1 class="h4 fw-bold mb-1">{{ it.name }}</h1>
+        <h1 class="page-title mb-1">{{ it.name }}</h1>
         <a class="small d-inline-block mb-2" [routerLink]="['/jigsaw', it.id]"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>All rounds of this jigsaw</a>
         @if (it.author) {
           <div class="small text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
@@ -37,7 +37,6 @@
 
         <div class="small mb-3" role="status" aria-live="polite">
           Matched: <strong>{{ m.count }}</strong> of {{ m.total }}{{ m.total && m.count === m.total ? ' – solved!' : '' }}
-          <div class="progress progress-thin mt-1"><div class="progress-bar bg-success" [style.width.%]="m.total ? (m.count / m.total) * 100 : 0"></div></div>
         </div>
         @if (pieceSync.state() === 'failed') {
           <div class="small text-danger mb-2" role="alert">Could not save the pieces, trying again</div>

@@ -41,6 +41,8 @@ export interface PlaySpec {
   total: number;
   /** how wide the store frame of this game is (it depends on the screen, and grows when the pieces are collected over the whole frame) */
   storeWidth: number;
+  /** the round is made but nobody has moved a piece yet (looking at it and going back does not make a round): it is not listed, and not counted as played, until the first piece is moved */
+  fresh?: boolean;
   /** the look this play has chosen (the jigsaw's is used until the player changes it); never the difficulty, which is the jigsaw's */
   overrides: PlayOverrides;
 }
@@ -133,6 +135,7 @@ export class Plays {
         total,
         storeWidth: shuffled.storeWidth,
         overrides: {},
+        fresh: true,
       },
       positions,
     };
@@ -148,9 +151,10 @@ export class Plays {
     for (const m of moves) if (known.has(m.id)) next[m.id] = [m.centerX, m.centerY, m.layer];
     const { matched, total } = Plays.counts(pieces, next);
     const solved = total > 0 && matched === total;
-    const { solvedAt: _was, ...rest } = play;
+    const { solvedAt: _was, fresh: _fresh, ...rest } = play;
+    const touched = moves.some((m) => known.has(m.id)); // the first piece that is moved makes it a round
     return {
-      play: { ...rest, matched, total, status: solved ? 'solved' : 'active', ...(solved ? { solvedAt: play.solvedAt ?? now } : {}) },
+      play: { ...rest, ...(play.fresh && !touched ? { fresh: true } : {}), matched, total, status: solved ? 'solved' : 'active', ...(solved ? { solvedAt: play.solvedAt ?? now } : {}) },
       positions: next,
     };
   }
@@ -186,6 +190,7 @@ export class Plays {
       matched: play.matched,
       total: play.total,
       storeWidth: play.storeWidth,
+      ...(play.fresh ? { fresh: true } : {}),
       overrides: Object.fromEntries(PLAY_OVERRIDE_KEYS.filter((k) => play.overrides?.[k] !== undefined).map((k) => [k, play.overrides[k]])) as PlayOverrides,
     };
   }

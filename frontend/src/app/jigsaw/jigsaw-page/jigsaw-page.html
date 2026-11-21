@@ -18,7 +18,26 @@
           }
         </div>
         <div class="col-md-7 col-lg-8">
-          <h1 class="h3 fw-bold mb-1">{{ it.name }}</h1>
+          <!-- the name, and Edit at the right corner of the same line -->
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <h1 class="page-title mb-1">{{ it.name }}</h1>
+            <div class="d-flex gap-1 flex-shrink-0">
+              <button type="button" class="btn btn-outline-secondary" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil" aria-hidden="true"></i>Edit</button>
+              @if (canDelete()) {
+                <button type="button" class="btn btn-outline-danger" [disabled]="confirmingDelete()" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>Delete</button>
+              }
+            </div>
+          </div>
+          @if (confirmingDelete()) {
+            <!-- deleting a jigsaw is for good: its picture and all the rounds of everybody go with it -->
+            <div class="alert alert-danger py-2 small mt-2" role="alert">
+              Delete this jigsaw for good? Its picture and all its rounds, also other players', are deleted too.
+              <div class="d-flex gap-1 mt-2">
+                <button type="button" class="btn btn-sm btn-danger" [disabled]="busy()" (click)="deleteJigsaw()">Yes, delete</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingDelete.set(false)">Cancel</button>
+              </div>
+            </div>
+          }
           @if (it.author) {
             <div class="text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
           }
@@ -27,10 +46,12 @@
             @if (it.createdAt) {<span class="ms-2"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ it.createdAt | date: 'mediumDate' }}</span>}
           </div>
 
-          <button type="button" class="btn btn-primary btn-lg" [disabled]="busy()" (click)="play()">
-            <i class="bi bi-play-fill me-2" aria-hidden="true"></i>@if (games().length) { New round } @else { Play }
-          </button>
-          <button type="button" class="btn btn-outline-secondary btn-lg ms-2" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit</button>
+          <!-- the main button: in the middle on a phone, at the left beside the picture from a tablet up -->
+          <div class="d-flex justify-content-center justify-content-md-start">
+            <button type="button" class="btn btn-primary btn-main" [disabled]="busy()" (click)="play()">
+              <i class="bi bi-play-fill" aria-hidden="true"></i>@if (games().length) { New round } @else { Play }
+            </button>
+          </div>
           @if (editing()) {
             <!-- the edit form: the name, the author and the defaults; the picture, size and pieces are fixed -->
             <form class="card card-body mt-3" (submit)="$event.preventDefault(); save()">
@@ -84,44 +105,44 @@
             <div class="alert alert-warning py-2 small mt-3" role="alert">{{ error() }}</div>
           }
 
-          <h2 class="h5 mt-4 mb-2">Rounds <span class="text-body-secondary fw-normal fs-6">yours are marked</span></h2>
+          <h2 class="section-title mt-4 mb-2">Rounds <span class="text-body-secondary fw-normal small">yours are marked</span></h2>
           @if (!games().length) {
             <p class="text-body-secondary">Nobody has played this jigsaw yet.</p>
           } @else {
             <ul class="list-group">
               @for (game of games(); track game.id) {
-                <li class="list-group-item d-flex flex-wrap align-items-center gap-2" [class.border-primary]="isMine(game)" [class.bg-primary-subtle]="isMine(game)">
-                  <div class="flex-grow-1">
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                      @if (isMine(game)) {
-                        <span class="badge text-bg-dark"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>Yours</span>
-                      } @else {
-                        <span class="small fw-semibold"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ game.userName || 'Someone' }}</span>
-                      }
-                      @if (game.status === 'solved') {
-                        <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Solved</span>
-                      } @else {
-                        <span class="badge text-bg-primary">Playing</span>
-                      }
-                      <span class="small">{{ game.matched }} of {{ game.total }} in place</span>
+                <li class="list-group-item round-row" [class.border-primary]="isMine(game)" [class.bg-primary-subtle]="isMine(game)">
+                  <div class="round-body">
+                    <div class="round-info">
+                      <div class="d-flex align-items-center gap-1 flex-wrap">
+                        @if (isMine(game)) {
+                          <span class="badge text-bg-dark"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>Yours</span>
+                        } @else {
+                          <span class="small fw-semibold"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ game.userName || 'Someone' }}</span>
+                        }
+                        @if (game.status === 'solved') {
+                          <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Solved</span>
+                        } @else {
+                          <span class="badge text-bg-primary">Playing</span>
+                        }
+                        <span class="small ms-1">{{ game.matched }} of {{ game.total }} in place</span>
+                      </div>
+                      <div class="tiny text-body-secondary mt-1"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ game.startedAt | date: 'MMM d, y, HH:mm' }}</div>
                     </div>
-                    <div class="progress progress-thin mt-1 w-75">
-                      <div class="progress-bar bg-success" [style.width.%]="game.total ? (game.matched / game.total) * 100 : 0"></div>
+                    <div class="round-actions">
+                      @if (isMine(game) && confirmingId() === game.id) {
+                        <button type="button" class="btn btn-sm btn-danger" (click)="removeGame(game)">Yes, delete</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingId.set(null)">Cancel</button>
+                      } @else {
+                        <a class="btn btn-sm btn-outline-primary text-nowrap" [routerLink]="['/jigsaw', it.id, 'play', game.id]">
+                          <i class="bi" [class.bi-play-fill]="isMine(game) && game.status !== 'solved'" [class.bi-eye]="!isMine(game) || game.status === 'solved'" aria-hidden="true"></i>@if (isMine(game) && game.status !== 'solved') { Continue } @else { Look }
+                        </a>
+                        @if (isMine(game)) {
+                          <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" (click)="confirmingId.set(game.id)"><i class="bi bi-trash" aria-hidden="true"></i>Delete</button>
+                        }
+                      }
                     </div>
-                    <div class="small text-body-secondary mt-1"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>Started {{ game.startedAt | date: 'medium' }}</div>
                   </div>
-                  @if (isMine(game) && confirmingId() === game.id) {
-                    <span class="small">Delete this round?</span>
-                    <button type="button" class="btn btn-sm btn-danger" (click)="removeGame(game)">Yes</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingId.set(null)">Cancel</button>
-                  } @else {
-                    <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', it.id, 'play', game.id]">
-                      <i class="bi me-1" [class.bi-play-fill]="isMine(game) && game.status !== 'solved'" [class.bi-eye]="!isMine(game) || game.status === 'solved'" aria-hidden="true"></i>@if (isMine(game) && game.status !== 'solved') { Continue } @else { Look }
-                    </a>
-                    @if (isMine(game)) {
-                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmingId.set(game.id)"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete</button>
-                    }
-                  }
                 </li>
               }
             </ul>

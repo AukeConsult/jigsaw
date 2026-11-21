@@ -5,6 +5,8 @@
 // component (what comes from data, such as the colours of an object a person made, is the one exception). A new look is a change in this file.
 // Code that draws on a canvas, which CSS cannot reach, reads the tokens with `cssVar` / `cssNumber` (`app/core/theme.ts`).
 
+@use 'sass:math';
+
 // ---- breakpoints: the same as Bootstrap's ----------------------------------------------------------------------------------------------------------
 $bp-sm: 576px;
 $bp-md: 768px;
@@ -25,6 +27,17 @@ $bp-xl: 1200px;
   }
 }
 
+/**
+ * A size that grows with the width of the window: `$min` (in rem) on a phone (375 px wide and under), `$max` (in rem) on a big screen (1400 px and over), and in
+ * between in a straight line. The sizes of the text are all made with this (see the tokens `--app-fs-*`).
+ */
+$fluid-from: 23.4375; // 375px in rem
+$fluid-to: 87.5; // 1400px in rem
+@function fluid($min, $max) {
+  $slope: math.div($max - $min, $fluid-to - $fluid-from);
+  @return clamp(#{$min}rem, calc(#{$min}rem + #{$slope} * (100vw - #{$fluid-from}rem)), #{$max}rem);
+}
+
 /** the rules inside apply to a finger (a screen that is touched), where things have to be bigger to be hit */
 @mixin touch {
   @media (pointer: coarse) {
@@ -39,8 +52,29 @@ $bp-xl: 1200px;
   // fonts
   --app-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif;
   --app-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-  --app-font-size: 1rem;
-  --app-font-size-small: 0.875rem;
+  // the sizes of the text: the ONE scale of the app. Each grows with the window, from the first size on a phone to the second on a big screen (see `fluid`). A
+  // component never sets a size of its own: it takes a class below (`.page-title`, `.section-title`, `.small` ...) or one of these tokens.
+  --app-fs-page-title: #{fluid(1.4, 2)}; // the title of a page (h1)
+  --app-fs-section: #{fluid(1.125, 1.5)}; // a part of a page (h2), and the name in the header
+  --app-fs-subsection: #{fluid(1.0625, 1.25)}; // a smaller title in a part (h3 and under)
+  --app-fs-body: #{fluid(1, 1.125)}; // the text, buttons and fields (not under 1rem: a smaller field makes a phone zoom in)
+  --app-fs-lead: #{fluid(1.125, 1.375)}; // the line under a title that says what the page is
+  --app-fs-small: #{fluid(0.8125, 0.9375)}; // help texts, dates, small buttons
+  // the buttons: three sizes, each with its text and its room round the text growing with the window (see `fluid`)
+  --app-btn-font-size: #{fluid(0.875, 1)};
+  // the room round the text is in em: it follows the text size of the button, so a button keeps its shape whatever size the text has
+  --app-btn-pad-y: 0.4em;
+  --app-btn-pad-x: 0.85em;
+  --app-btn-sm-font-size: #{fluid(0.8125, 0.875)};
+  --app-btn-sm-pad-y: 0.3em;
+  --app-btn-sm-pad-x: 0.7em;
+  --app-btn-main-font-size: #{fluid(1, 1.25)};
+  --app-btn-main-pad-y: 0.5em;
+  --app-btn-main-pad-x: 1em;
+  --app-btn-gap: 0.4em; // between the icon and the text
+  --app-fs-tiny: #{fluid(0.6875, 0.8125)}; // the tiniest text: dates and other side notes, a hint on the board (class `.tiny`)
+  --app-fs-icon-md: #{fluid(1.25, 1.5)}; // an icon beside text
+  --app-font-size: var(--app-fs-body);
   --app-line-height: 1.5;
   /* the numbers drawn on the grid of the canvas, in pixels (a number: the canvas draws them) */
   --app-grid-number-size: 10;
@@ -61,7 +95,7 @@ $bp-xl: 1200px;
   // colours: what they are used for
   --app-frame: var(--app-primary); // the frame around the picture area of a jigsaw
   --app-picked: var(--app-primary); // what is picked: the outline, the frame dragged to pick
-  --app-matched: var(--app-success); // a piece in its own place, and the blink when it clicks into place
+  --app-matched: var(--app-success); // the blink when a piece clicks into place
   --app-point-fastened: var(--app-success); // a connection point something is fastened to
   --app-point: var(--app-primary); // the other connection points
   --app-piece-outline: rgba(33, 37, 41, 0.55);
@@ -78,7 +112,6 @@ $bp-xl: 1200px;
   --app-layer-input-width: 5rem;
   --app-palette-thumb: 64px;
   --app-shape-editor-height: 320px;
-  --app-progress-height: 6px;
   --app-handle-size: 10px; // the squares that resize a figure
   --app-handle-size-large: 12px; // the handles that bend an arrow and change its width
   --app-grip-size: 28px; // the corner that sizes the helper picture
@@ -112,9 +145,12 @@ $bp-xl: 1200px;
   --bs-link-color: var(--app-primary);
   --bs-link-color-rgb: var(--app-primary-rgb);
   --bs-secondary-color: var(--app-muted);
-  --bs-progress-bar-bg: var(--app-success);
 
   @include touch {
+    // a finger needs more room to hit a button
+    --app-btn-sm-pad-y: 0.5em;
+    --app-btn-pad-y: 0.6em;
+    --app-btn-main-pad-y: 0.7em;
     --app-handle-size: 20px;
     --app-handle-size-large: 24px;
     --app-grip-size: 28px;
@@ -133,15 +169,331 @@ $bp-xl: 1200px;
   --bs-btn-disabled-border-color: var(--app-primary);
 }
 
+// The outline buttons (the ones in rows, lists and notices) have no border: a soft tint of their own colour makes them look like buttons, and they fill with the colour
+// when the pointer is over them or they are pressed (or picked, in a switch of two).
+@mixin quiet-button($colour) {
+  --bs-btn-border-color: transparent;
+  --bs-btn-bg: color-mix(in srgb, #{$colour} 10%, transparent);
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-disabled-border-color: transparent;
+}
+
 .btn-outline-primary {
   --bs-btn-color: var(--app-primary);
-  --bs-btn-border-color: var(--app-primary);
   --bs-btn-hover-bg: var(--app-primary);
-  --bs-btn-hover-border-color: var(--app-primary);
   --bs-btn-active-bg: var(--app-primary);
-  --bs-btn-active-border-color: var(--app-primary);
   --bs-btn-disabled-color: var(--app-primary);
-  --bs-btn-disabled-border-color: var(--app-primary);
+  @include quiet-button(var(--app-primary));
+}
+
+.btn-outline-secondary {
+  @include quiet-button(var(--bs-secondary));
+}
+
+.btn-outline-danger {
+  @include quiet-button(var(--bs-danger));
+}
+
+// ---- text: Bootstrap's headings, text and buttons are set to the scale above, so the whole app grows and shrinks the same way ------------------------------
+h1,
+.h1 {
+  font-size: var(--app-fs-page-title);
+}
+
+h2,
+.h2,
+h3,
+.h3 {
+  font-size: var(--app-fs-section);
+}
+
+h4,
+.h4,
+h5,
+.h5,
+h6,
+.h6 {
+  font-size: var(--app-fs-subsection);
+}
+
+// the classes a template uses for a title (instead of choosing a Bootstrap heading size)
+.page-title {
+  font-size: var(--app-fs-page-title);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.section-title {
+  font-size: var(--app-fs-section);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.subsection-title {
+  font-size: var(--app-fs-subsection);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.lead {
+  font-size: var(--app-fs-lead);
+}
+
+// the tiniest text: a date, a side note (under `small` in the scale)
+.tiny {
+  font-size: var(--app-fs-tiny);
+}
+
+small,
+.small,
+.form-text,
+.form-control-sm,
+.form-select-sm {
+  font-size: var(--app-fs-small);
+}
+
+// the buttons: `btn` is the usual one, `btn-sm` the small one (in rows and lists), `btn-main` the big one for the main action of a page (`btn-lg` is the same).
+// All three take their text size and their room from the tokens `--app-btn-*`, so they grow and shrink with the window.
+.btn {
+  --bs-btn-font-size: var(--app-btn-font-size);
+  --bs-btn-padding-y: var(--app-btn-pad-y);
+  --bs-btn-padding-x: var(--app-btn-pad-x);
+  // the icon and the text are centred on one line with a gap that follows the text size; the icon is a little bigger than the letters, as a glyph looks smaller
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--app-btn-gap);
+
+  > .bi {
+    margin: 0 !important; // the gap does the spacing (the templates' `me-1` is not needed)
+    font-size: 1.15em;
+    line-height: 1;
+  }
+}
+
+.btn-sm,
+.btn-group-sm > .btn {
+  --bs-btn-font-size: var(--app-btn-sm-font-size);
+  --bs-btn-padding-y: var(--app-btn-sm-pad-y);
+  --bs-btn-padding-x: var(--app-btn-sm-pad-x);
+}
+
+.btn-lg,
+.btn-main {
+  --bs-btn-font-size: var(--app-btn-main-font-size);
+  --bs-btn-padding-y: var(--app-btn-main-pad-y);
+  --bs-btn-padding-x: var(--app-btn-main-pad-x);
+}
+
+.form-control,
+.form-select {
+  font-size: var(--app-fs-body);
+}
+
+.form-control-sm,
+.form-select-sm {
+  font-size: var(--app-fs-small);
+}
+
+.navbar {
+  --bs-navbar-brand-font-size: var(--app-fs-section);
+}
+
+// ---- the toolbar: a row of plain words (no boxes, no padding at the sides) -----------------------------------------------------------------------------
+// The one standard for a row of choices and actions at the top of a page or a part of it. Every text in it starts exactly where it looks to start, so it lines up
+// with what is above and below it (a list, a note under it), and the gaps between the parts are one size. Use:
+//   <div class="toolbar">  <div class="segmented"> ... </div>  <a class="link-action"> ... </a>  <button class="link-action toolbar-end"> ... </button>  </div>
+//   <div class="toolbar-note"> a tiny line under it, like how many there are </div>
+//   <button class="link-inline"> a word in a sentence that does something </button>
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0.25rem;
+}
+
+/** push this part of a toolbar to its right end */
+.toolbar-end {
+  margin-left: auto;
+}
+
+.toolbar-note {
+  margin: 0.25rem 0 0.5rem;
+  font-size: var(--app-fs-tiny);
+  color: var(--bs-secondary-color);
+}
+
+// a text that does something, in the toolbar: an icon and words, no box (`danger` for one that deletes)
+.link-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-btn-gap);
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: var(--app-primary);
+  font-size: var(--app-btn-font-size);
+  line-height: var(--bs-body-line-height);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &.danger {
+    color: var(--bs-danger);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(var(--app-primary-rgb), 0.5);
+    outline-offset: 2px;
+  }
+
+  > .bi {
+    font-size: 1.15em;
+    line-height: 1;
+  }
+}
+
+// a bigger one, for the main actions of a front page (a toolbar with `toolbar-stack` puts them one under the other)
+.link-action.large {
+  font-size: var(--app-fs-lead);
+}
+
+.toolbar.toolbar-stack {
+  flex-direction: column;
+  align-items: flex-start;
+  row-gap: 0.25rem;
+}
+
+// a word in a sentence that does something (a link that is a button)
+.link-inline {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--app-primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  vertical-align: baseline;
+}
+
+// a switch of two or three choices as plain words in a row (part of a toolbar): the picked one is in the colour of the app, bold and underlined. It takes radio buttons
+// with `btn-check` and a `btn` label for each.
+.segmented {
+  display: inline-flex;
+  gap: 1rem;
+
+  > .btn {
+    --bs-btn-padding-x: 0;
+    --bs-btn-padding-y: 0.25rem;
+    --bs-btn-color: var(--bs-secondary-color);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: transparent;
+    --bs-btn-bg: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+  }
+
+  > .btn-check:checked + .btn {
+    background: transparent;
+    color: var(--app-primary);
+    border-bottom-color: var(--app-primary);
+    font-weight: 600;
+  }
+
+  > .btn-check:focus-visible + .btn {
+    outline: 2px solid rgba(var(--app-primary-rgb), 0.5);
+    outline-offset: 2px;
+  }
+}
+
+// small pictures that flow over the width and wrap to the next line (the jigsaws on the front page): each is a link with a picture of its own
+.thumb-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.thumb-tile {
+  display: block;
+  width: 4.5rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  transition: transform 0.15s;
+
+  &:hover,
+  &:focus-visible {
+    transform: scale(1.06);
+  }
+}
+
+.min-w-0 {
+  min-width: 0; // a part of a row that may shrink (and wrap its text) instead of pushing the buttons out
+}
+
+// a row of a round (in the lists of rounds). It is laid out by the width of the ROW, not of the screen (a container query): what it says (and a small picture, if there
+// is one) wraps in its own part, and the buttons sit in a column at its right when there is room, else side by side under the text.
+.round-row {
+  container-type: inline-size;
+}
+
+.round-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.round-thumb {
+  flex: 0 0 4.5rem;
+  width: 4.5rem;
+}
+
+.round-info {
+  flex: 1 1 8rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.round-actions {
+  position: relative; // above a `stretched-link` that makes the whole row a link
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  flex: 1 1 100%;
+  gap: 0.25rem;
+
+  > .btn {
+    flex: 1 1 0;
+  }
+}
+
+@container (min-width: 22rem) {
+  .round-actions {
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 5.5rem;
+
+    > .btn {
+      flex: 0 0 auto;
+    }
+  }
+}
+
+.icon-md {
+  font-size: var(--app-fs-icon-md);
 }
 
 // ---- small helpers (Bootstrap has `pe-none`, `pe-auto` and `user-select-none`) ---------------------------------------------------------------------
@@ -232,7 +584,7 @@ $bp-xl: 1200px;
   width: calc(2.5rem / var(--app-scale, 1));
   height: calc(2.5rem / var(--app-scale, 1));
   padding: 0;
-  font-size: calc(1.25rem / var(--app-scale, 1));
+  font-size: calc(var(--app-fs-lead) / var(--app-scale, 1)); // the arrow keeps its size on the screen when the board is scaled
   line-height: 1;
   opacity: 0.85;
   transform: translateY(-50%);
@@ -244,7 +596,7 @@ $bp-xl: 1200px;
   z-index: var(--app-z-controls);
   top: calc(0.25rem / var(--app-scale, 1));
   left: calc(0.5rem / var(--app-scale, 1));
-  font-size: calc(0.7rem / var(--app-scale, 1));
+  font-size: calc(var(--app-fs-tiny) / var(--app-scale, 1));
   line-height: 1;
   pointer-events: none;
   user-select: none;
@@ -336,7 +688,7 @@ $bp-xl: 1200px;
   justify-content: flex-end;
   padding: 0 3px 2px 0;
   color: var(--bs-white);
-  font-size: 0.85rem;
+  font-size: var(--app-fs-small);
   line-height: 1;
 }
 
@@ -424,12 +776,7 @@ $bp-xl: 1200px;
   stroke-opacity: var(--app-line-opacity, 1); // a colour the jigsaw chose is drawn a little see-through, as the usual one is
   stroke-width: calc(var(--app-line-width, 1) / var(--app-scale, 1)); // the same on the screen whatever the scale of the board
   stroke-linejoin: round;
-
-  &.matched {
-    stroke: var(--app-matched);
-    stroke-opacity: 1;
-    stroke-width: 2;
-  }
+  // a piece in its own place is drawn like every other piece: with the line of the jigsaw (its blink, when it clicks into place, is the only sign)
 }
 
 .piece-blank {
@@ -497,10 +844,6 @@ $bp-xl: 1200px;
 }
 
 // ---- the pages of Karins jigsaw ----------------------------------------------------------------------------------------------------------------
-.brand-hero {
-  display: block; // the big logo on the front page
-}
-
 .brand-logo {
   height: 1.75rem; // the logo in the header, left of the name
   width: auto;
@@ -546,10 +889,6 @@ $bp-xl: 1200px;
 .example-border {
   outline-style: solid;
   outline-offset: 0;
-}
-
-.progress-thin {
-  height: var(--app-progress-height);
 }
 
 // playing a jigsaw: the sidebar is docked at the left on a wide screen; on a narrow screen it is folded away behind a bar (the toggle) and opens over the board

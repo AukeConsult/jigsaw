@@ -25,8 +25,10 @@ export interface PlayStore {
   /** Changes a play as one step (nothing happens in between, so two saves do not lose each other): `change` gets the play as it is and returns it as it is to be; null when there is no such play. */
   update(jigsawId: string, playId: string, change: (current: PlayRecord) => PlayRecord): Promise<PlayRecord | null>;
   remove(jigsawId: string, playId: string): Promise<boolean>;
-  /** whether the jigsaw has been played (it has at least one play) */
+  /** whether the jigsaw has been played (it has at least one play in which a piece has been moved: a round that is only opened is not a play yet) */
   has(jigsawId: string): Promise<boolean>;
+  /** takes away the rounds nobody has moved a piece in (the jigsaw is changed, so their pieces are out of date) */
+  removeFresh(jigsawId: string): Promise<void>;
   /** takes all the plays of a jigsaw away (the jigsaw is deleted) */
   removeAll(jigsawId: string): Promise<void>;
 }
@@ -78,7 +80,11 @@ export function firestorePlayStore(): PlayStore {
       return true;
     },
     async has(jigsawId) {
-      return !(await plays(jigsawId).limit(1).get()).empty;
+      return (await plays(jigsawId).get()).docs.some((d) => !d.data().fresh);
+    },
+    async removeFresh(jigsawId) {
+      const snap = await plays(jigsawId).where("fresh", "==", true).get(); // one equality: no index needed
+      await Promise.all(snap.docs.map((d) => db().recursiveDelete(d.ref)));
     },
     async removeAll(jigsawId) {
       await db().recursiveDelete(plays(jigsawId));
@@ -106,6 +112,7 @@ export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise
     const jigsaws = await deps.jigsaws();
     const games = (await Promise.all(jigsaws.map(async (j) => (await plays.list(j.id, userId)).map((play): UserGame => ({ play, jigsaw: { id: j.id, name: j.name } })))))
       .flat()
+      .filter((g) => !g.play.fresh) // a round nobody has moved a piece in is not listed
       .sort((a, b) => b.play.startedAt - a.play.startedAt)
       .slice(0, LIST_LIMIT);
     res.json(games);
@@ -161,7 +168,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
       const error = Plays.userIdError(userId);
       if (error) return bad(res, error);
     }
-    res.json(await plays.list(idOf(req), userId));
+    res.json((await plays.list(idOf(req), userId)).filter((p) => !p.fresh)); // a round nobody has moved a piece in is not listed
   });
 
   router.post("/", async (req, res) => {
@@ -172,6 +179,9 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (error) return bad(res, error);
     const user = await deps.userOf(userId as string);
     if (!user) return bad(res, "No such user: choose a user first.", 404);
+    // opening a jigsaw again does not make another round: the player's round with no piece moved in it is the one to go on with
+    const waiting = (await plays.list(jigsaw.id, user.id)).find((p) => p.fresh);
+    if (waiting) return void res.status(200).json(waiting);
     const started = Plays.start(jigsaw, { id: user.id, name: user.name }, await deps.pieces.list(jigsaw.id), now());
     if ("error" in started) return bad(res, started.error, 409);
     res.status(201).json(await plays.create(jigsaw.id, started.play, started.positions));

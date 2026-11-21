@@ -1,5 +1,5 @@
 <main class="container-fluid py-3">
-  <h1 class="h4 mb-3">Canvas objects</h1>
+  <h1 class="page-title mb-3">Canvas objects</h1>
 
   @let d = draft();
   <div class="row g-4">
@@ -21,7 +21,7 @@
         }
       </div>
 
-      <h2 class="h5 mt-4">Draw the size</h2>
+      <h2 class="section-title mt-4">Draw the size</h2>
       <p class="text-body-secondary small mb-2">Drag in the area from one corner to the opposite corner. The width and height above follow the drag (1 screen pixel = 1 px).</p>
       <!-- the drawing area: pointer events (mouse, pen, finger); touch-action none so a finger draws instead of scrolling -->
       <div class="shape-editor position-relative border rounded bg-body-tertiary overflow-hidden user-select-none"
@@ -34,7 +34,7 @@
         }
       </div>
 
-      <h2 class="h5 mt-4">Saved objects</h2>
+      <h2 class="section-title mt-4">Saved objects</h2>
       <div class="row g-3">
         @for (item of saved(); track item.id) {
           <div class="col-6 col-md-4 col-xl-3">

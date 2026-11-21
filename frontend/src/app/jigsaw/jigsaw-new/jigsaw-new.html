@@ -1,6 +1,6 @@
 <main class="container py-4">
   <form class="form-card card card-body mx-auto" (submit)="$event.preventDefault(); save()">
-    <h1 class="h4 mb-3">
+    <h1 class="page-title mb-3">
       @if (editId) { <i class="bi bi-pencil text-primary me-2" aria-hidden="true"></i>Edit jigsaw } @else { <i class="bi bi-plus-circle text-primary me-2" aria-hidden="true"></i>New jigsaw }
     </h1>
     @if (loading()) {
@@ -122,13 +122,13 @@
         </div>
       }
       @if (stale()) {
-        <div class="form-text text-danger">The size changed since the picture was cut. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="cropping.set(true)">Adjust the picture again</button>.</div>
+        <div class="form-text text-danger">The size changed since the picture was cut. <button type="button" class="link-inline" (click)="cropping.set(true)">Adjust the picture again</button>.</div>
       } @else if (lacksPicture()) {
         <div class="form-text">This jigsaw has no picture. You can save the changes without one (the size and the pieces then stay as they are), or choose a picture (jpeg, png or webp) to give it one and change those too.</div>
       } @else if (!file()) {
         <div class="form-text">Choose the picture the jigsaw is made from (jpeg, png or webp).</div>
       } @else if (!cut()) {
-        <div class="form-text">Find the cut of the picture first. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="cropping.set(true)">Find the cut</button>.</div>
+        <div class="form-text">Find the cut of the picture first. <button type="button" class="link-inline" (click)="cropping.set(true)">Find the cut</button>.</div>
       }
     </div>
 
