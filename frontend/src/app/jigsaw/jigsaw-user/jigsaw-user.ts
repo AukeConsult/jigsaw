@@ -9,7 +9,7 @@ import { JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../..
 
 /**
  * Who plays (`/jigsaw/user`): a person makes a user (a user name and a name) or says the user name they already have. There is no password for now.
- * After that the person goes on to the page they came from (`?next=`), or to the front page.
+ * After that the person goes on to the page they came from (`?next=`); without one they stay here, with the user they chose.
  */
 @Component({
   selector: 'app-jigsaw-user',
@@ -109,12 +109,15 @@ export class JigsawUser implements OnInit {
   /** A user was picked from the list: the person plays as them, and goes on. */
   async pick(user: JigsawUserSpec): Promise<void> {
     this.users.select(user);
-    await this.router.navigateByUrl(this.target());
+    await this.goOn();
   }
 
-  /** the page to go on to: only a page of this module (a link from outside cannot send the person elsewhere) */
-  private target(): string {
-    return this.next && /^\/jigsaw(\/|$|\?)/.test(this.next) && !this.next.startsWith('//') ? this.next : '/jigsaw';
+  /**
+   * The page to go on to after a user is chosen or made: the page the person was sent from (`?next=`, only a page of this module: a link from outside cannot send them
+   * elsewhere). Without one the person came to this page on purpose (to choose another user, say) and stays here, with the user they chose and their rounds shown.
+   */
+  private async goOn(): Promise<void> {
+    if (this.next && /^\/jigsaw(\/|$|\?)/.test(this.next) && !this.next.startsWith('//')) await this.router.navigateByUrl(this.next);
   }
 
   async submit(): Promise<void> {
@@ -123,7 +126,7 @@ export class JigsawUser implements OnInit {
     const error = await this.users.create(this.username(), this.name(), this.email());
     this.busy.set(false);
     if (error) return this.error.set(error);
-    await this.router.navigateByUrl(this.target());
+    await this.goOn();
   }
 
   /** the user who plays is being edited, and what is in the form */
