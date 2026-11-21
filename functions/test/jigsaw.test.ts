@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CANVAS_MAX_PLACED, CanvasArea, CanvasDiagram, DEFAULT_OBJECT, JigsawCut, PlacedBase, PlacedFigure, pieceGrid } from "../src/models";
+import { CANVAS_MAX_PLACED, CanvasArea, CanvasDiagram, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedBase, PlacedFigure, pieceGrid } from "../src/models";
 
 /** a steady "random" so the tests give the same cut every time */
 function seeded(seed: number) {
@@ -225,6 +225,57 @@ describe("how close a piece has to be dropped, a setting of the jigsaw", () => {
   });
 });
 
+describe("the corner and edge pieces", () => {
+  const border = (columns: number, rows: number) => {
+    const cut = JigsawCut.cut(columns * 50, rows * 50, 50, () => 0.3);
+    if ("error" in cut) throw new Error(cut.error);
+    return cut.placed.map((p) => ({ col: p.piece!.col, row: p.piece!.row, isBorder: JigsawPieces.isBorder(p.piece!) }));
+  };
+
+  it("are the pieces on the border of the picture: every one that has a flat side", () => {
+    const pieces = border(4, 3);
+    expect(pieces).toHaveLength(12);
+    expect(pieces.filter((p) => p.isBorder)).toHaveLength(10); // 4 corners and 6 edge pieces: 2 × (4 + 3) − 4
+    expect(pieces.filter((p) => !p.isBorder).map((p) => [p.col, p.row])).toEqual([[1, 1], [2, 1]]); // only the two from the inside
+    for (const p of pieces) expect(p.isBorder).toBe(p.col === 0 || p.col === 3 || p.row === 0 || p.row === 2);
+  });
+
+  it("are all of a picture that is one piece wide, and the number is right for a bigger picture", () => {
+    expect(border(5, 1).every((p) => p.isBorder)).toBe(true);
+    expect(border(2, 2).every((p) => p.isBorder)).toBe(true);
+    expect(border(16, 12).filter((p) => p.isBorder)).toHaveLength(2 * (16 + 12) - 4);
+    expect(border(16, 12).filter((p) => !p.isBorder)).toHaveLength(14 * 10);
+  });
+
+  it("is told by the edges: a flat side (0) makes a piece a border piece, tabs and blanks on all four do not", () => {
+    expect(JigsawPieces.isBorder({ top: 0, right: 1, bottom: -1, left: 1 })).toBe(true);
+    expect(JigsawPieces.isBorder({ top: 0, right: 0, bottom: 1, left: -1 })).toBe(true); // a corner
+    expect(JigsawPieces.isBorder({ top: 1, right: -1, bottom: 1, left: -1 })).toBe(false);
+  });
+});
+
+describe("the frame around the picture area, a setting of the jigsaw", () => {
+  const input = { name: "Puzzle", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [] };
+
+  it("is a frame that can be seen, 4 pixels, when the jigsaw says nothing", () => {
+    expect(CanvasArea.DEFAULT_FRAME_WIDTH).toBe(4);
+    expect(CanvasArea.MAX_FRAME_WIDTH).toBe(20);
+  });
+
+  it("is saved with the jigsaw (also 0, which means no frame), and a jigsaw without it has none", () => {
+    expect(new CanvasArea({ ...input, frameWidth: 8 }).stored().frameWidth).toBe(8);
+    expect(new CanvasArea({ ...input, frameWidth: 0 }).stored().frameWidth).toBe(0);
+    expect("frameWidth" in new CanvasArea(input).stored()).toBe(false);
+    expect(CanvasArea.fromStored("x", { ...input, frameWidth: 6, createdAt: 1 }).frameWidth).toBe(6);
+    expect("frameWidth" in CanvasArea.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+  });
+
+  it("is a whole number of pixels from 0 to 20", () => {
+    for (const bad of [-1, 1.5, "4", null, 21, 500, Number.NaN]) expect(new CanvasArea({ ...input, frameWidth: bad }).error()).toContain("frame");
+    for (const good of [0, 1, 4, 20]) expect(new CanvasArea({ ...input, frameWidth: good }).error()).toBe("");
+  });
+});
+
 describe("the grid size from the number of pieces", () => {
   const layout = (w: number, h: number, n: number) => JigsawCut.layoutFor(w, h, n);
 
@@ -279,6 +330,255 @@ describe("the grid size from the number of pieces", () => {
     const big = layout(10000, 10000, 500);
     expect(big.columns * big.rows).toBeLessThanOrEqual(CANVAS_MAX_PLACED);
     expect(big.width).toBeLessThanOrEqual(10000);
+  });
+});
+
+describe("pieces that stick together", () => {
+  const size = 50;
+  const square = { ...DEFAULT_OBJECT, width: size, height: size };
+  /** a piece of the picture (col, row) lying at x, y */
+  const mk = (col: number, row: number, x: number, y: number, layer = 10) => ({
+    id: `piece-${col}-${row}`,
+    centerX: x,
+    centerY: y,
+    layer,
+    object: square,
+    piece: { col, row, top: 0, right: 0, bottom: 0, left: 0 } as const,
+  });
+  const world = (...pieces: ReturnType<typeof mk>[]) => CanvasDiagram.from(pieces, 1000, 800);
+  const at = (d: CanvasDiagram, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
+  const names = (ids: string[]) => [...ids].sort();
+
+  describe("what sticks", () => {
+    it("is neighbours in the picture that lie exactly where they belong in relation to each other", () => {
+      const d = world(mk(2, 1, 400, 300), mk(3, 1, 450, 300), mk(2, 2, 400, 350));
+      expect(names(d.stuckGroup(["piece-2-1"]))).toEqual(["piece-2-1", "piece-2-2", "piece-3-1"]);
+      expect(names(d.stuckGroup(["piece-3-1"]))).toEqual(["piece-2-1", "piece-2-2", "piece-3-1"]); // from any piece of the group
+    });
+
+    it("is a whole group: a piece sticks to what the piece it sticks to sticks to", () => {
+      const d = world(mk(0, 0, 100, 100), mk(1, 0, 150, 100), mk(2, 0, 200, 100), mk(3, 0, 250, 100), mk(4, 0, 300, 100));
+      expect(d.stuckGroup(["piece-0-0"])).toHaveLength(5);
+    });
+
+    it("is not neighbours that are a little off, nor pieces that are not neighbours in the picture", () => {
+      const off = world(mk(2, 1, 400, 300), mk(3, 1, 451, 300), mk(2, 2, 400, 350.5));
+      expect(off.stuckGroup(["piece-2-1"])).toEqual(["piece-2-1"]); // 1 px and half a pixel off
+      const far = world(mk(0, 0, 100, 100), mk(2, 0, 200, 100)); // exactly two pieces apart, but the piece between them is missing
+      expect(far.stuckGroup(["piece-0-0"])).toEqual(["piece-0-0"]);
+      const wrongWay = world(mk(2, 1, 400, 300), mk(3, 1, 350, 300)); // the right neighbour is on the left
+      expect(wrongWay.stuckGroup(["piece-2-1"])).toEqual(["piece-2-1"]);
+      const diagonal = world(mk(2, 1, 400, 300), mk(3, 2, 450, 350)); // corners touch: they are not neighbours
+      expect(diagonal.stuckGroup(["piece-2-1"])).toEqual(["piece-2-1"]);
+    });
+
+    it("sticks nothing to an object that is not a piece, and gives back what it was asked about", () => {
+      const plain = { id: "box", centerX: 400, centerY: 300, object: square };
+      const d = CanvasDiagram.from([plain, mk(2, 1, 450, 300)], 1000, 800);
+      expect(d.stuckGroup(["box"])).toEqual(["box"]);
+      expect(d.stuckGroup(["nobody"])).toEqual(["nobody"]);
+      expect(d.stuckGroup([])).toEqual([]);
+    });
+  });
+
+  describe("when it is dropped", () => {
+    it("a piece dropped close to where it fits a neighbour moves exactly there and sticks to it", () => {
+      const d = world(mk(2, 1, 400, 300), mk(3, 1, 462, 311)); // 12 px and 11 px from fitting
+      const dropped = d.dropPieces(["piece-3-1"], 25);
+      expect(at(dropped, "piece-3-1")).toEqual([450, 300]);
+      expect(at(dropped, "piece-2-1")).toEqual([400, 300]); // the one it fits did not move
+      expect(names(dropped.stuckGroup(["piece-3-1"]))).toEqual(["piece-2-1", "piece-3-1"]);
+    });
+
+    it("sticks on any side: below, above, left", () => {
+      for (const [col, row, x, y, expected] of [[2, 2, 395, 360, [400, 350]], [2, 0, 406, 238, [400, 250]], [1, 1, 342, 296, [350, 300]]] as const) {
+        const d = world(mk(2, 1, 400, 300), mk(col, row, x, y));
+        expect(at(d.dropPieces([`piece-${col}-${row}`], 25), `piece-${col}-${row}`)).toEqual(expected);
+      }
+    });
+
+    it("does not stick when it is dropped further away than the range, or when the range is 0", () => {
+      const d = world(mk(2, 1, 400, 300), mk(3, 1, 480, 300)); // 30 px from fitting
+      expect(d.dropPieces(["piece-3-1"], 25)).toBe(d);
+      expect(d.dropPieces(["piece-3-1"], 29)).toBe(d);
+      expect(at(d.dropPieces(["piece-3-1"], 30), "piece-3-1")).toEqual([450, 300]); // just in
+      const near = world(mk(2, 1, 400, 300), mk(3, 1, 455, 302));
+      expect(near.dropPieces(["piece-3-1"], 0)).toBe(near);
+    });
+
+    it("does not stick to a piece that is not a neighbour in the picture, even if it is close", () => {
+      const d = world(mk(2, 1, 400, 300), mk(5, 4, 452, 301)); // right beside it, but it belongs far away
+      expect(d.dropPieces(["piece-5-4"], 25)).toBe(d);
+    });
+
+    it("moves a whole group, and the group sticks to what it fits: all the pieces keep their places in relation to each other", () => {
+      const d = world(mk(0, 0, 100, 100), mk(1, 0, 150, 100), mk(2, 0, 204, 108), mk(3, 0, 254, 108)); // two groups of two, the second 4 and 8 px off
+      expect(d.stuckGroup(["piece-2-0"]).sort()).toEqual(["piece-2-0", "piece-3-0"]);
+      const dropped = d.dropPieces(["piece-2-0"], 25); // the group of the piece that was dropped
+      expect([at(dropped, "piece-2-0"), at(dropped, "piece-3-0")]).toEqual([[200, 100], [250, 100]]);
+      expect(dropped.stuckGroup(["piece-0-0"])).toHaveLength(4);
+    });
+
+    it("takes the smallest step when it could stick in more than one way", () => {
+      // piece 2,1 can fit the one on its left (needs 10 px) or the one above it (needs 4 px): it takes the smaller
+      const d = world(mk(1, 1, 300, 300), mk(2, 0, 454, 250), mk(2, 1, 360, 304));
+      const dropped = d.dropPieces(["piece-2-1"], 25);
+      expect(at(dropped, "piece-2-1")).toEqual([350, 300]); // 10 px right, 4 px up: the left neighbour is 10 px away, above it is farther
+    });
+
+    it("clicks onto its own place when that is nearer than a neighbour", () => {
+      const d = world(mk(2, 1, 125, 75), mk(3, 1, 200, 100)); // piece 3,1 belongs at 175, 75, and its neighbour is at home too: fitting the neighbour is the same place
+      expect(at(d.dropPieces(["piece-3-1"], 40), "piece-3-1")).toEqual([175, 75]);
+      const farOff = world(mk(2, 1, 125, 75), mk(3, 1, 330, 200)); // about 199 px from its place: out of a range of 150
+      expect(farOff.dropPieces(["piece-3-1"], 150)).toBe(farOff);
+      const alone = world(mk(3, 1, 180, 82));
+      expect(at(alone.dropPieces(["piece-3-1"], 25), "piece-3-1")).toEqual([175, 75]); // no neighbours: its own place
+    });
+
+    it("clicks exactly or not at all: when the area has no room for the step, the group stays where it was dropped", () => {
+      const room = CanvasDiagram.from([mk(0, 0, 25, 25), mk(1, 0, 90, 25)], 200, 100); // piece 1,0 is 15 px from fitting, to the right: there is room
+      expect(at(room.dropPieces(["piece-1-0"], 25), "piece-1-0")).toEqual([75, 25]);
+      const edge = CanvasDiagram.from([mk(6, 5, 30, 100), mk(5, 5, 12, 100)], 200, 300); // piece 5,5 would have to go to x = 30 - 50 = -20, outside the area
+      expect(edge.dropPieces(["piece-5-5"], 40)).toBe(edge); // not moved a little towards it
+      const group = CanvasDiagram.from([mk(6, 5, 30, 100), mk(5, 5, 12, 100), mk(5, 6, 12, 150)], 200, 300); // the group of 5,5 and 5,6 has no room either
+      expect(group.dropPieces(["piece-5-5"], 40)).toBe(group);
+    });
+
+    it("several groups that were dropped together each click on their own", () => {
+      const d = world(mk(2, 1, 400, 300), mk(3, 1, 462, 308), mk(7, 5, 600, 500), mk(8, 5, 662, 508));
+      const dropped = d.dropPieces(["piece-3-1", "piece-8-5"], 25);
+      expect([at(dropped, "piece-3-1"), at(dropped, "piece-8-5")]).toEqual([[450, 300], [650, 500]]);
+    });
+
+    it("lets pieces that are stuck go on being stuck when one of them is moved away alone", () => {
+      const d = world(mk(2, 1, 400, 300), mk(3, 1, 450, 300));
+      expect(d.stuckGroup(["piece-2-1"])).toHaveLength(2);
+      const away = d.moveFigure("piece-3-1", 700.5, 500, 50, 25);
+      expect(away.stuckGroup(["piece-2-1"])).toEqual(["piece-2-1"]); // it was pulled loose: no longer where it belongs in relation to its neighbour
+      expect(away.stuckGroup(["piece-3-1"])).toEqual(["piece-3-1"]);
+    });
+  });
+});
+
+describe("collecting the pieces in the store frame", () => {
+  const size = 50;
+  const square = { ...DEFAULT_OBJECT, width: size, height: size };
+  const mk = (col: number, row: number, x: number, y: number, layer = 10) => ({
+    id: `piece-${col}-${row}`,
+    centerX: x,
+    centerY: y,
+    layer,
+    object: square,
+    piece: { col, row, top: 0, right: 0, bottom: 0, left: 0 } as const,
+  });
+  // the area: a canvas 400 wide, then the store frame from x = 450, 300 wide, and 1200 high
+  const frame = { left: 450, top: 0, width: 300 };
+  const world = (...pieces: ReturnType<typeof mk>[]) => CanvasDiagram.from(pieces, 750, 1200);
+  const at = (d: CanvasDiagram, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
+  const left = (d: CanvasDiagram, id: string) => d.get(id)!.centerX - size / 2;
+  const top = (d: CanvasDiagram, id: string) => d.get(id)!.centerY - size / 2;
+
+  it("puts the pieces together at the top of the frame, in rows from the top left, close to each other", () => {
+    const d = world(mk(0, 0, 700, 900), mk(1, 0, 500, 400), mk(2, 0, 600, 700), mk(3, 0, 480, 1100));
+    const c = d.collectPieces(d.items.map((i) => i.id), frame);
+    const margin = Math.round(0.35 * size); // 18
+    const gap = Math.round(0.3 * size); // 15
+    // reading order of how they lay: from the top down: 1,0 (400), 2,0 (700), 0,0 (900), 3,0 (1100)
+    expect([left(c, "piece-1-0"), top(c, "piece-1-0")]).toEqual([frame.left + margin, margin]);
+    expect(left(c, "piece-2-0")).toBe(frame.left + margin + size + gap);
+    expect(top(c, "piece-2-0")).toBe(margin); // the same row
+    expect(left(c, "piece-0-0")).toBe(frame.left + margin + 2 * (size + gap));
+    expect(top(c, "piece-0-0")).toBe(margin);
+    // the frame is 300 wide, and a row can go to 18 px from its right edge: four pieces fit (the fourth ends at 713, the limit is 732), so all four are in one row
+    expect(left(c, "piece-3-0")).toBe(frame.left + margin + 3 * (size + gap));
+    expect(top(c, "piece-3-0")).toBe(margin);
+  });
+
+  it("with a random, the pieces lie more by chance: the places and the distances differ, and every piece is still inside the frame", () => {
+    const pieces = Array.from({ length: 12 }, (_, i) => mk(i, 0, 470 + (i % 5) * 50, 100 + i * 80));
+    const d = world(...pieces);
+    let seed = 7;
+    const random = () => ((seed = (seed * 16807) % 2147483647) / 2147483647); // the same numbers every run
+    const tidy = d.collectPieces(d.items.map((i) => i.id), frame);
+    const loose = d.collectPieces(d.items.map((i) => i.id), frame, random);
+    expect(loose).not.toBe(tidy);
+    const gaps = new Set(pieces.slice(0, 11).map((_, i) => Math.round(left(loose, pieces[i + 1].id) - left(loose, pieces[i].id))));
+    expect(gaps.size).toBeGreaterThan(2); // not one distance every time
+    for (const p of pieces) {
+      expect(left(loose, p.id)).toBeGreaterThanOrEqual(frame.left);
+      expect(left(loose, p.id) + size).toBeLessThanOrEqual(frame.left + frame.width);
+      expect(top(loose, p.id)).toBeGreaterThanOrEqual(0);
+    }
+    // no piece is put on another: they are at least a gap apart or in another row (the same pieces as the tidy way, only further apart)
+    expect(new Set(pieces.map((p) => at(loose, p.id).join(","))).size).toBe(12);
+  });
+
+  it("wraps to the next row when the row is full, and every piece is inside the frame", () => {
+    const pieces = Array.from({ length: 12 }, (_, i) => mk(i, 0, 470 + (i % 5) * 50, 100 + i * 80));
+    const d = world(...pieces);
+    const c = d.collectPieces(d.items.map((i) => i.id), frame);
+    const tops = new Set(pieces.map((p) => top(c, p.id)));
+    expect(tops.size).toBeGreaterThan(1); // more than one row
+    for (const p of pieces) {
+      expect(left(c, p.id)).toBeGreaterThanOrEqual(frame.left);
+      expect(left(c, p.id) + size).toBeLessThanOrEqual(frame.left + frame.width);
+      expect(top(c, p.id)).toBeGreaterThanOrEqual(0);
+    }
+    // all of the first row is higher than all of the second
+    const rows = [...tops].sort((a, b) => a - b);
+    expect(rows[1] - rows[0]).toBe(size + Math.round(0.3 * size));
+  });
+
+  it("does not put one piece over another", () => {
+    const pieces = Array.from({ length: 20 }, (_, i) => mk(i % 8, Math.floor(i / 8), 480 + ((i * 37) % 240), 100 + ((i * 91) % 1000)));
+    const d = world(...pieces);
+    const c = d.collectPieces(d.items.map((i) => i.id), frame);
+    for (const a of pieces) {
+      for (const b of pieces) {
+        if (a.id === b.id) continue;
+        const apart = Math.abs(c.get(a.id)!.centerX - c.get(b.id)!.centerX) >= size || Math.abs(c.get(a.id)!.centerY - c.get(b.id)!.centerY) >= size;
+        expect(apart).toBe(true);
+      }
+    }
+  });
+
+  it("keeps the pieces that stick together as they are in relation to each other, and puts them where one piece would go", () => {
+    const d = world(mk(2, 1, 600, 800), mk(3, 1, 650, 800), mk(2, 2, 600, 850), mk(7, 7, 520, 200));
+    expect(d.stuckGroup(["piece-2-1"])).toHaveLength(3);
+    const c = d.collectPieces(d.items.map((i) => i.id), frame);
+    expect(at(c, "piece-3-1")[0] - at(c, "piece-2-1")[0]).toBe(50); // still exactly one piece apart
+    expect(at(c, "piece-2-2")[1] - at(c, "piece-2-1")[1]).toBe(50);
+    expect(c.stuckGroup(["piece-2-1"])).toHaveLength(3); // still stuck
+    // the loose piece lay higher: it is first, and the group comes after it, in the same row
+    expect(top(c, "piece-7-7")).toBe(Math.round(0.35 * size));
+    expect(left(c, "piece-2-1")).toBe(frame.left + Math.round(0.35 * size) + size + Math.round(0.3 * size));
+    expect(top(c, "piece-2-1")).toBe(Math.round(0.35 * size));
+  });
+
+  it("collects only the pieces it is asked for, and not a group that has a piece that is not in the frame", () => {
+    const d = world(mk(2, 1, 600, 800), mk(3, 1, 650, 800), mk(7, 7, 520, 200), mk(0, 0, 100, 100));
+    const c = d.collectPieces(["piece-2-1", "piece-7-7"], frame); // 3,1 sticks to 2,1 but is not asked for: the group stays; 0,0 is on the canvas
+    expect(at(c, "piece-2-1")).toEqual(at(d, "piece-2-1"));
+    expect(at(c, "piece-3-1")).toEqual(at(d, "piece-3-1"));
+    expect(at(c, "piece-0-0")).toEqual([100, 100]);
+    expect(top(c, "piece-7-7")).toBe(Math.round(0.35 * size));
+  });
+
+  it("keeps the layers, ignores what is not a piece, and changes nothing when there is nothing to collect or it is collected already", () => {
+    const plain = { id: "box", centerX: 600, centerY: 600, object: square };
+    const d = CanvasDiagram.from([plain, mk(1, 0, 500, 400, 33)], 750, 1200);
+    const c = d.collectPieces(["box", "piece-1-0", "nobody"], frame);
+    expect(c.get("piece-1-0")!.layer).toBe(33);
+    expect(at(c, "box")).toEqual([600, 600]);
+    expect(d.collectPieces([], frame)).toBe(d);
+    expect(d.collectPieces(["box"], frame)).toBe(d);
+    expect(c.collectPieces(["piece-1-0"], frame)).toBe(c); // already at the top
+  });
+
+  it("is a valid arrangement: places are whole or half pixels and everything is inside the area", () => {
+    const pieces = Array.from({ length: 30 }, (_, i) => mk(i % 6, Math.floor(i / 6), 470 + ((i * 53) % 250), 60 + i * 37));
+    const c = world(...pieces).collectPieces(pieces.map((p) => p.id), frame);
+    expect(CanvasDiagram.validate(c.toData(), 750, 1200)).toBe("");
   });
 });
 

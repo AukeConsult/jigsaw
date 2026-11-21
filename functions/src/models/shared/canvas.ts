@@ -41,16 +41,18 @@ export interface CanvasSpec {
   storeWidth?: number;
   /** a jigsaw, a game setting: how close to the grid point it belongs on a piece has to be dropped to click into place, in percent of the grid size (0: never; without it, 50) */
   snapPercent?: number;
+  /** a jigsaw: how thick the frame around the picture area is, in pixels (0: no frame; without it, `CanvasArea.DEFAULT_FRAME_WIDTH`); chosen when the jigsaw is made */
+  frameWidth?: number;
   /** milliseconds since 1970 */
   createdAt: number;
 }
 
 /** What the page sends to make a canvas area. */
-export type CanvasInput = Pick<CanvasSpec, 'name' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent'>;
+export type CanvasInput = Pick<CanvasSpec, 'name' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth'>;
 
 /** A canvas area as it comes from outside (the page, the API): it checks itself. */
 export class CanvasArea {
-  constructor(readonly input: { name?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown }) {}
+  constructor(readonly input: { name?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown }) {}
 
   /**
    * A side of a canvas whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -80,6 +82,11 @@ export class CanvasArea {
   /** How close a piece has to be dropped to its own grid point to click into place when the jigsaw says nothing: half a grid step (50 %). */
   static readonly DEFAULT_SNAP_PERCENT = 50;
 
+  /** How thick the frame around the picture area of a jigsaw is when the jigsaw says nothing: 4 pixels, a frame that can be seen. */
+  static readonly DEFAULT_FRAME_WIDTH = 4;
+  /** The thickest frame, in pixels. */
+  static readonly MAX_FRAME_WIDTH = 20;
+
   /** the snap range in pixels: a percent of the grid size */
   static snapRangePx(percent: number, grid: number): number {
     return grid > 0 && percent > 0 ? (percent / 100) * grid : 0;
@@ -97,6 +104,7 @@ export class CanvasArea {
       placed: (i.placed as PlacedObject[]).map((p) => PlacedBase.stored(p)),
       ...(i.storeWidth ? { storeWidth: i.storeWidth as number } : {}),
       ...(i.snapPercent !== undefined ? { snapPercent: i.snapPercent as number } : {}),
+      ...(i.frameWidth !== undefined ? { frameWidth: i.frameWidth as number } : {}),
     };
   }
 
@@ -112,6 +120,7 @@ export class CanvasArea {
       placed: (doc.placed ?? []).map((p) => PlacedBase.fromStored(p)),
       ...(doc.storeWidth ? { storeWidth: doc.storeWidth } : {}),
       ...(doc.snapPercent !== undefined ? { snapPercent: doc.snapPercent } : {}),
+      ...(doc.frameWidth !== undefined ? { frameWidth: doc.frameWidth } : {}),
       createdAt: doc.createdAt ?? 0,
     };
   }
@@ -139,6 +148,10 @@ export class CanvasArea {
     const range = input.snapPercent;
     if (range !== undefined && (typeof range !== 'number' || !Number.isInteger(range) || range < 0 || range > 100)) {
       return 'The snap range must be a whole number of percent of the grid size, from 0 (a piece never clicks into place) to 100.';
+    }
+    const frame = input.frameWidth;
+    if (frame !== undefined && (typeof frame !== 'number' || !Number.isInteger(frame) || frame < 0 || frame > CanvasArea.MAX_FRAME_WIDTH)) {
+      return `The frame must be a whole number of pixels from 0 (no frame) to ${CanvasArea.MAX_FRAME_WIDTH}.`;
     }
     const extent = CanvasArea.extent(input.width as number, input.height as number, grid, store);
     return CanvasDiagram.validate(input.placed, extent.width, extent.height);

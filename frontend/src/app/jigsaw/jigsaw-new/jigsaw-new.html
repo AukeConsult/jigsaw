@@ -1,0 +1,87 @@
+<main class="container py-4">
+  <form class="form-card card card-body mx-auto" (submit)="$event.preventDefault(); save()">
+    <h1 class="h4 mb-3">New jigsaw</h1>
+
+    <div class="mb-3">
+      <label class="form-label" for="jigsaw-name">Name</label>
+      <input id="jigsaw-name" name="name" class="form-control" type="text" [maxlength]="maxName" [ngModel]="name()" (ngModelChange)="name.set($event)">
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label" for="jigsaw-width">Width (px)</label>
+        <input id="jigsaw-width" name="width" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
+               [ngModel]="width()" (ngModelChange)="width.set($event)" (change)="relayout('width')">
+      </div>
+      <div class="col-6">
+        <label class="form-label" for="jigsaw-height">Height (px)</label>
+        <input id="jigsaw-height" name="height" class="form-control" type="number" [min]="minSide" [max]="maxSide" step="1"
+               [ngModel]="height()" (ngModelChange)="height.set($event)" (change)="relayout('height')">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="piece-count">Pieces</label>
+      <input id="piece-count" name="pieceCount" class="form-control" type="number" min="2" max="500" step="1"
+             [ngModel]="pieceCount()" (ngModelChange)="pieceCount.set($event)" (change)="relayout('pieces')">
+      <div class="form-text" role="status">Grid: {{ gridSize() }} px ({{ pieceInfo().columns }} × {{ pieceInfo().rows }} pieces). The grid size is worked out from the number of pieces.</div>
+    </div>
+
+    <div class="form-check form-switch mb-3">
+      <input id="jigsaw-grid-visible" name="gridVisible" class="form-check-input" type="checkbox" role="switch" [ngModel]="gridVisible()" (ngModelChange)="gridVisible.set($event)">
+      <label class="form-check-label" for="jigsaw-grid-visible">Show the grid points</label>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="snap-range">Snap range (% of the grid)</label>
+      <input id="snap-range" name="snapPercent" class="form-control" type="number" min="0" max="100" step="1"
+             [ngModel]="snapPercent()" (ngModelChange)="snapPercent.set($event === null || $event === '' ? 0 : $event)">
+      <div class="form-text">A piece clicks into place when it is dropped this close to its own grid point (0: never).</div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="jigsaw-frame">Frame (px)</label>
+      <input id="jigsaw-frame" name="frameWidth" class="form-control" type="number" min="0" [max]="maxFrame" step="1"
+             [ngModel]="frameWidth()" (ngModelChange)="frameWidth.set($event === null || $event === '' ? 0 : $event)">
+      <div class="form-text">A frame around the picture area, so you can see where the picture is built (0: no frame).</div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="jigsaw-picture">Picture</label>
+      <input id="jigsaw-picture" name="picture" type="file" class="form-control" accept="image/jpeg,image/png,image/webp" (change)="choosePicture($event)">
+      @if (preview(); as src) {
+        <div class="d-flex align-items-start gap-3 mt-2">
+          <img [src]="src" class="cut-preview border rounded" alt="The picture as it is cut">
+          <div class="small">
+            <div class="text-body-secondary">The cut of the picture, in the shape of the canvas.</div>
+            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" (click)="cropping.set(true)">Adjust the cut</button>
+          </div>
+        </div>
+      }
+      @if (stale()) {
+        <div class="form-text text-danger">The size changed since the picture was cut. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="cropping.set(true)">Adjust the picture again</button>.</div>
+      } @else if (!file()) {
+        <div class="form-text">Choose the picture the jigsaw is made from (jpeg, png or webp).</div>
+      } @else if (!cut()) {
+        <div class="form-text">Find the cut of the picture first. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="cropping.set(true)">Find the cut</button>.</div>
+      }
+    </div>
+
+    @if (problem()) {
+      <div class="alert alert-warning py-2 small" role="alert">{{ problem() }}</div>
+    }
+    @if (error()) {
+      <div class="alert alert-danger py-2 small" role="alert">{{ error() }}</div>
+    }
+
+    <div class="d-flex justify-content-end gap-2">
+      <a class="btn btn-outline-secondary" routerLink="/jigsaw">Cancel</a>
+      <button type="submit" class="btn btn-primary" [disabled]="!canSave()">
+        @if (saving()) { Making the jigsaw… } @else { Save and start }
+      </button>
+    </div>
+  </form>
+</main>
+@if (cropping() && file(); as chosen) {
+  <app-picture-cropper [file]="chosen" [width]="width()" [height]="height()" (use)="useCut($event)" (cancel)="cropping.set(false)" />
+}

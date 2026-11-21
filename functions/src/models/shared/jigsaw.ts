@@ -223,6 +223,14 @@ export class JigsawPieces {
     return row * columns + col + 1;
   }
 
+  /**
+   * Whether a piece is a corner or an edge piece: it lies on the border of the picture, so it has a flat side (a corner has two). The pieces from the inside
+   * of the picture have a tab or a blank on all four sides.
+   */
+  static isBorder(piece: Pick<JigsawPiece, 'top' | 'right' | 'bottom' | 'left'>): boolean {
+    return piece.top === 0 || piece.right === 0 || piece.bottom === 0 || piece.left === 0;
+  }
+
   /** whether a piece lies on its own place: the centre of its cell of the picture */
   static matched(piece: Pick<JigsawPiece, 'col' | 'row' | 'size' | 'centerX' | 'centerY'>): boolean {
     const tolerance = JigsawPieces.MATCH_TOLERANCE_PX;

@@ -9,6 +9,7 @@ import {
   PlacedArrow,
   PlacedBase,
   PlacedConnections,
+  PiecePlace,
   PlacedFigure,
   PlacedObject,
   PlacedPoint,
@@ -25,6 +26,15 @@ export const HANDLE_RADIUS_PX = 12;
 /** A jigsaw piece is moved in steps this many times smaller than the grid (it does not stick to the grid points), made a whole number of half pixels (a place is a whole or a half pixel), and not finer than a half pixel. */
 export const PIECE_STEP_DIVISOR = 50;
 export const PIECE_MIN_STEP_PX = 0.5;
+/** Two pieces stick together when they are this close (pixels) to where they belong in relation to each other (places are whole or half pixels, so it is exact). */
+export const STICK_TOLERANCE_PX = 0.01;
+/** Collected pieces lie this far (as a share of the size of a piece) from the top and the sides of the frame, and this far from each other: close, with room for the tabs. */
+export const COLLECT_MARGIN = 0.35;
+export const COLLECT_GAP = 0.3;
+/** With a `random` for `collectPieces`, each piece is put up to this share of its size further along and further down than the tidy place: the pieces lie more as they would by hand. */
+export const COLLECT_SCATTER = 0.3;
+/** The pieces beside a piece in the picture: left, right, above, below, as [columns, rows]. */
+const PIECE_NEIGHBOURS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
 /** One end of a placed arrow that is fastened to one point of a placed figure. */
 export interface Fastening {
@@ -280,22 +290,147 @@ export class CanvasDiagram {
   }
 
   /**
-   * A jigsaw piece that is dropped within `range` pixels of the grid point it belongs on (its home, see `PlacedFigure.home`) clicks into place: it goes
-   * exactly there. Only pieces are looked at, and only when they are dropped, not while they are moved. `range` 0 (or less) means no piece clicks.
-   * Nothing changes (the same diagram) when no piece is near enough.
+   * Collects jigsaw pieces: the pieces of `ids` are put together at the top of `frame` (its left edge, its top and its width, in the pixels the objects
+   * are placed in), in rows from the top left, close to each other (`COLLECT_GAP`), the way they were lying: from the top down, and in a row from left
+   * to right. The pieces that stick together (see `stuckGroup`) stay as they are in relation to each other and are put as one piece; a group that has a
+   * piece that is not in `ids` is not collected (it is not all in the frame). Pieces keep their layers. The same diagram when nothing moves. With `random` (numbers from 0 up to 1) the pieces are put a little more by chance (`COLLECT_SCATTER`), not in tidy rows.
+   */
+  collectPieces(ids: readonly string[], frame: { left: number; top: number; width: number }, random?: () => number): CanvasDiagram {
+    const wanted = new Set(ids);
+    const seen = new Set<string>();
+    const blocks: { members: PlacedFigure[]; box: Box }[] = [];
+    for (const id of ids) {
+      const first = this.get(id);
+      if (seen.has(id) || !(first instanceof PlacedFigure) || !first.data.piece) continue;
+      const group = this.stuckGroup([id]);
+      for (const member of group) seen.add(member);
+      if (!group.every((member) => wanted.has(member))) continue; // some of the group is somewhere else
+      const members = group.map((member) => this.get(member)).filter((m): m is PlacedFigure => m instanceof PlacedFigure);
+      const boxes = members.map((m) => m.box());
+      const left = Math.min(...boxes.map((b) => b.left));
+      const top = Math.min(...boxes.map((b) => b.top));
+      blocks.push({ members, box: { left, top, width: Math.max(...boxes.map((b) => b.left + b.width)) - left, height: Math.max(...boxes.map((b) => b.top + b.height)) - top } });
+    }
+    if (!blocks.length) return this;
+    const size = blocks[0].members[0].object.width;
+    const margin = Math.round(COLLECT_MARGIN * size);
+    const gap = Math.round(COLLECT_GAP * size);
+    const rowOf = (b: Box) => Math.round(b.top / size);
+    blocks.sort((a, b) => rowOf(a.box) - rowOf(b.box) || a.box.left - b.box.left);
+
+    const moved = new Map<string, PlacedFigure>();
+    const right = frame.left + frame.width - margin;
+    let x = frame.left + margin;
+    let y = frame.top + margin;
+    let rowHeight = 0;
+    for (const block of blocks) {
+      const moreX = random ? Math.round(random() * COLLECT_SCATTER * size) : 0; // a little further along than the tidy place
+      const moreY = random ? Math.round(random() * COLLECT_SCATTER * size) : 0; // and a little further down
+      if (x > frame.left + margin && x + moreX + block.box.width > right) {
+        y += rowHeight + gap + (random ? Math.round(random() * COLLECT_SCATTER * size) : 0); // the row is full: the next one, a different distance away each time
+        x = frame.left + margin;
+        rowHeight = 0;
+      }
+      const dx = x + moreX - block.box.left;
+      const dy = y + moreY - block.box.top;
+      x += moreX + block.box.width + gap;
+      rowHeight = Math.max(rowHeight, block.box.height + moreY);
+      const placed = block.members.map((m) => m.at(m.centerX + Math.round(dx * 2) / 2, m.centerY + Math.round(dy * 2) / 2));
+      if (!placed.every((m) => m.fits(this.width, this.height))) continue; // no room in the area for it: it stays
+      for (const m of placed) moved.set(m.id, m);
+    }
+    const changed = [...moved.values()].some((m) => m.centerX !== this.get(m.id)?.centerX || m.centerY !== this.get(m.id)?.centerY);
+    return changed ? this.with(this.items.map((item) => moved.get(item.id) ?? item)) : this;
+  }
+
+  /** the jigsaw pieces of the diagram by where they belong in the picture: "column,row" */
+  private pieceMap(): Map<string, PlacedFigure> {
+    const map = new Map<string, PlacedFigure>();
+    for (const item of this.items) if (item instanceof PlacedFigure && item.data.piece) map.set(`${item.data.piece.col},${item.data.piece.row}`, item);
+    return map;
+  }
+
+  /**
+   * Everything that sticks to these objects, and them: two jigsaw pieces stick together when they are neighbours in the picture (next to each other, or one
+   * over the other) and lie exactly where they belong in relation to each other, one piece away. A piece that sticks to a piece sticks to what that piece
+   * sticks to, so this is a whole group. Nothing is kept of it: it follows from where the pieces are, so a saved jigsaw that is opened has the same groups.
+   * An object that is not a piece sticks to nothing and is only itself.
+   */
+  stuckGroup(ids: readonly string[]): string[] {
+    const map = this.pieceMap();
+    const group = new Set<string>(ids);
+    const queue: PlacedFigure[] = [];
+    for (const id of ids) {
+      const item = this.get(id);
+      if (item instanceof PlacedFigure && item.data.piece) queue.push(item);
+    }
+    while (queue.length) {
+      const p = queue.pop() as PlacedFigure;
+      const piece = p.data.piece as PiecePlace;
+      const size = p.object.width;
+      for (const [dc, dr] of PIECE_NEIGHBOURS) {
+        const q = map.get(`${piece.col + dc},${piece.row + dr}`);
+        if (!q || group.has(q.id) || q.object.width !== size) continue;
+        if (Math.abs(q.centerX - p.centerX - dc * size) <= STICK_TOLERANCE_PX && Math.abs(q.centerY - p.centerY - dr * size) <= STICK_TOLERANCE_PX) {
+          group.add(q.id);
+          queue.push(q);
+        }
+      }
+    }
+    return [...group];
+  }
+
+  /**
+   * Jigsaw pieces that are dropped: each group of pieces that stick together (see `stuckGroup`) that was dropped clicks into place when it comes close
+   * enough, within `range` pixels, of one of two things: its own grid point (the home of a piece in it, see `PlacedFigure.home`), or the place where a
+   * piece in it fits a neighbour that is not in the group (so the group sticks to it). The whole group moves by the smallest of these steps, so the
+   * piece is exactly there, and the groups that now fit each other stick together. Only pieces are looked at, and only when they are dropped, not while
+   * they are moved. `range` 0 (or less) means nothing clicks. Nothing changes (the same diagram) when nothing is near enough.
    */
   dropPieces(ids: readonly string[], range: number): CanvasDiagram {
     if (!(range > 0)) return this;
-    const placed = new Map<string, PlacedFigure>();
+    let diagram: CanvasDiagram = this;
+    const done = new Set<string>();
     for (const id of ids) {
-      const figure = this.get(id);
-      const home = figure instanceof PlacedFigure ? figure.home() : null;
-      if (figure instanceof PlacedFigure && home && Math.hypot(figure.centerX - home.x, figure.centerY - home.y) <= range) placed.set(id, figure.at(home.x, home.y));
+      if (done.has(id)) continue;
+      const group = diagram.stuckGroup([id]);
+      for (const member of group) done.add(member);
+      diagram = diagram.snapGroup(group, range);
     }
-    const changed = [...placed.entries()].filter(([id, f]) => f.centerX !== this.get(id)!.centerX || f.centerY !== this.get(id)!.centerY);
-    if (!changed.length) return this;
-    const now = new Map(changed);
-    return this.with(this.items.map((item) => now.get(item.id) ?? item));
+    return diagram;
+  }
+
+  /** the group moved by the smallest step that puts a piece of it on its own place or exactly beside a neighbour, when that step is at most `range` */
+  private snapGroup(group: readonly string[], range: number): CanvasDiagram {
+    const inGroup = new Set(group);
+    const map = this.pieceMap();
+    let best: { dx: number; dy: number; distance: number } | null = null;
+    const consider = (dx: number, dy: number) => {
+      const distance = Math.hypot(dx, dy);
+      if (distance <= range && (!best || distance < best.distance - 1e-9)) best = { dx, dy, distance };
+    };
+    for (const id of group) {
+      const p = this.get(id);
+      if (!(p instanceof PlacedFigure) || !p.data.piece) continue;
+      const home = p.home();
+      if (home) consider(home.x - p.centerX, home.y - p.centerY);
+      const size = p.object.width;
+      for (const [dc, dr] of PIECE_NEIGHBOURS) {
+        const q = map.get(`${p.data.piece.col + dc},${p.data.piece.row + dr}`);
+        if (!q || inGroup.has(q.id) || q.object.width !== size) continue;
+        consider(q.centerX - dc * size - p.centerX, q.centerY - dr * size - p.centerY); // the step that puts p exactly where it fits q
+      }
+    }
+    const step = best as { dx: number; dy: number } | null;
+    if (!step) return this;
+    // it clicks exactly or not at all: when the area does not have room for the whole step (the group would go outside), it stays where it was dropped
+    const moved = this.moveGroup(group, step.dx, step.dy);
+    const probe = this.get(group[0]);
+    const now = moved.get(group[0]);
+    if (!probe || !now) return this;
+    const wantedX = probe.centerX + Math.round(step.dx * 2) / 2;
+    const wantedY = probe.centerY + Math.round(step.dy * 2) / 2;
+    return Math.abs(now.centerX - wantedX) < 1e-9 && Math.abs(now.centerY - wantedY) < 1e-9 ? moved : this;
   }
 
   /**

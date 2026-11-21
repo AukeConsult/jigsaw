@@ -1,0 +1,69 @@
+@let o = object();
+@let b = box();
+<svg class="shape-svg" [attr.width]="b.shownW" [attr.height]="b.shownH" [attr.viewBox]="'0 0 ' + b.w + ' ' + b.h" role="img" [attr.aria-label]="o.shape + ' ' + o.name">
+  @switch (o.shape) {
+    @case ('square') {
+      <rect [attr.x]="inset()" [attr.y]="inset()" [attr.width]="b.w - o.borderWidth" [attr.height]="b.h - o.borderWidth" [attr.rx]="radius()"
+            [attr.fill]="o.backgroundColor" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" />
+    }
+    @case ('circle') {
+      <ellipse [attr.cx]="b.w / 2" [attr.cy]="b.h / 2" [attr.rx]="(b.w - o.borderWidth) / 2" [attr.ry]="(b.h - o.borderWidth) / 2"
+               [attr.fill]="o.backgroundColor" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" />
+    }
+    @case ('triangle') {
+      <path [attr.d]="triangle()" [attr.fill]="o.backgroundColor" [attr.stroke]="o.borderColor"
+               [attr.stroke-width]="o.borderWidth" stroke-linejoin="round" />
+    }
+    @case ('line') {
+      @if (curved(); as c) {
+        <!-- a bent arrow follows its curve: a line with filled heads, or the outline of a block arrow -->
+        @if (c.outline) {
+          <polygon [attr.points]="c.outline" fill="none" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" stroke-linejoin="round" />
+        } @else if (c.solid; as s) {
+          <path [attr.d]="s.d" fill="none" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" stroke-linejoin="round" />
+          <polygon [attr.points]="s.end" [attr.fill]="o.borderColor" />
+          @if (s.start) {
+            <polygon [attr.points]="s.start" [attr.fill]="o.borderColor" />
+          }
+        }
+      } @else {
+      @let a = arrow();
+      @if (a.hollow) {
+        <!-- a hollow arrow is the outline of a block arrow; its border is the thickness of the outline -->
+        <polygon [attr.points]="a.outline" fill="none" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" stroke-linejoin="round" />
+      } @else {
+        <!-- a solid arrow is a line with filled heads -->
+        <line [attr.x1]="a.lineStart" [attr.y1]="b.h / 2" [attr.x2]="a.lineEnd" [attr.y2]="b.h / 2" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" />
+        <polygon [attr.points]="a.end" [attr.fill]="o.borderColor" />
+        @if (a.start) {
+          <polygon [attr.points]="a.start" [attr.fill]="o.borderColor" />
+        }
+      }
+      }
+    }
+    @case ('histogram') {
+      <rect [attr.x]="inset()" [attr.y]="inset()" [attr.width]="b.w - o.borderWidth" [attr.height]="b.h - o.borderWidth" [attr.rx]="radius()"
+            [attr.fill]="o.backgroundColor" [attr.stroke]="o.borderColor" [attr.stroke-width]="o.borderWidth" />
+      @for (bar of bars(); track $index) {
+        <rect [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.w" [attr.height]="bar.h" [attr.fill]="o.frontColor" />
+      }
+    }
+  }
+  @if (o.kind === 'figure' && o.shape !== 'histogram') {
+    <text [attr.x]="b.w / 2" [attr.y]="o.shape === 'triangle' ? b.h * 0.72 : b.h / 2" text-anchor="middle" dominant-baseline="middle"
+          [attr.font-size]="o.fontSize" [attr.fill]="o.frontColor">{{ o.name }}</text>
+  }
+  @for (p of points(); track p.id) {
+    @if (boundPoints().includes(p.id)) {
+      <!-- a point that something is fastened to: a point in a point, always drawn -->
+      <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="pointRadius() * 1.5" class="point-fastened-ring" [attr.stroke-width]="pointRadius() / 2" />
+      <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="pointRadius() * 0.75" class="point-fastened-dot" />
+    } @else if (showPoints()) {
+      <!-- a start is a ring, an end is a solid dot, a point that is both a start and an end is a ring with a dot in it -->
+      <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="pointRadius()" class="point-ring" [class.is-end]="p.role === 'end'" [attr.stroke-width]="pointRadius() / 2" />
+      @if (p.role === 'start-end') {
+        <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="pointRadius() / 2" class="point-dot" />
+      }
+    }
+  }
+</svg>

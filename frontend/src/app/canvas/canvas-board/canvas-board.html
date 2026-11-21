@@ -1,0 +1,119 @@
+@if (tools()) {
+<div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+  <span class="small text-body-secondary">Drag an object from the list into the canvas area, and drag it again to move it. Its centre sticks to a grid point.
+    The canvas is layer 0; a new object goes on layer {{ lastLayer() }}.</span>
+    <div class="d-flex align-items-center gap-2">
+      <label class="small text-body-secondary mb-0" for="layer">Layer</label>
+      <input id="layer" type="number" min="1" max="1000" step="1" class="form-control form-control-sm layer-input"
+             [value]="selectedLayer() ?? ''" [disabled]="!selection().length" (change)="setLayer($any($event.target).value)">
+      <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" [disabled]="!selection().length" (click)="removeSelected()">Remove picked</button>
+    </div>
+</div>
+}
+@if (helperBanner() && helper() && picture(); as src) {
+  <!-- the helper picture: a frame on top of the rest of the page, moved by its title -->
+  <div class="helper-frame shadow border rounded bg-body" [style.left.px]="helperFrame().x" [style.top.px]="helperFrame().y" aria-label="Helper picture frame">
+    <div class="helper-frame-title d-flex justify-content-between align-items-center gap-2 px-2 py-1 bg-body-secondary border-bottom rounded-top small"
+         (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame()" (pointercancel)="endHelperFrame()">
+      <span>Helper picture</span>
+      <button type="button" class="btn-close btn-sm" aria-label="Hide the helper picture" (pointerdown)="$event.stopPropagation()" (click)="helper.set(false)"></button>
+    </div>
+    <img [src]="src" class="helper-frame-picture d-block m-1 border" [style.width.px]="width() * helperScale() * scale()" [style.height.px]="height() * helperScale() * scale()" alt="The whole picture, smaller">
+    <!-- the corner: drag it to make the picture bigger (up to half its size) or smaller (down to a tenth) -->
+    <div class="helper-frame-grip" aria-label="Size of the helper picture"
+         (pointerdown)="startHelperSize($event)" (pointermove)="moveHelperSize($event)" (pointerup)="endHelperSize()" (pointercancel)="endHelperSize()"></div>
+  </div>
+}
+<!--
+  The jigsaw pieces area. The canvas is width × height in the stored pixels the objects are placed in; the whole content is drawn at `scale`, so the picture is always
+  shown whole, in its own proportions, whatever the size of the screen (the sizer takes the room the scaled content takes).
+-->
+<div #root class="border rounded bg-body-tertiary" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" aria-label="Jigsaw pieces area"
+     (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()">
+<div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
+<div class="scale-content position-relative d-flex align-items-start p-2" [class.flex-column]="stacked()" [style.gap.px]="gridSize()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
+  <div class="canvas-surface position-relative shadow-sm bg-white flex-shrink-0" [class.canvas-frame]="frameWidth() > 0" [style.width.px]="width()" [style.height.px]="height()" [style.outline-width.px]="frameWidth()"
+       [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null"
+       (dragover)="allowDrop($event)" (dragleave)="leaveDrop()" (drop)="drop($event)"
+       (pointerdown)="startMarquee($event)">
+    <canvas #area class="d-block" aria-label="Canvas area"></canvas>
+    @if (!store()) {
+      @for (v of view(); track v.p.id) {
+        <ng-container *ngTemplateOutlet="item; context: { $implicit: v, shift: 0, shiftY: 0, clip: null }" />
+      }
+    }
+    <!-- the box around several picked objects, and the rectangle that is being dragged to pick them -->
+    @if (groupBox(); as g) {
+      <div class="group-box"
+           [style.left.px]="g.left" [style.top.px]="g.top" [style.width.px]="g.width" [style.height.px]="g.height"></div>
+    }
+    @if (marquee(); as m) {
+      <div class="marquee"
+           [style.left.px]="m.left" [style.top.px]="m.top" [style.width.px]="m.width" [style.height.px]="m.height"></div>
+    }
+    <!-- the three points that shape the picked arrow (a quarter, half and three quarters of the way): drag each to a side to curve the arrow, back to the line to make it straight -->
+    @for (m of bendHandles(); track m.which) {
+      <div class="bend-handle"
+           [style.left.px]="m.x" [style.top.px]="m.y" [attr.aria-label]="'Bend ' + m.which"
+           (pointerdown)="startBend($event, m.which); $event.stopPropagation()" (pointermove)="moveBend($event)" (pointerup)="endBend()" (pointercancel)="endBend()"
+           (click)="$event.stopPropagation()"></div>
+    }
+    <!-- the two handles for the width across of the picked arrow: drag one to make the arrow wider or thinner -->
+    @for (h of acrossHandles(); track h.side) {
+      <div class="across-handle"
+           [style.left.px]="h.x" [style.top.px]="h.y" [attr.aria-label]="'Width ' + (h.side === 1 ? 'a' : 'b')"
+           (pointerdown)="startAcross($event, h.side); $event.stopPropagation()" (pointermove)="moveAcross($event)" (pointerup)="endAcross()" (pointercancel)="endAcross()"
+           (click)="$event.stopPropagation()"></div>
+    }
+    <!-- the resize handles of the picked figure, or of the box around the picked objects: drag one to change the size of the figure -->
+    @for (h of handles(); track h.id) {
+      <div class="resize-handle"
+           [style.left.px]="h.x" [style.top.px]="h.y" [style.cursor]="h.cursor" [attr.aria-label]="'Resize ' + h.id"
+           (pointerdown)="startResize($event, h.id); $event.stopPropagation()" (pointermove)="moveResize($event)" (pointerup)="endResize()" (pointercancel)="endResize()"
+           (click)="$event.stopPropagation()"></div>
+    }
+  </div>
+  <!-- the store frame of a jigsaw, beside the canvas (below it on a narrow screen, see `stacked`): the pieces wait here, spread out; it scrolls up and down -->
+  @if (store(); as s) {
+    <div class="flex-shrink-0 border rounded bg-body-secondary" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" class="overflow-x-auto" aria-label="Jigsaw pieces store"
+         [style.width.px]="storeFrameWidth()" [style.height.px]="storeViewHeight()" (scroll)="onStoreScroll($event)">
+      <div #storeInner class="position-relative" [style.width.px]="storeInnerSize().width" [style.height.px]="storeInnerSize().height" (pointerdown)="startMarquee($event)">
+        <!-- the rectangle that is being dragged to pick pieces, in the store frame -->
+        @if (!stacked() && marquee(); as m) {
+          <div class="marquee"
+               [style.left.px]="m.left - s.left" [style.top.px]="m.top" [style.width.px]="m.width" [style.height.px]="m.height"></div>
+        }
+      </div>
+    </div>
+    <!--
+      The layer of the pieces, on top of the canvas and the store frame: a piece is never cut off or put under a frame, also when it lies over the edge of one
+      (a group of pieces that stick together can lie over the canvas and the store). The pieces of the store are put where the store frame shows them (it
+      scrolls); the layer takes no room and lets the pointer through, except at the pieces.
+    -->
+    <div class="pieces-layer" [style.width.px]="overlay().width" [style.height.px]="overlay().height">
+      @for (v of view(); track v.p.id) {
+        @let pl = place(v);
+        @if (!pl.hidden) {
+          <ng-container *ngTemplateOutlet="item; context: { $implicit: v, shift: pl.shift, shiftY: pl.shiftY, clip: pl.clip }" />
+        }
+      }
+    </div>
+  }
+</div>
+</div>
+</div>
+<ng-template #item let-v let-shift="shift" let-shiftY="shiftY" let-clip="clip">
+@if (!v.hidden) {
+      @let p = v.p;
+      <div class="placed-object" role="button" tabindex="0" [attr.aria-label]="p.object.name" [style.left.px]="v.left - shift" [style.top.px]="v.top - shiftY" [style.clip-path]="clip" [style.transform]="v.rotate" [style.z-index]="v.layer"
+           [class.is-picked]="selection().includes(p.id)"
+           (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
+           (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
+        @if (v.piece; as piece) {
+          <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" [blinking]="blinking().has(p.id)" />
+        } @else {
+        <app-canvas-shape [object]="v.object" [bends]="v.bends" [maxSide]="10000" [showPoints]="selectedId() === p.id || connecting()" [boundPoints]="boundPoints().get(p.id) ?? []" />
+        }
+      </div>
+}
+</ng-template>

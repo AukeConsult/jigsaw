@@ -1,10 +1,14 @@
 import { Routes } from '@angular/router';
-import { Home } from './home/home';
-import { Objects } from './objects/objects';
 
+/**
+ * Two modules, each loaded when it is first opened and each with its own header menu:
+ *  - `/jigsaw`: Karins jigsaw. The default: the app opens with it.
+ *  - `/canvas`: the canvas page and the objects page, for other purposes and for testing.
+ */
 export const routes: Routes = [
-  { path: '', component: Home, title: 'Canvas' },
-  { path: 'jigsaw', component: Home, title: 'Jigsaw', data: { heading: 'Jigsaw', collection: 'jigsaw', gridInset: true, numberPoints: true, palette: false, background: true, tools: false, fillScreen: true, sidebar: true } },
-  { path: 'objects', component: Objects, title: 'Canvas objects' },
-  { path: '**', redirectTo: '' },
+  { path: '', pathMatch: 'full', redirectTo: 'jigsaw' },
+  { path: 'jigsaw', loadChildren: () => import('./jigsaw/jigsaw.routes').then((m) => m.JIGSAW_ROUTES) },
+  { path: 'canvas', loadChildren: () => import('./canvas/canvas.routes').then((m) => m.CANVAS_ROUTES) },
+  { path: 'objects', redirectTo: 'canvas/objects' }, // where the objects page was before there were modules
+  { path: '**', redirectTo: 'jigsaw' },
 ];

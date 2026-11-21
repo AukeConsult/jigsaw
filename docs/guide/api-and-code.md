@@ -20,7 +20,7 @@ Firestore collections: `canvas-list` (limit 100), `canvas-objects` (limit 200) a
 ## Code layout
 - `functions/src/`: `app.ts`, `canvas-list.ts`, `canvas-objects.ts`, `document-store.ts`, `models/` (the shared model).
 - `functions/test/`: Vitest tests of every rule on the classes. `functions/test-emulator/`: the real stores on a Firestore emulator.
-- `frontend/src/app/`: `home/` (page: open canvas, autosave, list), `canvas-board/` (canvas and pointer tools), `canvas-panel/`, `object-palette/`, `objects/` + `object-panel/` + `canvas-shape/` (SVG drawing of an object), `core/` (`autosave.ts`, API services, `drag.ts`).
+- `frontend/src/app/`: `canvas/` (the canvas module: its shell and routes, `home/` the canvas page, `canvas-board/`, `canvas-panel/`, `canvas-shape/`, `object-palette/`, `objects/`, `object-panel/`, the canvas API services and `drag.ts`), `jigsaw/` (the jigsaw module: its shell and routes, `puzzle-piece/`, `picture-cropper/`, `fit-picture.ts`, `piece-graphics.ts`, `piece-sync.ts` and the jigsaw API services), `core/` (what both use: `autosave.ts`, `api-collection.ts`, the Transloco files).
 - Autosave: saves 800 ms after the last change, creates then updates, retries after 5 s, flushes when the page closes.
 
 ## Running

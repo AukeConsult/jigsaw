@@ -1,0 +1,18 @@
+<svg class="piece-svg" [class.blink]="blinking()" [attr.width]="size()" [attr.height]="size()">
+  <defs>
+    <clipPath [attr.id]="clipId()"><path [attr.d]="path()" /></clipPath>
+  </defs>
+  @if (picture(); as src) {
+    <g [attr.clip-path]="'url(#' + clipId() + ')'">
+      <image [attr.href]="src" [attr.x]="-piece().col * size()" [attr.y]="-piece().row * size()"
+             [attr.width]="columns() * size()" [attr.height]="rows() * size()" preserveAspectRatio="xMidYMid slice" />
+    </g>
+  } @else {
+    <path [attr.d]="path()" class="piece-blank" />
+  }
+  <path [attr.d]="path()" class="piece-outline" [class.matched]="matched()" />
+  @if (numbered()) {
+    <!-- the number of its own grid point on the picture: light with the ink round it, so it can be read on any part of the picture -->
+    <text [attr.x]="size() / 2" [attr.y]="size() / 2" text-anchor="middle" dominant-baseline="central" class="piece-number" [attr.font-size]="numberSize()">{{ number() }}</text>
+  }
+</svg>

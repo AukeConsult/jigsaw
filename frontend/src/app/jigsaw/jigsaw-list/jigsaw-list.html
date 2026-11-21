@@ -1,0 +1,41 @@
+<main class="page-list container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Karins jigsaw</h1>
+    <a class="btn btn-primary btn-sm" routerLink="/jigsaw/new">New jigsaw</a>
+  </div>
+
+  @if (message(); as m) {
+    <div class="alert py-2 small" [class.alert-success]="m.kind === 'success'" [class.alert-danger]="m.kind === 'danger'" role="status">{{ m.text }}</div>
+  }
+  @if (failed()) {
+    <div class="alert alert-danger py-2 small" role="alert">Could not load the jigsaws.</div>
+  }
+
+  <div class="list-group">
+    @for (item of items(); track item.id) {
+      @let grid = pieces(item);
+      <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <a class="text-decoration-none flex-grow-1" [routerLink]="['/jigsaw', item.id]">
+          <strong>{{ item.name }}</strong>
+          <span class="text-body-secondary small ms-2">{{ grid.columns * grid.rows }} pieces ({{ grid.columns }} × {{ grid.rows }}), {{ item.width }} × {{ item.height }} px</span>
+        </a>
+        <div class="d-flex gap-1 align-items-center">
+          @if (confirmingId() === item.id) {
+            <span class="small me-1">Delete for good?</span>
+            <button type="button" class="btn btn-sm btn-danger" (click)="remove(item)">Yes</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingId.set(null)">Cancel</button>
+          } @else {
+            <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', item.id]">Play</a>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmingId.set(item.id)">Delete</button>
+          }
+        </div>
+      </div>
+    } @empty {
+      @if (!loading() && !failed()) {
+        <div class="list-group-item text-body-secondary">
+          No jigsaw yet. <a routerLink="/jigsaw/new">Make the first one</a>: choose a picture, say how many pieces, and start.
+        </div>
+      }
+    }
+  </div>
+</main>

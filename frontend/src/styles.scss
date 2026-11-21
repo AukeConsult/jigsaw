@@ -1,4 +1,526 @@
-// Overall styles for Canvas (loaded after Bootstrap). Use Bootstrap classes in pages; only add CSS here when Bootstrap cannot do it.
+// The look of Canvas and Karins jigsaw: the one place for fonts, colours, sizes, layers and the classes the components use.
+//
+// Bootstrap (`vendor/bootstrap.min.css`) is loaded before this file. Its own variables (`--bs-*`) are set here from our tokens (`--app-*`).
+// The rule: a component takes its fonts, colours and sizes from here, by a class or by a token. No colour, font or fixed size is written in a template or a
+// component (what comes from data, such as the colours of an object a person made, is the one exception). A new look is a change in this file.
+// Code that draws on a canvas, which CSS cannot reach, reads the tokens with `cssVar` / `cssNumber` (`app/core/theme.ts`).
+
+// ---- breakpoints: the same as Bootstrap's ----------------------------------------------------------------------------------------------------------
+$bp-sm: 576px;
+$bp-md: 768px;
+$bp-lg: 992px;
+$bp-xl: 1200px;
+
+/** the rules inside apply from this width up */
+@mixin from($breakpoint) {
+  @media (min-width: $breakpoint) {
+    @content;
+  }
+}
+
+/** the rules inside apply below this width */
+@mixin below($breakpoint) {
+  @media (max-width: $breakpoint - 0.02px) {
+    @content;
+  }
+}
+
+/** the rules inside apply to a finger (a screen that is touched), where things have to be bigger to be hit */
+@mixin touch {
+  @media (pointer: coarse) {
+    @content;
+  }
+}
+
+// ---- tokens ----------------------------------------------------------------------------------------------------------------------------------------
 :root {
   color-scheme: light;
+
+  // fonts
+  --app-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif;
+  --app-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --app-font-size: 1rem;
+  --app-font-size-small: 0.875rem;
+  --app-line-height: 1.5;
+  /* the numbers drawn on the grid of the canvas, in pixels (a number: the canvas draws them) */
+  --app-grid-number-size: 10;
+  --app-piece-number-weight: 600;
+
+  // colours: the brand
+  --app-primary: #0d6efd;
+  --app-primary-rgb: 13, 110, 253;
+  --app-success: #198754;
+  --app-success-rgb: 25, 135, 84;
+  --app-ink: #212529;
+  --app-ink-soft: #495057;
+  --app-muted: #6c757d;
+  --app-blank: #adb5bd;
+  --app-white: #ffffff;
+  --app-backdrop: rgba(0, 0, 0, 0.55);
+
+  // colours: what they are used for
+  --app-frame: var(--app-primary); // the frame around the picture area of a jigsaw
+  --app-picked: var(--app-primary); // what is picked: the outline, the frame dragged to pick
+  --app-matched: var(--app-success); // a piece in its own place, and the blink when it clicks into place
+  --app-point-fastened: var(--app-success); // a connection point something is fastened to
+  --app-point: var(--app-primary); // the other connection points
+  --app-piece-outline: rgba(33, 37, 41, 0.55);
+  --app-piece-blank: var(--app-blank); // a piece without a picture
+  --app-piece-number: var(--app-white); // the number on a piece (debug), with the ink round it
+  --app-grid-dot: #6c757d; // the points of the grid: drawn on a canvas, so a colour and not a reference
+  --app-grid-number: #495057;
+  --app-picture-backdrop: #ffffff; // what a picture with see-through parts gets behind it when it is made
+
+  // sizes
+  --app-sidebar-width: 17rem;
+  --app-form-width: 40rem;
+  --app-list-width: 48rem;
+  --app-layer-input-width: 5rem;
+  --app-palette-thumb: 64px;
+  --app-shape-editor-height: 320px;
+  --app-cut-preview-width: 16rem;
+  --app-cut-preview-height: 12rem;
+  --app-progress-height: 6px;
+  --app-handle-size: 10px; // the squares that resize a figure
+  --app-handle-size-large: 12px; // the handles that bend an arrow and change its width
+  --app-grip-size: 16px; // the corner that sizes the helper picture
+  --app-tile-gap: 0.25rem;
+
+  // layers, from the bottom: the pieces, the handles and frames of picking, the sidebar over a small screen, the helper picture, the dialog
+  --app-z-pieces: 1;
+  --app-z-controls: 1001;
+  --app-z-sidebar: 1020;
+  --app-z-helper: 1040;
+  --app-z-dialog: 1060;
+
+  // motion
+  --app-blink-duration: 0.7s;
+
+  // the width where the layout changes (read by the code that needs to know: the same as `$bp-md`)
+  --app-bp-md: #{$bp-md};
+
+  // Bootstrap's own variables, from ours
+  --bs-body-font-family: var(--app-font-sans);
+  --bs-font-monospace: var(--app-font-mono);
+  --bs-body-font-size: var(--app-font-size);
+  --bs-body-line-height: var(--app-line-height);
+  --bs-body-color: var(--app-ink);
+  --bs-primary: var(--app-primary);
+  --bs-primary-rgb: var(--app-primary-rgb);
+  --bs-success: var(--app-success);
+  --bs-success-rgb: var(--app-success-rgb);
+  --bs-link-color: var(--app-primary);
+  --bs-link-color-rgb: var(--app-primary-rgb);
+  --bs-secondary-color: var(--app-muted);
+  --bs-progress-bar-bg: var(--app-success);
+
+  @include touch {
+    --app-handle-size: 20px;
+    --app-handle-size-large: 24px;
+    --app-grip-size: 28px;
+  }
+}
+
+// Bootstrap's primary button takes its colours from its own class, so they are set here too (the hover and the press are a little darker)
+.btn-primary {
+  --bs-btn-bg: var(--app-primary);
+  --bs-btn-border-color: var(--app-primary);
+  --bs-btn-hover-bg: color-mix(in srgb, var(--app-primary) 85%, black);
+  --bs-btn-hover-border-color: color-mix(in srgb, var(--app-primary) 80%, black);
+  --bs-btn-active-bg: color-mix(in srgb, var(--app-primary) 75%, black);
+  --bs-btn-active-border-color: color-mix(in srgb, var(--app-primary) 70%, black);
+  --bs-btn-disabled-bg: var(--app-primary);
+  --bs-btn-disabled-border-color: var(--app-primary);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--app-primary);
+  --bs-btn-border-color: var(--app-primary);
+  --bs-btn-hover-bg: var(--app-primary);
+  --bs-btn-hover-border-color: var(--app-primary);
+  --bs-btn-active-bg: var(--app-primary);
+  --bs-btn-active-border-color: var(--app-primary);
+  --bs-btn-disabled-color: var(--app-primary);
+  --bs-btn-disabled-border-color: var(--app-primary);
+}
+
+// ---- small helpers (Bootstrap has `pe-none`, `pe-auto` and `user-select-none`) ---------------------------------------------------------------------
+.touch-none {
+  touch-action: none; // a finger drags instead of scrolling the page
+}
+
+.cursor-move {
+  cursor: move;
+}
+
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-crosshair {
+  cursor: crosshair;
+}
+
+// ---- the top menus of the two modules --------------------------------------------------------------------------------------------------------------
+.app-navbar > .container-fluid {
+  flex-wrap: wrap; // on a narrow screen the menu goes on a second line
+  row-gap: var(--app-tile-gap);
+}
+
+.app-navbar .navbar-nav {
+  flex-wrap: wrap;
+}
+
+// ---- the canvas board ------------------------------------------------------------------------------------------------------------------------------
+.layer-input {
+  width: var(--app-layer-input-width);
+}
+
+.canvas-surface {
+  background-size: cover;
+  background-position: center;
+}
+
+.canvas-frame {
+  // the width is the setting of the jigsaw (`outline-width` is bound); an outline takes no room, so what is placed does not move
+  outline-style: solid;
+  outline-color: var(--app-frame);
+  outline-offset: 0;
+}
+
+/** the layer the pieces are drawn in, over the canvas and the store frame: as big as the whole area, takes no room, lets the pointer through */
+/** the jigsaw pieces area is drawn at a scale (see the board): the sizer is as big as the scaled content, the content is scaled from its top left corner */
+.scale-sizer {
+  overflow: hidden;
+}
+
+.scale-content {
+  transform-origin: 0 0;
+}
+
+.pieces-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: var(--app-z-pieces);
+}
+
+/** an object that is placed: it can be taken and moved */
+.placed-object {
+  position: absolute;
+  touch-action: none;
+  cursor: move;
+  pointer-events: auto;
+
+  &.is-picked {
+    outline: 2px dashed var(--app-picked);
+  }
+}
+
+%board-control {
+  position: absolute;
+  z-index: var(--app-z-controls);
+  touch-action: none;
+}
+
+.group-box {
+  @extend %board-control;
+  pointer-events: none;
+  outline: 2px dashed var(--app-picked);
+  outline-offset: 4px;
+}
+
+/** the frame that is dragged to pick objects */
+.marquee {
+  @extend %board-control;
+  pointer-events: none;
+  border: 1px solid var(--app-primary);
+  background: rgba(var(--app-primary-rgb), 0.1);
+}
+
+// the handles are placed by their centre (the page gives where the centre is), so they can be any size, and bigger for a finger
+.resize-handle {
+  @extend %board-control;
+  width: calc(var(--app-handle-size) / var(--app-scale, 1)); // the handles keep their size on the screen when the board is scaled
+  height: calc(var(--app-handle-size) / var(--app-scale, 1));
+  transform: translate(-50%, -50%);
+  background: var(--app-white);
+  border: 1px solid var(--app-primary);
+}
+
+.bend-handle {
+  @extend %board-control;
+  width: calc(var(--app-handle-size-large) / var(--app-scale, 1));
+  height: calc(var(--app-handle-size-large) / var(--app-scale, 1));
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--app-white);
+  border: 1px solid var(--app-primary);
+  cursor: move;
+}
+
+.across-handle {
+  @extend %board-control;
+  width: calc(var(--app-handle-size-large) / var(--app-scale, 1));
+  height: calc(var(--app-handle-size-large) / var(--app-scale, 1));
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--app-primary);
+  border: 1px solid var(--app-white);
+  cursor: move;
+}
+
+// ---- the helper: the banner, and the picture that floats over the page ----------------------------------------------------------------------------
+.helper-frame {
+  position: fixed;
+  z-index: var(--app-z-helper);
+  max-width: calc(100vw - 1rem);
+}
+
+.helper-frame-title {
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+}
+
+.helper-frame-picture {
+  pointer-events: none;
+  max-width: calc(100vw - 2rem);
+  object-fit: contain;
+}
+
+.helper-frame-grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--app-grip-size);
+  height: var(--app-grip-size);
+  cursor: nwse-resize;
+  touch-action: none;
+  background: linear-gradient(135deg, transparent 50%, var(--app-muted) 50%);
+}
+
+// ---- the picture cropper (a dialog over the page) -------------------------------------------------------------------------------------------------
+.crop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--app-z-dialog);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--app-backdrop);
+}
+
+.crop-dialog {
+  max-width: 96vw;
+  max-height: 96vh;
+  overflow: auto;
+
+  @include below($bp-sm) {
+    --bs-card-spacer-x: 0.75rem;
+    --bs-card-spacer-y: 0.75rem;
+  }
+}
+
+.crop-frame {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.crop-image {
+  max-width: none;
+  pointer-events: none;
+}
+
+// ---- a piece of a jigsaw, and the shapes of the objects ----------------------------------------------------------------------------------------
+.piece-svg {
+  display: block;
+  overflow: visible; // the tabs reach out of the square of the piece
+
+  &.blink {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: piece-click var(--app-blink-duration) ease-out;
+  }
+}
+
+@keyframes piece-click {
+  0% {
+    transform: scale(1) rotate(0);
+    filter: brightness(1);
+  }
+  15% {
+    transform: scale(1.22) rotate(-5deg);
+    filter: brightness(1.6) drop-shadow(0 0 6px var(--app-matched));
+  }
+  35% {
+    transform: scale(0.94) rotate(4deg);
+    filter: brightness(1.3) drop-shadow(0 0 5px var(--app-matched));
+  }
+  55% {
+    transform: scale(1.1) rotate(-3deg);
+    filter: brightness(1.4) drop-shadow(0 0 5px var(--app-matched));
+  }
+  75% {
+    transform: scale(0.98) rotate(2deg);
+    filter: brightness(1.15);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    filter: brightness(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .piece-svg.blink {
+    animation: none;
+  }
+}
+
+.piece-outline {
+  fill: none;
+  stroke: var(--app-piece-outline);
+  stroke-width: 1;
+  stroke-linejoin: round;
+
+  &.matched {
+    stroke: var(--app-matched);
+    stroke-opacity: 1;
+    stroke-width: 2;
+  }
+}
+
+.piece-blank {
+  fill: var(--app-piece-blank);
+}
+
+/** the number of the grid point a piece belongs on (debug): light with the ink round it, so it can be read on any part of a picture */
+.piece-number {
+  fill: var(--app-piece-number);
+  stroke: var(--app-ink);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  font-family: var(--app-font-sans);
+  font-weight: var(--app-piece-number-weight);
+  pointer-events: none;
+  user-select: none;
+}
+
+.shape-svg {
+  display: block;
+  overflow: visible;
+}
+
+// the connection points: a point something is fastened to is a point in a point; a start is a ring, an end a dot, and both a ring with a dot in it
+.point-fastened-ring {
+  fill: var(--app-white);
+  stroke: var(--app-point-fastened);
+}
+
+.point-fastened-dot {
+  fill: var(--app-point-fastened);
+}
+
+.point-ring {
+  fill: var(--app-white);
+  stroke: var(--app-point);
+
+  &.is-end {
+    fill: var(--app-point);
+  }
+}
+
+.point-dot {
+  fill: var(--app-point);
+}
+
+// ---- the list of objects, and the drawing of an object's size ----------------------------------------------------------------------------------
+.palette-item {
+  cursor: grab;
+}
+
+.palette-thumb {
+  width: var(--app-palette-thumb);
+}
+
+.shape-editor {
+  height: var(--app-shape-editor-height);
+  touch-action: none;
+  cursor: crosshair;
+
+  @include below($bp-md) {
+    --app-shape-editor-height: 240px;
+  }
+}
+
+// ---- the pages of Karins jigsaw ----------------------------------------------------------------------------------------------------------------
+.page-list {
+  max-width: var(--app-list-width);
+}
+
+.form-card {
+  max-width: var(--app-form-width);
+
+  @include below($bp-sm) {
+    --bs-card-spacer-x: 0.75rem;
+    --bs-card-spacer-y: 0.75rem;
+  }
+}
+
+.cut-preview {
+  max-width: min(var(--app-cut-preview-width), 100%);
+  max-height: var(--app-cut-preview-height);
+}
+
+.progress-thin {
+  height: var(--app-progress-height);
+}
+
+// playing a jigsaw: the sidebar is docked at the left on a wide screen; on a narrow screen it is folded away behind a bar (the toggle) and opens over the board
+.jigsaw-play {
+  position: relative;
+  display: flex;
+}
+
+.jigsaw-side {
+  position: relative; // the folded sidebar of a narrow screen opens under the bar that is in this
+  flex: 0 0 auto;
+}
+
+.jigsaw-sidebar {
+  flex: 0 0 var(--app-sidebar-width);
+  width: var(--app-sidebar-width);
+  overflow-y: auto;
+}
+
+.jigsaw-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@include below($bp-md) {
+  .jigsaw-play {
+    display: block;
+  }
+
+  .jigsaw-sidebar {
+    display: none; // folded away
+    position: absolute;
+    top: 100%; // under the bar
+    left: 0;
+    right: 0;
+    z-index: var(--app-z-sidebar);
+    width: auto;
+    max-height: 70vh;
+    border-right: 0 !important;
+    border-bottom: var(--bs-border-width) solid var(--bs-border-color);
+    box-shadow: var(--bs-box-shadow);
+
+    &.is-open {
+      display: block;
+    }
+  }
 }
