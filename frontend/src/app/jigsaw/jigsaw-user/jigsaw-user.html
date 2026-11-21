@@ -1,0 +1,150 @@
+<main class="container py-4">
+  <div class="form-card card card-body mx-auto">
+    <h1 class="h4 mb-3"><i class="bi bi-person-circle text-primary me-2" aria-hidden="true"></i>Who plays?</h1>
+
+    @if (users.user(); as me) {
+      <div class="alert alert-success py-2 small d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
+        <span>You play as <strong>{{ me.name }}</strong> ({{ me.username }}).</span>
+        <span class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil me-1" aria-hidden="true"></i>Edit</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="leave()">Choose another user</button>
+        </span>
+      </div>
+      @if (editing()) {
+        <form (submit)="$event.preventDefault(); saveEdit()">
+          <div class="mb-3">
+            <label class="form-label" for="edit-username">User name</label>
+            <input id="edit-username" name="username" class="form-control" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
+                   [ngModel]="username()" (ngModelChange)="username.set($event)">
+            <div class="form-text">{{ usernameMin }} to {{ usernameMax }} letters (a-z), digits, _ or -. Your rounds stay yours when you change it.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="edit-name">Your name</label>
+            <input id="edit-name" name="name" class="form-control" type="text" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="edit-email">E-mail <span class="text-body-secondary small">(optional)</span></label>
+            <input id="edit-email" name="email" class="form-control" type="email" autocapitalize="none" spellcheck="false" placeholder="Leave empty to keep the one there is"
+                   [disabled]="removeEmail()" [ngModel]="email()" (ngModelChange)="email.set($event)">
+            <div class="form-check mt-2">
+              <input id="remove-email" name="removeEmail" class="form-check-input" type="checkbox" [ngModel]="removeEmail()" (ngModelChange)="removeEmail.set($event)">
+              <label class="form-check-label small" for="remove-email">Take my e-mail address away</label>
+            </div>
+            <div class="form-text">Nobody sees it, not even you here. It is kept so that you can connect this user to a registration later.</div>
+          </div>
+          @if (error()) {
+            <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
+          }
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-outline-secondary" (click)="editing.set(false)">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save</button>
+          </div>
+        </form>
+      }
+
+      <h2 class="h5 mt-4 mb-2">Your rounds</h2>
+      @if (games() === null) {
+        <div class="text-body-secondary" role="status">Looking for your rounds…</div>
+      } @else if (gamesFailed()) {
+        <div class="alert alert-warning py-2 small" role="alert">Could not read your rounds: reload the page.</div>
+      } @else if (!games()!.length) {
+        <p class="text-body-secondary mb-0">You have not played any jigsaw yet. <a routerLink="/jigsaw/list">Find a jigsaw</a>.</p>
+      } @else {
+        <ul class="list-group">
+          @for (game of games(); track game.play.id) {
+            <li class="list-group-item d-flex align-items-center gap-3">
+              <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden flex-shrink-0" style="width: 4.5rem">
+                @if (!noPicture().has(game.jigsaw.id)) {
+                  <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw.id)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
+                }
+              </div>
+              <div class="flex-grow-1 min-w-0">
+                <div class="fw-semibold text-truncate">{{ game.jigsaw.name }}</div>
+                <div class="d-flex align-items-center gap-2 small">
+                  @if (game.play.status === 'solved') {
+                    <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Solved</span>
+                  } @else {
+                    <span class="badge text-bg-primary">Playing</span>
+                  }
+                  <span>{{ game.play.matched }} of {{ game.play.total }}</span>
+                </div>
+                <div class="small text-body-secondary"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>Started {{ game.play.startedAt | date: 'medium' }}</div>
+              </div>
+              @if (confirmingPlayId() === game.play.id) {
+                <div class="d-flex flex-column align-items-end gap-1">
+                  <span class="small">Delete this round?</span>
+                  <span class="d-flex gap-1">
+                    <button type="button" class="btn btn-sm btn-danger" (click)="removeGame(game)">Yes</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingPlayId.set(null)">Cancel</button>
+                  </span>
+                </div>
+              } @else {
+                <div class="d-flex flex-column gap-1">
+                  <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', game.jigsaw.id, 'play', game.play.id]">
+                    <i class="bi bi-play-fill me-1" aria-hidden="true"></i>@if (game.play.status === 'solved') { Look } @else { Continue }
+                  </a>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmingPlayId.set(game.play.id)"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete</button>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+    } @else {
+      <ul class="nav nav-pills mb-3">
+        <li class="nav-item"><button type="button" class="nav-link" [class.active]="mode() === 'choose'" (click)="mode.set('choose'); error.set('')">Choose a user</button></li>
+        <li class="nav-item"><button type="button" class="nav-link" [class.active]="mode() === 'make'" (click)="mode.set('make'); error.set('')">Make a user</button></li>
+      </ul>
+
+      @if (mode() === 'choose') {
+        @if (list() === null) {
+          <div class="text-body-secondary" role="status">Looking for the users…</div>
+        } @else {
+          @if (list()!.length > 8) {
+            <input class="form-control mb-2" type="search" name="filter" placeholder="Find a user" aria-label="Find a user" [ngModel]="filter()" (ngModelChange)="filter.set($event)">
+          }
+          <div class="list-group mb-1">
+            @for (user of shown(); track user.id) {
+              <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2" (click)="pick(user)">
+                <i class="bi bi-person-circle fs-5 text-primary" aria-hidden="true"></i>
+                <span class="flex-grow-1"><strong>{{ user.name }}</strong> <span class="text-body-secondary small">{{ user.username }}</span></span>
+                <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+              </button>
+            } @empty {
+              <div class="list-group-item text-body-secondary">Nobody fits that.</div>
+            }
+          </div>
+          <div class="form-text">Press your name to play as you, or make a new user.</div>
+        }
+      } @else {
+        <form (submit)="$event.preventDefault(); submit()">
+          <div class="mb-3">
+            <label class="form-label" for="username">User name</label>
+            <input id="username" name="username" class="form-control" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"
+                   [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required [ngModel]="username()" (ngModelChange)="username.set($event)">
+            <div class="form-text">{{ usernameMin }} to {{ usernameMax }} letters (a-z), digits, _ or -. Nobody else can have the same.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="name">Your name</label>
+            <input id="name" name="name" class="form-control" type="text" autocomplete="name" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
+            <div class="form-text">Shown as the player.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="email">E-mail <span class="text-body-secondary small">(optional)</span></label>
+            <input id="email" name="email" class="form-control" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" [ngModel]="email()" (ngModelChange)="email.set($event)">
+            <div class="form-text">Nobody sees it. It is kept so that you can connect this user to a registration later.</div>
+          </div>
+
+          @if (error()) {
+            <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
+          }
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()">
+              <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Make the user and play
+            </button>
+          </div>
+        </form>
+      }
+    }
+  </div>
+</main>

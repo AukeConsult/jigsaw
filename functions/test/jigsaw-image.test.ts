@@ -1,4 +1,5 @@
 import request from "supertest";
+import { memoryPlays } from "./memory-plays";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app";
 import type { CanvasStore } from "../src/canvas-list";
@@ -57,7 +58,7 @@ describe("the background picture of a jcanvas", () => {
     const images = memoryImages();
     const removedPieces: string[] = [];
     const pieces = { removeAll: async (jigsawId: string) => void removedPieces.push(jigsawId) } as unknown as PieceStore;
-    const app = createApp({ canvasList: memoryCanvases(), jigsaw: memoryCanvases(), jigsawImages: images.store, jigsawPieces: pieces, jigsawExists: async (x) => existing.includes(x) });
+    const app = createApp({ plays: memoryPlays(), canvasList: memoryCanvases(), jigsaw: memoryCanvases(), jigsawImages: images.store, jigsawPieces: pieces, jigsawExists: async (x) => existing.includes(x) });
     return { ...images, app, removedPieces };
   };
 

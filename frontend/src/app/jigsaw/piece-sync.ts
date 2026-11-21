@@ -1,6 +1,6 @@
 import { effect, signal, untracked } from '@angular/core';
 import { JigsawPiece, PieceMove } from '../models/shared/jigsaw';
-import { JigsawPiecesService, JigsawPieceToSave } from './jigsaw-pieces.service';
+import { JigsawPieceToSave } from './jigsaw-pieces.service';
 
 /** idle: nothing to save, waiting: a change is waiting for the pause, saving, saved, failed */
 export type PieceSyncState = 'idle' | 'waiting' | 'saving' | 'saved' | 'failed';
@@ -8,12 +8,22 @@ export type PieceSyncState = 'idle' | 'waiting' | 'saving' | 'saved' | 'failed';
 const PAUSE_MS = 800;
 const RETRY_MS = 5000;
 
+/** Where the pieces are saved (the pieces of a jigsaw in the database, or the positions of a game): the id is the one the sync works with. */
+export interface PieceSyncApi {
+  /** all the pieces, replacing what was there (a cut) */
+  replace(id: string, pieces: JigsawPieceToSave[]): Promise<unknown>;
+  /** where pieces are now */
+  move(id: string, moves: PieceMove[]): Promise<unknown>;
+  /** the same, for the moment the page is being closed: nothing waits for the answer */
+  moveWhileLeaving(id: string, moves: PieceMove[]): void;
+}
+
 export interface PieceSyncOptions {
   /** the saved jigsaw that is open (null: not saved yet: the pieces wait for it) */
   jigsawId: () => string | null;
   /** the pieces on the page now (read in an effect: every signal it reads is watched) */
   pieces: () => JigsawPiece[];
-  api: JigsawPiecesService;
+  api: PieceSyncApi;
 }
 
 /** where a piece is, as text: what is saved of a piece while the game is played */

@@ -1,6 +1,7 @@
 import { Component, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { JigsawHelper } from './jigsaw-helper';
+import { JigsawUserService } from './jigsaw-user.service';
 
 /** The jigsaw module: its own header menu above whatever page of the module is open. */
 @Component({
@@ -19,6 +20,12 @@ import { JigsawHelper } from './jigsaw-helper';
           </li>
           <li class="nav-item">
             <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" title="User guide"><i class="bi bi-book me-1" aria-hidden="true"></i><span class="d-none d-md-inline">User guide</span></a>
+          </li>
+          <li class="nav-item">
+            <!-- who plays: the name of the user, and a way to choose another -->
+            <a class="nav-link text-nowrap" routerLink="/jigsaw/user" routerLinkActive="active" [title]="users.user() ? 'Who plays: ' + users.user()!.username : 'Choose who plays'">
+              <i class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ users.user()?.name ?? 'Who plays?' }}</span>
+            </a>
           </li>
         </ul>
         @if (tools.active()) {
@@ -49,6 +56,11 @@ import { JigsawHelper } from './jigsaw-helper';
 })
 export class JigsawShell {
   protected readonly tools = inject(JigsawHelper);
+  protected readonly users = inject(JigsawUserService);
+
+  constructor() {
+    void this.users.load(); // the user who played here last is read, so the menu can show the name
+  }
 
   /** A click anywhere closes the details again, also on the empty parts of them; the title, the buttons and the settings in them are used, so they stay open, as does the button that opened them. */
   @HostListener('document:click', ['$event'])

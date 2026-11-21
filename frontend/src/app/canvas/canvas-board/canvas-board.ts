@@ -102,6 +102,8 @@ export class CanvasBoard {
   readonly lineColor = input<string | null>(null);
   /** a jigsaw: the background colour of the picture area (none: white) */
   readonly backColor = input<string | null>(null);
+  /** the round is only looked at (it is another player's): nothing on the board can be moved, picked or collected */
+  readonly viewOnly = input(false);
   /** a jigsaw: how close to its own grid point a piece has to be dropped to click into place, in pixels (0: never) */
   readonly snapRange = input(0);
   /** a banner above the jigsaw pieces area, with a switch that shows or hides the helper picture (the whole picture at a quarter of its width and height) */
@@ -156,6 +158,7 @@ export class CanvasBoard {
    * `CanvasDiagram.collectPieces`), and the frame is scrolled to its top so they are seen. Saved like any move of pieces.
    */
   collectPieces(): void {
+    if (this.viewOnly()) return;
     const store = this.store();
     if (!store) return;
     // beside the picture the frame can be wider than the store the pieces were spread over: the pieces are collected over all of the frame that shows (the
@@ -619,6 +622,7 @@ export class CanvasBoard {
 
   /** An object dropped on the canvas area stays there: the diagram puts a copy of it where it was dropped (see `CanvasDiagram.place`). */
   drop(event: DragEvent): void {
+    if (this.viewOnly()) return;
     this.connecting.set(false);
     const id = event.dataTransfer?.getData(CANVAS_OBJECT_DRAG_TYPE);
     const source = this.objects().find((o) => o.id === id);
@@ -638,6 +642,7 @@ export class CanvasBoard {
 
   /** Grab a placed object (mouse, pen or finger): it is picked, and follows the pointer until it is let go. An arrow grabbed at an end moves that end alone. */
   startMove(event: PointerEvent, item: PlacedObject): void {
+    if (this.viewOnly()) return;
     const { x, y } = this.areaPoint(event);
     // grabbing one of several picked objects moves them all; grabbing another object picks only that one
     const picked = this.selection();
@@ -848,11 +853,13 @@ export class CanvasBoard {
 
   /** picks only this object */
   select(id: string): void {
+    if (this.viewOnly()) return; // another player's round is only looked at: nothing is picked
     this.selection.set([id]);
   }
 
   /** Dragging on the empty canvas or the empty store frame picks the objects the rectangle touches (the objects stop their own pointer events, so this is only what is empty). */
   startMarquee(event: PointerEvent): void {
+    if (this.viewOnly()) return;
     const { x, y } = this.areaPoint(event); // on the canvas, or on the store frame (which can be scrolled)
     this.marqueeStart = { x, y };
     this.marqueeInStore = !!this.store() && event.currentTarget === this.storeInner()?.nativeElement;
@@ -901,6 +908,7 @@ export class CanvasBoard {
 
   /** removes the picked objects; an arrow that was fastened to a removed figure is free again */
   removeSelected(): void {
+    if (this.viewOnly()) return; // another player's round is only looked at
     const ids = this.selection();
     if (!ids.length) return;
     this.placed.set(this.diagram().removeAll(ids).toData());
@@ -909,6 +917,7 @@ export class CanvasBoard {
 
   /** keeps the result of a tool when the diagram changed (the diagram gives back itself when nothing changed) */
   private apply(next: CanvasDiagram): void {
+    if (this.viewOnly()) return; // another player's round is only looked at
     if (next !== this.diagram()) this.placed.set(next.toData());
   }
 

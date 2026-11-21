@@ -1,24 +1,26 @@
 import { Component, ElementRef, HostListener, OnDestroy, afterNextRender, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Autosave } from '../../core/autosave';
 import { isWideScreen } from '../../core/theme';
 import { CanvasBoard } from '../../canvas/canvas-board/canvas-board';
 import { LINE_LEVELS, lineLevelOf } from '../line-level';
-import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
+import { SNAP_LEVELS, snapLevelOf } from '../snap-level';
 import { JigsawHelper } from '../jigsaw-helper';
 import { JigsawImageService } from '../jigsaw-image.service';
-import { JigsawPiecesService } from '../jigsaw-pieces.service';
+import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
-import { PieceSync } from '../piece-sync';
-import { CANVAS_MAX_NAME, CanvasArea, CanvasInput, CanvasSpec } from '../../models/shared/canvas';
-import { JigsawCut, JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
+import { PieceSync, PieceSyncApi } from '../piece-sync';
+import { PlaysService } from '../plays.service';
+import { CanvasArea, CanvasSpec } from '../../models/shared/canvas';
+import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
 import { PlacedObject } from '../../models/shared/placed';
+import { PlayOverrides, PlaySpec } from '../../models/shared/play';
 
 /**
- * Playing a jigsaw (`/jigsaw/:id`): the pieces in their store beside the picture, the sidebar with how far the game has come, and the helper banner. It
- * reads the jigsaw, its pieces and its picture, and keeps what the person does: where the pieces are (`PieceSync`) and how close a piece has to be
- * dropped to click into place (saved with the jigsaw). The settings of the jigsaw are made once, on the page for a new jigsaw.
+ * Playing one game of a jigsaw (`/jigsaw/:id/play/:playId`): the pieces in their store beside the picture, the sidebar with how far the game has come, and the
+ * helper banner. The jigsaw (picture, size, pieces) is fixed; the game holds where the pieces are (`PieceSync` keeps that in the database) and the few things a
+ * player may choose for themselves: the difficulty and the look (the line, the colours). Those are saved with the game, not with the jigsaw.
  */
 @Component({
   selector: 'app-jigsaw-play',
@@ -28,45 +30,72 @@ import { PlacedObject } from '../../models/shared/placed';
 export class JigsawPlay implements OnDestroy {
   private readonly service = inject(JigsawService);
   private readonly images = inject(JigsawImageService);
-  private readonly pieceApi = inject(JigsawPiecesService);
+  private readonly plays = inject(PlaysService);
+  private readonly users = inject(JigsawUserService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly element = inject(ElementRef<HTMLElement>);
-  /** the jigsaw that is open */
-  readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
+  /** the jigsaw and the game that are open (they change when another game is opened from here) */
+  jigsawId = '';
+  playId = '';
 
-  /** loading: being read, ready, missing: there is no such jigsaw, failed: it could not be read */
+  /** loading: being read, ready, missing: there is no such jigsaw or game, failed: it could not be read */
   readonly status = signal<'loading' | 'ready' | 'missing' | 'failed'>('loading');
+  /** the jigsaw (its store is as wide as this game has made it) and the game */
   readonly item = signal<CanvasSpec | null>(null);
-  /** the pieces (and anything else that is placed) on the board, as they are stored */
+  readonly play = signal<PlaySpec | null>(null);
+  /** the round is another player's: it can be looked at, never changed */
+  readonly viewOnly = computed(() => {
+    const play = this.play();
+    const me = this.users.user();
+    return !!play && play.userId !== me?.id;
+  });
+  /** the pieces (and anything else that is placed) on the board, as this round has them */
   readonly placed = signal<PlacedObject[]>([]);
   /** the address of the picture (null: none) */
   readonly picture = signal<string | null>(null);
   readonly message = signal<{ kind: 'success' | 'danger'; text: string } | null>(null);
   /** the top menu: its Sidebar switch opens the folded sidebar of a narrow screen */
   protected readonly tools = inject(JigsawHelper);
-  /** the cheat is on (the Cheat button): the numbers of the grid points and of the pieces are shown, to help find the pieces */
+  /** the cheat is on (the Cheat switch): the numbers of the grid points and of the pieces are shown, to help find the pieces */
   readonly debug = signal(false);
-  /** Start over was pressed: the person is asked to approve before the pieces are shuffled */
+  /** New game was pressed: the person is asked to approve before another game is started */
   readonly confirmingStartOver = signal(false);
-  /** how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never): a setting of the jigsaw */
+  /** Delete game was pressed: the person is asked to approve before the game is deleted */
+  readonly confirmingDelete = signal(false);
+
+  /** the difficulty, the jigsaw's own (not a choice of a round): how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never) */
   readonly snapPercent = signal(CanvasArea.DEFAULT_SNAP_PERCENT);
-  /** the line round each piece: how thick in pixels, and what colour (#rrggbb); settings of the jigsaw */
+  /** the line round each piece: how thick in pixels, and what colour (#rrggbb), and the background colour of the picture area */
   readonly lineWidth = signal(CanvasArea.DEFAULT_LINE_WIDTH);
   readonly lineColor = signal(CanvasArea.DEFAULT_LINE_COLOR);
-  /** the background colour of the picture area (#rrggbb); a setting of the jigsaw */
   readonly backColor = signal(CanvasArea.DEFAULT_BACK_COLOR);
+  /** what this game has chosen for itself (the rest is the jigsaw's): only this is sent when it is saved */
+  private readonly own = signal<PlayOverrides>({});
   /** the thicknesses of the line to choose from, in words, and the one the line is closest to */
   readonly lineLevels = LINE_LEVELS;
   readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
-  readonly levels = SNAP_LEVELS;
-  readonly level = computed(() => snapLevelOf(this.snapPercent()));
+  /** the difficulty in words (it is shown, not chosen: it belongs to the jigsaw) */
+  readonly levelLabel = computed(() => SNAP_LEVELS.find((l) => l.key === snapLevelOf(this.snapPercent()))?.label ?? '');
 
-  /** A difficulty was chosen: the snap range is set to it (and saved with the jigsaw). */
-  chooseLevel(key: string): void {
-    const percent = snapPercentOf(key);
-    if (percent !== null) this.snapPercent.set(percent);
+  chooseLine(width: number): void {
+    if (this.viewOnly()) return;
+    this.lineWidth.set(width);
+    this.own.update((o) => ({ ...o, lineWidth: width }));
   }
 
-  /** how thick the frame around the picture area is (chosen when the jigsaw was made; a jigsaw that has none gets the usual frame) */
+  chooseLineColor(color: string): void {
+    if (this.viewOnly()) return;
+    this.lineColor.set(color);
+    this.own.update((o) => ({ ...o, lineColor: color }));
+  }
+
+  chooseBackColor(color: string): void {
+    if (this.viewOnly()) return;
+    this.backColor.set(color);
+    this.own.update((o) => ({ ...o, backColor: color }));
+  }
+
   readonly width = computed(() => this.item()?.width ?? 0);
   readonly height = computed(() => this.item()?.height ?? 0);
   readonly gridSize = computed(() => this.item()?.gridSize ?? 0);
@@ -85,67 +114,65 @@ export class JigsawPlay implements OnDestroy {
   /** the height of the sidebar in pixels: from where the page starts (under the top menu) to the bottom of the window */
   readonly sidebarHeight = signal<number | null>(null);
 
-  /** keeps where the pieces are in the database, a pause after the last move */
-  readonly pieceSync = new PieceSync({ jigsawId: () => this.id, pieces: () => this.pieces(), api: this.pieceApi });
+  /** where the moves of pieces are saved: the positions of this game */
+  private readonly syncApi: PieceSyncApi = {
+    replace: () => Promise.reject(new Error('The pieces of a jigsaw are cut when the jigsaw is made.')),
+    move: (playId, moves) => this.plays.move(this.jigsawId, playId, moves),
+    moveWhileLeaving: (playId, moves) => this.plays.moveWhileLeaving(this.jigsawId, playId, moves),
+  };
 
-  /** what is saved of the jigsaw itself: nothing but the snap range changes while it is played */
-  private readonly autosave = new Autosave<CanvasInput, CanvasSpec>({
-    input: () => this.settings(),
-    invalid: () => (this.item() ? new CanvasArea(this.settings()).error() : 'loading'),
-    create: () => Promise.reject(new Error('A jigsaw is made on the page for a new jigsaw.')),
-    update: (id, input) => this.service.update(id, input),
-    saved: (spec) => this.item.set(spec),
+  /** keeps where the pieces are in the database, a pause after the last move (the id it works with is the game's) */
+  readonly pieceSync = new PieceSync({ jigsawId: () => (this.viewOnly() ? null : this.playId || null), pieces: () => this.pieces(), api: this.syncApi }); // another player's round is never saved from here (no id: nothing is sent)
+
+  /** what the game chooses for itself is saved with the game, a pause after the last change */
+  private readonly autosave = new Autosave<PlayOverrides, { id: string }>({
+    input: () => this.own(),
+    invalid: () => (this.play() ? '' : 'loading'),
+    create: () => Promise.reject(new Error('A game is started from the page of the jigsaw.')),
+    update: async (playId, input) => {
+      const saved = await this.plays.saveSettings(this.jigsawId, playId, input);
+      return { id: saved.play.id };
+    },
+    saved: () => undefined,
   });
   readonly saveState = this.autosave.state;
 
   constructor() {
     afterNextRender(() => this.measureSidebar());
-    void this.load();
+    // another game can be opened from this page (a new game): the page is the same, the ids change
+    this.route.paramMap.subscribe((params) => {
+      this.pieceSync.leaving(); // what waits to be saved goes to the game that is left
+      this.jigsawId = params.get('id') ?? '';
+      this.playId = params.get('playId') ?? '';
+      void this.load();
+    });
   }
 
-  /** the settings of the jigsaw as the API takes them */
-  private settings(): CanvasInput {
-    const item = this.item();
-    return {
-      name: item?.name ?? '',
-      ...(item?.author ? { author: item.author } : {}), // the PUT replaces the jigsaw: what is not sent is lost
-      ...(item?.pictureName ? { pictureName: item.pictureName } : {}),
-      width: this.width(),
-      height: this.height(),
-      gridSize: this.gridSize(),
-      gridVisible: item?.gridVisible ?? true,
-      placed: this.placed().filter((p) => !p.piece),
-      ...(item?.storeWidth ? { storeWidth: item.storeWidth } : {}),
-      snapPercent: this.snapPercent(),
-      lineWidth: this.lineWidth(),
-      lineColor: this.lineColor(),
-      backColor: this.backColor(),
-    };
-  }
-
-  /** Reads the jigsaw, its pieces and its picture: the game is as the person left it. */
+  /** Reads the jigsaw, the game with its pieces, and the picture: the game is as the person left it. */
   private async load(): Promise<void> {
+    this.status.set('loading');
+    this.confirmingStartOver.set(false);
+    this.confirmingDelete.set(false);
+    this.message.set(null);
+    this.placed.set([]);
+    this.pieceSync.markSaved([]);
     try {
-      const item = (await this.service.list()).find((c) => c.id === this.id);
-      if (!item) return this.status.set('missing');
-      const saved = await this.pieceApi.list(this.id);
-      this.item.set(item);
-      this.goodName = item.name;
-      this.snapPercent.set(item.snapPercent ?? CanvasArea.DEFAULT_SNAP_PERCENT);
-      this.lineWidth.set(item.lineWidth ?? CanvasArea.DEFAULT_LINE_WIDTH);
-      this.lineColor.set(item.lineColor ?? CanvasArea.DEFAULT_LINE_COLOR);
-      this.backColor.set(item.backColor ?? CanvasArea.DEFAULT_BACK_COLOR);
-      if (saved.length) {
-        this.placed.set([...item.placed.filter((p) => !p.piece), ...saved.map((p) => JigsawPieces.toPlaced(p))]);
-        this.pieceSync.markSaved(saved);
-      } else {
-        this.placed.set(item.placed);
-        this.pieceSync.markSaved([]);
-        if (item.placed.some((p) => p.piece)) this.pieceSync.queueReplace(Promise.resolve(new Map())); // an older save: its pieces go to the database, without graphics
-      }
-      this.autosave.markSaved(this.id); // reading is not a change
+      const jigsaw = (await this.service.list()).find((c) => c.id === this.jigsawId);
+      if (!jigsaw) return this.status.set('missing');
+      const detail = await this.plays.get(this.jigsawId, this.playId).catch((err) => (err?.status === 404 ? null : Promise.reject(err)));
+      if (!detail) return this.status.set('missing');
+      this.item.set({ ...jigsaw, storeWidth: detail.play.storeWidth });
+      this.play.set(detail.play);
+      this.snapPercent.set(detail.settings.snapPercent);
+      this.lineWidth.set(detail.settings.lineWidth);
+      this.lineColor.set(detail.settings.lineColor);
+      this.backColor.set(detail.settings.backColor);
+      this.own.set({ ...detail.play.overrides });
+      this.placed.set([...jigsaw.placed.filter((p) => !p.piece), ...detail.pieces.map((p) => JigsawPieces.toPlaced(p))]);
+      this.pieceSync.markSaved(detail.pieces);
+      this.autosave.markSaved(this.playId); // reading is not a change
       this.status.set('ready');
-      if (await this.images.has(this.id)) this.picture.set(this.images.url(this.id, 1));
+      this.picture.set((await this.images.has(this.jigsawId)) ? this.images.url(this.jigsawId, 1) : null);
     } catch {
       this.status.set('failed');
     }
@@ -176,44 +203,44 @@ export class JigsawPlay implements OnDestroy {
     this.pieceSync.destroy();
   }
 
-  /** what the board tells: why an object could not be put there ('' when there is nothing to tell) */
-  readonly maxName = CANVAS_MAX_NAME;
-  /** the last name that is allowed (not empty): the title goes back to it when it is left empty */
-  private goodName = '';
-
-  /** The title is edited in the sidebar: the jigsaw has the new name at once (the menu bar shows it too) and it is saved a pause after the last key. */
-  rename(name: string): void {
-    const item = this.item();
-    if (!item) return;
-    if (name.trim()) this.goodName = name;
-    this.item.set({ ...item, name }); // an empty name is not saved (see `invalid`), and is put back when the field is left
-  }
-
-  /** The title field is left: an empty title is put back as it was. */
-  leaveTitle(): void {
-    const item = this.item();
-    if (item && !item.name.trim() && this.goodName) this.item.set({ ...item, name: this.goodName });
-  }
-
   tell(notice: string): void {
     this.message.set(notice ? { kind: 'danger', text: notice } : null);
   }
 
-  /** The store is made wider (the pieces were collected over the whole frame): the jigsaw keeps the new width. */
+  /** The store is made wider (the pieces were collected over the whole frame): this game keeps the new width. */
   widenStore(storeWidth: number): void {
     const item = this.item();
-    if (item) this.item.set({ ...item, storeWidth });
+    if (!item) return;
+    this.item.set({ ...item, storeWidth });
+    void this.plays.move(this.jigsawId, this.playId, [], storeWidth).catch(() => undefined);
   }
 
-  /** Start over: all the pieces are shuffled over the store frame again, on random places and layers (see `JigsawCut.reshuffle`). Asked for first. */
-  startOver(): void {
+  /** Delete game: this game is deleted for good (the jigsaw and the other games stay), and the person goes to the page of the jigsaw. Asked for first. */
+  async deleteGame(): Promise<void> {
+    this.confirmingDelete.set(false);
+    if (this.viewOnly()) return;
+    try {
+      await this.plays.remove(this.jigsawId, this.playId);
+    } catch {
+      return this.tell('Could not delete the round: try again.');
+    }
+    // nothing of this game is saved any more: what waited to be saved has nowhere to go
+    this.pieceSync.markSaved([]);
+    this.autosave.markSaved(null);
+    await this.router.navigate(['/jigsaw', this.jigsawId]);
+  }
+
+  /** New game: another game of this jigsaw is started, with the pieces scattered again; this game stays in the list of games. Asked for first. */
+  async startOver(): Promise<void> {
     this.confirmingStartOver.set(false);
-    const item = this.item();
-    if (!item) return;
-    const result = JigsawCut.reshuffle(this.placed(), item.width, item.height, item.gridSize);
-    if ('error' in result) return this.tell(result.error);
-    this.item.set({ ...item, storeWidth: result.storeWidth }); // the store is as wide as the pieces need
-    this.placed.set(result.placed);
-    this.message.set({ kind: 'success', text: 'All the pieces are shuffled again.' });
+    const me = this.users.user();
+    if (!me) return;
+    this.pieceSync.leaving();
+    try {
+      const game = await this.plays.start(this.jigsawId, me.id);
+      await this.router.navigate(['/jigsaw', this.jigsawId, 'play', game.id]);
+    } catch {
+      this.tell('Could not start a new round: try again.');
+    }
   }
 }

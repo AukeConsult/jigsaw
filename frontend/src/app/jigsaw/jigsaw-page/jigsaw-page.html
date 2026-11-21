@@ -1,0 +1,133 @@
+@switch (status()) {
+  @case ('loading') {
+    <main class="container py-4 text-body-secondary" role="status">Opening the jigsaw…</main>
+  }
+  @case ('missing') {
+    <main class="container py-4"><div class="alert alert-warning" role="alert">There is no such jigsaw. <a routerLink="/jigsaw/list">Go to the jigsaws</a>.</div></main>
+  }
+  @case ('failed') {
+    <main class="container py-4"><div class="alert alert-danger" role="alert">Could not open the jigsaw. <a routerLink="/jigsaw/list">Go to the jigsaws</a>.</div></main>
+  }
+  @case ('ready') {
+    @let it = item()!;
+    <main class="container py-4">
+      <div class="row g-4">
+        <div class="col-md-5 col-lg-4">
+          @if (hasPicture()) {
+            <img class="img-fluid rounded-3 shadow-sm w-100" [src]="pictureUrl()" alt="The picture of the jigsaw" (error)="hasPicture.set(false)">
+          }
+        </div>
+        <div class="col-md-7 col-lg-8">
+          <h1 class="h3 fw-bold mb-1">{{ it.name }}</h1>
+          @if (it.author) {
+            <div class="text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
+          }
+          <div class="small text-body-secondary mb-3">
+            <i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ pieces() }} pieces, {{ it.width }} × {{ it.height }} px
+            @if (it.createdAt) {<span class="ms-2"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ it.createdAt | date: 'mediumDate' }}</span>}
+          </div>
+
+          <button type="button" class="btn btn-primary btn-lg" [disabled]="busy()" (click)="play()">
+            <i class="bi bi-play-fill me-2" aria-hidden="true"></i>@if (games().length) { New round } @else { Play }
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-lg ms-2" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit</button>
+          @if (editing()) {
+            <!-- the edit form: the name, the author and the defaults; the picture, size and pieces are fixed -->
+            <form class="card card-body mt-3" (submit)="$event.preventDefault(); save()">
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label small mb-1" for="edit-name">Name <span class="text-danger" aria-hidden="true">*</span></label>
+                  <input id="edit-name" name="name" class="form-control" type="text" required [attr.maxlength]="maxName" [ngModel]="name()" (ngModelChange)="name.set($event)">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label small mb-1" for="edit-author">Author</label>
+                  <select id="edit-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
+                    @if (!ownerUid()) { <option value="">Choose the author</option> }
+                    @for (u of owners(); track u.id) {
+                      <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-6 col-sm-3">
+                  <label class="form-label small mb-1" for="edit-level">Difficulty</label>
+                  <select id="edit-level" name="level" class="form-select" title="The difficulty of the jigsaw: every round of it is played with it" (change)="chooseLevel($any($event.target).value)">
+                    @for (l of levels; track l.key) {
+                      <option [value]="l.key" [selected]="level() === l.key">{{ l.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-6 col-sm-3">
+                  <label class="form-label small mb-1" for="edit-line">Line</label>
+                  <select id="edit-line" name="line" class="form-select" title="How thick the line round the pieces is in a new round" (change)="lineWidth.set(+$any($event.target).value)">
+                    @for (l of lineLevels; track l.width) {
+                      <option [value]="l.width" [selected]="lineLevel() === l.width">{{ l.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-6 col-sm-3">
+                  <label class="form-label small mb-1" for="edit-line-color">Colour</label>
+                  <input id="edit-line-color" name="lineColor" class="form-control form-control-color w-100" type="color" [ngModel]="lineColor()" (ngModelChange)="lineColor.set($event)">
+                </div>
+                <div class="col-6 col-sm-3">
+                  <label class="form-label small mb-1" for="edit-back-color">Back</label>
+                  <input id="edit-back-color" name="backColor" class="form-control form-control-color w-100" type="color" [ngModel]="backColor()" (ngModelChange)="backColor.set($event)">
+                </div>
+              </div>
+              <div class="form-text mt-2">Somebody has started playing this jigsaw, so its picture, size and pieces are fixed: every round of it shares them. The difficulty here is the jigsaw's: every round of it is played with it, also the ones already started. The look here is what a round starts with; a round that has chosen its own keeps it. (When nobody has a round of it, the whole jigsaw can be edited.)</div>
+              <div class="d-flex justify-content-end gap-2 mt-3">
+                <button type="button" class="btn btn-outline-secondary" (click)="editing.set(false)">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="saving() || !name().trim()"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save</button>
+              </div>
+            </form>
+          }
+          @if (error()) {
+            <div class="alert alert-warning py-2 small mt-3" role="alert">{{ error() }}</div>
+          }
+
+          <h2 class="h5 mt-4 mb-2">Rounds <span class="text-body-secondary fw-normal fs-6">yours are marked</span></h2>
+          @if (!games().length) {
+            <p class="text-body-secondary">Nobody has played this jigsaw yet.</p>
+          } @else {
+            <ul class="list-group">
+              @for (game of games(); track game.id) {
+                <li class="list-group-item d-flex flex-wrap align-items-center gap-2" [class.border-primary]="isMine(game)" [class.bg-primary-subtle]="isMine(game)">
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      @if (isMine(game)) {
+                        <span class="badge text-bg-dark"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>Yours</span>
+                      } @else {
+                        <span class="small fw-semibold"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ game.userName || 'Someone' }}</span>
+                      }
+                      @if (game.status === 'solved') {
+                        <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Solved</span>
+                      } @else {
+                        <span class="badge text-bg-primary">Playing</span>
+                      }
+                      <span class="small">{{ game.matched }} of {{ game.total }} in place</span>
+                    </div>
+                    <div class="progress progress-thin mt-1 w-75">
+                      <div class="progress-bar bg-success" [style.width.%]="game.total ? (game.matched / game.total) * 100 : 0"></div>
+                    </div>
+                    <div class="small text-body-secondary mt-1"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>Started {{ game.startedAt | date: 'medium' }}</div>
+                  </div>
+                  @if (isMine(game) && confirmingId() === game.id) {
+                    <span class="small">Delete this round?</span>
+                    <button type="button" class="btn btn-sm btn-danger" (click)="removeGame(game)">Yes</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingId.set(null)">Cancel</button>
+                  } @else {
+                    <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', it.id, 'play', game.id]">
+                      <i class="bi me-1" [class.bi-play-fill]="isMine(game) && game.status !== 'solved'" [class.bi-eye]="!isMine(game) || game.status === 'solved'" aria-hidden="true"></i>@if (isMine(game) && game.status !== 'solved') { Continue } @else { Look }
+                    </a>
+                    @if (isMine(game)) {
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmingId.set(game.id)"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete</button>
+                    }
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </main>
+  }
+}

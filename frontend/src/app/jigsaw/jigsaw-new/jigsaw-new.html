@@ -1,6 +1,11 @@
 <main class="container py-4">
   <form class="form-card card card-body mx-auto" (submit)="$event.preventDefault(); save()">
-    <h1 class="h4 mb-3"><i class="bi bi-plus-circle text-primary me-2" aria-hidden="true"></i>New jigsaw</h1>
+    <h1 class="h4 mb-3">
+      @if (editId) { <i class="bi bi-pencil text-primary me-2" aria-hidden="true"></i>Edit jigsaw } @else { <i class="bi bi-plus-circle text-primary me-2" aria-hidden="true"></i>New jigsaw }
+    </h1>
+    @if (loading()) {
+      <div class="text-body-secondary small mb-3" role="status">Opening the jigsaw…</div>
+    }
 
     <div class="mb-3">
       <label class="form-label" for="jigsaw-name">Name <span class="text-danger" aria-hidden="true">*</span></label>
@@ -12,9 +17,14 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label" for="jigsaw-author">Author</label>
-      <input id="jigsaw-author" name="author" class="form-control" type="text" autocomplete="name" [maxlength]="maxName" placeholder="Who made this jigsaw (optional)"
-             [ngModel]="author()" (ngModelChange)="author.set($event)">
+      <label class="form-label" for="jigsaw-author">Author @if (!editId) { <span class="text-danger" aria-hidden="true">*</span> }</label>
+      <select id="jigsaw-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
+        @if (!ownerUid()) { <option value="">Choose the author</option> }
+        @for (u of owners(); track u.id) {
+          <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
+        }
+      </select>
+      <div class="form-text">The author is one of the users, and owns the jigsaw.</div>
     </div>
 
     <div class="row g-2 mb-2">
@@ -113,6 +123,8 @@
       }
       @if (stale()) {
         <div class="form-text text-danger">The size changed since the picture was cut. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="cropping.set(true)">Adjust the picture again</button>.</div>
+      } @else if (lacksPicture()) {
+        <div class="form-text">This jigsaw has no picture. You can save the changes without one (the size and the pieces then stay as they are), or choose a picture (jpeg, png or webp) to give it one and change those too.</div>
       } @else if (!file()) {
         <div class="form-text">Choose the picture the jigsaw is made from (jpeg, png or webp).</div>
       } @else if (!cut()) {
@@ -128,9 +140,9 @@
     }
 
     <div class="d-flex justify-content-end gap-2">
-      <a class="btn btn-outline-secondary" routerLink="/jigsaw/list">Cancel</a>
+      <a class="btn btn-outline-secondary" [routerLink]="editId ? ['/jigsaw', editId] : '/jigsaw/list'">Cancel</a>
       <button type="submit" class="btn btn-primary" [disabled]="!canSave()">
-        @if (saving()) { Making the jigsaw… } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save and start }
+        @if (saving()) { @if (editId) { Saving… } @else { Making the jigsaw… } } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>@if (editId) { Save changes } @else { Save and start } }
       </button>
     </div>
   </form>

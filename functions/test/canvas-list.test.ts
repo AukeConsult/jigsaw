@@ -2,6 +2,7 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app";
 import type { CanvasStore } from "../src/canvas-list";
+import { memoryPlays } from "./memory-plays";
 import { CANVAS_MAX_PLACED, CanvasArea } from "../src/models";
 import type { CanvasSpec } from "../src/models";
 
@@ -258,7 +259,7 @@ describe("jigsaw", () => {
   const body = { name: "Puzzle", width: 800, height: 600, gridSize: 5, gridVisible: true, placed: [] };
 
   it("works like canvas-list but keeps its pages in a store of its own", async () => {
-    const app = createApp({ canvasList: memoryStore(), jigsaw: memoryStore() });
+    const app = createApp({ canvasList: memoryStore(), jigsaw: memoryStore(), plays: memoryPlays() });
     const made = await request(app).post("/api/jigsaw").send(body);
     expect(made.status).toBe(201);
     expect((await request(app).get("/api/jigsaw")).body.map((c: { name: string }) => c.name)).toEqual(["Puzzle"]);

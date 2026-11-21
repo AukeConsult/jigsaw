@@ -31,6 +31,8 @@ export interface CanvasSpec {
   name: string;
   /** a jigsaw: who made it (the name of the author, as typed; without it, none is shown) */
   author?: string;
+  /** a jigsaw: the UID of its owner, the user who is its author (chosen from the users; the API puts that user's name in `author`); without it, a jigsaw from before owners */
+  ownerUid?: string;
   /** a jigsaw: the name of the picture file it was made from (kept as information; not shown while playing) */
   pictureName?: string;
   /** horizontal size in pixels */
@@ -60,11 +62,11 @@ export interface CanvasSpec {
 }
 
 /** What the page sends to make a canvas area. */
-export type CanvasInput = Pick<CanvasSpec, 'name' | 'author' | 'pictureName' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type CanvasInput = Pick<CanvasSpec, 'name' | 'author' | 'ownerUid' | 'pictureName' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** A canvas area as it comes from outside (the page, the API): it checks itself. */
 export class CanvasArea {
-  constructor(readonly input: { name?: unknown; author?: unknown; pictureName?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; pictureName?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a canvas whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -119,6 +121,7 @@ export class CanvasArea {
     return {
       name: (i.name as string).trim(),
       ...(typeof i.author === 'string' && i.author.trim() ? { author: i.author.trim() } : {}),
+      ...(typeof i.ownerUid === 'string' && i.ownerUid ? { ownerUid: i.ownerUid } : {}),
       ...(typeof i.pictureName === 'string' && i.pictureName.trim() ? { pictureName: i.pictureName.trim() } : {}),
       width: i.width as number,
       height: i.height as number,
@@ -140,6 +143,7 @@ export class CanvasArea {
       id,
       name: doc.name ?? '',
       ...(doc.author ? { author: doc.author } : {}),
+      ...(doc.ownerUid ? { ownerUid: doc.ownerUid } : {}),
       ...(doc.pictureName ? { pictureName: doc.pictureName } : {}),
       width: doc.width ?? 800,
       height: doc.height ?? 600,
@@ -163,6 +167,7 @@ export class CanvasArea {
     if (!name) return 'Give the canvas a name.';
     if (name.length > CANVAS_MAX_NAME) return `The name can be at most ${CANVAS_MAX_NAME} characters.`;
     if (input.author !== undefined && (typeof input.author !== 'string' || input.author.trim().length > CANVAS_MAX_NAME)) return `The author can be at most ${CANVAS_MAX_NAME} characters.`;
+    if (input.ownerUid !== undefined && (typeof input.ownerUid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(input.ownerUid))) return 'The owner must be the id of a user.';
     if (input.pictureName !== undefined && (typeof input.pictureName !== 'string' || input.pictureName.trim().length > CANVAS_MAX_PICTURE_NAME)) {
       return `The name of the picture file can be at most ${CANVAS_MAX_PICTURE_NAME} characters.`;
     }

@@ -17,15 +17,23 @@
     @let m = matched();
     <div class="jigsaw-play">
       <div class="jigsaw-side">
-        <!-- the sidebar, docked at the left edge on a wide screen: how far the game has come and what can be done in it; on a narrow screen it is folded away until the Sidebar switch in the top menu opens it over the board -->
+        <!-- the sidebar, docked at the left edge on a wide screen: how far the round has come and what can be done in it; on a narrow screen it is folded away until the Sidebar switch in the top menu opens it over the board -->
         <aside id="jigsaw-sidebar" class="jigsaw-sidebar border-end bg-body-tertiary p-3" [class.is-open]="tools.sidebarOpen()" [style.height.px]="sidebarHeight()" aria-label="The jigsaw">
-        <!-- the title: it is edited here, and saved with the jigsaw -->
-        <input id="jigsaw-title" name="title" class="form-control form-control-plaintext h4 fw-bold mb-1 px-0 py-0" type="text" aria-label="Name of the jigsaw" [maxlength]="maxName"
-               [ngModel]="it.name" (ngModelChange)="rename($event)" (blur)="leaveTitle()">
+        <!-- the title of the jigsaw (it is changed on the page of the jigsaw), with a way back to its rounds -->
+        <h1 class="h4 fw-bold mb-1">{{ it.name }}</h1>
+        <a class="small d-inline-block mb-2" [routerLink]="['/jigsaw', it.id]"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>All rounds of this jigsaw</a>
         @if (it.author) {
           <div class="small text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
         }
-        <div class="small text-body-secondary mb-3">{{ m.total }} pieces ({{ pieceInfo().columns }} × {{ pieceInfo().rows }}), {{ it.width }} × {{ it.height }} px, grid {{ it.gridSize }} px</div>
+        <div class="small text-body-secondary mb-3">{{ m.total }} pieces ({{ pieceInfo().columns }} × {{ pieceInfo().rows }}), {{ it.width }} × {{ it.height }} px, grid {{ it.gridSize }} px, difficulty {{ levelLabel().toLowerCase() }}</div>
+
+        @if (viewOnly()) {
+          <!-- another player's round: it can be looked at, never changed -->
+          <div class="alert alert-info py-2 small" role="status">
+            <i class="bi bi-eye me-1" aria-hidden="true"></i>You are looking at <strong>{{ play()?.userName || 'another player' }}</strong>'s round. You can look, but not change it.
+            <div class="mt-2"><button type="button" class="btn btn-sm btn-primary" (click)="startOver()"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Start my own round</button></div>
+          </div>
+        }
 
         <div class="small mb-3" role="status" aria-live="polite">
           Matched: <strong>{{ m.count }}</strong> of {{ m.total }}{{ m.total && m.count === m.total ? ' – solved!' : '' }}
@@ -35,57 +43,60 @@
           <div class="small text-danger mb-2" role="alert">Could not save the pieces, trying again</div>
         }
 
-        <div class="mb-3">
-          <label class="form-label small mb-1" for="snap-range">Difficulty</label>
-          <select id="snap-range" name="snapLevel" class="form-select form-select-sm" (change)="chooseLevel($any($event.target).value)">
-            @for (l of levels; track l.key) {
-              <option [value]="l.key" [selected]="level() === l.key">{{ l.label }}</option>
-            }
-          </select>
-          <div class="form-text mt-0">How close a piece must be dropped to its place to click into it: the easier, the farther away.</div>
-        </div>
-
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <label class="form-label small mb-1" for="line-width">Line</label>
-            <select id="line-width" name="lineWidth" class="form-select form-select-sm" title="How thick the line round each piece and round the picture area is"
-                    (change)="lineWidth.set(+$any($event.target).value)">
-              @for (l of lineLevels; track l.width) {
-                <option [value]="l.width" [selected]="lineLevel() === l.width">{{ l.label }}</option>
-              }
-            </select>
+        <!-- the settings of a round are for its player: another player's round shows none of them -->
+        @if (!viewOnly()) {
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small mb-1" for="line-width">Line</label>
+              <select id="line-width" name="lineWidth" class="form-select form-select-sm" [disabled]="viewOnly()" title="How thick the line round each piece and round the picture area is"
+                      (change)="chooseLine(+$any($event.target).value)">
+                @for (l of lineLevels; track l.width) {
+                  <option [value]="l.width" [selected]="lineLevel() === l.width">{{ l.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-3">
+              <label class="form-label small mb-1" for="line-color">Colour</label>
+              <input id="line-color" name="lineColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" title="The colour of the line round each piece and round the picture area"
+                     [ngModel]="lineColor()" (ngModelChange)="chooseLineColor($event)">
+            </div>
+            <div class="col-3">
+              <label class="form-label small mb-1" for="back-color">Back</label>
+              <input id="back-color" name="backColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" title="The background colour of the picture area, inside the frame"
+                     [ngModel]="backColor()" (ngModelChange)="chooseBackColor($event)">
+            </div>
           </div>
-          <div class="col-3">
-            <label class="form-label small mb-1" for="line-color">Colour</label>
-            <input id="line-color" name="lineColor" class="form-control form-control-sm form-control-color w-100" type="color" title="The colour of the line round each piece and round the picture area"
-                   [ngModel]="lineColor()" (ngModelChange)="lineColor.set($event)">
-          </div>
-          <div class="col-3">
-            <label class="form-label small mb-1" for="back-color">Back</label>
-            <input id="back-color" name="backColor" class="form-control form-control-sm form-control-color w-100" type="color" title="The background colour of the picture area, inside the frame"
-                   [ngModel]="backColor()" (ngModelChange)="backColor.set($event)">
-          </div>
-        </div>
+        }
 
         @if (message(); as msg) {
           <div class="alert py-1 px-2 small" [class.alert-success]="msg.kind === 'success'" [class.alert-danger]="msg.kind === 'danger'" role="status">{{ msg.text }}</div>
         }
 
-        <div class="d-flex flex-wrap gap-1 mb-3">
-          @if (confirmingStartOver()) {
-            <div class="w-100 small" role="alert">Start all over? All the pieces are shuffled again and your progress is lost.</div>
-            <button type="button" class="btn btn-sm btn-danger" (click)="startOver()">Yes, start over</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingStartOver.set(false)">Cancel</button>
-          } @else {
-            <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Start over</button>
-          }
-        </div>
+        <!-- the buttons that start or delete a round are for the player of the round only (Bootstrap's d-flex beats the hidden attribute, so it is not rendered at all) -->
+        @if (!viewOnly()) {
+          <div class="d-flex flex-wrap gap-1 mb-3">
+            @if (confirmingStartOver()) {
+              <div class="w-100 small" role="alert">Start a new round? The pieces are scattered again in a new round; this round stays in your list.</div>
+              <button type="button" class="btn btn-sm btn-danger" (click)="startOver()">Yes, new round</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingStartOver.set(false)">Cancel</button>
+            } @else if (confirmingDelete()) {
+              <div class="w-100 small" role="alert">Delete this round for good? Its pieces and progress are lost. The jigsaw stays.</div>
+              <button type="button" class="btn btn-sm btn-danger" (click)="deleteGame()">Yes, delete</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingDelete.set(false)">Cancel</button>
+            } @else {
+              <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>New round</button>
+              <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" (click)="confirmingDelete.set(true)"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete round</button>
+            }
+          </div>
+        }
 
-        <!-- the cheat: the numbers of the places on the picture and on the pieces, to help find them (a switch, as the helper ones in the menu are) -->
-        <div class="form-check form-switch mb-3">
-          <input id="cheat" class="form-check-input" type="checkbox" role="switch" [checked]="debug()" (change)="debug.set($any($event.target).checked)">
-          <label class="form-check-label small" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>Cheat <span class="text-body-secondary">(help find pieces)</span></label>
-        </div>
+        @if (!viewOnly()) {
+          <!-- the cheat: the numbers of the places on the picture and on the pieces, to help find them (a switch, as the helper ones in the menu are) -->
+          <div class="form-check form-switch mb-3">
+            <input id="cheat" class="form-check-input" type="checkbox" role="switch" [checked]="debug()" (change)="debug.set($any($event.target).checked)">
+            <label class="form-check-label small" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>Cheat <span class="text-body-secondary">(help find pieces)</span></label>
+          </div>
+        }
 
         <!-- saving is automatic: only a problem is said -->
         @if (saveState() === 'failed' || saveState() === 'invalid') {
@@ -98,7 +109,7 @@
 
       <div class="jigsaw-main">
         <app-canvas-board [width]="it.width" [height]="it.height" [gridSize]="it.gridSize" [gridVisible]="it.gridVisible" [gridInset]="true" [numberPoints]="debug()"
-                          [storeWidth]="it.storeWidth ?? 0" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" [snapRange]="snapRangePx()" [picture]="picture()" [tools]="false" [fillScreen]="true" [helperBanner]="true"
+                          [storeWidth]="it.storeWidth ?? 0" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" [snapRange]="snapRangePx()" [picture]="picture()" [tools]="false" [fillScreen]="true" [helperBanner]="true" [viewOnly]="viewOnly()"
                           [(placed)]="placed" (notice)="tell($event)" (storeWidthChange)="widenStore($event)" />
       </div>
     </div>
