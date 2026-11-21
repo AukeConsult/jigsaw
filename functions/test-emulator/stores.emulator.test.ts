@@ -6,6 +6,7 @@ import { createJigsawApp } from "../src/jigsaw/app";
 import { firestoreJigsawStore } from "../src/common/jigsaw-list";
 import { storageImageStore } from "../src/jigsaw/jigsaw-image";
 import { firestorePieceStore } from "../src/jigsaw/jigsaw-pieces";
+import { firestorePlayStore } from "../src/jigsaw/plays";
 import { DEFAULT_OBJECT, JIGSAW, JIGSAW_PIECES, JigsawCut, JigsawPieces } from "../src/models";
 
 // The real stores on the real Firestore emulator (npm run test:emulator, which starts it). The other tests use a small fake collection.
@@ -43,6 +44,20 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect(JSON.stringify(stored)).not.toContain('"f"'); // nothing of the first figure is left
     expect(stored.createdAt).toBe(made.createdAt);
     expect(changed?.placed).toHaveLength(1);
+    await store.remove(made.id);
+  });
+
+  it("counts the rounds played on a jigsaw, not the ones that are only opened", async () => {
+    const store = firestoreJigsawStore(JIGSAW);
+    const plays = firestorePlayStore();
+    const made = await store.add(jigsaw);
+    const round = { jigsawId: made.id, userId: "u", userName: "U", status: "active" as const, startedAt: 1, matched: 0, total: 4, storeWidth: 0, overrides: {} };
+    expect(await plays.count(made.id)).toBe(0);
+    await plays.create(made.id, round, {});
+    await plays.create(made.id, round, {});
+    await plays.create(made.id, { ...round, fresh: true }, {});
+    expect(await plays.count(made.id)).toBe(2);
+    await plays.removeAll(made.id);
     await store.remove(made.id);
   });
 

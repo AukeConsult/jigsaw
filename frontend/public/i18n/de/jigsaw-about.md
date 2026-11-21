@@ -8,4 +8,4 @@ Teile deine Puzzles mit Freunden und Familie und genießt ein Puzzle gemeinsam. 
 
 **Karin Auke** stellt Karins Puzzle bereit und hilft dir, wenn du Unterstützung brauchst.
 
-Fragen, Probleme oder Ideen? Schreib an [kainauke2@gmail.com](mailto:kainauke2@gmail.com).
+Fragen, Probleme oder Ideen? Schreib an [karinauke2@gmail.com](mailto:karinauke2@gmail.com).

@@ -753,3 +753,44 @@ describe("the list of jigsaws", () => {
   });
 });
 
+
+describe("the popular jigsaws", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  /** jigsaws made at time 1, 2, 3 ...; `now` is far later, so only the rounds count. `rounds` says how many rounds each has (a round with `fresh` is only opened). */
+  async function popularApp(rounds: { [name: string]: { moved?: number; fresh?: number } }, extra: Partial<JigsawSpec> & { name?: string } = {}) {
+    const jigsaws = memoryJigsaws();
+    const plays = memoryPlays();
+    const app = createJigsawApp({ jigsaw: jigsaws, jigsawPieces: memoryPieces(), jigsawExists: async () => true, plays, users: memoryUsers("anna", "bo"), now: () => 3000 * DAY });
+    const made: { [name: string]: JigsawSpec } = {};
+    for (const [name, n] of Object.entries(rounds)) {
+      made[name] = (await request(app).post("/jigsaw/api/jigsaw").send({ name, width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], ...(name === "Secret" ? extra : {}) })).body as JigsawSpec;
+      for (let i = 0; i < (n.moved ?? 0); i++) await plays.create(made[name].id, { jigsawId: made[name].id, userId: "bo", userName: "Bo", status: "active", startedAt: i + 1, matched: 0, total: 12, storeWidth: 0, overrides: {} }, {});
+      for (let i = 0; i < (n.fresh ?? 0); i++) await plays.create(made[name].id, { jigsawId: made[name].id, userId: "bo", userName: "Bo", status: "active", startedAt: i + 1, matched: 0, total: 12, storeWidth: 0, overrides: {}, fresh: true }, {});
+    }
+    const popular = async (who?: string) => ((await (who ? request.agent(app).set("X-Jigsaw-User", who) : request(app)).get("/jigsaw/api/jigsaw-popular")).body as JigsawSpec[]).map((j) => j.name);
+    return { popular };
+  }
+
+  it("are the jigsaws with the most rounds first", async () => {
+    const { popular } = await popularApp({ Quiet: { moved: 1 }, Busy: { moved: 4 }, Nobody: {}, Middle: { moved: 2 } });
+    expect(await popular()).toEqual(["Busy", "Middle", "Quiet", "Nobody"]);
+  });
+
+  it("do not count a round that is only opened", async () => {
+    const { popular } = await popularApp({ Opened: { fresh: 5 }, Played: { moved: 1 } });
+    expect(await popular()).toEqual(["Played", "Opened"]);
+  });
+
+  it("are at most ten", async () => {
+    const all = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`J${i}`, { moved: i }]));
+    const { popular } = await popularApp(all);
+    expect(await popular()).toHaveLength(10);
+  });
+
+  it("leave out a jigsaw only its owner sees, for everybody but its owner and the players who have a round on it", async () => {
+    const { popular } = await popularApp({ Secret: { moved: 6 }, Open: { moved: 1 } }, { ownerUid: "anna", visibility: "owner" });
+    expect(await popular("anna")).toEqual(["Secret", "Open"]);
+    expect(await popular("bo")).toEqual(["Secret", "Open"]); // bo has rounds on it
+    expect(await popular()).toEqual(["Open"]);
+  });
+});

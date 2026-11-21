@@ -27,6 +27,8 @@ export interface PlayStore {
   remove(jigsawId: string, playId: string): Promise<boolean>;
   /** whether the jigsaw has been played (it has at least one play in which a piece has been moved: a round that is only opened is not a play yet) */
   has(jigsawId: string): Promise<boolean>;
+  /** how many rounds have been played on the jigsaw (a round nobody has moved a piece in is not counted) */
+  count(jigsawId: string): Promise<number>;
   /** takes away the rounds nobody has moved a piece in (the jigsaw is changed, so their pieces are out of date) */
   removeFresh(jigsawId: string): Promise<void>;
   /** takes all the plays of a jigsaw away (the jigsaw is deleted) */
@@ -81,6 +83,9 @@ export function firestorePlayStore(): PlayStore {
     },
     async has(jigsawId) {
       return (await plays(jigsawId).get()).docs.some((d) => !d.data().fresh);
+    },
+    async count(jigsawId) {
+      return (await plays(jigsawId).get()).docs.filter((d) => !d.data().fresh).length;
     },
     async removeFresh(jigsawId) {
       const snap = await plays(jigsawId).where("fresh", "==", true).get(); // one equality: no index needed

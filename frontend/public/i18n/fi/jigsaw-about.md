@@ -8,4 +8,4 @@ Jaa palapelisi ystävien ja perheen kanssa ja nauttikaa palapelistä yhdessä. S
 
 **Karin Auke** tarjoaa Karinin palapelin ja auttaa sinua tarvittaessa.
 
-Kysymyksiä, ongelmia tai ideoita? Kirjoita osoitteeseen [kainauke2@gmail.com](mailto:kainauke2@gmail.com).
+Kysymyksiä, ongelmia tai ideoita? Kirjoita osoitteeseen [karinauke2@gmail.com](mailto:karinauke2@gmail.com).

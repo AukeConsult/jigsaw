@@ -8,4 +8,4 @@ Del dine puslespil med venner og familie, og nyd et puslespil sammen. Det er alt
 
 **Karin Auke** står bag Karins puslespil og hjælper dig, hvis du har brug for det.
 
-Spørgsmål, problemer eller idéer? Skriv til [kainauke2@gmail.com](mailto:kainauke2@gmail.com).
+Spørgsmål, problemer eller idéer? Skriv til [karinauke2@gmail.com](mailto:karinauke2@gmail.com).

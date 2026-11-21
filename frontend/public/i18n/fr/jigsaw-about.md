@@ -8,4 +8,4 @@ Partage tes puzzles avec tes amis et ta famille, et profitez d’un puzzle ensem
 
 **Karin Auke** propose Karins jigsaw et t’aide si tu en as besoin.
 
-Des questions, des problèmes ou des idées ? Écris à [kainauke2@gmail.com](mailto:kainauke2@gmail.com).
+Des questions, des problèmes ou des idées ? Écris à [karinauke2@gmail.com](mailto:karinauke2@gmail.com).

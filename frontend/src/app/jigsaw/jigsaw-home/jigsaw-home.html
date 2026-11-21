@@ -2,7 +2,7 @@
 <ng-template #greeting>
   <ng-container *transloco="let t">
   <h2 class="section-title mb-2">{{ t('jigsawHome.welcomeBack', { name: firstName() }) || 'Welcome back, ' + firstName() }}</h2>
-  <p class="lead text-body-secondary mb-2">{{ t('jigsawHome.goodToSee') || 'Good to see you again.' }}
+  <p class="text-body-secondary mb-2">{{ t('jigsawHome.goodToSee') || 'Good to see you again.' }}
     @switch (roundsGoing()) {
       @case (null) { {{ t('jigsawHome.pickUp') || 'Pick up where you left off, or start a new jigsaw.' }} }
       @case (0) { {{ t('jigsawHome.startNew') || 'Start a new jigsaw whenever you like.' }} }
@@ -13,68 +13,72 @@
   </ng-container>
 </ng-template>
 
-<main class="container py-4 py-lg-5" *transloco="let t">
-  <section class="row align-items-start g-4 g-lg-5 mb-5" [attr.aria-label]="t('jigsawHome.start') || 'Start'">
-    <div class="col-lg-6 order-2 order-lg-1">
+<main class="container front-page" *transloco="let t">
+  <!-- the name and mark in the top left corner: the menu with the same lockup is at the bottom of a phone or tablet (below 1200 px), so the page shows it at the top there -->
+  <div class="brand-lockup d-flex align-items-center gap-2 d-xl-none mb-3" aria-hidden="true">
+    <img class="brand-logo" src="logo.svg" alt="" width="32" height="32">
+    <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
+  </div>
+  <section class="front-split mb-5" [attr.aria-label]="t('jigsawHome.start') || 'Start'">
+    <div class="front-text">
       <!-- the logo and the name are in the header: the page keeps only a title for a screen reader -->
       <h1 class="visually-hidden">{{ t('jigsawHome.title') || 'Karins jigsaw' }}</h1>
       <!-- the welcome and what this is: on a phone it is left out for now (the picture and the buttons are enough) -->
-      <section class="d-none d-lg-block mb-4" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
+      <section class="front-wide-only mb-4" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
         @if (firstName()) {
           <ng-container *ngTemplateOutlet="greeting" />
         } @else {
           <h2 class="section-title mb-2">{{ t('jigsawHome.welcome') || 'Welcome' }}</h2>
-          <p class="lead text-body-secondary mb-2">{{ t('jigsawHome.intro') || 'Turn any picture into a jigsaw puzzle and put it together, wherever you are.' }}</p>
+          <p class="text-body-secondary mb-2">{{ t('jigsawHome.intro') || 'Turn any picture into a jigsaw puzzle and put it together, wherever you are.' }}</p>
           <p class="text-body-secondary mb-0">{{ t('jigsawHome.intro2') || 'Choose a picture, say how many pieces, and start.' }}</p>
         }
       </section>
       <!-- Karin's note: shown on every screen (on a phone it is what is under the picture) -->
       <p class="text-body-secondary fst-italic mb-3"><i class="bi bi-heart-fill text-danger" aria-hidden="true"></i> {{ t('jigsawHome.note') || 'I love making jigsaws and puzzles, and I hope you will love my system too.' }} <span class="text-nowrap">&mdash; Karin</span></p>
       <!-- the buttons come under the text: in the middle on a phone, at the left beside the picture on a wide screen -->
-      <div class="toolbar toolbar-stack align-items-center align-items-lg-start mt-lg-5 ps-lg-4 row-gap-lg-3">
-        <a class="link-action large" routerLink="/jigsaw/list"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawHome.seeAll') || 'See all we have prepared for you' }}</a>
-        <a class="link-action large" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawHome.addNew') || 'New jigsaw' }}</a>
+      <div class="toolbar toolbar-stack front-actions">
+        <a class="link-action large" routerLink="/jigsaw/list"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawHome.seeAll') || 'Pick a jigsaw to play' }}</a>
+        <a class="link-action large" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawHome.addNew') || 'Make your own jigsaw' }}</a>
       </div>
-      <!-- where the user left off: their own rounds that are not solved, as small pictures; press one to go on with it -->
-      @if (myRounds().length) {
-        <h2 class="subsection-title mt-4 mb-2 ps-lg-4">{{ t('jigsawHome.continue') || 'Continue where you left off' }}</h2>
-        <ul class="thumb-flow list-unstyled mb-0 ps-lg-4" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
-          @for (game of myRounds(); track game.play.id) {
-            <li>
-              <a class="thumb-tile ratio ratio-4x3 bg-body-secondary" [routerLink]="['/jigsaw', game.jigsaw.id, 'play', game.play.id]" [title]="t('jigsawHome.roundTitle', { name: game.jigsaw.name, matched: game.play.matched, total: game.play.total }) || game.jigsaw.name + ': ' + game.play.matched + ' of ' + game.play.total" [attr.aria-label]="t('jigsawHome.continueName', { name: game.jigsaw.name }) || 'Continue ' + game.jigsaw.name">
-                @if (!noPicture().has(game.jigsaw.id)) {
-                  <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
-                }
-              </a>
-            </li>
-          }
-        </ul>
-      }
-      <!-- the jigsaws there are, as small pictures that flow over the width and wrap: press one to open it -->
-      @if (recent().length) {
-        @if (myRounds().length) {
-          <h2 class="subsection-title mt-4 mb-2 ps-lg-4">{{ t('jigsawHome.popular') || 'Popular' }}</h2>
-        }
-        <ul class="thumb-flow list-unstyled mb-0 ps-lg-4" [class.mt-4]="!myRounds().length" [attr.aria-label]="t('jigsawHome.jigsaws') || 'Jigsaws'">
-          @for (item of recent(); track item.id) {
-            <li>
-              <a class="thumb-tile ratio ratio-4x3 bg-body-secondary" [routerLink]="['/jigsaw', item.id]" [title]="item.name" [attr.aria-label]="item.name">
-                @if (!noPicture().has(item.id)) {
-                  <img class="object-fit-cover" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
-                }
-              </a>
-            </li>
-          }
-        </ul>
-      }
     </div>
-    <div class="col-lg-6 order-1 order-lg-2">
+    <div class="front-photo">
       @if (firstName()) {
         <!-- on a phone the greeting is above the picture -->
-        <div class="d-lg-none mb-3"><ng-container *ngTemplateOutlet="greeting" /></div>
+        <div class="front-narrow-only mb-3"><ng-container *ngTemplateOutlet="greeting" /></div>
       }
-      <img class="img-fluid rounded-4 shadow-sm w-100 object-fit-cover" src="images/front.jpg" width="900" height="900"
+      <img class="front-picture rounded-4 shadow-sm" src="images/front.jpg" width="510" height="815"
            [attr.alt]="t('jigsawHome.imageAlt') || 'A woman with a colourful parasol on a fort terrace, green hills and a town behind her'">
     </div>
   </section>
+  <!-- the rounds and the jigsaws, as wide as the page, under the text and the picture -->
+  <!-- where the user left off: their own rounds that are not solved, as small pictures; press one to go on with it -->
+  @if (myRounds().length) {
+    <h2 class="subsection-title mt-0 mb-2">{{ t('jigsawHome.continue') || 'Continue where you left off' }}</h2>
+    <ul class="thumb-flow list-unstyled mb-4" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
+      @for (game of myRounds(); track game.play.id) {
+        <li>
+          <a class="thumb-tile ratio ratio-4x3 bg-body-secondary" [routerLink]="['/jigsaw', game.jigsaw.id, 'play', game.play.id]" [title]="t('jigsawHome.roundTitle', { name: game.jigsaw.name, matched: game.play.matched, total: game.play.total }) || game.jigsaw.name + ': ' + game.play.matched + ' of ' + game.play.total" [attr.aria-label]="t('jigsawHome.continueName', { name: game.jigsaw.name }) || 'Continue ' + game.jigsaw.name">
+            @if (!noPicture().has(game.jigsaw.id)) {
+              <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  }
+  <!-- the popular jigsaws (the most rounds played, and new ones), as small pictures that flow over the width and wrap: press one to open it -->
+  @if (popular().length) {
+    <h2 class="subsection-title mt-0 mb-2">{{ t('jigsawHome.popular') || 'Popular' }}</h2>
+    <ul class="thumb-flow list-unstyled mb-4" [attr.aria-label]="t('jigsawHome.jigsaws') || 'Jigsaws'">
+      @for (item of popular(); track item.id) {
+        <li>
+          <a class="thumb-tile ratio ratio-4x3 bg-body-secondary" [routerLink]="['/jigsaw', item.id]" [title]="item.name" [attr.aria-label]="item.name">
+            @if (!noPicture().has(item.id)) {
+              <img class="object-fit-cover" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  }
 </main>

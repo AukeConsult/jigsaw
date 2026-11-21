@@ -8,9 +8,6 @@ import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 
-/** How many of the newest jigsaws the front page shows as small pictures. */
-const SHOWN = 36;
-
 /** The front page of Karins jigsaw (`/jigsaw`): what it is, where to start, and the newest jigsaws as small pictures. The list of all of them is at `/jigsaw/list`. */
 @Component({
   selector: 'app-jigsaw-home',
@@ -31,8 +28,8 @@ export class JigsawHome implements OnInit {
   /** the rounds of the user that are not solved, newest first: where they left off */
   readonly myRounds = signal<UserGame[]>([]);
 
-  /** the newest jigsaws (the API gives the newest first) */
-  readonly recent = signal<JigsawSpec[]>([]);
+  /** the popular jigsaws, the best first (up to ten: the server ranks them by rounds played and by being new) */
+  readonly popular = signal<JigsawSpec[]>([]);
   readonly loaded = signal(false);
   /** the jigsaws whose picture could not be read: they get an empty box */
   readonly noPicture = signal<ReadonlySet<string>>(new Set());
@@ -40,7 +37,7 @@ export class JigsawHome implements OnInit {
   async ngOnInit(): Promise<void> {
     void this.readRounds();
     try {
-      this.recent.set((await this.service.list()).slice(0, SHOWN));
+      this.popular.set(await this.service.popular());
     } catch {
       /* the front page works without the list: the person can still start a new jigsaw */
     } finally {

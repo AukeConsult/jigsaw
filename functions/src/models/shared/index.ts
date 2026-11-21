@@ -7,3 +7,4 @@ export * from './jigsaw';
 export * from './jigsaw-user';
 export * from './placed';
 export * from './play';
+export * from './popularity';

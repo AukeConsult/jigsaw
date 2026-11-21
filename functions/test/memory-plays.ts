@@ -33,6 +33,9 @@ export function memoryPlays(): PlayStore & { all: Map<string, Map<string, PlayRe
     async has(jigsawId) {
       return [...of(jigsawId).values()].some((r) => !r.play.fresh);
     },
+    async count(jigsawId) {
+      return [...of(jigsawId).values()].filter((r) => !r.play.fresh).length;
+    },
     async removeFresh(jigsawId) {
       for (const [id, r] of of(jigsawId)) if (r.play.fresh) of(jigsawId).delete(id);
     },

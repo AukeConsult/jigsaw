@@ -8,4 +8,4 @@ Deel je puzzels met vrienden en familie en geniet samen van een puzzel. Het is a
 
 **Karin Auke** biedt Karins puzzel aan en helpt je als je hulp nodig hebt.
 
-Vragen, problemen of ideeën? Schrijf naar [kainauke2@gmail.com](mailto:kainauke2@gmail.com).
+Vragen, problemen of ideeën? Schrijf naar [karinauke2@gmail.com](mailto:karinauke2@gmail.com).

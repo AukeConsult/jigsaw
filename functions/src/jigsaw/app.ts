@@ -4,7 +4,7 @@ import { JigsawStore, jigsawListRouter, firestoreJigsawStore } from "../common/j
 import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
-import { JigsawSettings, JIGSAW, JigsawUsers } from "../models";
+import { JigsawSettings, JIGSAW, JigsawUsers, Popularity } from "../models";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
 import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./plays";
 
@@ -12,7 +12,7 @@ import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./p
 export const JIGSAW_API = "/jigsaw/api";
 
 /** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
-export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore } = {}): express.Express {
+export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; now?: () => number } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
@@ -71,6 +71,15 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (await plays.has(req.params.id)) return void res.status(409).json({ error: JigsawSettings.PLAYED_MESSAGE });
     next();
   };
+  // the popular jigsaws, for the front page: the ones the person may see, ranked by the rounds played and by being new (`Popularity`); before the routes of one jigsaw
+  router.get("/jigsaw-popular", async (req, res) => {
+    const me = req.get("X-Jigsaw-User");
+    const all = await jigsaw.list();
+    const seen = await Promise.all(all.map((j) => canSee(j, me)));
+    const visible = all.filter((_, i) => seen[i]);
+    const counted = await Promise.all(visible.map(async (j) => ({ jigsaw: j, rounds: await plays.count(j.id) })));
+    res.json(Popularity.rank(counted, (stores.now ?? Date.now)()));
+  });
   router.delete("/jigsaw/:id", ownerOnly("delete"));
   router.post("/jigsaw", stampOwner);
   router.put("/jigsaw/:id", stampOwner);
