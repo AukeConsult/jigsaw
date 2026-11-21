@@ -42,6 +42,9 @@
           @if (it.author) {
             <div class="text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
           }
+          @if (it.visibility === 'owner') {
+            <div class="text-body-secondary small"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawPage.onlyYou') || 'Only you see it' }}</div>
+          }
           <div class="small text-body-secondary mb-3">
             <i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawPage.pieces', { count: pieces(), width: it.width, height: it.height }) || pieces() + ' pieces, ' + it.width + ' × ' + it.height + ' px' }}
             @if (it.createdAt) {<span class="ms-2"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ it.createdAt | date: 'mediumDate' }}</span>}
@@ -68,6 +71,13 @@
                     @for (u of owners(); track u.id) {
                       <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
                     }
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label small mb-1" for="edit-visibility">{{ t('jigsawPage.visibility') || 'Who sees it' }}</label>
+                  <select id="edit-visibility" name="visibility" class="form-select" [ngModel]="visibility()" (ngModelChange)="visibility.set($event)">
+                    <option value="everyone">{{ t('jigsawPage.visibilityEveryone') || 'Everyone' }}</option>
+                    <option value="owner" [disabled]="!ownerUid()">{{ t('jigsawPage.visibilityOwner') || 'Only the owner' }}</option>
                   </select>
                 </div>
                 <div class="col-6 col-sm-3">

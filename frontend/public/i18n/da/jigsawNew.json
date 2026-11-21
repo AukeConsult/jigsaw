@@ -51,5 +51,9 @@
     "portrait": "Stående 3:4 (600 × 800)",
     "panorama": "Panorama 3:1 (1200 × 400)",
     "large": "Stort 4:3 (1200 × 900)"
-  }
+  },
+  "visibility": "Hvem ser det",
+  "visibilityEveryone": "Alle",
+  "visibilityOwner": "Kun ejeren",
+  "visibilityHelp": "Et puslespil for alle står i alles lister. Et som kun ejeren ser, står kun i ejerens lister."
 }

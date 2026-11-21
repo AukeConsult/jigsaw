@@ -31,6 +31,9 @@
             @if (item.author) {
               <span class="d-block text-body-secondary small"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.author }}</span>
             }
+            @if (item.visibility === 'owner') {
+              <span class="d-block text-body-secondary tiny"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawList.onlyYou') || 'Only you see it' }}</span>
+            }
             <span class="d-block text-body-secondary tiny">{{ t('jigsawList.pieces', { count: grid.columns * grid.rows, columns: grid.columns, rows: grid.rows, width: item.width, height: item.height }) || grid.columns * grid.rows + ' pieces (' + grid.columns + ' × ' + grid.rows + '), ' + item.width + ' × ' + item.height + ' px' }}@if (item.createdAt) {<ng-container>{{ t('jigsawList.madeSuffix', { date: (item.createdAt | date: 'mediumDate') }) || ', made ' + (item.createdAt | date: 'mediumDate') }}</ng-container>}</span>
           </a>
           <div class="d-flex gap-1 align-items-center flex-shrink-0">
@@ -51,7 +54,7 @@
               </div>
             </a>
             <div class="card-body p-2">
-              <a class="text-decoration-none" [routerLink]="['/jigsaw', item.id]"><strong>{{ item.name }}</strong></a>@if (item.author) {<span class="text-body-secondary small"> {{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</span>}
+              <a class="text-decoration-none" [routerLink]="['/jigsaw', item.id]"><strong>{{ item.name }}</strong></a>@if (item.author) {<span class="text-body-secondary small"> {{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</span>}@if (item.visibility === 'owner') {<i class="bi bi-lock ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
               <div class="text-body-secondary tiny">{{ t('jigsawList.pieces', { count: grid.columns * grid.rows, columns: grid.columns, rows: grid.rows, width: item.width, height: item.height }) || grid.columns * grid.rows + ' pieces (' + grid.columns + ' × ' + grid.rows + '), ' + item.width + ' × ' + item.height + ' px' }}</div>
               @if (item.createdAt) {
                 <div class="text-body-secondary tiny"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</div>

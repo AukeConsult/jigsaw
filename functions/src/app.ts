@@ -56,6 +56,12 @@ export function createApp(stores: { canvasList?: CanvasStore; jigsaw?: CanvasSto
   });
   router.post("/jigsaw", stampOwner);
   router.put("/jigsaw/:id", stampOwner);
+  // a jigsaw only its owner sees can be changed by its owner only (for anyone else it is not there)
+  router.put("/jigsaw/:id", async (req, res, next) => {
+    const now = await jigsawById(req.params.id);
+    if (now?.visibility === "owner" && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(404).json({ error: "No such canvas." });
+    next();
+  });
   // a jigsaw that has been played keeps its size, grid and pieces (every play shares them): a change of them is refused
   router.put("/jigsaw/:id", async (req, res, next) => {
     const body = (req.body ?? {}) as { width?: unknown; height?: unknown; gridSize?: unknown };

@@ -8,6 +8,11 @@ export const LANGUAGES: readonly { code: string; name: string }[] = [
   { code: 'nb', name: 'Norsk' },
   { code: 'sv', name: 'Svenska' },
   { code: 'da', name: 'Dansk' },
+  { code: 'fi', name: 'Suomi' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'fr', name: 'Français' },
+  { code: 'es', name: 'Español' },
+  { code: 'nl', name: 'Nederlands' },
 ];
 
 const STORAGE_KEY = 'jigsaw.language';

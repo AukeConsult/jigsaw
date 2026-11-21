@@ -1,4 +1,3 @@
-<ng-container *transloco="let t">
 @if (tools()) {
 <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
   <span class="small text-body-secondary">{{ t('jigsawBoard.designerHint', { layer: lastLayer() }) || 'Drag an object from the list into the canvas area, and drag it again to move it. Its centre sticks to a grid point. The canvas is layer 0; a new object goes on layer ' + lastLayer() + '.' }}</span>
@@ -117,7 +116,6 @@
 </div>
 </div>
 </div>
-</ng-container>
 <ng-template #item let-v let-shift="shift" let-shiftY="shiftY" let-clip="clip">
 @if (!v.hidden) {
       @let p = v.p;

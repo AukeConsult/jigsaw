@@ -22,8 +22,10 @@ function readInput(body: Record<string, unknown>): { input: CanvasInput } | { er
 export function canvasListRouter(store: CanvasStore): express.Router {
   const router = express.Router();
 
-  router.get("/", async (_req, res) => {
-    res.json(await store.list());
+  // a jigsaw its owner keeps to themselves is listed for the owner only (the header `X-Jigsaw-User` is the UID of who asks; there is no sign-in yet, so this keeps the lists honest, it is not a lock)
+  router.get("/", async (req, res) => {
+    const me = req.get("X-Jigsaw-User");
+    res.json((await store.list()).filter((c) => c.visibility !== "owner" || (!!me && c.ownerUid === me)));
   });
 
   router.post("/", async (req, res) => {

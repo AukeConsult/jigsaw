@@ -36,5 +36,9 @@
   "couldNotDelete": "Could not delete the jigsaw: only its owner can.",
   "couldNotStart": "Could not start a round: try again.",
   "couldNotDeleteRound": "Could not delete the round: try again.",
-  "couldNotSave": "Could not save the changes: try again."
+  "couldNotSave": "Could not save the changes: try again.",
+  "visibility": "Who sees it",
+  "visibilityEveryone": "Everyone",
+  "visibilityOwner": "Only the owner",
+  "onlyYou": "Only you see it"
 }

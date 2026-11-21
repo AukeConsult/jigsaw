@@ -284,6 +284,35 @@ describe("the plays of a jigsaw", () => {
   });
 });
 
+describe("who sees a jigsaw", () => {
+  const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [] };
+  const app = () => createApp({ jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bob"), plays: memoryPlays() });
+
+  it("lists a jigsaw its owner keeps to themselves for the owner only; the others are listed for everyone", async () => {
+    const a = app();
+    await request(a).post("/api/jigsaw").send({ ...settings, name: "Open", ownerUid: "anna" });
+    await request(a).post("/api/jigsaw").send({ ...settings, name: "Private", ownerUid: "anna", visibility: "owner" });
+    await request(a).post("/api/jigsaw").send({ ...settings, name: "Old" }); // from before owners: for everyone
+    const names = async (who?: string) => ((await (who === undefined ? request(a).get("/api/jigsaw") : request(a).get("/api/jigsaw").set("X-Jigsaw-User", who))).body as CanvasSpec[]).map((c) => c.name).sort();
+    expect(await names("anna")).toEqual(["Old", "Open", "Private"]);
+    expect(await names("bob")).toEqual(["Old", "Open"]);
+    expect(await names()).toEqual(["Old", "Open"]);
+  });
+
+  it("needs an owner to be private, only knows the two choices, and is changed by the owner only", async () => {
+    const a = app();
+    expect((await request(a).post("/api/jigsaw").send({ ...settings, visibility: "owner" })).status).toBe(400);
+    expect((await request(a).post("/api/jigsaw").send({ ...settings, ownerUid: "anna", visibility: "nobody" })).status).toBe(400);
+    const made = (await request(a).post("/api/jigsaw").send({ ...settings, ownerUid: "anna", visibility: "owner" })).body as CanvasSpec;
+    expect(made.visibility).toBe("owner");
+    expect((await request(a).put(`/api/jigsaw/${made.id}`).set("X-Jigsaw-User", "bob").send({ ...settings, ownerUid: "anna", visibility: "everyone" })).status).toBe(404);
+    const opened = await request(a).put(`/api/jigsaw/${made.id}`).set("X-Jigsaw-User", "anna").send({ ...settings, ownerUid: "anna", visibility: "everyone" });
+    expect(opened.status).toBe(200);
+    expect(opened.body.visibility).toBeUndefined();
+    expect((await request(a).get("/api/jigsaw")).body).toHaveLength(1);
+  });
+});
+
 describe("deleting a jigsaw", () => {
   const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [] };
   const app = () => createApp({ jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bob"), plays: memoryPlays() });

@@ -36,5 +36,9 @@
   "couldNotDelete": "Kunne ikke slette puslespillet: kun ejeren kan det.",
   "couldNotStart": "Kunne ikke starte en runde: prøv igen.",
   "couldNotDeleteRound": "Kunne ikke slette runden: prøv igen.",
-  "couldNotSave": "Kunne ikke gemme ændringerne: prøv igen."
+  "couldNotSave": "Kunne ikke gemme ændringerne: prøv igen.",
+  "visibility": "Hvem ser det",
+  "visibilityEveryone": "Alle",
+  "visibilityOwner": "Kun ejeren",
+  "onlyYou": "Kun du ser det"
 }

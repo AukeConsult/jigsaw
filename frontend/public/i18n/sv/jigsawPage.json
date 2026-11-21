@@ -36,5 +36,9 @@
   "couldNotDelete": "Det gick inte att ta bort pusslet: bara ägaren kan göra det.",
   "couldNotStart": "Det gick inte att starta en omgång: försök igen.",
   "couldNotDeleteRound": "Det gick inte att ta bort omgången: försök igen.",
-  "couldNotSave": "Det gick inte att spara ändringarna: försök igen."
+  "couldNotSave": "Det gick inte att spara ändringarna: försök igen.",
+  "visibility": "Vem ser det",
+  "visibilityEveryone": "Alla",
+  "visibilityOwner": "Bara ägaren",
+  "onlyYou": "Bara du ser det"
 }

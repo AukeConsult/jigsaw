@@ -18,14 +18,35 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label" for="jigsaw-author">{{ t('jigsawNew.author') || 'Author' }} @if (!editId) { <span class="text-danger" aria-hidden="true">*</span> }</label>
-      <select id="jigsaw-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
-        @if (!ownerUid()) { <option value="">{{ t('jigsawNew.chooseAuthor') || 'Choose the author' }}</option> }
-        @for (u of owners(); track u.id) {
-          <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
-        }
-      </select>
-      <div class="form-text">{{ t('jigsawNew.authorHelp') || 'The author is one of the users, and owns the jigsaw.' }}</div>
+      @if (!file()) {
+        <label class="form-label" for="jigsaw-picture">{{ t('jigsawNew.picture') || 'Picture' }}</label>
+      }
+      <!-- the choice of the file is shown until a picture is chosen; then only a button to choose another is shown (the name of the file is not interesting here; it is kept with the jigsaw) -->
+      <input #pictureInput id="jigsaw-picture" name="picture" type="file" class="form-control" [class.d-none]="!!file()" accept="image/jpeg,image/png,image/webp" (change)="choosePicture($event)">
+      @if (file()) {
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="pictureInput.click()">{{ t('jigsawNew.changePicture') || 'Change picture' }}</button>
+        </div>
+      }
+      @if (preview(); as src) {
+        <!-- an example of the jigsaw: the cut picture in pieces, with the line and the colours chosen above -->
+        <div class="mt-2">
+          <app-jigsaw-example [picture]="src" [width]="width()" [height]="height()" [gridSize]="gridSize()" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" />
+          <div class="small d-flex flex-wrap align-items-center gap-2 mt-2">
+            <span class="text-body-secondary">{{ t('jigsawNew.exampleNote') || 'An example of the jigsaw: the pieces are cut by chance when it is made.' }}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="cropping.set(true)"><i class="bi bi-crop me-1" aria-hidden="true"></i>{{ t('jigsawNew.adjustCut') || 'Adjust the cut' }}</button>
+          </div>
+        </div>
+      }
+      @if (stale()) {
+        <div class="form-text text-danger">{{ t('jigsawNew.staleBefore') || 'The size changed since the picture was cut.' }} <button type="button" class="link-inline" (click)="cropping.set(true)">{{ t('jigsawNew.adjustAgain') || 'Adjust the picture again' }}</button>.</div>
+      } @else if (lacksPicture()) {
+        <div class="form-text">{{ t('jigsawNew.noPicture') || 'This jigsaw has no picture. You can save the changes without one (the size and the pieces then stay as they are), or choose a picture (jpeg, png or webp) to give it one and change those too.' }}</div>
+      } @else if (!file()) {
+        <div class="form-text">{{ t('jigsawNew.choosePicture') || 'Choose the picture the jigsaw is made from (jpeg, png or webp).' }}</div>
+      } @else if (!cut()) {
+        <div class="form-text">{{ t('jigsawNew.findCutFirst') || 'Find the cut of the picture first.' }} <button type="button" class="link-inline" (click)="cropping.set(true)">{{ t('jigsawNew.findCut') || 'Find the cut' }}</button>.</div>
+      }
     </div>
 
     <div class="row g-2 mb-2">
@@ -100,37 +121,24 @@
       </div>
     </div>
 
+    <div class="mb-3">
+      <label class="form-label" for="jigsaw-author">{{ t('jigsawNew.author') || 'Author' }} @if (!editId) { <span class="text-danger" aria-hidden="true">*</span> }</label>
+      <select id="jigsaw-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
+        @if (!ownerUid()) { <option value="">{{ t('jigsawNew.chooseAuthor') || 'Choose the author' }}</option> }
+        @for (u of owners(); track u.id) {
+          <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
+        }
+      </select>
+      <div class="form-text">{{ t('jigsawNew.authorHelp') || 'The author is one of the users, and owns the jigsaw.' }}</div>
+    </div>
 
     <div class="mb-3">
-      @if (!file()) {
-        <label class="form-label" for="jigsaw-picture">{{ t('jigsawNew.picture') || 'Picture' }}</label>
-      }
-      <!-- the choice of the file is shown until a picture is chosen; then only a button to choose another is shown (the name of the file is not interesting here; it is kept with the jigsaw) -->
-      <input #pictureInput id="jigsaw-picture" name="picture" type="file" class="form-control" [class.d-none]="!!file()" accept="image/jpeg,image/png,image/webp" (change)="choosePicture($event)">
-      @if (file()) {
-        <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="pictureInput.click()">{{ t('jigsawNew.changePicture') || 'Change picture' }}</button>
-        </div>
-      }
-      @if (preview(); as src) {
-        <!-- an example of the jigsaw: the cut picture in pieces, with the line and the colours chosen above -->
-        <div class="mt-2">
-          <app-jigsaw-example [picture]="src" [width]="width()" [height]="height()" [gridSize]="gridSize()" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" />
-          <div class="small d-flex flex-wrap align-items-center gap-2 mt-2">
-            <span class="text-body-secondary">{{ t('jigsawNew.exampleNote') || 'An example of the jigsaw: the pieces are cut by chance when it is made.' }}</span>
-            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="cropping.set(true)"><i class="bi bi-crop me-1" aria-hidden="true"></i>{{ t('jigsawNew.adjustCut') || 'Adjust the cut' }}</button>
-          </div>
-        </div>
-      }
-      @if (stale()) {
-        <div class="form-text text-danger">{{ t('jigsawNew.staleBefore') || 'The size changed since the picture was cut.' }} <button type="button" class="link-inline" (click)="cropping.set(true)">{{ t('jigsawNew.adjustAgain') || 'Adjust the picture again' }}</button>.</div>
-      } @else if (lacksPicture()) {
-        <div class="form-text">{{ t('jigsawNew.noPicture') || 'This jigsaw has no picture. You can save the changes without one (the size and the pieces then stay as they are), or choose a picture (jpeg, png or webp) to give it one and change those too.' }}</div>
-      } @else if (!file()) {
-        <div class="form-text">{{ t('jigsawNew.choosePicture') || 'Choose the picture the jigsaw is made from (jpeg, png or webp).' }}</div>
-      } @else if (!cut()) {
-        <div class="form-text">{{ t('jigsawNew.findCutFirst') || 'Find the cut of the picture first.' }} <button type="button" class="link-inline" (click)="cropping.set(true)">{{ t('jigsawNew.findCut') || 'Find the cut' }}</button>.</div>
-      }
+      <label class="form-label" for="jigsaw-visibility">{{ t('jigsawNew.visibility') || 'Who sees it' }}</label>
+      <select id="jigsaw-visibility" name="visibility" class="form-select" [ngModel]="visibility()" (ngModelChange)="visibility.set($event)">
+        <option value="everyone">{{ t('jigsawNew.visibilityEveryone') || 'Everyone' }}</option>
+        <option value="owner" [disabled]="!ownerUid()">{{ t('jigsawNew.visibilityOwner') || 'Only the owner' }}</option>
+      </select>
+      <div class="form-text">{{ t('jigsawNew.visibilityHelp') || 'A jigsaw for everyone is in the lists of all. One only the owner sees is in the lists of the owner only.' }}</div>
     </div>
 
     @if (otherProblem()) {

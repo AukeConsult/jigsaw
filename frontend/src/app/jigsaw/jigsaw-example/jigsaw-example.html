@@ -1,4 +1,5 @@
-<div #host class="w-100" *transloco="let t">
+<div #host class="w-100">
+  <ng-container *transloco="let t">
   @if (scale() > 0 && pieces().length) {
     <!-- the room the example takes on the page, and the example itself at its own size, scaled down to fit (the lines are divided by the scale: they keep their thickness) -->
     <div class="example-room mx-auto" [style.width.px]="area().width * scale()" [style.height.px]="area().height * scale()" role="img" [attr.aria-label]="t('jigsawExample.label') || 'An example of the jigsaw with its pieces'">
@@ -14,4 +15,5 @@
       </div>
     </div>
   }
+  </ng-container>
 </div>

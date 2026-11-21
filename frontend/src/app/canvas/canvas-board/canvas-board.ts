@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, HostListener, inject, computed, effect, input, model, output, signal, untracked, viewChild } from '@angular/core';
-import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { provideTranslocoScope } from '@jsverse/transloco';
+import { tr } from '../../core/i18n';
 import { CanvasShape } from '../canvas-shape/canvas-shape';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
 import { readSession, writeSession } from '../../core/session-storage';
@@ -80,11 +81,19 @@ const NOT_BENT = [0, 0, 0] as const;
  */
 @Component({
   selector: 'app-canvas-board',
-  imports: [CanvasShape, PuzzlePiece, NgTemplateOutlet, TranslocoDirective],
+  imports: [CanvasShape, PuzzlePiece, NgTemplateOutlet],
   providers: [provideTranslocoScope('jigsawBoard')],
   templateUrl: './canvas-board.html',
 })
 export class CanvasBoard {
+  /**
+   * The text of a key in the language of the app, or '' while its file is not loaded (the template writes `t(...) || 'English'`). It is a method, not the
+   * `*transloco` directive, so the template is not made inside an embedded view: the queries of the board (`root`, `area`) find their elements at once.
+   */
+  protected t(key: string, params?: Record<string, unknown>): string {
+    return tr(key, '', params);
+  }
+
   readonly width = input.required<number>();
   readonly height = input.required<number>();
   /** pixels between the grid points (0 = no grid), and whether they are drawn */
