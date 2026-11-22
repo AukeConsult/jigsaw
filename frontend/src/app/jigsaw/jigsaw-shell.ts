@@ -72,7 +72,7 @@ import { JigsawUserService } from './jigsaw-user.service';
           </ul>
           <!-- the language of the texts, chosen on this device: the flag of the language in use, and a list of flags with the names of the languages -->
           <div class="position-relative">
-            <button id="language" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-2" aria-haspopup="listbox" [attr.aria-expanded]="languageOpen()"
+            <button id="language" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2 ps-3 pe-2" aria-haspopup="listbox" [attr.aria-expanded]="languageOpen()"
                     [attr.aria-label]="(t('jigsawShell.language') || 'Language') + ': ' + current().name" [title]="current().name" (click)="toggleLanguages($event)">
               <img class="flag" [src]="'flags/' + current().code + '.svg'" alt="" width="24" height="16"><i class="bi bi-chevron-down small" aria-hidden="true"></i>
             </button>

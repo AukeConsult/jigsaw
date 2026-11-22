@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { Plays } from '../../models/shared/play';
 import { clockOf } from '../duration';
 import { JigsawCard } from '../jigsaw-card/jigsaw-card';
 import { JigsawService } from '../jigsaw.service';
@@ -75,7 +76,7 @@ export class MyRounds {
       const ids = [...new Set(open.map((g) => g.jigsaw.id))];
       const read = await Promise.all(ids.map((id) => this.jigsawService.get(id).catch(() => null)));
       this.jigsaws.set(read.filter((j): j is JigsawSpec => !!j));
-      this.going.set(open.sort((a, b) => b.play.startedAt - a.play.startedAt));
+      this.going.set(open.sort((a, b) => Plays.lastActive(b.play) - Plays.lastActive(a.play)));
     } catch {
       /* no band without the rounds (and no welcome: it would say there are none) */
     }

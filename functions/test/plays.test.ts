@@ -112,6 +112,16 @@ describe("the moves of a play", () => {
   const pieces = [piece(0, 0), piece(1, 0)];
   const play: PlaySpec = { id: "p", jigsawId: "j", userId: "u", userName: "U", status: "active", startedAt: 1, matched: 0, total: 2, storeWidth: 100, overrides: {} };
 
+  it("keep when a piece was last moved, and the round worked on last comes first", () => {
+    const moved = Plays.moved(play, pieces, {}, [{ id: "piece-0-0", centerX: 25, centerY: 25, layer: 1 }], 500);
+    expect(moved.play.updatedAt).toBe(500);
+    expect(Plays.moved(moved.play, pieces, moved.positions, [], 900).play.updatedAt).toBe(500); // nothing moved: it stays
+    expect(Plays.stored(moved.play).updatedAt).toBe(500);
+    expect(Plays.lastActive(play)).toBe(1); // a round from before it: when it was started
+    expect(Plays.lastActive(moved.play)).toBe(500);
+    expect(Plays.lastActive({ startedAt: 1, solvedAt: 700 })).toBe(700);
+  });
+
   it("count the pieces that are in their own place, and the game is solved when all are, from then on", () => {
     const half = Plays.moved(play, pieces, {}, [{ id: "piece-0-0", centerX: 25, centerY: 25, layer: 1 }], 500);
     expect(half.play).toMatchObject({ matched: 1, total: 2, status: "active" });

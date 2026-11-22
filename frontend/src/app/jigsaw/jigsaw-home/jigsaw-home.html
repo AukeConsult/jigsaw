@@ -53,7 +53,7 @@
   <!-- the rounds and the jigsaws, as wide as the page, under the text and the picture -->
   <!-- where the user left off: their own rounds that are not solved, as small pictures; press one to go on with it -->
   @if (myRounds().length) {
-    <h2 class="subsection-title mt-0 mb-2">{{ t('jigsawHome.continue') || 'Continue where you left off' }}</h2>
+    <h2 class="subsection-title mt-0 mb-2">{{ t('jigsawHome.continue') || 'Ongoing' }}</h2>
     <ul class="thumb-flow list-unstyled mb-4" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
       @for (game of myRounds(); track game.play.id) {
         <li>

@@ -25,7 +25,7 @@
     <div class="px-2 pb-1"><ng-content /></div>
     } @else {
     <div class="card-body p-2 text-break">
-      <a class="card-name fw-semibold text-decoration-none" [routerLink]="link()">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash ms-1 text-body-secondary" [title]="t('jigsawList.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      <a class="card-name fw-semibold text-decoration-none" [routerLink]="link()">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch tiny ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tiny ms-1 text-body-secondary" [title]="t('jigsawList.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tiny ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
       @if (details.on()) {
         @if (item.author) {
           <div class="text-body-secondary tiny">{{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</div>

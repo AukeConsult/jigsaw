@@ -55,7 +55,7 @@ export function firestorePlayStore(): PlayStore {
       const snap = await (userId ? plays(jigsawId).where("userId", "==", userId) : plays(jigsawId)).get(); // no index needed: one equality, sorted here
       return snap.docs
         .map((d) => readPlay(d.id, d.data()))
-        .sort((a, b) => b.startedAt - a.startedAt)
+        .sort((a, b) => Plays.lastActive(b) - Plays.lastActive(a))
         .slice(0, LIST_LIMIT);
     },
     async get(jigsawId, playId) {
@@ -104,7 +104,7 @@ export interface UserGame {
 }
 
 /**
- * The games of one user over all the jigsaws, `/jigsaw-users/:id/plays`: GET: newest first. Each jigsaw is asked for the user's games (one equality on the plays of that
+ * The games of one user over all the jigsaws, `/jigsaw-users/:id/plays`: GET: the rounds worked on last first. Each jigsaw is asked for the user's games (one equality on the plays of that
  * jigsaw, so no index is needed); a jigsaw the user has not played adds nothing. At most `LIST_LIMIT` games.
  */
 export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise<JigsawSpec[]>; userOf: (userId: string) => Promise<{ id: string } | null> }): express.Router {
@@ -118,7 +118,7 @@ export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise
     const games = (await Promise.all(jigsaws.map(async (j) => (await plays.list(j.id, userId)).map((play): UserGame => ({ play, jigsaw: { id: j.id, name: j.name } })))))
       .flat()
       .filter((g) => !g.play.fresh) // a round nobody has moved a piece in is not listed
-      .sort((a, b) => b.play.startedAt - a.play.startedAt)
+      .sort((a, b) => Plays.lastActive(b.play) - Plays.lastActive(a.play))
       .slice(0, LIST_LIMIT);
     res.json(games);
   });

@@ -37,6 +37,8 @@ export interface PlaySpec {
   status: PlayStatus;
   /** milliseconds since 1970 */
   startedAt: number;
+  /** when a piece was last moved in this round (milliseconds since 1970); a round from before it has none, and `Plays.lastActive` falls back to when it was started */
+  updatedAt?: number;
   /** when the last piece was put in place (milliseconds since 1970); without it the game is not solved */
   solvedAt?: number;
   /** how many pieces are in their own place, of how many there are */
@@ -159,7 +161,7 @@ export class Plays {
     const { solvedAt: _was, fresh: _fresh, ...rest } = play;
     const touched = moves.some((m) => known.has(m.id)); // the first piece that is moved makes it a round
     return {
-      play: { ...rest, ...(play.fresh && !touched ? { fresh: true } : {}), matched, total, status: solved ? 'solved' : 'active', ...(solved ? { solvedAt: play.solvedAt ?? now } : {}) },
+      play: { ...rest, ...(touched ? { updatedAt: now } : play.updatedAt !== undefined ? { updatedAt: play.updatedAt } : {}), ...(play.fresh && !touched ? { fresh: true } : {}), matched, total, status: solved ? 'solved' : 'active', ...(solved ? { solvedAt: play.solvedAt ?? now } : {}) },
       positions: next,
     };
   }
@@ -170,6 +172,11 @@ export class Plays {
       const at = positions[p.id];
       return at ? JigsawPieces.stored({ ...p, centerX: at[0], centerY: at[1], layer: at[2] }) : p;
     });
+  }
+
+  /** When the round was last worked on: the last piece moved, else when it was solved or started (the newest rounds are those worked on last). */
+  static lastActive(play: Pick<PlaySpec, 'updatedAt' | 'solvedAt' | 'startedAt'>): number {
+    return play.updatedAt ?? play.solvedAt ?? play.startedAt;
   }
 
   /** The reason a time played is not allowed, or ''. */
@@ -203,6 +210,7 @@ export class Plays {
       status: play.status,
       startedAt: play.startedAt,
       ...(play.solvedAt !== undefined ? { solvedAt: play.solvedAt } : {}),
+      ...(typeof play.updatedAt === 'number' ? { updatedAt: play.updatedAt } : {}),
       matched: play.matched,
       total: play.total,
       storeWidth: play.storeWidth,

@@ -1,10 +1,10 @@
-import { Component, ElementRef, HostListener, OnDestroy, afterNextRender, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, OnDestroy, afterNextRender, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr, translationsLoaded } from '../../core/i18n';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Autosave } from '../../core/autosave';
-import { isWideScreen } from '../../core/theme';
+import { isWideScreen, onAnyScroll } from '../../core/theme';
 import { JigsawBoard } from '../../board/jigsaw-board/jigsaw-board';
 import { LINE_LEVELS, lineLevelOf } from '../line-level';
 import { SNAP_LEVELS, snapLevelOf } from '../snap-level';
@@ -159,8 +159,11 @@ export class JigsawPlay implements OnDestroy {
     return this.status() === 'ready' && !!this.play() && this.item()?.timed !== false && !this.viewOnly() && !(m.total > 0 && m.count === m.total) && document.visibilityState === 'visible';
   }
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor() {
     afterNextRender(() => this.measureSidebar());
+    onAnyScroll(this.destroyRef, () => this.measureSidebar());
     this.clockTimer = setInterval(() => this.tickClock(), 1000);
     effect(() => this.tools.clock.set(this.status() === 'ready' && this.item()?.timed !== false ? this.clock() : null)); // the menu at the top shows it
     // another game can be opened from this page (a new game): the page is the same, the ids change
@@ -207,7 +210,6 @@ export class JigsawPlay implements OnDestroy {
   }
 
   @HostListener('window:resize')
-  @HostListener('window:scroll')
   measureSidebar(): void {
     if (!isWideScreen()) return this.sidebarHeight.set(null); // folded away on a narrow screen: it is as high as what is in it
     const top = (this.element.nativeElement as HTMLElement).getBoundingClientRect().top;

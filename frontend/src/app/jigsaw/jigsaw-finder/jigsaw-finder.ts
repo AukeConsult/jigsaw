@@ -1,3 +1,4 @@
+import { scrollParent } from '../../core/theme';
 import { Component, ElementRef, OnInit, effect, inject, input, model, signal, untracked, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawFilter, JigsawFilters } from '../../models/shared/jigsaw-filter';
@@ -59,7 +60,7 @@ export class JigsawFinder implements OnInit {
         (seen) => {
           if (seen.some((s) => s.isIntersecting) && !untracked(() => this.loading())) this.more();
         },
-        { rootMargin: '0px 0px 400px 0px' },
+        { root: scrollParent(mark), rootMargin: '0px 0px 400px 0px' }, // the page that scrolls inside the window (a phone), else the window
       );
       watcher.observe(mark);
       onCleanup(() => watcher.disconnect());

@@ -7,7 +7,7 @@ import { tr } from '../../core/i18n';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
 import { readPreference, writePreference } from '../../core/preferences';
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
-import { bottomBarHeight, cssNumber, cssVar } from '../../core/theme';
+import { bottomBarHeight, cssNumber, cssVar, onAnyScroll } from '../../core/theme';
 import { JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings } from '../../models/shared/jigsaw-settings';
 import { COLLECT_GAP, COLLECT_MARGIN, COLLECT_SCATTER, Puzzle } from '../../models/shared/puzzle';
 import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
@@ -441,6 +441,7 @@ export class JigsawBoard {
     // the texts of the board are read through `t()` (not the `*transloco` directive, which is what loads a scope), so the board loads its own file, for each language chosen
     const transloco = inject(TranslocoService);
     transloco.langChanges$.pipe(switchMap((lang) => transloco.load(`jigsawBoard/${lang}`)), takeUntilDestroyed(this.destroyRef)).subscribe();
+    onAnyScroll(this.destroyRef, () => this.measureArea()); // the page may scroll inside the window (a phone), not the window
     // the pieces area fills the screen: measured when the page is drawn, and again when the window is resized or scrolled
     afterNextRender(() => {
       this.measureArea();
@@ -480,7 +481,6 @@ export class JigsawBoard {
 
   /** Measures what is left of the visible screen below the top of the pieces area (when it fills the screen); the area is at least 200 px high. */
   @HostListener('window:resize')
-  @HostListener('window:scroll')
   measureArea(): void {
     const root = this.root().nativeElement;
     this.areaHeight.set(this.fillScreen() ? Math.max(200, Math.floor(window.innerHeight - bottomBarHeight() - root.getBoundingClientRect().top - SCREEN_MARGIN_PX)) : null);
