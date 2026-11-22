@@ -35,74 +35,14 @@
   @if (view() === 'list') {
     <div class="list-group">
       @for (item of shown(); track item.id) {
-        @let grid = pieces(item);
-        <!-- the small picture, then the name and what the jigsaw is (it may shrink and wrap), and Play at the right: always in this order, on any width -->
-        <div class="list-group-item">
-          <!-- the top of the row: the picture, the name and what it is, and the button in the upper right corner -->
-          <div class="d-flex align-items-start gap-2">
-            <a class="flex-shrink-0" [routerLink]="['/jigsaw', item.id]" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
-              <ng-container *ngTemplateOutlet="thumb; context: { $implicit: item, css: 'list-thumb rounded border object-fit-cover' }" />
-            </a>
-            <a class="text-decoration-none flex-grow-1 min-w-0" [routerLink]="['/jigsaw', item.id]">
-              <strong class="d-block">{{ item.name }}</strong>
-              @if (item.author) {
-                <span class="d-block text-body-secondary small"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.author }}</span>
-              }
-              @if (item.visibility === 'owner') {
-                <span class="d-block text-body-secondary tiny"><i class="bi bi-lock me-1" aria-hidden="true"></i>@if (item.ownerUid === users.user()?.id) { {{ t('jigsawList.onlyYou') || 'Only you see it' }} } @else { {{ t('jigsawList.privateForPlayers') || 'Private: only its owner and its players see it' }} }</span>
-              }
-            </a>
-            <div class="d-flex gap-1 align-items-center flex-shrink-0">
-              <ng-container *ngTemplateOutlet="actions; context: { $implicit: item }" />
-            </div>
-          </div>
-          <!-- difficulty, timed, pieces, size and date: under the picture, a line as wide as the row; it only breaks between the parts -->
-          <span class="d-flex flex-wrap align-items-center gap-1 column-gap-2 mt-2">
-              <span class="badge text-bg-light border fw-normal text-nowrap" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level(item)) || level(item) }}</span>
-              @if (item.timed !== false) {
-                <span class="badge text-bg-light border fw-normal text-nowrap"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawList.timed') || 'Timed' }}</span>
-              }
-            <span class="text-nowrap text-body-secondary tiny">{{ t('jigsawList.piecesShort', { count: grid.columns * grid.rows }) || grid.columns * grid.rows + ' pieces' }} ({{ grid.columns }} × {{ grid.rows }})</span>
-            <span class="text-nowrap text-body-secondary tiny">{{ item.width }} × {{ item.height }} px</span>
-            @if (item.createdAt) {
-              <span class="text-nowrap text-body-secondary tiny">{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</span>
-            }
-          </span>
-        </div>
+        <app-jigsaw-row [jigsaw]="item" />
       }
     </div>
   } @else {
     <!-- at least three cards in a row, on any width: the text in a card wraps -->
     <div class="row row-cols-3 row-cols-lg-4 g-2 g-sm-3">
       @for (item of shown(); track item.id) {
-        @let grid = pieces(item);
-        <div class="col">
-          <div class="card h-100">
-            <!-- the picture, with Play over its bottom right corner -->
-            <div class="position-relative">
-              <a [routerLink]="['/jigsaw', item.id]" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
-                <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
-                  <ng-container *ngTemplateOutlet="thumb; context: { $implicit: item, css: 'object-fit-cover' }" />
-                </div>
-              </a>
-              <a class="btn btn-overlay position-absolute bottom-0 end-0 m-1" [routerLink]="['/jigsaw', item.id]" [title]="t('jigsawList.play') || 'Show the jigsaw'" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
-            </div>
-            <div class="card-body p-2 text-break">
-              <a class="small fw-semibold text-decoration-none" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
-              @if (item.author) {
-                <div class="text-body-secondary tiny">{{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</div>
-              }
-              <!-- the pieces and the difficulty on one short line (icons say what they are; the full words are in the tooltips) -->
-              <div class="text-body-secondary tiny text-nowrap">
-                <span [title]="t('jigsawList.piecesShort', { count: grid.columns * grid.rows }) || grid.columns * grid.rows + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ grid.columns * grid.rows }}</span>
-                <span class="ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level(item)) || level(item) }}</span>
-              </div>
-              @if (item.createdAt) {
-                <div class="text-body-secondary tiny d-none d-sm-block"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</div>
-              }
-            </div>
-          </div>
-        </div>
+        <div class="col"><app-jigsaw-card [jigsaw]="item" /></div>
       }
     </div>
   }
@@ -113,18 +53,3 @@
     </div>
   }
 </main>
-
-<!-- the small picture of a jigsaw (the picture itself, shown small; a jigsaw without a picture, or whose picture cannot be read, gets an empty box) -->
-<ng-template #thumb let-item let-css="css">
-  @if (!noPicture().has(item.id)) {
-    <img [class]="css" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
-  } @else {
-    <div [class]="css + ' bg-body-secondary'"></div>
-  }
-</ng-template>
-
-<ng-template #actions let-item>
-  <ng-container *transloco="let t">
-    <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', item.id]"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawList.play') || 'Show the jigsaw' }}</a>
-  </ng-container>
-</ng-template>

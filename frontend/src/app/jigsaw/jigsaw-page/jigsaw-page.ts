@@ -6,16 +6,14 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { Autosave } from '../../core/autosave';
 import { tr } from '../../core/i18n';
-import { JigsawImageService } from '../jigsaw-image.service';
+import { JigsawHeader } from '../jigsaw-header/jigsaw-header';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { PlaysService } from '../plays.service';
 import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
-import { pieceGrid } from '../../models/shared/jigsaw';
 import { PlaySpec } from '../../models/shared/play';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
 import { LINE_LEVELS, lineLevelOf } from '../line-level';
-import { snapLevelOfJigsaw } from '../snap-level';
 
 /**
  * A jigsaw (`/jigsaw/:id`): its picture and what it is, and the games the user has played of it. A game is continued where it was left, or a new one is started
@@ -24,7 +22,7 @@ import { snapLevelOfJigsaw } from '../snap-level';
  */
 @Component({
   selector: 'app-jigsaw-page',
-  imports: [RouterLink, DatePipe, FormsModule, TranslocoDirective],
+  imports: [RouterLink, DatePipe, FormsModule, TranslocoDirective, JigsawHeader],
   providers: [provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-page.html',
 })
@@ -34,7 +32,6 @@ export class JigsawPage implements OnInit {
 
   private readonly jigsaws = inject(JigsawService);
   private readonly plays = inject(PlaysService);
-  private readonly images = inject(JigsawImageService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   protected readonly users = inject(JigsawUserService);
@@ -44,7 +41,6 @@ export class JigsawPage implements OnInit {
   readonly status = signal<'loading' | 'ready' | 'missing' | 'failed'>('loading');
   readonly item = signal<JigsawSpec | null>(null);
   readonly games = signal<PlaySpec[]>([]);
-  readonly hasPicture = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
   /** Delete (the jigsaw) was pressed and waits for "Yes" */
@@ -65,20 +61,11 @@ export class JigsawPage implements OnInit {
   readonly lineWidth = signal<number>(JigsawSettings.DEFAULT_LINE_WIDTH);
   readonly lineColor = signal<string>(JigsawSettings.DEFAULT_LINE_COLOR);
   readonly backColor = signal<string>(JigsawSettings.DEFAULT_BACK_COLOR);
-  /** the difficulty the jigsaw has (shown under its name and in the panel, where it cannot be changed) */
-  readonly itemLevel = computed(() => snapLevelOfJigsaw(this.item() ?? {}));
   readonly lineLevels = LINE_LEVELS;
   readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
   /** anyone has started a game of this jigsaw: its picture, size and pieces are then fixed */
   readonly played = signal(false);
 
-  readonly pictureUrl = computed(() => this.images.url(this.id, 1));
-  readonly pieces = computed(() => {
-    const item = this.item();
-    if (!item) return 0;
-    const grid = pieceGrid(item.width, item.height, item.gridSize);
-    return grid.columns * grid.rows;
-  });
 
   async ngOnInit(): Promise<void> {
     try {

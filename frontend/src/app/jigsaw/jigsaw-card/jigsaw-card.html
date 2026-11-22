@@ -1,0 +1,30 @@
+<ng-container *transloco="let t">
+  @let item = jigsaw();
+  <div class="card h-100">
+    <!-- the picture, with Play over its bottom right corner -->
+    <div class="position-relative">
+      <a [routerLink]="['/jigsaw', item.id]" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
+        <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
+          @if (!noPicture()) {
+            <img class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
+          }
+        </div>
+      </a>
+      <a class="btn btn-overlay position-absolute bottom-0 end-0 m-1" [routerLink]="['/jigsaw', item.id]" [title]="t('jigsawList.play') || 'Show the jigsaw'" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
+    </div>
+    <div class="card-body p-2 text-break">
+      <a class="small fw-semibold text-decoration-none" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      @if (item.author) {
+        <div class="text-body-secondary tiny">{{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</div>
+      }
+      <!-- the pieces and the difficulty on one short line (icons say what they are; the full words are in the tooltips) -->
+      <div class="text-body-secondary tiny text-nowrap">
+        <span [title]="t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ pieces() }}</span>
+        <span class="ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
+      </div>
+      @if (item.createdAt) {
+        <div class="text-body-secondary tiny d-none d-sm-block"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</div>
+      }
+    </div>
+  </div>
+</ng-container>

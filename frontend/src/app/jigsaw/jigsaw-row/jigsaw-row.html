@@ -1,0 +1,40 @@
+<ng-container *transloco="let t">
+  @let item = jigsaw();
+  @let g = grid();
+  <div class="list-group-item">
+    <!-- the top of the row: the picture, the name and what it is, and the button in the upper right corner -->
+    <div class="d-flex align-items-start gap-2">
+      <a class="flex-shrink-0" [routerLink]="['/jigsaw', item.id]" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
+        @if (!noPicture()) {
+          <img class="list-thumb rounded border object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
+        } @else {
+          <div class="list-thumb rounded border object-fit-cover bg-body-secondary"></div>
+        }
+      </a>
+      <a class="text-decoration-none flex-grow-1 min-w-0" [routerLink]="['/jigsaw', item.id]">
+        <strong class="d-block">{{ item.name }}</strong>
+        @if (item.author) {
+          <span class="d-block text-body-secondary small"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.author }}</span>
+        }
+        @if (item.visibility === 'owner') {
+          <span class="d-block text-body-secondary tiny"><i class="bi bi-lock me-1" aria-hidden="true"></i>@if (item.ownerUid === users.user()?.id) { {{ t('jigsawList.onlyYou') || 'Only you see it' }} } @else { {{ t('jigsawList.privateForPlayers') || 'Private: only its owner and its players see it' }} }</span>
+        }
+      </a>
+      <div class="d-flex gap-1 align-items-center flex-shrink-0">
+        <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', item.id]"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawList.play') || 'Show the jigsaw' }}</a>
+      </div>
+    </div>
+    <!-- difficulty, timed, pieces, size and date: under the picture, a line as wide as the row; it only breaks between the parts -->
+    <span class="d-flex flex-wrap align-items-center gap-1 column-gap-2 mt-2">
+      <span class="badge text-bg-light border fw-normal text-nowrap" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
+      @if (item.timed !== false) {
+        <span class="badge text-bg-light border fw-normal text-nowrap"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawList.timed') || 'Timed' }}</span>
+      }
+      <span class="text-nowrap text-body-secondary tiny">{{ t('jigsawList.piecesShort', { count: g.columns * g.rows }) || g.columns * g.rows + ' pieces' }} ({{ g.columns }} × {{ g.rows }})</span>
+      <span class="text-nowrap text-body-secondary tiny">{{ item.width }} × {{ item.height }} px</span>
+      @if (item.createdAt) {
+        <span class="text-nowrap text-body-secondary tiny">{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</span>
+      }
+    </span>
+  </div>
+</ng-container>
