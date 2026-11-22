@@ -23,6 +23,15 @@
             <label class="form-label" for="edit-name">{{ t('jigsawUser.yourName') || 'Your name' }}</label>
             <input id="edit-name" name="name" class="form-control" type="text" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
           </div>
+          <div class="mb-3">
+            <label class="form-label" for="edit-language">{{ t('jigsawUser.language') || 'Language' }}</label>
+            <select id="edit-language" name="language" class="form-select" [ngModel]="language()" (ngModelChange)="language.set($event)">
+              @for (l of languages; track l.code) {
+                <option [value]="l.code">{{ l.name }}</option>
+              }
+            </select>
+            <div class="form-text">{{ t('jigsawUser.languageHelp') || 'The language the app is shown in for you.' }}</div>
+          </div>
           <h2 class="form-section"><i class="bi bi-envelope" aria-hidden="true"></i>{{ t('jigsawUser.sectionContact') || 'Contact' }}</h2>
           <div class="mb-3">
             <label class="form-label" for="edit-email">{{ t('jigsawUser.email') || 'E-mail' }} <span class="text-body-secondary">{{ t('jigsawUser.optional') || '(optional)' }}</span></label>
@@ -59,7 +68,7 @@
       } @else if (gamesFailed()) {
         <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.roundsFailed') || 'Could not read your rounds: reload the page.' }}</div>
       } @else if (!games()!.length) {
-        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noRounds') || 'You have not played any jigsaw yet.' }} <a routerLink="/jigsaw/list">{{ t('jigsawUser.findJigsaw') || 'Find a jigsaw' }}</a>.</p>
+        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noRounds') || 'You have not played any jigsaw yet.' }} <a routerLink="/">{{ t('jigsawUser.findJigsaw') || 'Find a jigsaw' }}</a>.</p>
       } @else {
         <ul class="list-group">
           @for (game of games(); track game.play.id) {
@@ -138,7 +147,7 @@
         <!-- choosing is done from the list: press a name. The one button here makes a new user. -->
         <div class="toolbar mb-2">
           <span class="text-body-secondary">{{ t('jigsawUser.pressName') || 'Press your name to play as you.' }}</span>
-          <button type="button" class="link-action toolbar-end" (click)="mode.set('make'); error.set('')"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.makeUser') || 'Make a user' }}</button>
+          <button type="button" class="link-action toolbar-end" (click)="startMaking()"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.makeUser') || 'Make a user' }}</button>
         </div>
         @if (list() === null) {
           <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingUsers') || 'Looking for the users…' }}</div>
@@ -171,6 +180,15 @@
             <label class="form-label" for="name">{{ t('jigsawUser.yourName') || 'Your name' }}</label>
             <input id="name" name="name" class="form-control" type="text" autocomplete="name" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
             <div class="form-text">{{ t('jigsawUser.nameHelp') || 'Shown as the player.' }}</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="language">{{ t('jigsawUser.language') || 'Language' }}</label>
+            <select id="language" name="language" class="form-select" [ngModel]="language()" (ngModelChange)="language.set($event)">
+              @for (l of languages; track l.code) {
+                <option [value]="l.code">{{ l.name }}</option>
+              }
+            </select>
+            <div class="form-text">{{ t('jigsawUser.languageHelp') || 'The language the app is shown in for you.' }}</div>
           </div>
           <h2 class="form-section"><i class="bi bi-envelope" aria-hidden="true"></i>{{ t('jigsawUser.sectionContact') || 'Contact' }}</h2>
           <div class="mb-3">

@@ -46,5 +46,6 @@
   "privateForPlayers": "Privat: bara ägaren och spelarna ser det",
   "addDescription": "Lägg till en beskrivning",
   "close": "Stäng",
-  "goBack": "Tillbaka"
+  "goBack": "Tillbaka",
+  "language": "Språk"
 }

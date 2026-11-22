@@ -10,16 +10,13 @@
   </h1>
   <p class="text-body-secondary mb-3">{{ t('jigsawHome.intro') || 'Turn any picture into a jigsaw puzzle and put it together, wherever you are.' }}</p>
   <div class="toolbar mb-4">
-    <a class="link-action large" routerLink="/jigsaw/list"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawHome.seeAll') || 'Pick a jigsaw to play' }}</a>
+    <a class="link-action large" routerLink="/jigsaw/find"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawHome.seeAll') || 'Pick a jigsaw to play' }}</a>
     <a class="link-action large" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawHome.addNew') || 'Make your own jigsaw' }}</a>
   </div>
 
-  @if (all().length) {
+  <!-- all the jigsaws, the newest first (looking for one by category, size and so on is the Find page in the menu) -->
+  <section class="mb-4" [attr.aria-label]="t('jigsawHome.jigsaws') || 'Jigsaws'">
     <h2 class="section-title mb-2">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>
-    <div class="card-grid mb-4">
-      @for (item of all(); track item.id) {
-        <app-jigsaw-card [jigsaw]="item" />
-      }
-    </div>
-  }
+    <app-jigsaw-finder storageKey="jigsaw.front" />
+  </section>
 </main>

@@ -46,5 +46,6 @@
   "privateForPlayers": "Private: only its owner and its players see it",
   "addDescription": "Add a description",
   "close": "Close",
-  "goBack": "Back"
+  "goBack": "Back",
+  "language": "Language"
 }

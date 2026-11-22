@@ -11,6 +11,7 @@ import { JigsawService } from '../jigsaw.service';
 import { PlaysService, UserGame } from '../plays.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { LANGUAGES, LanguageService } from '../../core/language.service';
 import { JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../../models/shared/jigsaw-user';
 
 /**
@@ -36,6 +37,13 @@ export class JigsawUser implements OnInit {
 
   /** choose: pick a user from the list, make: make a new user */
   readonly mode = signal<'choose' | 'make'>('choose');
+
+  /** The form to make a user is opened: the language of the user starts as the language the app is shown in now (it may have been changed in the menu since the page was opened). */
+  startMaking(): void {
+    this.language.set(this.appLanguage.lang());
+    this.error.set('');
+    this.mode.set('make');
+  }
   /** the users to choose from (null: not read yet) */
   readonly list = signal<JigsawUserSpec[] | null>(null);
   readonly listFailed = signal(false);
@@ -45,6 +53,10 @@ export class JigsawUser implements OnInit {
   readonly name = signal('');
   /** an e-mail address, optional: kept so the user can be connected to a registration later */
   readonly email = signal('');
+  /** the language of the user: a new user starts with the language the app is shown in */
+  private readonly appLanguage = inject(LanguageService);
+  readonly language = signal(this.appLanguage.lang());
+  protected readonly languages = LANGUAGES;
   readonly error = signal('');
   readonly busy = signal(false);
   readonly usernameMin = USERNAME_MIN;
@@ -173,7 +185,7 @@ export class JigsawUser implements OnInit {
   async submit(): Promise<void> {
     this.busy.set(true);
     this.error.set('');
-    const error = await this.users.create(this.username(), this.name(), this.email());
+    const error = await this.users.create(this.username(), this.name(), this.email(), this.language());
     this.busy.set(false);
     if (error) return this.error.set(error);
     await this.goOn();
@@ -190,6 +202,7 @@ export class JigsawUser implements OnInit {
     this.name.set(me.name);
     this.username.set(me.username);
     this.email.set('');
+    this.language.set(me.language);
     this.removeEmail.set(false);
     this.error.set('');
     this.editing.set(true);
@@ -199,9 +212,10 @@ export class JigsawUser implements OnInit {
   async saveEdit(): Promise<void> {
     const me = this.users.user();
     if (!me) return;
-    const change: { name?: string; username?: string; email?: string | null } = {};
+    const change: { name?: string; username?: string; email?: string | null; language?: string } = {};
     if (this.name().trim() !== me.name) change.name = this.name();
     if (this.username().trim().toLowerCase() !== me.username) change.username = this.username();
+    if (this.language() !== me.language) change.language = this.language();
     if (this.removeEmail()) change.email = null;
     else if (this.email().trim()) change.email = this.email();
     if (!Object.keys(change).length) return void this.editing.set(false); // nothing changed

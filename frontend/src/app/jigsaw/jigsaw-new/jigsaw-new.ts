@@ -14,6 +14,9 @@ import { PlaysService } from '../plays.service';
 import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
 import { LINE_LEVELS, lineLevelOf } from '../line-level';
 import { JigsawExample } from '../jigsaw-example/jigsaw-example';
+import { LANGUAGES, LanguageService } from '../../core/language.service';
+import { JigsawLanguages } from '../../models/shared/language';
+import { CategoryPicker } from '../category-picker/category-picker';
 import { PictureCropper } from '../picture-cropper/picture-cropper';
 import { renderPieceGraphics } from '../piece-graphics';
 import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
@@ -62,7 +65,7 @@ const PREVIEW_BYTES = 300 * 1024;
  */
 @Component({
   selector: 'app-jigsaw-new',
-  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample, TranslocoDirective],
+  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample, TranslocoDirective, CategoryPicker],
   providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-new.html',
 })
@@ -102,6 +105,11 @@ export class JigsawNew implements OnDestroy {
   readonly name = signal('');
   /** a few words about the picture (optional), shown on the page of the jigsaw */
   readonly description = signal('');
+  /** the language the name and description are written in: the language the app is shown in (the language of the user), to begin with */
+  readonly language = signal(inject(LanguageService).lang());
+  protected readonly languages = LANGUAGES;
+  /** the keys of the categories the jigsaw is in */
+  readonly categories = signal<string[]>([]);
   readonly maxDescription = JIGSAW_MAX_DESCRIPTION;
   /** who made the jigsaw: a user chosen from the users (the UID is kept on the jigsaw as its owner, and the user's name is its author) */
   readonly owners = signal<JigsawUserSpec[]>([]);
@@ -224,6 +232,8 @@ export class JigsawNew implements OnDestroy {
       ...(this.timed() ? {} : { timed: false }), // timed is what none says
       ...(this.pictureNameOf() ? { pictureName: this.pictureNameOf() } : {}), // kept with the jigsaw as information
       ...(this.description().trim() ? { description: this.description().trim() } : {}),
+      language: this.language(),
+      ...(this.categories().length ? { categories: this.categories() } : {}),
       width: this.width(),
       height: this.height(),
       gridSize: this.gridSize(),
@@ -362,13 +372,15 @@ export class JigsawNew implements OnDestroy {
   private async loadForEdit(id: string): Promise<void> {
     try {
       const item = (await this.service.list()).find((c) => c.id === id);
-      if (!item) return void (await this.router.navigate(['/jigsaw/list']));
+      if (!item) return void (await this.router.navigate(['/']));
       if (item.ownerUid && item.ownerUid !== this.users.user()?.id) return void (await this.router.navigate(['/jigsaw', id])); // only its owner edits a jigsaw, also by its address
       if (await this.plays.played(id)) return void (await this.router.navigate(['/jigsaw', id])); // it has been played: only the name and the defaults can change, on its page
       this.original = item;
       this.name.set(item.name);
       this.ownerUid.set(item.ownerUid ?? '');
       this.description.set(item.description ?? '');
+      this.language.set(JigsawLanguages.of(item));
+      this.categories.set(item.categories ?? []);
       this.visibility.set(item.visibility ?? 'everyone');
       this.timed.set(item.timed !== false);
       this.asked.set({ width: item.width, height: item.height });

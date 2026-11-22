@@ -48,5 +48,7 @@
   "addJigsaw": "Lägg till ett nytt pussel",
   "deleteJigsawAsk": "Ta bort det här pusslet för gott? Bilden och alla omgångar, även andra spelares, tas bort.",
   "jigsawNotDeleted": "Kunde inte ta bort pusslet: försök igen.",
-  "lists": "Listor"
+  "lists": "Listor",
+  "language": "Språk",
+  "languageHelp": "Språket som appen visas på för dig."
 }

@@ -48,5 +48,7 @@
   "addJigsaw": "Ajouter un nouveau puzzle",
   "deleteJigsawAsk": "Supprimer définitivement ce puzzle ? Son image et toutes ses parties, aussi celles des autres joueurs, sont supprimées.",
   "jigsawNotDeleted": "Impossible de supprimer le puzzle : réessaie.",
-  "lists": "Listes"
+  "lists": "Listes",
+  "language": "Langue",
+  "languageHelp": "La langue dans laquelle l'application vous est montrée."
 }

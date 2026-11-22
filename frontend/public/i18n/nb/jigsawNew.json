@@ -64,5 +64,7 @@
   "sectionOwner": "Eier og deling",
   "description": "Beskrivelse",
   "optional": "(valgfritt)",
-  "descriptionPlaceholder": "Et sted, en dag, et minne…"
+  "descriptionPlaceholder": "Et sted, en dag, et minne…",
+  "language": "Språk",
+  "languageHelp": "Språket navnet og beskrivelsen er skrevet på. Det starter som ditt språk."
 }

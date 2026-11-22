@@ -50,7 +50,7 @@ import { JigsawUserService } from './jigsaw-user.service';
         </a>
         <ul class="navbar-nav flex-shrink-0">
           <li class="nav-item">
-            <a class="nav-link" routerLink="/jigsaw/list" routerLinkActive="active" [title]="t('jigsawShell.jigsaws') || 'Jigsaws'"><i class="bi bi-grid-3x3-gap me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.jigsaws') || 'Jigsaws' }}</span></a>
+            <a class="nav-link" routerLink="/jigsaw/find" routerLinkActive="active" [title]="t('jigsawShell.find') || 'Find a jigsaw'"><i class="bi bi-search me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.find') || 'Find' }}</span></a>
           </li>
         </ul>
         @if (tools.active()) {
@@ -117,7 +117,7 @@ export class JigsawShell {
   }
 
   protected chooseLanguage(code: string): void {
-    this.language.use(code);
+    void this.users.changeLanguage(code); // shown at once, and kept as the language of the user
     this.languageOpen.set(false);
   }
 

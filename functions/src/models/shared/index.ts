@@ -8,3 +8,7 @@ export * from './jigsaw-user';
 export * from './placed';
 export * from './play';
 export * from './popularity';
+export * from './category';
+export * from './language';
+export * from './jigsaw-search';
+export * from './jigsaw-filter';

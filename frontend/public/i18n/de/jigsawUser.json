@@ -48,5 +48,7 @@
   "addJigsaw": "Neues Puzzle hinzufügen",
   "deleteJigsawAsk": "Dieses Puzzle endgültig löschen? Das Bild und alle Runden, auch die anderer Spieler, werden mitgelöscht.",
   "jigsawNotDeleted": "Das Puzzle konnte nicht gelöscht werden: versuche es noch einmal.",
-  "lists": "Listen"
+  "lists": "Listen",
+  "language": "Sprache",
+  "languageHelp": "Die Sprache, in der dir die App angezeigt wird."
 }

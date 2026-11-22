@@ -2,15 +2,16 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { JigsawSummary } from '../../models/shared/jigsaw-search';
 import { pieceGrid } from '../../models/shared/jigsaw';
+import { CategoryTags } from '../category-tags/category-tags';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { snapLevelOfJigsaw } from '../snap-level';
 
 /** One jigsaw as a card: its picture with a play button, the name, the author, the pieces, the difficulty and the date. Press it to open the jigsaw. */
 @Component({
   selector: 'app-jigsaw-card',
-  imports: [RouterLink, DatePipe, TranslocoDirective],
+  imports: [CategoryTags, RouterLink, DatePipe, TranslocoDirective],
   providers: [provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-card.html',
   host: { class: 'd-block h-100' },
@@ -18,7 +19,7 @@ import { snapLevelOfJigsaw } from '../snap-level';
 export class JigsawCard {
   private readonly images = inject(JigsawImageService);
 
-  readonly jigsaw = input.required<JigsawSpec>();
+  readonly jigsaw = input.required<JigsawSummary>();
   /** only the picture (with the name as a tooltip), for a band where the cards are small */
   readonly pictureOnly = input(false);
   /** where pressing the card goes (the page of the jigsaw when not given): a round goes straight on with the round */

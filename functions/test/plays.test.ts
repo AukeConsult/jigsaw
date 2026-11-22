@@ -643,7 +643,8 @@ describe("the users of the jigsaws", () => {
     expect(typeof made.body.id).toBe("string");
     expect(made.body.id).not.toBe("karin_1"); // the UID is not the user name
     expect(typeof made.body.createdAt).toBe("number");
-    expect(Object.keys(made.body).sort()).toEqual(["createdAt", "id", "name", "username"]);
+    expect(Object.keys(made.body).sort()).toEqual(["createdAt", "id", "language", "name", "username"]);
+    expect(made.body.language).toBe("en"); // a user who has not chosen has English
     const second = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "karin_2", name: "Karin" });
     expect(second.body.id).not.toBe(made.body.id);
   });
@@ -728,13 +729,29 @@ describe("the users of the jigsaws", () => {
     const list = await request(a).get("/jigsaw/api/jigsaw-users");
     expect(list.status).toBe(200);
     expect(list.body.map((u: { name: string }) => u.name)).toEqual(["Anna", "karin", "Zed"]);
-    for (const user of list.body) expect(Object.keys(user).sort()).toEqual(["createdAt", "id", "name", "username"]);
+    for (const user of list.body) expect(Object.keys(user).sort()).toEqual(["createdAt", "id", "language", "name", "username"]);
     expect((await request(createJigsawApp({ users: memoryUsers() })).get("/jigsaw/api/jigsaw-users")).body).toEqual([]);
   });
 
   it("reads a user an earlier version made (the user name was the id, no username field) with the id as the user name", () => {
-    expect(JigsawUsers.fromStored("karin", { name: "Karin", createdAt: 5 })).toEqual({ id: "karin", username: "karin", name: "Karin", createdAt: 5 });
-    expect(JigsawUsers.fromStored("Xy12", { username: "karin", name: "Karin", createdAt: 5 })).toEqual({ id: "Xy12", username: "karin", name: "Karin", createdAt: 5 });
+    expect(JigsawUsers.fromStored("karin", { name: "Karin", createdAt: 5 })).toEqual({ id: "karin", username: "karin", name: "Karin", language: "en", createdAt: 5 });
+    expect(JigsawUsers.fromStored("Xy12", { username: "karin", name: "Karin", createdAt: 5 })).toEqual({ id: "Xy12", username: "karin", name: "Karin", language: "en", createdAt: 5 });
+  });
+
+  it("has a language: English until the user chooses, chosen when the user is made or changed, and only one of the languages of the app", async () => {
+    const a = createJigsawApp({ users: memoryUsers() });
+    const made = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "ola", name: "Ola", language: "nb" });
+    expect([made.status, made.body.language]).toEqual([201, "nb"]);
+    const refused = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "pia", name: "Pia", language: "xx" });
+    expect(refused.status).toBe(400);
+    expect(refused.body.error).toMatch(/language must be one of/);
+    const changed = await request(a).put(`/jigsaw/api/jigsaw-users/${made.body.id}`).send({ language: "sv" });
+    expect([changed.status, changed.body.language, changed.body.name]).toEqual([200, "sv", "Ola"]); // only the language changed
+    expect((await request(a).put(`/jigsaw/api/jigsaw-users/${made.body.id}`).send({ language: "xx" })).status).toBe(400);
+    expect((await request(a).get(`/jigsaw/api/jigsaw-users/${made.body.id}`)).body.language).toBe("sv");
+    expect(JigsawUsers.stored({ username: "a1b", name: "A" }, 1).language).toBe("en");
+    expect(JigsawUsers.stored({ username: "a1b", name: "A", language: "de" }, 1).language).toBe("de");
+    expect(JigsawUsers.fromStored("u", { username: "u1x", name: "U", language: "xx" } as never, ).language).toBe("en"); // what is not a language of the app is English
   });
 });
 

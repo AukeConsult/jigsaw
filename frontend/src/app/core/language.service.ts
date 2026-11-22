@@ -1,23 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
+import { JIGSAW_LANGUAGES, JigsawLanguages } from '../models/shared/language';
 import { registerTranslator } from './i18n';
 
-/** The languages of the app, each with its own name (as it is written in that language). English is the source of every text. */
-export const LANGUAGES: readonly { code: string; name: string }[] = [
-  { code: 'en', name: 'English' },
-  { code: 'nb', name: 'Norsk' },
-  { code: 'sv', name: 'Svenska' },
-  { code: 'da', name: 'Dansk' },
-  { code: 'fi', name: 'Suomi' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'fr', name: 'Français' },
-  { code: 'es', name: 'Español' },
-  { code: 'nl', name: 'Nederlands' },
-];
+/** The languages of the app, each with its own name (as it is written in that language): the list of the model, which jigsaws and users use too. English is the source of every text. */
+export const LANGUAGES = JIGSAW_LANGUAGES;
 
 const STORAGE_KEY = 'jigsaw.language';
 
-const isLanguage = (code: string) => LANGUAGES.some((l) => l.code === code);
+const isLanguage = (code: string) => JigsawLanguages.is(code);
 
 /** The language to start in: the one chosen on this device (kept in this browser's `localStorage`, like which user plays), else English. The language of the browser is not used. */
 export function startLanguage(): string {
@@ -31,8 +22,7 @@ export function startLanguage(): string {
 }
 
 /**
- * The language of the texts of the app. For now it is the choice made on this device (the menu), else English; it follows the user when users
- * have a sign-in. The page's `lang` follows it, so a screen reader and the browser's own parts (the colour picker, the file chooser) use it too.
+ * The language of the texts of the app: the language of the user who plays (set when the user is chosen, kept with the user), else the choice made on this device (the menu), else English. The page's `lang` follows it, so a screen reader and the browser's own parts (the colour picker, the file chooser) use it too.
  */
 @Injectable({ providedIn: 'root' })
 export class LanguageService {

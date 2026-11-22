@@ -1,0 +1,20 @@
+{
+  "label": "Kategorier",
+  "optional": "(valfritt)",
+  "help": "Välj upp till {{ max }}.",
+  "subOf": "{{ name }}: mer exakt (valfritt)",
+  "name": {
+    "family": "Familj",
+    "travel": "Resor",
+    "nature": "Natur",
+    "animals": "Djur",
+    "flowers": "Blommor och trädgård",
+    "food": "Mat",
+    "art": "Konst",
+    "buildings": "Byggnader",
+    "seasons": "Årstider och högtider",
+    "transport": "Transport",
+    "kids": "Barn",
+    "other": "Övrigt"
+  }
+}

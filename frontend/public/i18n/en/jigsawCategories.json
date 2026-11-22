@@ -1,0 +1,20 @@
+{
+  "label": "Categories",
+  "optional": "(optional)",
+  "help": "Choose up to {{ max }}.",
+  "subOf": "{{ name }}: more exactly (optional)",
+  "name": {
+    "family": "Family",
+    "travel": "Travel",
+    "nature": "Nature",
+    "animals": "Animals",
+    "flowers": "Flowers & garden",
+    "food": "Food",
+    "art": "Art",
+    "buildings": "Buildings",
+    "seasons": "Seasons & holidays",
+    "transport": "Transport",
+    "kids": "Kids",
+    "other": "Other"
+  }
+}

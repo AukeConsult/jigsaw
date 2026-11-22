@@ -22,7 +22,7 @@ const PLAYER = { username: 'test-player', name: 'Test Player' };
 // never anywhere but on this machine: the dummies are for the emulator
 if (!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//.test(BASE + '/')) throw new Error(`Only a local API is used for dummy jigsaws, not ${BASE}.`);
 
-const { JigsawCut, JigsawPieces, JigsawSettings } = require('../functions/lib/models/shared');
+const { JIGSAW_LANGUAGES, JigsawCategories, JigsawCut, JigsawPieces, JigsawSettings } = require('../functions/lib/models/shared');
 
 /** A request; when the dev server does not answer (it is restarting after a change), it is tried again a few times before giving up. */
 async function send(url, init) {
@@ -131,6 +131,17 @@ const LEVELS = [10, 25, 40];
 const LINES = [{ width: 1, color: '#808080' }, { width: 2, color: '#333333' }, { width: 0, color: '#808080' }];
 const DESCRIPTIONS = ['', '', 'A test jigsaw.', 'Made to see how a list of many jigsaws looks.', 'Dummy picture from a folder of test pictures.'];
 
+/** None to three categories, and often one of the sub-categories of a category: pressed the way a person does it, so the rules of the model decide what comes out. */
+function randomCategories() {
+  let keys = [];
+  for (let i = pick([0, 1, 1, 2, 2, 3]); i > 0; i--) {
+    const category = pick(JigsawCategories.all());
+    keys = JigsawCategories.toggled(keys, category.key);
+    if (category.subs.length && Math.random() < 0.6) keys = JigsawCategories.toggled(keys, pick(category.subs).key);
+  }
+  return keys;
+}
+
 const picks = shuffled(files).slice(0, toMake);
 const made = [];
 for (const [i, file] of picks.entries()) {
@@ -141,6 +152,8 @@ for (const [i, file] of picks.entries()) {
   const line = pick(LINES);
   const base = path.parse(file).name;
   const description = pick(DESCRIPTIONS);
+  const categories = randomCategories();
+  const language = Math.random() < 0.5 ? 'nb' : pick(JIGSAW_LANGUAGES).code; // about half Norwegian, as the pictures are
   const settings = {
     name: `Test ${String(dummies.length + i + 1).padStart(2, '0')} - ${base}`.slice(0, 60),
     author: OWNER.name,
@@ -149,6 +162,8 @@ for (const [i, file] of picks.entries()) {
     ...(Math.random() < 0.3 ? { timed: false } : {}),
     pictureName: file.slice(0, 200),
     ...(description ? { description } : {}),
+    ...(categories.length ? { categories } : {}),
+    language,
     width: layout.width,
     height: layout.height,
     gridSize: layout.grid,
@@ -169,7 +184,7 @@ for (const [i, file] of picks.entries()) {
     const drawn = graphics(picture, pieces, cutting.columns, cutting.rows, line);
     await call('PUT', `/jigsaw-pieces/${jigsaw.id}`, { body: { pieces: pieces.map((p) => ({ ...p, graphic: drawn.get(p.id) })) }, user: owner.id });
     made.push({ jigsaw, pieces });
-    console.log(`${settings.name}: ${cutting.columns * cutting.rows} pieces`);
+    console.log(`${settings.name}: ${cutting.columns * cutting.rows} pieces${categories.length ? `, ${categories.join(' ')}` : ''}`);
   } catch (e) {
     await call('DELETE', `/jigsaw/${jigsaw.id}`, { user: owner.id }).catch(() => undefined); // nothing half made is left
     throw e;

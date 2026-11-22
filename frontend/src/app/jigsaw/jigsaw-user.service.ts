@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { tr } from '../core/i18n';
+import { LanguageService } from '../core/language.service';
 import { environment } from '../../environments/environment';
 import { JigsawUserSpec, JigsawUsers } from '../models/shared/jigsaw-user';
 
@@ -22,6 +23,7 @@ function reasonOf(err: unknown): string {
 @Injectable({ providedIn: 'root' })
 export class JigsawUserService {
   private readonly http = inject(HttpClient);
+  private readonly language = inject(LanguageService);
 
   /** the user who is playing now (null: none chosen yet) */
   readonly user = signal<JigsawUserSpec | null>(null);
@@ -57,6 +59,7 @@ export class JigsawUserService {
       try {
         const user = await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
         this.user.set(user);
+        this.language.use(user.language); // the app is shown in the language of the user
         return user;
       } catch (err) {
         if (err instanceof HttpErrorResponse && err.status === 404) this.remember(null); // the user is gone: choose again
@@ -67,11 +70,11 @@ export class JigsawUserService {
   }
 
   /** Makes a user and plays as them. The reason when it could not be made (the user name is taken, a field is not allowed). */
-  async create(username: string, name: string, email = ''): Promise<string> {
-    const error = JigsawUsers.error({ username, name, email });
+  async create(username: string, name: string, email = '', language?: string): Promise<string> {
+    const error = JigsawUsers.error({ username, name, email, language });
     if (error) return error;
     try {
-      const user = await firstValueFrom(this.http.post<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users`, { username, name, ...(email.trim() ? { email: email.trim() } : {}) }));
+      const user = await firstValueFrom(this.http.post<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users`, { username, name, ...(email.trim() ? { email: email.trim() } : {}), ...(language ? { language } : {}) }));
       this.choose(user);
       return '';
     } catch (err) {
@@ -105,15 +108,24 @@ export class JigsawUserService {
    * Changes the user who plays: only what is given (an e-mail address that is null is taken away; the address is private and is never read back). The reason when it could
    * not be changed (the user name is taken, a field is not allowed).
    */
-  async update(change: { name?: string; username?: string; email?: string | null }): Promise<string> {
+  async update(change: { name?: string; username?: string; email?: string | null; language?: string }): Promise<string> {
     const me = this.user();
     if (!me) return tr('jigsawUser.chooseFirst', 'Choose a user first.');
     try {
-      this.user.set(await firstValueFrom(this.http.put<JigsawUserSpec>(this.url(me.id), change)));
+      const saved = await firstValueFrom(this.http.put<JigsawUserSpec>(this.url(me.id), change));
+      this.user.set(saved);
+      this.language.use(saved.language);
       return '';
     } catch (err) {
       return reasonOf(err);
     }
+  }
+
+  /** The language is chosen in the menu: the app is shown in it, and it is kept as the language of the user who plays (nothing is kept for nobody: the choice stays on this device). */
+  async changeLanguage(code: string): Promise<void> {
+    this.language.use(code);
+    const me = this.user();
+    if (me && me.language !== code) await this.update({ language: code });
   }
 
   /** Stops playing as this user (the user stays in the database). */
@@ -126,6 +138,7 @@ export class JigsawUserService {
   private choose(user: JigsawUserSpec): void {
     this.remember(user.id);
     this.user.set(user);
+    this.language.use(user.language); // the app is shown in the language of the user
     this.loaded = Promise.resolve(user);
   }
 }

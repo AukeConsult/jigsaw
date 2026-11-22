@@ -64,5 +64,7 @@
   "sectionOwner": "Ägare och delning",
   "description": "Beskrivning",
   "optional": "(valfritt)",
-  "descriptionPlaceholder": "En plats, en dag, ett minne…"
+  "descriptionPlaceholder": "En plats, en dag, ett minne…",
+  "language": "Språk",
+  "languageHelp": "Språket som namnet och beskrivningen är skrivna på. Det börjar som ditt språk."
 }

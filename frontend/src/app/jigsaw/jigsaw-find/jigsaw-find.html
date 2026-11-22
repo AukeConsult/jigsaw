@@ -1,0 +1,16 @@
+<main class="container py-3" *transloco="let t">
+  <h1 class="page-title mb-3">{{ t('jigsawList.findTitle') || 'Find a jigsaw' }}</h1>
+  <app-view-switch [(view)]="view" idPrefix="find-view" />
+  <app-jigsaw-filter [(filter)]="filter" [facets]="facets()" idPrefix="find" />
+  <!-- how many jigsaws match what is chosen, counted at each choice; none: it is said, and Go waits -->
+  <div class="my-2" role="status">
+    @if (count() === 0) {
+      <span class="text-danger">{{ t('jigsawList.noneToList') || 'No jigsaws to list. Try other choices.' }}</span>
+    } @else if (count() !== null) {
+      <span class="text-body-secondary">{{ (count() === 1 ? t('jigsawList.matchOne', { count: count() }) : t('jigsawList.matchMany', { count: count() })) || count() + (count() === 1 ? ' jigsaw matches' : ' jigsaws match') }}</span>
+    } @else {
+      <span class="text-body-secondary">&nbsp;</span>
+    }
+  </div>
+  <div class="mb-3"><button type="button" class="btn btn-primary btn-main" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button></div>
+</main>

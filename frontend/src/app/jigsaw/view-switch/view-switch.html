@@ -1,0 +1,10 @@
+<ng-container *transloco="let t">
+  <div class="toolbar">
+    <div class="segmented" role="group" [attr.aria-label]="t('jigsawList.view') || 'View'">
+      <input [id]="idPrefix() + '-cards'" type="radio" class="btn-check" [name]="idPrefix()" autocomplete="off" [checked]="view() === 'cards'" (change)="view.set('cards')">
+      <label class="btn" [for]="idPrefix() + '-cards'"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>{{ t('jigsawList.cards') || 'Cards' }}</label>
+      <input [id]="idPrefix() + '-list'" type="radio" class="btn-check" [name]="idPrefix()" autocomplete="off" [checked]="view() === 'list'" (change)="view.set('list')">
+      <label class="btn" [for]="idPrefix() + '-list'"><i class="bi bi-list-ul" aria-hidden="true"></i>{{ t('jigsawList.list') || 'List' }}</label>
+    </div>
+  </div>
+</ng-container>

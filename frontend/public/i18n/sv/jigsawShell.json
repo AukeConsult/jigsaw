@@ -1,6 +1,5 @@
 {
   "menu": "Meny för Karins pussel",
-  "jigsaws": "Pussel",
   "guide": "Hjälp",
   "whoPlays": "Vem spelar?",
   "whoPlaysTitle": "Vem spelar: {{ name }}",
@@ -13,5 +12,6 @@
   "showing": "Visar {{ shown }} av {{ total }} bitar",
   "details": "Detaljer",
   "language": "Språk",
-  "timePlayed": "Speltid"
+  "timePlayed": "Speltid",
+  "find": "Hitta"
 }

@@ -1,0 +1,20 @@
+{
+  "label": "Luokat",
+  "optional": "(valinnainen)",
+  "help": "Valitse enintään {{ max }}.",
+  "subOf": "{{ name }}: tarkemmin (valinnainen)",
+  "name": {
+    "family": "Perhe",
+    "travel": "Matkat",
+    "nature": "Luonto",
+    "animals": "Eläimet",
+    "flowers": "Kukat ja puutarha",
+    "food": "Ruoka",
+    "art": "Taide",
+    "buildings": "Rakennukset",
+    "seasons": "Vuodenajat ja juhlapyhät",
+    "transport": "Liikenne",
+    "kids": "Lapset",
+    "other": "Muu"
+  }
+}

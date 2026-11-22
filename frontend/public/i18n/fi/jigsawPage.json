@@ -46,5 +46,6 @@
   "privateForPlayers": "Yksityinen: vain omistaja ja pelaajat näkevät sen",
   "addDescription": "Lisää kuvaus",
   "close": "Sulje",
-  "goBack": "Takaisin"
+  "goBack": "Takaisin",
+  "language": "Kieli"
 }

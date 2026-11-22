@@ -5,6 +5,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { Autosave } from '../../core/autosave';
 import { tr } from '../../core/i18n';
+import { LANGUAGES } from '../../core/language.service';
+import { JigsawLanguages } from '../../models/shared/language';
+import { CategoryPicker } from '../category-picker/category-picker';
 import { RoundRow } from '../round-row/round-row';
 import { JigsawHeader } from '../jigsaw-header/jigsaw-header';
 import { JigsawUserService } from '../jigsaw-user.service';
@@ -22,7 +25,7 @@ import { LINE_LEVELS, lineLevelOf } from '../line-level';
  */
 @Component({
   selector: 'app-jigsaw-page',
-  imports: [RouterLink, FormsModule, TranslocoDirective, JigsawHeader, RoundRow],
+  imports: [RouterLink, FormsModule, TranslocoDirective, JigsawHeader, RoundRow, CategoryPicker],
   providers: [provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-page.html',
 })
@@ -51,6 +54,11 @@ export class JigsawPage implements OnInit {
   readonly ownerUid = signal('');
   /** the description in the edit form */
   readonly description = signal('');
+  /** the language of the jigsaw in the edit form */
+  readonly language = signal('en');
+  protected readonly languages = LANGUAGES;
+  /** the categories in the edit form */
+  readonly categories = signal<string[]>([]);
   readonly maxDescription = JIGSAW_MAX_DESCRIPTION;
   readonly visibility = signal<'everyone' | 'owner'>('everyone');
   readonly lineWidth = signal<number>(JigsawSettings.DEFAULT_LINE_WIDTH);
@@ -82,7 +90,7 @@ export class JigsawPage implements OnInit {
   /** Back to the page the person came from; a page that was opened with nothing before it (a link, a new tab) goes to the list of the jigsaws instead. */
   back(): void {
     if (window.history.length > 1) this.location.back();
-    else void this.router.navigate(['/jigsaw/list']);
+    else void this.router.navigate(['/']);
   }
 
   /** the user may edit and delete the jigsaw: it is theirs (or it is one from before owners, which has none) */
@@ -98,7 +106,7 @@ export class JigsawPage implements OnInit {
     this.busy.set(true);
     try {
       await this.jigsaws.removeAs(this.id, me.id);
-      await this.router.navigate(['/jigsaw/list']);
+      await this.router.navigate(['/']);
     } catch {
       this.error.set(tr('jigsawPage.couldNotDelete', 'Could not delete the jigsaw: only its owner can.'));
       this.confirmingDelete.set(false);
@@ -150,6 +158,8 @@ export class JigsawPage implements OnInit {
       ...(item.timed === false ? { timed: false } : {}), // the clock is fixed once somebody has started a round: it is sent back as it is
       ...(item.pictureName ? { pictureName: item.pictureName } : {}),
       ...(this.description().trim() ? { description: this.description().trim() } : {}),
+      language: this.language(),
+      ...(this.categories().length ? { categories: this.categories() } : {}),
       width: item.width,
       height: item.height,
       gridSize: item.gridSize,
@@ -200,6 +210,8 @@ export class JigsawPage implements OnInit {
     }
     this.name.set(item.name);
     this.description.set(item.description ?? '');
+    this.language.set(JigsawLanguages.of(item));
+    this.categories.set(item.categories ?? []);
     this.ownerUid.set(item.ownerUid ?? '');
     this.visibility.set(item.visibility ?? 'everyone');
     this.lineWidth.set(item.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH);

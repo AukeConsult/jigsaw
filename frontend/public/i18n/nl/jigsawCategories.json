@@ -1,0 +1,20 @@
+{
+  "label": "Categorieën",
+  "optional": "(optioneel)",
+  "help": "Kies er maximaal {{ max }}.",
+  "subOf": "{{ name }}: nauwkeuriger (optioneel)",
+  "name": {
+    "family": "Familie",
+    "travel": "Reizen",
+    "nature": "Natuur",
+    "animals": "Dieren",
+    "flowers": "Bloemen en tuin",
+    "food": "Eten",
+    "art": "Kunst",
+    "buildings": "Gebouwen",
+    "seasons": "Seizoenen en feestdagen",
+    "transport": "Vervoer",
+    "kids": "Kinderen",
+    "other": "Overig"
+  }
+}

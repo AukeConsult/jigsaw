@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JIGSAW_MAX_PIECES, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid } from "../src/models";
+import { JIGSAW_MAX_PIECES, JigsawLanguages, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid } from "../src/models";
 
 /** a steady "random" so the tests give the same cut every time */
 function seeded(seed: number) {
@@ -350,6 +350,58 @@ describe("the description of a jigsaw", () => {
     expect(new JigsawSettings({ ...input, description: "a".repeat(500) }).error()).toBe("");
     expect(new JigsawSettings({ ...input, description: "" }).error()).toBe("");
     for (const bad of ["a".repeat(501), 5, null]) expect(new JigsawSettings({ ...input, description: bad }).error()).toContain("description");
+  });
+});
+
+describe("the categories of a jigsaw", () => {
+  const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
+
+  it("are optional, kept as known keys in the order they are shown, and a jigsaw without any has none", () => {
+    expect(new JigsawSettings({ ...input, categories: ["nature", "family"] }).stored().categories).toEqual(["family", "nature"]);
+    expect("categories" in new JigsawSettings({ ...input, categories: [] }).stored()).toBe(false);
+    expect("categories" in new JigsawSettings(input).stored()).toBe(false);
+    expect(JigsawSettings.fromStored("x", { ...input, categories: ["travel"], createdAt: 1 }).categories).toEqual(["travel"]);
+    expect(JigsawSettings.fromStored("x", { ...input, categories: ["old-one", "kids"], createdAt: 1 }).categories).toEqual(["kids"]); // what is not a category any more is left out
+    expect("categories" in JigsawSettings.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+  });
+
+  it("are at most three, each once and each a known one", () => {
+    expect(new JigsawSettings({ ...input, categories: ["family", "travel", "nature"] }).error()).toBe("");
+    for (const bad of [["family", "travel", "nature", "art"], ["family", "family"], ["boats"], "family", null]) {
+      expect(new JigsawSettings({ ...input, categories: bad }).error()).not.toBe("");
+    }
+  });
+
+  it("can change after the jigsaw has been played, like the name", () => {
+    const before = { width: 100, height: 100, gridSize: 50 };
+    expect(JigsawSettings.changesWhatPlayersShare(before, { ...before, categories: ["art"] } as never)).toBe(false);
+  });
+});
+
+describe("the language of a jigsaw", () => {
+  const input = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: true, placed: [] };
+
+  it("is optional, one of the languages of the app, and a jigsaw that says nothing is English", () => {
+    expect(new JigsawSettings({ ...input, language: "nb" }).stored().language).toBe("nb");
+    expect("language" in new JigsawSettings(input).stored()).toBe(false);
+    expect("language" in new JigsawSettings({ ...input, language: "xx" }).stored()).toBe(false); // only what is a language is kept
+    expect(JigsawSettings.fromStored("x", { ...input, language: "de", createdAt: 1 }).language).toBe("de");
+    expect("language" in JigsawSettings.fromStored("x", { ...input, createdAt: 1 })).toBe(false);
+    expect(JigsawLanguages.of(JigsawSettings.fromStored("x", { ...input, createdAt: 1 }))).toBe("en");
+    expect(JigsawLanguages.of({ language: "fr" })).toBe("fr");
+    expect(JigsawLanguages.nameOf("nb")).toBe("Norsk");
+    expect(JigsawLanguages.nameOf("zz")).toBe("zz");
+  });
+
+  it("is refused when it is not one of the languages of the app", () => {
+    expect(new JigsawSettings({ ...input, language: "es" }).error()).toBe("");
+    expect(new JigsawSettings(input).error()).toBe("");
+    for (const bad of ["xx", "", 3, null]) expect(new JigsawSettings({ ...input, language: bad }).error()).toMatch(/language must be one of/);
+  });
+
+  it("can change after the jigsaw has been played, like the name", () => {
+    const before = { width: 100, height: 100, gridSize: 50 };
+    expect(JigsawSettings.changesWhatPlayersShare(before, { ...before, language: "sv" } as never)).toBe(false);
   });
 });
 

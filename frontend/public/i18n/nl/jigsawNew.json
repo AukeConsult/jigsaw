@@ -64,5 +64,7 @@
   "sectionOwner": "Eigenaar en delen",
   "description": "Beschrijving",
   "optional": "(optioneel)",
-  "descriptionPlaceholder": "Een plek, een dag, een herinnering…"
+  "descriptionPlaceholder": "Een plek, een dag, een herinnering…",
+  "language": "Taal",
+  "languageHelp": "De taal waarin de naam en de beschrijving zijn geschreven. Ze begint als jouw taal."
 }

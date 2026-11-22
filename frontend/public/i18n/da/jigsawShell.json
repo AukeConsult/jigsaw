@@ -1,6 +1,5 @@
 {
   "menu": "Menu for Karins puslespil",
-  "jigsaws": "Puslespil",
   "guide": "Hjælp",
   "whoPlays": "Hvem spiller?",
   "whoPlaysTitle": "Hvem spiller: {{ name }}",
@@ -13,5 +12,6 @@
   "showing": "Viser {{ shown }} af {{ total }} brikker",
   "details": "Detaljer",
   "language": "Sprog",
-  "timePlayed": "Tid brugt"
+  "timePlayed": "Tid brugt",
+  "find": "Find"
 }

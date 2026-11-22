@@ -333,6 +333,12 @@ small,
   margin-left: auto;
 }
 
+/** a list of checkboxes that scrolls when it is long (the owners to choose from) */
+.checklist {
+  max-height: 10rem;
+  overflow-y: auto;
+}
+
 .toolbar-note {
   margin: 0.25rem 0 0.5rem;
   font-size: var(--app-fs-tiny);

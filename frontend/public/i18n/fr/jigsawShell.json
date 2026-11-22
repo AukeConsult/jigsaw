@@ -1,6 +1,5 @@
 {
   "menu": "Menu du puzzle de Karin",
-  "jigsaws": "Puzzles",
   "guide": "Aide",
   "whoPlays": "Qui joue ?",
   "whoPlaysTitle": "Qui joue : {{ name }}",
@@ -13,5 +12,6 @@
   "showing": "{{ shown }} pièces affichées sur {{ total }}",
   "details": "Détails",
   "language": "Langue",
-  "timePlayed": "Temps de jeu"
+  "timePlayed": "Temps de jeu",
+  "find": "Trouver"
 }

@@ -1,0 +1,24 @@
+<ng-container *transloco="let t">
+  <div class="form-label" [id]="id() + '-label'">{{ t('jigsawCategories.label') || 'Categories' }} <span class="text-body-secondary">{{ t('jigsawCategories.optional') || '(optional)' }}</span></div>
+  <div class="d-flex flex-wrap gap-2" role="group" [attr.aria-labelledby]="id() + '-label'">
+    @for (c of categories; track c.key) {
+      @let on = chosen(c.key);
+      <button type="button" class="btn btn-sm" [class.btn-primary]="on" [class.btn-outline-secondary]="!on" [attr.aria-pressed]="on" [disabled]="!canChoose(c)" (click)="toggle(c.key)">
+        <i class="bi" [class]="c.icon" aria-hidden="true"></i>{{ t('jigsawCategories.name.' + c.key) || c.name }}
+      </button>
+    }
+  </div>
+  <!-- the sub-categories of each chosen category: a second step, and they can be left blank -->
+  @for (c of withSubs(); track c.key) {
+    <div class="mt-2">
+      <div class="small text-body-secondary mb-1">{{ t('jigsawCategories.subOf', { name: t('jigsawCategories.name.' + c.key) || c.name }) || (t('jigsawCategories.name.' + c.key) || c.name) + ': more exactly (optional)' }}</div>
+      <div class="d-flex flex-wrap gap-2" role="group" [attr.aria-label]="c.name">
+        @for (s of c.subs; track s.key) {
+          @let sub = chosen(s.key);
+          <button type="button" class="btn btn-sm" [class.btn-primary]="sub" [class.btn-outline-secondary]="!sub" [attr.aria-pressed]="sub" [disabled]="!canChoose(s)" (click)="toggle(s.key)">{{ t('jigsawCategories.name.' + s.key) || s.name }}</button>
+        }
+      </div>
+    </div>
+  }
+  <div class="form-text">{{ t('jigsawCategories.help', { max }) || 'Choose up to ' + max + '.' }}</div>
+</ng-container>

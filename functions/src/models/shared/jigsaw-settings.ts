@@ -1,5 +1,7 @@
 import { Puzzle } from './puzzle';
 import { PlacedFigure, PlacedObject } from './placed';
+import { JigsawCategories } from './category';
+import { JigsawLanguages } from './language';
 
 // A saved jigsaw: its settings, and the check of what comes from outside.
 
@@ -42,6 +44,10 @@ export interface JigsawSpec {
   pictureName?: string;
   /** a jigsaw: a few words about the picture, shown on its page (a place, a day, a memory; optional) */
   description?: string;
+  /** a jigsaw: the language its name and description are written in (a code of `JIGSAW_LANGUAGES`; English when it says nothing): the language of the user who made it, to begin with */
+  language?: string;
+  /** a jigsaw: the keys of the categories it is in (see `JigsawCategories`; none when it says nothing, at most `CATEGORIES_MAX_PER_JIGSAW`) */
+  categories?: string[];
   /** horizontal size in pixels */
   width: number;
   /** vertical size in pixels */
@@ -69,11 +75,11 @@ export interface JigsawSpec {
 }
 
 /** What the page sends to make a jigsaw. */
-export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'categories' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** A jigsaw as it comes from outside (the page, the API): it checks itself. */
 export class JigsawSettings {
-  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; categories?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a jigsaw whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -155,6 +161,8 @@ export class JigsawSettings {
       ...(i.timed === false ? { timed: false } : {}), // timed is what none says
       ...(typeof i.pictureName === 'string' && i.pictureName.trim() ? { pictureName: i.pictureName.trim() } : {}),
       ...(typeof i.description === 'string' && i.description.trim() ? { description: i.description.trim() } : {}),
+      ...(JigsawCategories.stored(i.categories).length ? { categories: JigsawCategories.stored(i.categories) } : {}),
+      ...(JigsawLanguages.is(i.language) ? { language: i.language } : {}),
       width: i.width as number,
       height: i.height as number,
       gridSize: i.gridSize as number,
@@ -180,6 +188,8 @@ export class JigsawSettings {
       ...(doc.timed === false ? { timed: false } : {}),
       ...(doc.pictureName ? { pictureName: doc.pictureName } : {}),
       ...(doc.description ? { description: doc.description } : {}),
+      ...(JigsawCategories.stored(doc.categories).length ? { categories: JigsawCategories.stored(doc.categories) } : {}),
+      ...(JigsawLanguages.is(doc.language) ? { language: doc.language } : {}),
       width: doc.width ?? 800,
       height: doc.height ?? 600,
       gridSize: doc.gridSize ?? LEGACY_GRID,
@@ -212,6 +222,12 @@ export class JigsawSettings {
     if (input.description !== undefined && (typeof input.description !== 'string' || input.description.trim().length > JIGSAW_MAX_DESCRIPTION)) {
       return `The description can be at most ${JIGSAW_MAX_DESCRIPTION} characters.`;
     }
+    if (input.categories !== undefined) {
+      const bad = JigsawCategories.error(input.categories);
+      if (bad) return bad;
+    }
+    const language = JigsawLanguages.error(input.language);
+    if (language) return language;
     for (const [label, value] of [['Width', input.width], ['Height', input.height]] as const) {
       if (typeof value !== 'number' || !Number.isInteger(value) || value < JIGSAW_MIN_SIDE || value > JIGSAW_MAX_SIDE) {
         return `${label} must be a whole number of pixels from ${JIGSAW_MIN_SIDE} to ${JIGSAW_MAX_SIDE}.`;

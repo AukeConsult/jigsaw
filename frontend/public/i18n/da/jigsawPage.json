@@ -46,5 +46,6 @@
   "privateForPlayers": "Privat: kun ejeren og spillerne ser det",
   "addDescription": "Tilføj en beskrivelse",
   "close": "Luk",
-  "goBack": "Tilbage"
+  "goBack": "Tilbage",
+  "language": "Sprog"
 }

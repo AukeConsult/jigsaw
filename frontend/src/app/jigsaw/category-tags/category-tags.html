@@ -1,0 +1,9 @@
+<ng-container *transloco="let t">
+  @if (categories().length) {
+    <span class="d-flex flex-wrap gap-1 my-1">
+      @for (c of categories(); track c.key) {
+        <span class="badge text-bg-light border fw-normal text-nowrap"><i class="bi me-1" [class]="c.icon" aria-hidden="true"></i>{{ t('jigsawCategories.name.' + c.key) || c.name }}</span>
+      }
+    </span>
+  }
+</ng-container>

@@ -46,5 +46,6 @@
   "privateForPlayers": "Privado: solo lo ven su propietario y sus jugadores",
   "addDescription": "Añadir una descripción",
   "close": "Cerrar",
-  "goBack": "Atrás"
+  "goBack": "Atrás",
+  "language": "Idioma"
 }

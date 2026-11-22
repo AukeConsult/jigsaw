@@ -54,6 +54,19 @@
                 [ngModel]="description()" (ngModelChange)="description.set($event)"></textarea>
     </div>
 
+    <div class="mb-3">
+      <label class="form-label" for="jigsaw-language">{{ t('jigsawNew.language') || 'Language' }}</label>
+      <select id="jigsaw-language" name="language" class="form-select" [ngModel]="language()" (ngModelChange)="language.set($event)">
+        @for (l of languages; track l.code) {
+          <option [value]="l.code">{{ l.name }}</option>
+        }
+      </select>
+      <div class="form-text">{{ t('jigsawNew.languageHelp') || 'The language the name and the description are written in. It starts as your language.' }}</div>
+    </div>
+    <div class="mb-3">
+      <app-category-picker id="jigsaw-categories" [(selected)]="categories" />
+    </div>
+
     <h2 class="form-section"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawNew.sectionSize') || 'Size and pieces' }}</h2>
     <div class="row g-3 mb-3">
       <div class="col-sm-6">
@@ -166,7 +179,7 @@
     }
 
     <div class="d-flex justify-content-end gap-2">
-      <a class="btn btn-outline-secondary" [routerLink]="editId ? ['/jigsaw', editId] : '/jigsaw/list'">{{ t('jigsawNew.cancel') || 'Cancel' }}</a>
+      <a class="btn btn-outline-secondary" [routerLink]="editId ? ['/jigsaw', editId] : '/'">{{ t('jigsawNew.cancel') || 'Cancel' }}</a>
       <button type="submit" class="btn btn-primary" [disabled]="!canSave()">
         @if (saving()) { @if (editId) { {{ t('jigsawNew.saving') || 'Saving…' }} } @else { {{ t('jigsawNew.making') || 'Making the jigsaw…' }} } } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>@if (editId) { {{ t('jigsawNew.saveChanges') || 'Save changes' }} } @else { {{ t('jigsawNew.saveStart') || 'Save and start' }} } }
       </button>

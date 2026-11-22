@@ -1,3 +1,5 @@
+import { DEFAULT_LANGUAGE, JigsawLanguages } from './language';
+
 // A user of the jigsaws: someone who plays. There is no sign-in yet: a person chooses a user name and a name, and plays as that user (the plays of a jigsaw say which user
 // played them). The users are kept in the collection `jigsaw-users`, one document each, with an id the database makes (the UID, which is what a play is kept by). The user
 // name is the extra: it is chosen by the person, unique, and used to look a user up.
@@ -25,6 +27,8 @@ export interface JigsawUserSpec {
    * It is private: the API gives it back only to the person who made the user, when it is made, and never in a lookup (`JigsawUsers.publicOf`).
    */
   email?: string;
+  /** the language the app is shown in for the user (a code of `JIGSAW_LANGUAGES`; English when the user has not chosen) */
+  language: string;
   /** milliseconds since 1970 */
   createdAt: number;
 }
@@ -59,17 +63,17 @@ export class JigsawUsers {
   }
 
   /** The reason a new user is not allowed, or ''. */
-  static error(input: { username?: unknown; name?: unknown; email?: unknown } | null | undefined): string {
-    return JigsawUsers.usernameError(input?.username) || JigsawUsers.nameError(input?.name) || JigsawUsers.emailError(input?.email);
+  static error(input: { username?: unknown; name?: unknown; email?: unknown; language?: unknown } | null | undefined): string {
+    return JigsawUsers.usernameError(input?.username) || JigsawUsers.nameError(input?.name) || JigsawUsers.emailError(input?.email) || JigsawLanguages.error(input?.language);
   }
 
   /**
    * What a change of a user is, from a request: only the fields that are there are changed; an empty e-mail address (or null) takes the address away. The change as it is
    * to be made, or the reason it is not allowed.
    */
-  static change(input: { name?: unknown; username?: unknown; email?: unknown } | null | undefined): { change: { name?: string; username?: string; email?: string | null } } | { error: string } {
+  static change(input: { name?: unknown; username?: unknown; email?: unknown; language?: unknown } | null | undefined): { change: { name?: string; username?: string; email?: string | null; language?: string } } | { error: string } {
     const body = input ?? {};
-    const change: { name?: string; username?: string; email?: string | null } = {};
+    const change: { name?: string; username?: string; email?: string | null; language?: string } = {};
     if (body.name !== undefined) {
       const error = JigsawUsers.nameError(body.name);
       if (error) return { error };
@@ -85,7 +89,11 @@ export class JigsawUsers {
       if (error) return { error };
       change.email = typeof body.email === 'string' && body.email.trim() ? body.email.trim().toLowerCase() : null;
     }
-    return Object.keys(change).length ? { change } : { error: 'Say what to change: the name, the user name or the e-mail address.' };
+    if (body.language !== undefined) {
+      if (!JigsawLanguages.is(body.language)) return { error: JigsawLanguages.error(body.language) || 'Choose a language.' };
+      change.language = body.language;
+    }
+    return Object.keys(change).length ? { change } : { error: 'Say what to change: the name, the user name, the e-mail address or the language.' };
   }
 
   /** The reason a UID (the id of a user in the address) is not allowed, or ''. */
@@ -94,9 +102,9 @@ export class JigsawUsers {
   }
 
   /** The user as it is stored (the UID is the id of the document), for one that is allowed: only the known fields, the user name in small letters, the name trimmed. */
-  static stored(input: { username: string; name: string; email?: string | null }, createdAt: number): Omit<JigsawUserSpec, 'id'> {
+  static stored(input: { username: string; name: string; email?: string | null; language?: string }, createdAt: number): Omit<JigsawUserSpec, 'id'> {
     const email = typeof input.email === 'string' ? input.email.trim().toLowerCase() : '';
-    return { username: JigsawUsers.normalised(input.username), name: input.name.trim(), ...(email ? { email } : {}), createdAt };
+    return { username: JigsawUsers.normalised(input.username), name: input.name.trim(), ...(email ? { email } : {}), language: JigsawLanguages.is(input.language) ? input.language : DEFAULT_LANGUAGE, createdAt };
   }
 
   /** The user as the API tells it to anyone: without the e-mail address, which is private. */
@@ -108,6 +116,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, ...(doc.email ? { email: doc.email } : {}), createdAt: doc.createdAt ?? 0 };
+    return { id, username, name: doc.name ?? username, ...(doc.email ? { email: doc.email } : {}), language: JigsawLanguages.of(doc), createdAt: doc.createdAt ?? 0 };
   }
 }

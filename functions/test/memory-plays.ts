@@ -47,7 +47,7 @@ export function memoryPlays(): PlayStore & { all: Map<string, Map<string, PlayRe
 
 /** the users in memory: what the collection `jigsaw-users` is in the app (`names` are users that exist from the start, with the same UID and user name) */
 export function memoryUsers(...names: string[]): UserStore {
-  const users = new Map<string, JigsawUserSpec>(names.map((n) => [n, { id: n, username: n, name: n[0].toUpperCase() + n.slice(1), createdAt: 1 }]));
+  const users = new Map<string, JigsawUserSpec>(names.map((n) => [n, { id: n, username: n, name: n[0].toUpperCase() + n.slice(1), language: "en", createdAt: 1 }]));
   let n = 0;
   return {
     async list() {
@@ -71,7 +71,7 @@ export function memoryUsers(...names: string[]): UserStore {
       if (change.username !== undefined && [...users.values()].some((u) => u.id !== id && u.username === change.username)) return "taken";
       const { email: _was, ...rest } = user;
       const email = change.email === undefined ? user.email : (change.email ?? undefined);
-      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(email ? { email } : {}) });
+      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(email ? { email } : {}) });
       return users.get(id)!;
     },
   };

@@ -1,0 +1,20 @@
+{
+  "label": "Kategorier",
+  "optional": "(valgfrit)",
+  "help": "Vælg op til {{ max }}.",
+  "subOf": "{{ name }}: mere præcist (valgfrit)",
+  "name": {
+    "family": "Familie",
+    "travel": "Rejser",
+    "nature": "Natur",
+    "animals": "Dyr",
+    "flowers": "Blomster og have",
+    "food": "Mad",
+    "art": "Kunst",
+    "buildings": "Bygninger",
+    "seasons": "Årstider og højtider",
+    "transport": "Transport",
+    "kids": "Børn",
+    "other": "Andet"
+  }
+}

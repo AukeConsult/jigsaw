@@ -64,5 +64,7 @@
   "sectionOwner": "Owner and sharing",
   "description": "Description",
   "optional": "(optional)",
-  "descriptionPlaceholder": "A place, a day, a memory…"
+  "descriptionPlaceholder": "A place, a day, a memory…",
+  "language": "Language",
+  "languageHelp": "The language the name and the description are written in. It starts as your language."
 }

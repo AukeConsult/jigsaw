@@ -8,7 +8,7 @@ import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 
-/** The front page of Karins jigsaw (`/jigsaw`): what it is, where to start, and the newest jigsaws as small pictures. The list of all of them is at `/jigsaw/list`. */
+/** The front page of Karins jigsaw (`/jigsaw`): what it is, where to start, and the newest jigsaws as small pictures. The jigsaws are looked for on the front page (`/`). */
 @Component({
   selector: 'app-jigsaw-home',
   imports: [RouterLink, NgTemplateOutlet, TranslocoDirective],

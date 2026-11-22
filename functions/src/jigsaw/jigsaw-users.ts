@@ -31,6 +31,7 @@ export interface UserChange {
   name?: string;
   username?: string;
   email?: string | null;
+  language?: string;
 }
 
 /** The collection `jigsaw-users`. */
@@ -81,8 +82,9 @@ export function firestoreUserStore(): UserStore {
         if (change.name !== undefined) data.name = change.name;
         if (change.username !== undefined) data.username = change.username;
         if (change.email !== undefined) data.email = change.email ?? FieldValue.delete();
+        if (change.language !== undefined) data.language = change.language;
         if (Object.keys(data).length) tx.update(ref, data);
-        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}) };
+        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}) };
         if (change.email === null) delete next.email;
         else if (change.email !== undefined) next.email = change.email;
         return read(id, next);
@@ -105,10 +107,10 @@ export function jigsawUsersRouter(store: UserStore, now: () => number = Date.now
   });
 
   router.post("/", async (req, res) => {
-    const body = (req.body ?? {}) as { username?: unknown; name?: unknown; email?: unknown };
+    const body = (req.body ?? {}) as { username?: unknown; name?: unknown; email?: unknown; language?: unknown };
     const error = JigsawUsers.error(body);
     if (error) return bad(res, error);
-    const made = await store.create(JigsawUsers.stored(body as { username: string; name: string; email?: string }, now()));
+    const made = await store.create(JigsawUsers.stored(body as { username: string; name: string; email?: string; language?: string }, now()));
     if (!made) return bad(res, "That user name is taken: choose another.", 409);
     res.status(201).json(made); // the person who made the user gets everything back, the e-mail address too
   });

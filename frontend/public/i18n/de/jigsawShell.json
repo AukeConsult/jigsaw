@@ -1,6 +1,5 @@
 {
   "menu": "Menü von Karins Puzzle",
-  "jigsaws": "Puzzles",
   "guide": "Hilfe",
   "whoPlays": "Wer spielt?",
   "whoPlaysTitle": "Wer spielt: {{ name }}",
@@ -13,5 +12,6 @@
   "showing": "{{ shown }} von {{ total }} Teilen werden angezeigt",
   "details": "Details",
   "language": "Sprache",
-  "timePlayed": "Spielzeit"
+  "timePlayed": "Spielzeit",
+  "find": "Finden"
 }

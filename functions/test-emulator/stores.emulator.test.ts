@@ -7,6 +7,7 @@ import { firestoreJigsawStore } from "../src/common/jigsaw-list";
 import { storageImageStore } from "../src/jigsaw/jigsaw-image";
 import { firestorePieceStore } from "../src/jigsaw/jigsaw-pieces";
 import { firestorePlayStore } from "../src/jigsaw/plays";
+import { firestoreJigsawSearch } from "../src/jigsaw/jigsaw-search";
 import { DEFAULT_OBJECT, JIGSAW, JIGSAW_PIECES, JigsawCut, JigsawPieces } from "../src/models";
 
 // The real stores on the real Firestore emulator (npm run test:emulator, which starts it). The other tests use a small fake collection.
@@ -45,6 +46,28 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect(stored.createdAt).toBe(made.createdAt);
     expect(changed?.placed).toHaveLength(1);
     await store.remove(made.id);
+  });
+
+  it("loads the newest jigsaws and each owner's, at the same time, as summaries without the jigsaw's objects, each once, the newest first, no more than the limit of each", async () => {
+    const store = firestoreJigsawStore(JIGSAW);
+    const search = firestoreJigsawSearch(JIGSAW);
+    const owner = `owner-${Date.now()}`;
+    const first = await store.add({ ...jigsaw, name: "Search first", ownerUid: owner, categories: ["nature/forest"], language: "nb" });
+    const second = await store.add({ ...jigsaw, name: "Search second", ownerUid: owner, visibility: "owner" });
+    const third = await store.add({ ...jigsaw, name: "Search third" });
+    const mine = [first.id, second.id, third.id];
+    const newest = (await search.load([], 1)).map((j) => j.id);
+    expect(newest).toEqual([third.id]); // the newest one overall
+    const two = (await search.load([owner], 1)).map((j) => j.id);
+    expect(two).toContain(third.id);
+    expect(two.filter((id) => mine.includes(id)).length).toBeGreaterThanOrEqual(2); // the newest, and one of the owner's
+    const all = await search.load([owner], 100);
+    const found = all.filter((j) => mine.includes(j.id));
+    expect(found.map((j) => j.id)).toEqual([third.id, second.id, first.id]); // each once, the newest first
+    expect("placed" in found[0]).toBe(false); // only a summary is read
+    expect(found.find((j) => j.id === first.id)).toMatchObject({ categories: ["nature/forest"], language: "nb" });
+    expect(found.find((j) => j.id === second.id)?.visibility).toBe("owner"); // private ones are read too: who may see them is for the route
+    for (const j of [first, second, third]) await store.remove(j.id);
   });
 
   it("counts the rounds played on a jigsaw, not the ones that are only opened", async () => {

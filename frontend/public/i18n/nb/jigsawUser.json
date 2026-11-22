@@ -48,5 +48,7 @@
   "addJigsaw": "Legg til et nytt puslespill",
   "deleteJigsawAsk": "Slette dette puslespillet for godt? Bildet og alle rundene, også andre spilleres, blir slettet.",
   "jigsawNotDeleted": "Kunne ikke slette puslespillet: prøv igjen.",
-  "lists": "Lister"
+  "lists": "Lister",
+  "language": "Språk",
+  "languageHelp": "Språket appen vises på for deg."
 }

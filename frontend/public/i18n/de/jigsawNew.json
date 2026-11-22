@@ -64,5 +64,7 @@
   "sectionOwner": "Besitzer und Freigabe",
   "description": "Beschreibung",
   "optional": "(freiwillig)",
-  "descriptionPlaceholder": "Ein Ort, ein Tag, eine Erinnerung…"
+  "descriptionPlaceholder": "Ein Ort, ein Tag, eine Erinnerung…",
+  "language": "Sprache",
+  "languageHelp": "Die Sprache, in der Name und Beschreibung geschrieben sind. Sie beginnt als deine Sprache."
 }

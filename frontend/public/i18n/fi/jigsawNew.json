@@ -64,5 +64,7 @@
   "sectionOwner": "Omistaja ja jakaminen",
   "description": "Kuvaus",
   "optional": "(valinnainen)",
-  "descriptionPlaceholder": "Paikka, päivä, muisto…"
+  "descriptionPlaceholder": "Paikka, päivä, muisto…",
+  "language": "Kieli",
+  "languageHelp": "Kieli, jolla nimi ja kuvaus on kirjoitettu. Se alkaa omana kielenäsi."
 }

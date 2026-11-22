@@ -48,5 +48,7 @@
   "addJigsaw": "Añadir un puzle nuevo",
   "deleteJigsawAsk": "¿Eliminar este puzle para siempre? Su imagen y todas sus partidas, también las de otros jugadores, se eliminan.",
   "jigsawNotDeleted": "No se pudo eliminar el puzle: inténtalo de nuevo.",
-  "lists": "Listas"
+  "lists": "Listas",
+  "language": "Idioma",
+  "languageHelp": "El idioma en que se te muestra la aplicación."
 }

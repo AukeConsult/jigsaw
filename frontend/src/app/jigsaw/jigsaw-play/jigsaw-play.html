@@ -5,12 +5,12 @@
   }
   @case ('missing') {
     <main class="container py-4">
-      <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/jigsaw/list">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
+      <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     </main>
   }
   @case ('failed') {
     <main class="container py-4">
-      <div class="alert alert-danger" role="alert">{{ t('jigsawPlay.couldNotOpen') || 'Could not open the jigsaw.' }} <a routerLink="/jigsaw/list">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
+      <div class="alert alert-danger" role="alert">{{ t('jigsawPlay.couldNotOpen') || 'Could not open the jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     </main>
   }
   @case ('ready') {

@@ -21,6 +21,7 @@
       @if (item.author) {
         <div class="text-body-secondary tiny">{{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</div>
       }
+      <app-category-tags [keys]="item.categories" />
       <!-- the pieces and the difficulty on one short line (icons say what they are; the full words are in the tooltips) -->
       <div class="text-body-secondary tiny text-nowrap">
         <span [title]="t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ pieces() }}</span>

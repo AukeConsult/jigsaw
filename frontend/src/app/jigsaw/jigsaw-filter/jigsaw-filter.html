@@ -1,0 +1,102 @@
+<ng-container *transloco="let t">
+  @if (shows('text')) {
+    <!-- words of the name or the author: used when the typing has paused -->
+    <div class="mb-2">
+      <label class="form-label" [for]="idPrefix() + '-text'">{{ t('jigsawList.searchLabel') || 'Search' }}</label>
+      <input [id]="idPrefix() + '-text'" type="search" class="form-control form-control-sm" autocomplete="off" [attr.maxlength]="maxText" [value]="filter().text"
+             [attr.placeholder]="t('jigsawList.searchPlaceholder') || 'Words in the name or the author'" (input)="typed($any($event.target).value)">
+    </div>
+  }
+  @if (shows('categories')) {
+    <fieldset class="mb-2">
+      <legend class="form-label">{{ t('jigsawList.category') || 'Category' }}</legend>
+      <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-1">
+        @for (c of categories; track c.key) {
+          <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-cat-' + c.key" [checked]="chosen('categories', c.key)" [disabled]="!canChoose('categories', c.key)" (change)="toggle('categories', c.key)">
+              <label class="form-check-label" [for]="idPrefix() + '-cat-' + c.key"><i class="bi me-1" [class]="c.icon" aria-hidden="true"></i>{{ t('jigsawCategories.name.' + c.key) || c.name }} <span class="text-body-secondary">{{ count('categories', c.key) }}</span></label>
+            </div>
+          </div>
+        }
+      </div>
+    </fieldset>
+    <!-- under each ticked category its sub-categories, to tick or to leave blank (blank is every jigsaw in the category) -->
+    @for (c of withSubs(); track c.key) {
+      <fieldset class="mb-2 ms-3">
+        <legend class="small text-body-secondary mb-1">{{ t('jigsawCategories.subOf', { name: t('jigsawCategories.name.' + c.key) || c.name }) || (t('jigsawCategories.name.' + c.key) || c.name) + ': more exactly (optional)' }}</legend>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-1">
+          @for (s of c.subs; track s.key) {
+            <div class="col">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-cat-' + s.key" [checked]="chosen('categories', s.key)" [disabled]="!canChoose('categories', s.key)" (change)="toggle('categories', s.key)">
+                <label class="form-check-label" [for]="idPrefix() + '-cat-' + s.key">{{ t('jigsawCategories.name.' + s.key) || s.name }} <span class="text-body-secondary">{{ count('categories', s.key) }}</span></label>
+              </div>
+            </div>
+          }
+        </div>
+      </fieldset>
+    }
+  }
+  @if (shows('languages')) {
+    <!-- the languages that jigsaws have, side by side, as many in a row as fit -->
+    <fieldset class="mb-2">
+      <legend class="form-label">{{ t('jigsawList.language') || 'Language' }}</legend>
+      <div class="d-flex flex-wrap column-gap-3 row-gap-1">
+        @for (l of languages(); track l.code) {
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-lang-' + l.code" [checked]="chosen('languages', l.code)" (change)="toggle('languages', l.code)">
+            <label class="form-check-label" [for]="idPrefix() + '-lang-' + l.code">{{ l.name }} <span class="text-body-secondary">{{ count('languages', l.code) }}</span></label>
+          </div>
+        }
+      </div>
+    </fieldset>
+  }
+  <div class="row row-cols-1 row-cols-md-3 g-2 mb-1">
+    @if (shows('sizes')) {
+      <div class="col">
+        <fieldset>
+          <legend class="form-label">{{ t('jigsawList.size') || 'Size' }}</legend>
+          @for (s of sizes; track s.key) {
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-size-' + s.key" [checked]="chosen('sizes', s.key)" (change)="toggle('sizes', s.key)">
+              <label class="form-check-label" [for]="idPrefix() + '-size-' + s.key">{{ t('jigsawList.sizes.' + s.key) || s.key }} <span class="text-body-secondary">{{ count('sizes', s.key) }}</span></label>
+            </div>
+          }
+        </fieldset>
+      </div>
+    }
+    @if (shows('difficulties')) {
+      <div class="col">
+        <fieldset>
+          <legend class="form-label">{{ t('jigsawList.difficulty') || 'Difficulty' }}</legend>
+          @for (d of difficulties; track d.key) {
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-level-' + d.key" [checked]="chosen('difficulties', d.key)" (change)="toggle('difficulties', d.key)">
+              <label class="form-check-label" [for]="idPrefix() + '-level-' + d.key">{{ t('jigsawLevels.snap.' + d.key) || d.key }} <span class="text-body-secondary">{{ count('difficulties', d.key) }}</span></label>
+            </div>
+          }
+        </fieldset>
+      </div>
+    }
+    @if (shows('owners')) {
+      <div class="col">
+        <fieldset>
+          <legend class="form-label">{{ t('jigsawList.owner') || 'Made by' }} <span class="text-body-secondary">{{ t('jigsawList.ownersHelp', { max: maxOwners }) || '(choose one or more)' }}</span></legend>
+          <div class="checklist border rounded p-2">
+            @for (u of owners(); track u.id) {
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-owner-' + u.id" [checked]="chosen('owners', u.id)" [disabled]="!canChoose('owners', u.id)" (change)="toggle('owners', u.id)">
+                <label class="form-check-label" [for]="idPrefix() + '-owner-' + u.id">{{ u.id === noOwner ? (t('jigsawList.noOwner') || 'No owner') : u.name }} <span class="text-body-secondary">({{ u.count }})</span></label>
+              </div>
+            }
+          </div>
+        </fieldset>
+      </div>
+    }
+  </div>
+  @if (on()) {
+    <!-- a choice is made: this puts all the jigsaws back -->
+    <div class="toolbar"><button type="button" class="link-action" (click)="clear()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.all') || 'All' }}</button></div>
+  }
+</ng-container>

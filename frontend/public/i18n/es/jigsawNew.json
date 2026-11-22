@@ -64,5 +64,7 @@
   "sectionOwner": "Propietario y uso compartido",
   "description": "Descripción",
   "optional": "(opcional)",
-  "descriptionPlaceholder": "Un lugar, un día, un recuerdo…"
+  "descriptionPlaceholder": "Un lugar, un día, un recuerdo…",
+  "language": "Idioma",
+  "languageHelp": "El idioma en que están escritos el nombre y la descripción. Empieza con tu idioma."
 }

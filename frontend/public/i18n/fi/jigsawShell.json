@@ -1,6 +1,5 @@
 {
   "menu": "Karinin palapelien valikko",
-  "jigsaws": "Palapelit",
   "guide": "Ohje",
   "whoPlays": "Kuka pelaa?",
   "whoPlaysTitle": "Pelaaja: {{ name }}",
@@ -13,5 +12,6 @@
   "showing": "Näytetään {{ shown }} / {{ total }} palaa",
   "details": "Tiedot",
   "language": "Kieli",
-  "timePlayed": "Peliaika"
+  "timePlayed": "Peliaika",
+  "find": "Etsi"
 }
