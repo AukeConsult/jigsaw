@@ -1,0 +1,34 @@
+<ng-container *transloco="let t">
+  @let g = game();
+  <div class="round-body">
+    <div class="round-info">
+      <!-- pressing anywhere on the row (but Delete) goes on with the round, or looks at it: the link covers the row -->
+      <a class="stretched-link" tabindex="-1" aria-hidden="true" [routerLink]="['/jigsaw', jigsawId(), 'play', g.id]"></a>
+      <div class="d-flex align-items-center gap-1 flex-wrap">
+        @if (mine()) {
+          <span class="badge text-bg-dark"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.yours') || 'Yours' }}</span>
+        } @else {
+          <span class="small fw-semibold"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ g.userName || t('jigsawPage.someone') || 'Someone' }}</span>
+        }
+        @if (g.status === 'solved') {
+          <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawPage.solved') || 'Solved' }}</span>
+        }
+        <span class="small ms-1">{{ t('jigsawPage.inPlace', { matched: g.matched, total: g.total }) || g.matched + ' of ' + g.total + ' in place' }}</span>
+      </div>
+      <div class="tiny text-body-secondary mt-1">@if (g.elapsedMs && timed()) { <span class="text-nowrap" [title]="t('jigsawPage.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ clock(g.elapsedMs) }}</span> }<span class="d-none d-sm-inline ms-2">{{ g.startedAt | date: 'MMM d, y, HH:mm' }}</span></div>
+    </div>
+    <div class="round-actions" [class.confirming]="mine() && confirming()">
+      @if (mine() && confirming()) {
+        <button type="button" class="link-action danger" (click)="confirming.set(false); remove.emit()">{{ t('jigsawPage.yesDelete') || 'Yes, delete' }}</button>
+        <button type="button" class="link-action" (click)="confirming.set(false)">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+      } @else {
+        <a class="link-action text-nowrap" [routerLink]="['/jigsaw', jigsawId(), 'play', g.id]" [title]="mine() && g.status !== 'solved' ? (t('jigsawPage.continue') || 'Continue') : (t('jigsawPage.look') || 'Look')">
+          <i class="bi" [class.bi-play-fill]="mine() && g.status !== 'solved'" [class.bi-eye]="!mine() || g.status === 'solved'" aria-hidden="true"></i><span class="round-action-text">@if (mine() && g.status !== 'solved') { {{ t('jigsawPage.continue') || 'Continue' }} } @else { {{ t('jigsawPage.look') || 'Look' }} }</span>
+        </a>
+        @if (mine()) {
+          <button type="button" class="link-action danger text-nowrap" [title]="t('jigsawPage.delete') || 'Delete'" (click)="confirming.set(true)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawPage.delete') || 'Delete' }}</span></button>
+        }
+      }
+    </div>
+  </div>
+</ng-container>

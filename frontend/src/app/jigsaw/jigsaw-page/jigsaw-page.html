@@ -84,39 +84,7 @@
           } @else {
             <ul class="list-group">
               @for (game of games(); track game.id) {
-                <li class="list-group-item round-row">
-                  <div class="round-body">
-                    <div class="round-info">
-                      <!-- pressing anywhere on the row (but Delete) goes on with the round, or looks at it: the link covers the row -->
-                      <a class="stretched-link" tabindex="-1" aria-hidden="true" [routerLink]="['/jigsaw', it.id, 'play', game.id]"></a>
-                      <div class="d-flex align-items-center gap-1 flex-wrap">
-                        @if (isMine(game)) {
-                          <span class="badge text-bg-dark"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.yours') || 'Yours' }}</span>
-                        } @else {
-                          <span class="small fw-semibold"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ game.userName || t('jigsawPage.someone') || 'Someone' }}</span>
-                        }
-                        @if (game.status === 'solved') {
-                          <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawPage.solved') || 'Solved' }}</span>
-                        }
-                        <span class="small ms-1">{{ t('jigsawPage.inPlace', { matched: game.matched, total: game.total }) || game.matched + ' of ' + game.total + ' in place' }}</span>
-                      </div>
-                      <div class="tiny text-body-secondary mt-1">@if (game.elapsedMs && it.timed !== false) { <span class="text-nowrap" [title]="t('jigsawPage.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ clock(game.elapsedMs) }}</span> }<span class="d-none d-sm-inline ms-2">{{ game.startedAt | date: 'MMM d, y, HH:mm' }}</span></div>
-                    </div>
-                    <div class="round-actions" [class.confirming]="isMine(game) && confirmingId() === game.id">
-                      @if (isMine(game) && confirmingId() === game.id) {
-                        <button type="button" class="link-action danger" (click)="removeGame(game)">{{ t('jigsawPage.yesDelete') || 'Yes, delete' }}</button>
-                        <button type="button" class="link-action" (click)="confirmingId.set(null)">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
-                      } @else {
-                        <a class="link-action text-nowrap" [routerLink]="['/jigsaw', it.id, 'play', game.id]" [title]="isMine(game) && game.status !== 'solved' ? (t('jigsawPage.continue') || 'Continue') : (t('jigsawPage.look') || 'Look')">
-                          <i class="bi" [class.bi-play-fill]="isMine(game) && game.status !== 'solved'" [class.bi-eye]="!isMine(game) || game.status === 'solved'" aria-hidden="true"></i><span class="round-action-text">@if (isMine(game) && game.status !== 'solved') { {{ t('jigsawPage.continue') || 'Continue' }} } @else { {{ t('jigsawPage.look') || 'Look' }} }</span>
-                        </a>
-                        @if (isMine(game)) {
-                          <button type="button" class="link-action danger text-nowrap" [title]="t('jigsawPage.delete') || 'Delete'" (click)="confirmingId.set(game.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawPage.delete') || 'Delete' }}</span></button>
-                        }
-                      }
-                    </div>
-                  </div>
-                </li>
+                <app-round-row [game]="game" [jigsawId]="it.id" [timed]="it.timed !== false" [mine]="isMine(game)" (remove)="removeGame(game)" />
               }
             </ul>
           }

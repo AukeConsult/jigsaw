@@ -44,7 +44,7 @@ import { JigsawUserService } from './jigsaw-user.service';
     }
     <nav class="app-navbar navbar navbar-expand bg-body-tertiary border-bottom" [attr.aria-label]="t('jigsawShell.menu') || 'Karins jigsaw menu'">
       <div class="container-fluid flex-wrap gap-1">
-        <a class="navbar-brand brand-lockup d-flex align-items-center gap-2" routerLink="/jigsaw" aria-label="Karins jigsaw">
+        <a class="navbar-brand brand-lockup d-flex align-items-center gap-2" routerLink="/" aria-label="Karins jigsaw">
           <img class="brand-logo" src="logo.svg" alt="" width="32" height="32">
           <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
         </a>

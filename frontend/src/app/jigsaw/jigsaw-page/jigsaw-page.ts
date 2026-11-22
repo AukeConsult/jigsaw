@@ -1,11 +1,11 @@
-import { clockOf } from '../duration';
-import { DatePipe, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { Autosave } from '../../core/autosave';
 import { tr } from '../../core/i18n';
+import { RoundRow } from '../round-row/round-row';
 import { JigsawHeader } from '../jigsaw-header/jigsaw-header';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
@@ -22,14 +22,11 @@ import { LINE_LEVELS, lineLevelOf } from '../line-level';
  */
 @Component({
   selector: 'app-jigsaw-page',
-  imports: [RouterLink, DatePipe, FormsModule, TranslocoDirective, JigsawHeader],
+  imports: [RouterLink, FormsModule, TranslocoDirective, JigsawHeader, RoundRow],
   providers: [provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-page.html',
 })
 export class JigsawPage implements OnInit {
-  /** a time played, as a clock (`12:34`) */
-  protected readonly clock = clockOf;
-
   private readonly jigsaws = inject(JigsawService);
   private readonly plays = inject(PlaysService);
   private readonly router = inject(Router);
@@ -45,8 +42,6 @@ export class JigsawPage implements OnInit {
   readonly error = signal('');
   /** Delete (the jigsaw) was pressed and waits for "Yes" */
   readonly confirmingDelete = signal(false);
-  /** the game whose Delete button was pressed and waits for "Yes" */
-  readonly confirmingId = signal<string | null>(null);
   readonly maxName = JIGSAW_MAX_NAME;
 
   /** the edit form is open, and what is in it (it starts from the jigsaw as it is) */
@@ -132,7 +127,6 @@ export class JigsawPage implements OnInit {
   }
 
   async removeGame(game: PlaySpec): Promise<void> {
-    this.confirmingId.set(null);
     try {
       await this.plays.remove(this.id, game.id);
       this.games.update((all) => all.filter((g) => g.id !== game.id));
