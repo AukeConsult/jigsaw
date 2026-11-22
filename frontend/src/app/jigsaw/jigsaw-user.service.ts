@@ -4,7 +4,9 @@ import { firstValueFrom } from 'rxjs';
 import { tr } from '../core/i18n';
 import { LanguageService } from '../core/language.service';
 import { environment } from '../../environments/environment';
+import { JigsawSetup } from '../models/shared/jigsaw-filter';
 import { JigsawUserSpec, JigsawUsers } from '../models/shared/jigsaw-user';
+import { FRONT_FINDER_KEY, hasFinderPreferences, writeFinderPreferences } from './jigsaw-finder/finder-preferences';
 
 /** Where the browser keeps which user is playing (the UID; the user itself is in the database). An earlier version kept the user name, which was then the id too. */
 const STORED_KEY = 'jigsaw.userId';
@@ -60,6 +62,7 @@ export class JigsawUserService {
         const user = await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
         this.user.set(user);
         this.language.use(user.language); // the app is shown in the language of the user
+        if (user.search && !hasFinderPreferences(FRONT_FINDER_KEY)) writeFinderPreferences(FRONT_FINDER_KEY, user.search); // a device that has no search of its own takes the user's
         return user;
       } catch (err) {
         if (err instanceof HttpErrorResponse && err.status === 404) this.remember(null); // the user is gone: choose again
@@ -108,7 +111,7 @@ export class JigsawUserService {
    * Changes the user who plays: only what is given (an e-mail address that is null is taken away; the address is private and is never read back). The reason when it could
    * not be changed (the user name is taken, a field is not allowed).
    */
-  async update(change: { name?: string; username?: string; email?: string | null; language?: string }): Promise<string> {
+  async update(change: { name?: string; username?: string; email?: string | null; language?: string; search?: JigsawSetup }): Promise<string> {
     const me = this.user();
     if (!me) return tr('jigsawUser.chooseFirst', 'Choose a user first.');
     try {
@@ -128,6 +131,11 @@ export class JigsawUserService {
     if (me && me.language !== code) await this.update({ language: code });
   }
 
+  /** How the user looks for jigsaws (cards or list, and the filter) is kept with the user, when Go is pressed on the Find page: it is the same on every device. Nothing is kept for nobody; a failure is not told (the device keeps it). */
+  async saveSearch(search: JigsawSetup): Promise<void> {
+    if (this.user()) await this.update({ search });
+  }
+
   /** Stops playing as this user (the user stays in the database). */
   leave(): void {
     this.remember(null);
@@ -139,6 +147,7 @@ export class JigsawUserService {
     this.remember(user.id);
     this.user.set(user);
     this.language.use(user.language); // the app is shown in the language of the user
+    if (user.search) writeFinderPreferences(FRONT_FINDER_KEY, user.search); // a user who is chosen brings their search
     this.loaded = Promise.resolve(user);
   }
 }

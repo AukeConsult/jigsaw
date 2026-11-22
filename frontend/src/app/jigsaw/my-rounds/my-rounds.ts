@@ -13,7 +13,7 @@ import { PlaysService, UserGame } from '../plays.service';
   imports: [DatePipe, TranslocoDirective, JigsawCard],
   providers: [provideTranslocoScope('jigsawHome')],
   templateUrl: './my-rounds.html',
-  host: { class: 'd-block', '(window:resize)': 'update()' },
+  host: { '(window:resize)': 'update()' },
 })
 export class MyRounds {
   private readonly plays = inject(PlaysService);
@@ -31,6 +31,9 @@ export class MyRounds {
       return jigsaw ? [{ game, jigsaw }] : [];
     });
   });
+
+  /** the user has no round going (or nobody has been chosen yet): the band welcomes instead; not while the rounds are being read, or when they could not be */
+  protected readonly welcome = computed(() => this.going()?.length === 0);
 
   protected readonly clock = clockOf;
   private readonly row = viewChild<ElementRef<HTMLElement>>('row');
@@ -63,12 +66,12 @@ export class MyRounds {
 
   private async readRounds(): Promise<void> {
     const me = await this.users.load();
-    if (!me) return;
+    if (!me) return void this.going.set([]); // nobody chosen yet: no rounds
     try {
       const open = (await this.plays.ofUser(me.id)).filter((g) => g.play.status !== 'solved');
       this.going.set(open.sort((a, b) => b.play.startedAt - a.play.startedAt));
     } catch {
-      /* no band without the rounds */
+      /* no band without the rounds (and no welcome: it would say there are none) */
     }
   }
 }

@@ -5,6 +5,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSummary } from '../../models/shared/jigsaw-search';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { CategoryTags } from '../category-tags/category-tags';
+import { FavoritesService } from '../favorites.service';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { snapLevelOfJigsaw } from '../snap-level';
 
@@ -18,6 +19,7 @@ import { snapLevelOfJigsaw } from '../snap-level';
 })
 export class JigsawCard {
   private readonly images = inject(JigsawImageService);
+  protected readonly favorites = inject(FavoritesService);
 
   readonly jigsaw = input.required<JigsawSummary>();
   /** only the picture (with the name as a tooltip), for a band where the cards are small */
@@ -34,5 +36,13 @@ export class JigsawCard {
     const grid = pieceGrid(j.width, j.height, j.gridSize);
     return grid.columns * grid.rows;
   });
+  protected readonly favorite = computed(() => this.favorites.isFavorite(this.jigsaw().id));
+
+  /** The heart is pressed: the jigsaw is a favorite, or not any more. It does not open the jigsaw. */
+  protected toggleFavorite(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    void this.favorites.toggle(this.jigsaw().id);
+  }
   protected readonly level = computed(() => snapLevelOfJigsaw(this.jigsaw()));
 }

@@ -24,5 +24,6 @@
   "continueName": "Reprendre {{ name }}",
   "popular": "Populaires",
   "jigsaws": "Puzzles",
-  "imageAlt": "Une femme avec une ombrelle colorée sur la terrasse d'un fort, des collines vertes et une ville derrière elle"
+  "imageAlt": "Une femme avec une ombrelle colorée sur la terrasse d'un fort, des collines vertes et une ville derrière elle",
+  "noRoundsYet": "Vous n'avez encore aucune manche en cours. Choisissez un puzzle ci-dessous pour en commencer une."
 }

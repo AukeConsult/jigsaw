@@ -30,7 +30,6 @@
   "noneMatch": "Ingen puslespill passer. Prøv andre valg.",
   "go": "Gå",
   "findTitle": "Finn et puslespill",
-  "searchOn": "Viser puslespillene som passer til søket ditt.",
   "changeSearch": "Endre søket",
   "noneToList": "Ingen puslespill å vise. Prøv andre valg.",
   "matchOne": "{{ count }} puslespill passer",
@@ -39,5 +38,10 @@
   "searchLabel": "Søk",
   "searchPlaceholder": "Ord i navnet, hos laget av eller i beskrivelsen",
   "language": "Språk",
-  "noOwner": "Ingen eier"
+  "noOwner": "Ingen eier",
+  "loading": "Henter puslespillene …",
+  "quickFilters": "Hurtigfiltre",
+  "addFavorite": "Legg til som favoritt",
+  "removeFavorite": "Fjern fra favoritter",
+  "favorites": "Favoritter"
 }

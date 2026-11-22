@@ -27,5 +27,13 @@
         </div>
       </div>
     </section>
+  } @else if (welcome()) {
+    <!-- no round going: the band is a welcome, so a new player sees what to do -->
+    <section class="my-rounds bg-body border-bottom" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
+      <div class="container">
+        <h2 class="subsection-title mb-1">{{ t('jigsawHome.welcome') || 'Welcome' }}</h2>
+        <p class="text-body-secondary mb-0">{{ t('jigsawHome.noRoundsYet') || 'You have no rounds going yet. Pick a jigsaw below to start one.' }}</p>
+      </div>
+    </section>
   }
 </ng-container>

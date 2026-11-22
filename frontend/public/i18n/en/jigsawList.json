@@ -30,7 +30,6 @@
   "noneMatch": "No jigsaw matches. Try other choices.",
   "go": "Go",
   "findTitle": "Find a jigsaw",
-  "searchOn": "Showing the jigsaws that match your search.",
   "changeSearch": "Change the search",
   "noneToList": "No jigsaws to list. Try other choices.",
   "matchOne": "{{ count }} jigsaw matches",
@@ -39,5 +38,10 @@
   "searchLabel": "Search",
   "searchPlaceholder": "Words in the name, the author or the description",
   "language": "Language",
-  "noOwner": "No owner"
+  "noOwner": "No owner",
+  "loading": "Fetching the jigsaws…",
+  "quickFilters": "Quick filters",
+  "addFavorite": "Add to favorites",
+  "removeFavorite": "Remove from favorites",
+  "favorites": "Favorites"
 }

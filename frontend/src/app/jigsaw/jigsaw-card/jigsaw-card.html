@@ -10,6 +10,14 @@
           }
         </div>
       </a>
+      @if (favorites.available()) {
+        <!-- a small heart over the top right corner of the picture: tick it to have the jigsaw as a favorite -->
+        <button type="button" class="btn btn-overlay position-absolute top-0 end-0 m-1" [class.is-favorite]="favorite()" [attr.aria-pressed]="favorite()"
+                [title]="favorite() ? (t('jigsawList.removeFavorite') || 'Remove from favorites') : (t('jigsawList.addFavorite') || 'Add to favorites')"
+                [attr.aria-label]="favorite() ? (t('jigsawList.removeFavorite') || 'Remove from favorites') : (t('jigsawList.addFavorite') || 'Add to favorites')" (click)="toggleFavorite($event)">
+          <i class="bi" [class.bi-heart]="!favorite()" [class.bi-heart-fill]="favorite()" aria-hidden="true"></i>
+        </button>
+      }
       <a class="btn btn-overlay position-absolute bottom-0 end-0 m-1" [routerLink]="link()" [title]="t('jigsawList.play') || 'Show the jigsaw'" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
     </div>
     @if (pictureOnly()) {

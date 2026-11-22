@@ -24,5 +24,6 @@
   "continueName": "Fortsett med {{ name }}",
   "popular": "Populære",
   "jigsaws": "Puslespill",
-  "imageAlt": "En kvinne med en fargerik parasoll på en festningsterrasse, med grønne åser og en by bak seg"
+  "imageAlt": "En kvinne med en fargerik parasoll på en festningsterrasse, med grønne åser og en by bak seg",
+  "noRoundsYet": "Du har ingen runder i gang ennå. Velg et puslespill under for å starte en."
 }

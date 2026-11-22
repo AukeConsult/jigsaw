@@ -127,6 +127,8 @@ export interface JigsawQuery {
   owners?: string[];
   /** words that are in the name, the author or the description of the jigsaw, in any order and in any case (a part of a word is enough); every word has to be there */
   text?: string;
+  /** only the jigsaws the user who asks has ticked as favorites (the route knows them; a jigsaw is a favorite of a user, not a property of itself) */
+  favorites?: true;
   sort: SearchSort;
   limit: number;
   /** from 1 */
@@ -142,7 +144,7 @@ export class JigsawSearch {
       if (v === undefined || v === '') return undefined;
       return typeof v === 'string' ? v : { error: `${name} must be text.` };
     };
-    const names = ['categories', 'sizes', 'difficulties', 'languages', 'owners', 'text', 'sort', 'limit', 'page'] as const;
+    const names = ['categories', 'sizes', 'difficulties', 'languages', 'owners', 'text', 'favorites', 'sort', 'limit', 'page'] as const;
     const fields = Object.fromEntries(names.map((n) => [n, text(n)])) as Record<string, string | undefined | { error: string }>;
     for (const v of Object.values(fields)) if (v && typeof v === 'object') return v;
     const f = fields as Partial<Record<(typeof names)[number], string>>;
@@ -166,6 +168,7 @@ export class JigsawSearch {
     if (!Array.isArray(owners)) return owners;
     const words = (f.text ?? '').trim().replace(/\s+/g, ' ');
     if (words.length > SEARCH_MAX_TEXT) return { error: `The text can be at most ${SEARCH_MAX_TEXT} characters.` };
+    if (f.favorites !== undefined && f.favorites !== 'true' && f.favorites !== '1') return { error: 'The favorites must be true.' };
     if (f.sort !== undefined && !['new', 'name', 'pieces'].includes(f.sort)) return { error: 'The sort must be new, name or pieces.' };
     const whole = (v: string | undefined, name: string, min: number, max: number): number | { error: string } => {
       if (v === undefined) return -1;
@@ -184,6 +187,7 @@ export class JigsawSearch {
         ...(languages.length ? { languages } : {}),
         ...(owners.length ? { owners } : {}),
         ...(words ? { text: words } : {}),
+        ...(f.favorites !== undefined ? { favorites: true as const } : {}),
         sort: (f.sort as SearchSort | undefined) ?? 'new',
         limit: limit === -1 ? SEARCH_PAGE : limit,
         page: page === -1 ? 1 : page,

@@ -10,6 +10,8 @@ describe("a filter of jigsaws", () => {
     expect(JigsawFilters.isOn(JigsawFilters.empty())).toBe(false);
     expect(JigsawFilters.isOn(on({ text: "  " }))).toBe(false); // no words
     expect(JigsawFilters.isOn(on({ text: "harbour" }))).toBe(true);
+    expect("favorites" in JigsawFilters.empty()).toBe(false);
+    expect(JigsawFilters.isOn(on({ favorites: true }))).toBe(true); // only the favorites is a choice too
     for (const over of [{ categories: ["art"] }, { sizes: ["small"] }, { difficulties: ["hard"] }, { languages: ["nb"] }, { owners: ["u1"] }] as Partial<JigsawFilter>[]) expect(JigsawFilters.isOn(on(over))).toBe(true);
   });
 
@@ -66,6 +68,9 @@ describe("a filter of jigsaws", () => {
 
   it("is checked when it is read again from a device: only what the model allows", () => {
     expect(JigsawFilters.is(on({}))).toBe(true);
+    expect(JigsawFilters.is(on({ favorites: true }))).toBe(true);
+    expect(JigsawFilters.is({ ...on({}), favorites: false })).toBe(false); // it is there, and true, or it is not there
+    expect(JigsawFilters.is({ ...on({}), favorites: "yes" })).toBe(false);
     expect(JigsawFilters.is(on({ text: "harbour", categories: ["nature/forest", "family"], sizes: ["huge", "small"], difficulties: ["hard"], languages: ["nb", "en"], owners: ["u1", "u2"] }))).toBe(true);
     const tooMany = Array.from({ length: 11 }, (_, i) => `u${i}`);
     for (const bad of [null, undefined, "x", {}, { category: null }, on({ categories: ["boats"] }), on({ sizes: ["tiny" as never] }), on({ difficulties: ["insane" as never] }), on({ languages: ["xx"] }), on({ languages: ["nb", "nb"] }),
@@ -75,11 +80,20 @@ describe("a filter of jigsaws", () => {
     }
   });
 
+  it("knows a setup: cards or list with a filter that is allowed", () => {
+    expect(JigsawFilters.isSetup({ view: "cards", filter: JigsawFilters.empty() })).toBe(true);
+    expect(JigsawFilters.isSetup({ view: "list", filter: on({ text: "x", owners: ["u1"] }) })).toBe(true);
+    for (const bad of [null, undefined, "list", {}, { view: "grid", filter: JigsawFilters.empty() }, { view: "list" }, { view: "list", filter: { text: "" } }, { view: "list", filter: on({ sizes: ["tiny" as never] }) }]) {
+      expect(JigsawFilters.isSetup(bad)).toBe(false);
+    }
+  });
+
   it("makes the question for the search: only what is chosen, and the page", () => {
     expect(JigsawFilters.query(on({}))).toEqual({ page: 1 });
     expect(JigsawFilters.query(on({ text: " harbour  ", categories: ["nature/forest"], sizes: ["large", "huge"], difficulties: ["easy"], languages: ["nb"], owners: ["u1", "u2"] }), 2, 12)).toEqual({
       categories: ["nature/forest"], sizes: ["large", "huge"], difficulties: ["easy"], languages: ["nb"], owners: ["u1", "u2"], text: "harbour", page: 2, limit: 12,
     });
     expect(JigsawFilters.query(on({ text: "   " }))).toEqual({ page: 1 });
+    expect(JigsawFilters.query(on({ favorites: true }))).toEqual({ favorites: true, page: 1 });
   });
 });

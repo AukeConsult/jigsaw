@@ -71,7 +71,7 @@ export function memoryUsers(...names: string[]): UserStore {
       if (change.username !== undefined && [...users.values()].some((u) => u.id !== id && u.username === change.username)) return "taken";
       const { email: _was, ...rest } = user;
       const email = change.email === undefined ? user.email : (change.email ?? undefined);
-      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(email ? { email } : {}) });
+      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(email ? { email } : {}) });
       return users.get(id)!;
     },
   };

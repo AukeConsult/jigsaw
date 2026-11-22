@@ -21,6 +21,13 @@
         }
       </a>
       <div class="d-flex gap-1 align-items-center flex-shrink-0">
+        @if (favorites.available()) {
+          <button type="button" class="btn btn-sm btn-outline-secondary" [class.text-danger]="favorite()" [attr.aria-pressed]="favorite()"
+                  [title]="favorite() ? (t('jigsawList.removeFavorite') || 'Remove from favorites') : (t('jigsawList.addFavorite') || 'Add to favorites')"
+                  [attr.aria-label]="favorite() ? (t('jigsawList.removeFavorite') || 'Remove from favorites') : (t('jigsawList.addFavorite') || 'Add to favorites')" (click)="favorites.toggle(item.id)">
+            <i class="bi" [class.bi-heart]="!favorite()" [class.bi-heart-fill]="favorite()" aria-hidden="true"></i>
+          </button>
+        }
         <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', item.id]"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawList.play') || 'Show the jigsaw' }}</a>
       </div>
     </div>

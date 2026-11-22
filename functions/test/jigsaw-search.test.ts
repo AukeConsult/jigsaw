@@ -53,6 +53,9 @@ describe("the parameters of a search", () => {
 
   it("have a default: the newest, one page", () => {
     expect(ok({})).toEqual({ sort: "new", limit: SEARCH_PAGE, page: 1 });
+    expect(ok({ favorites: "true" })).toMatchObject({ favorites: true });
+    expect(ok({ favorites: "1" })).toMatchObject({ favorites: true });
+    expect("favorites" in ok({})).toBe(false);
     expect(ok({ languages: "nb,en", sizes: "small" })).toMatchObject({ languages: ["nb", "en"], sizes: ["small"] });
     expect(ok({ categories: "", sizes: "", text: "  " })).toEqual({ sort: "new", limit: SEARCH_PAGE, page: 1 }); // an empty field says nothing
   });
@@ -68,6 +71,7 @@ describe("the parameters of a search", () => {
     expect(bad({ categories: "family,travel,nature,animals,flowers,food,art" })).toMatch(/At most 6/);
     expect(bad({ sizes: "small,tiny" })).toMatch(/"tiny" is not allowed in sizes/);
     expect(bad({ languages: "nb,xx" })).toMatch(/"xx" is not allowed in languages/);
+    expect(bad({ favorites: "yes" })).toMatch(/favorites must be true/);
     expect(bad({ difficulties: "insane" })).toMatch(/is not allowed in difficulties/);
     expect(bad({ owners: "u1,a/b" })).toMatch(/is not allowed in owners/);
     expect(bad({ owners: "u1,~other" })).toMatch(/is not allowed in owners/);
@@ -392,6 +396,20 @@ describe("the route", () => {
     expect(facets.total).toBe(SEARCH_MAX_READ + 10);
     expect(facets.owners.map((o: { count: number }) => o.count).sort((x: number, y: number) => x - y)).toEqual([10, SEARCH_MAX_READ]);
     expect((await get(big, "?owners=ub")).body.total).toBe(10);
+  });
+
+  it("looks only at the favorites of the user who asks, in the search and in the counts, and at none for nobody", async () => {
+    const favorites = { list: async (u: string) => (u === "u1" ? ["forest", "secret"] : []), add: async () => undefined, remove: async () => undefined, removeAllOf: async () => undefined };
+    const app = createJigsawApp({ jigsawSearch: fakeSearch(all), favorites, plays: memoryPlays(), users: memoryUsers("u1", "u2") });
+    const found = async (qs: string, me?: string) => ids((await get(app, qs, me)).body.items);
+    expect(await found("?favorites=true", "u1")).toEqual(["secret", "forest"]); // their own private jigsaw too: they may see it
+    expect(await found("?favorites=true&categories=nature", "u1")).toEqual(["secret", "forest"]); // with the rest of the filter
+    expect(await found("?favorites=true&categories=family", "u1")).toEqual([]);
+    expect(await found("?favorites=true", "u2")).toEqual([]); // u2 has none
+    expect(await found("?favorites=true")).toEqual([]); // nobody: none
+    expect(await found("", "u2")).toEqual(["forest", "family"]); // without it, all the user may see
+    const facets = (await get(app, "/facets?favorites=true", "u1")).body;
+    expect([facets.total, facets.sizes]).toEqual([2, { large: 2 }]); // the counts are over the favorites
   });
 
   it("makes the search forget what it read when a jigsaw is made, changed or deleted", async () => {

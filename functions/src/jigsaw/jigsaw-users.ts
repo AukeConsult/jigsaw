@@ -1,6 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import express from "express";
-import { JIGSAW_USERS, JigsawUserSpec, JigsawUsers } from "../models";
+import { JIGSAW_USERS, JigsawSetup, JigsawUserSpec, JigsawUsers } from "../models";
 
 // The users of the jigsaws: one document each in the collection `jigsaw-users`, with an id the database makes (the UID, the one a play is kept by), the user name the
 // person chose (the extra, for looking a user up and showing who is who: unique) and a name. There is no sign-in: knowing a user name is enough to play as that user, for
@@ -32,6 +32,7 @@ export interface UserChange {
   username?: string;
   email?: string | null;
   language?: string;
+  search?: JigsawSetup;
 }
 
 /** The collection `jigsaw-users`. */
@@ -61,7 +62,7 @@ export function firestoreUserStore(): UserStore {
       return db().runTransaction(async (tx) => {
         const [same, legacy] = await Promise.all([tx.get(users().where("username", "==", user.username).limit(1)), tx.get(users().doc(user.username))]);
         if (!same.empty || legacy.exists) return null;
-        tx.create(ref, { username: user.username, name: user.name, ...(user.email ? { email: user.email } : {}), createdAt: user.createdAt });
+        tx.create(ref, { username: user.username, name: user.name, ...(user.email ? { email: user.email } : {}), language: user.language, createdAt: user.createdAt }); // the language too: it was not kept for a new user
         return { id: ref.id, ...user };
       });
     },
@@ -83,8 +84,9 @@ export function firestoreUserStore(): UserStore {
         if (change.username !== undefined) data.username = change.username;
         if (change.email !== undefined) data.email = change.email ?? FieldValue.delete();
         if (change.language !== undefined) data.language = change.language;
+        if (change.search !== undefined) data.search = change.search;
         if (Object.keys(data).length) tx.update(ref, data);
-        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}) };
+        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}) };
         if (change.email === null) delete next.email;
         else if (change.email !== undefined) next.email = change.email;
         return read(id, next);
@@ -95,7 +97,7 @@ export function firestoreUserStore(): UserStore {
 
 /**
  * The users, `/jigsaw-users`: POST {username, name, email?} makes a user (the e-mail address is optional and private: given back only here, never in a lookup) and gives it a UID (409 when the user name is taken); GET /by-username/:username finds a user by the user
- * name (404 when there is none: that is how the page finds out whether a user name exists); GET /:id reads a user by its UID; PUT /:id {name?, username?, email?} changes a user (an empty e-mail takes it away; 409 when the new user name is taken).
+ * name (404 when there is none: that is how the page finds out whether a user name exists); GET /:id reads a user by its UID; PUT /:id {name?, username?, email?, language?, search?} changes a user (`search` is how the user looks for jigsaws, kept when Go is pressed on the Find page; an empty e-mail takes it away; 409 when the new user name is taken).
  * GET / lists the users (id, user name and name; never the e-mail addresses), to choose who plays from.
  */
 export function jigsawUsersRouter(store: UserStore, now: () => number = Date.now): express.Router {
@@ -134,7 +136,7 @@ export function jigsawUsersRouter(store: UserStore, now: () => number = Date.now
   router.put("/:id", async (req, res) => {
     const idError = JigsawUsers.idError(req.params.id);
     if (idError) return bad(res, idError);
-    const read = JigsawUsers.change((req.body ?? {}) as { name?: unknown; username?: unknown; email?: unknown });
+    const read = JigsawUsers.change((req.body ?? {}) as { name?: unknown; username?: unknown; email?: unknown; language?: unknown; search?: unknown });
     if ("error" in read) return bad(res, read.error);
     const user = await store.update(req.params.id, read.change);
     if (user === "taken") return bad(res, "That user name is taken: choose another.", 409);

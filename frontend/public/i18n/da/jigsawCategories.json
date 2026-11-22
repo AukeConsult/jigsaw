@@ -4,6 +4,7 @@
   "help": "Vælg op til {{ max }}.",
   "subOf": "{{ name }}: mere præcist (valgfrit)",
   "name": {
+    "recommended": "Anbefalet",
     "family": "Familie",
     "travel": "Rejser",
     "nature": "Natur",

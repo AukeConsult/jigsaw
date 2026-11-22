@@ -30,7 +30,6 @@
   "noneMatch": "Mikään palapeli ei sovi. Kokeile muita valintoja.",
   "go": "Hae",
   "findTitle": "Etsi palapeli",
-  "searchOn": "Näytetään hakuasi vastaavat palapelit.",
   "changeSearch": "Muuta hakua",
   "noneToList": "Ei näytettäviä palapelejä. Kokeile muita valintoja.",
   "matchOne": "{{ count }} palapeli vastaa",
@@ -39,5 +38,10 @@
   "searchLabel": "Haku",
   "searchPlaceholder": "Sanoja nimessä, tekijässä tai kuvauksessa",
   "language": "Kieli",
-  "noOwner": "Ei omistajaa"
+  "noOwner": "Ei omistajaa",
+  "loading": "Haetaan palapelejä …",
+  "quickFilters": "Pikasuodattimet",
+  "addFavorite": "Lisää suosikkeihin",
+  "removeFavorite": "Poista suosikeista",
+  "favorites": "Suosikit"
 }

@@ -24,5 +24,6 @@
   "continueName": "Continuar {{ name }}",
   "popular": "Populares",
   "jigsaws": "Puzles",
-  "imageAlt": "Una mujer con una sombrilla de colores en la terraza de un fuerte, con colinas verdes y una ciudad detrás"
+  "imageAlt": "Una mujer con una sombrilla de colores en la terraza de un fuerte, con colinas verdes y una ciudad detrás",
+  "noRoundsYet": "Aún no tienes ninguna ronda en marcha. Elige un puzle de abajo para empezar una."
 }

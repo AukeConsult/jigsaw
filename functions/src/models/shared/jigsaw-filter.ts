@@ -14,14 +14,22 @@ export interface JigsawFilter {
   languages: string[];
   /** the users (UIDs) who made the jigsaws */
   owners: string[];
+  /** only the jigsaws the user has ticked as favorites (left out when it is not) */
+  favorites?: true;
+}
+
+/** How the jigsaws are shown, and what is looked for: what the Find page keeps on the device and, when Go is pressed, with the user. */
+export interface JigsawSetup {
+  view: 'list' | 'cards';
+  filter: JigsawFilter;
 }
 
 /** The parts of a filter, in the order a page shows them. */
 export type JigsawFilterField = keyof JigsawFilter;
-export const JIGSAW_FILTER_FIELDS: readonly JigsawFilterField[] = ['text', 'categories', 'sizes', 'difficulties', 'languages', 'owners'];
+export const JIGSAW_FILTER_FIELDS: readonly JigsawFilterField[] = ['text', 'categories', 'sizes', 'difficulties', 'languages', 'owners', 'favorites'];
 
 /** The lists of a filter that are chosen by ticking, with what can be ticked in each and the most that can be. */
-type TickedField = Exclude<JigsawFilterField, 'text'>;
+type TickedField = Exclude<JigsawFilterField, 'text' | 'favorites'>;
 const MOST: Record<TickedField, number> = { categories: SEARCH_MAX_CATEGORIES, sizes: SIZE_CLASSES.length, difficulties: DIFFICULTIES.length, languages: JIGSAW_LANGUAGES.length, owners: SEARCH_MAX_OWNERS };
 
 /** The rules of a filter of jigsaws: one place, so every page that has one (and its remembered choice) agrees. A filter is never changed: a choice gives a new one. */
@@ -33,7 +41,7 @@ export class JigsawFilters {
 
   /** Whether any choice is made. */
   static isOn(filter: JigsawFilter): boolean {
-    return filter.text.trim() !== '' || filter.categories.length > 0 || filter.sizes.length > 0 || filter.difficulties.length > 0 || filter.languages.length > 0 || filter.owners.length > 0;
+    return filter.text.trim() !== '' || filter.categories.length > 0 || filter.sizes.length > 0 || filter.difficulties.length > 0 || filter.languages.length > 0 || filter.owners.length > 0 || filter.favorites === true;
   }
 
   /** The filter with this text (the words are trimmed, and not longer than a search takes). */
@@ -76,8 +84,15 @@ export class JigsawFilters {
       list(f.sizes, MOST.sizes, (k) => SIZE_CLASSES.some((s) => s.key === k)) &&
       list(f.difficulties, MOST.difficulties, (k) => DIFFICULTIES.some((d) => d.key === k)) &&
       list(f.languages, MOST.languages, (k) => JigsawLanguages.is(k)) &&
-      list(f.owners, MOST.owners, id)
+      list(f.owners, MOST.owners, id) &&
+      (f.favorites === undefined || f.favorites === true)
     );
+  }
+
+  /** Whether this is a setup as the model has it (checked when it is kept with a user, and when it is read from a device). */
+  static isSetup(value: unknown): value is JigsawSetup {
+    const s = value as Partial<JigsawSetup> | null;
+    return !!s && typeof s === 'object' && (s.view === 'list' || s.view === 'cards') && JigsawFilters.is(s.filter);
   }
 
   /** What the search is asked for this filter: a list that is empty, and a text with no words, are left out. */
@@ -90,6 +105,7 @@ export class JigsawFilters {
       ...(filter.languages.length ? { languages: filter.languages } : {}),
       ...(filter.owners.length ? { owners: filter.owners } : {}),
       ...(text ? { text } : {}),
+      ...(filter.favorites ? { favorites: true as const } : {}),
       page,
       ...(limit !== undefined ? { limit } : {}),
     };

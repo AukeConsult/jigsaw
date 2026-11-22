@@ -5,6 +5,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSummary } from '../../models/shared/jigsaw-search';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { CategoryTags } from '../category-tags/category-tags';
+import { FavoritesService } from '../favorites.service';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { snapLevelOfJigsaw } from '../snap-level';
@@ -19,6 +20,7 @@ import { snapLevelOfJigsaw } from '../snap-level';
 export class JigsawRow {
   private readonly images = inject(JigsawImageService);
   protected readonly users = inject(JigsawUserService);
+  protected readonly favorites = inject(FavoritesService);
 
   readonly jigsaw = input.required<JigsawSummary>();
   /** the picture could not be read (a jigsaw can be made without one): the box is empty */
@@ -29,5 +31,6 @@ export class JigsawRow {
     const j = this.jigsaw();
     return pieceGrid(j.width, j.height, j.gridSize);
   });
+  protected readonly favorite = computed(() => this.favorites.isFavorite(this.jigsaw().id));
   protected readonly level = computed(() => snapLevelOfJigsaw(this.jigsaw()));
 }

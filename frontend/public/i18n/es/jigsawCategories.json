@@ -4,6 +4,7 @@
   "help": "Elige hasta {{ max }}.",
   "subOf": "{{ name }}: más exacto (opcional)",
   "name": {
+    "recommended": "Recomendado",
     "family": "Familia",
     "travel": "Viajes",
     "nature": "Naturaleza",

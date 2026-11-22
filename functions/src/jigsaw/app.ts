@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import { JigsawStore, jigsawListRouter, firestoreJigsawStore } from "../common/jigsaw-list";
 import { JigsawSearchStore, firestoreJigsawSearch, jigsawSearchRouter } from "./jigsaw-search";
+import { FavoriteStore, firestoreFavoriteStore, jigsawFavoritesRouter } from "./jigsaw-favorites";
 import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
@@ -13,7 +14,7 @@ import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./p
 export const JIGSAW_API = "/jigsaw/api";
 
 /** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
-export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; now?: () => number } = {}): express.Express {
+export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; now?: () => number } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
@@ -81,10 +82,23 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     const counted = await Promise.all(visible.map(async (j) => ({ jigsaw: j, rounds: await plays.count(j.id) })));
     res.json(Popularity.rank(counted, (stores.now ?? Date.now)()));
   });
+  // the favorites of the users: a jigsaw ticked with a heart, one document for each user and jigsaw in `jigsaw-favorites`; they go with a jigsaw that is deleted
+  const favorites = stores.favorites ?? firestoreFavoriteStore();
   // looking for jigsaws by category, size, difficulty, language, owner and words, and the counts of each choice: over the newest jigsaws and up to 500 of each owner's, read at the same time
   // and kept for a few seconds (before the routes of one jigsaw); the owners are the users
   const search = stores.jigsawSearch ?? firestoreJigsawSearch(JIGSAW);
-  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), async () => (await users.list()).map((u) => u.id)));
+  router.use(
+    "/jigsaw-favorites",
+    jigsawFavoritesRouter(favorites, {
+      userExists: async (userId) => !!(await users.get(userId)),
+      mayFavor: async (id, userId) => {
+        const c = await jigsawById(id);
+        return !!c && (await canSee(c, userId));
+      },
+      now: stores.now ?? Date.now,
+    }),
+  );
+  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), async () => (await users.list()).map((u) => u.id), (userId) => favorites.list(userId)));
   router.delete("/jigsaw/:id", ownerOnly("delete"));
   router.post("/jigsaw", stampOwner);
   router.put("/jigsaw/:id", stampOwner);
@@ -119,7 +133,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
         add: async (input) => (search.forget(), jigsaw.add(input)),
         update: async (id, input) => (search.forget(), jigsaw.update(id, input)),
         list: () => jigsaw.list(),
-        remove: async (id) => (search.forget(), (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id)]).then(() => true, () => true))),
+        remove: async (id) => (search.forget(), (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id), favorites.removeAllOf(id)]).then(() => true, () => true))),
       },
       (c, me) => canSee(c, me),
     ),

@@ -13,6 +13,7 @@ export interface JigsawSearchRequest {
   difficulties?: Difficulty[] | null;
   languages?: string[] | null;
   owners?: string[] | null;
+  favorites?: true | null;
   text?: string | null;
   sort?: SearchSort;
   limit?: number;

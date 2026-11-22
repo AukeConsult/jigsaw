@@ -738,6 +738,24 @@ describe("the users of the jigsaws", () => {
     expect(JigsawUsers.fromStored("Xy12", { username: "karin", name: "Karin", createdAt: 5 })).toEqual({ id: "Xy12", username: "karin", name: "Karin", language: "en", createdAt: 5 });
   });
 
+  it("keeps how the user looks for jigsaws (cards or list, and the filter) when it is said, gives it back, and refuses what is not a setup of the Find page", async () => {
+    const a = createJigsawApp({ users: memoryUsers() });
+    const made = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "ola", name: "Ola" });
+    expect("search" in made.body).toBe(false); // none until Go has been pressed
+    const search = { view: "list", filter: { text: "harbour", categories: ["recommended", "nature/forest"], sizes: ["small"], difficulties: [], languages: ["nb"], owners: ["u1"] } };
+    const saved = await request(a).put(`/jigsaw/api/jigsaw-users/${made.body.id}`).send({ search });
+    expect([saved.status, saved.body.search, saved.body.name]).toEqual([200, search, "Ola"]); // only the search changed
+    expect((await request(a).get(`/jigsaw/api/jigsaw-users/${made.body.id}`)).body.search).toEqual(search);
+    expect((await request(a).get("/jigsaw/api/jigsaw-users")).body[0].search).toEqual(search);
+    for (const bad of [{ view: "grid", filter: search.filter }, { view: "list", filter: { ...search.filter, sizes: ["tiny"] } }, { view: "list" }, "list", null]) {
+      const refused = await request(a).put(`/jigsaw/api/jigsaw-users/${made.body.id}`).send({ search: bad });
+      expect(refused.status).toBe(400);
+    }
+    expect((await request(a).get(`/jigsaw/api/jigsaw-users/${made.body.id}`)).body.search).toEqual(search); // what was refused changed nothing
+    expect(JigsawUsers.fromStored("u", { username: "u1x", name: "U", search } as never).search).toEqual(search);
+    expect("search" in JigsawUsers.fromStored("u", { username: "u1x", name: "U", search: { view: "grid" } } as never)).toBe(false); // what is not a setup is left out
+  });
+
   it("has a language: English until the user chooses, chosen when the user is made or changed, and only one of the languages of the app", async () => {
     const a = createJigsawApp({ users: memoryUsers() });
     const made = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "ola", name: "Ola", language: "nb" });

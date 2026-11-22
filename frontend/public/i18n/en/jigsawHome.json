@@ -24,5 +24,6 @@
   "continueName": "Continue {{ name }}",
   "popular": "Popular",
   "jigsaws": "Jigsaws",
-  "imageAlt": "A woman with a colourful parasol on a fort terrace, green hills and a town behind her"
+  "imageAlt": "A woman with a colourful parasol on a fort terrace, green hills and a town behind her",
+  "noRoundsYet": "You have no rounds going yet. Pick a jigsaw below to start one."
 }

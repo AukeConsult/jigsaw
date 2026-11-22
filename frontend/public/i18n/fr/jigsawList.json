@@ -30,7 +30,6 @@
   "noneMatch": "Aucun puzzle ne correspond. Essayez d'autres choix.",
   "go": "Go",
   "findTitle": "Trouver un puzzle",
-  "searchOn": "Affiche les puzzles qui correspondent à votre recherche.",
   "changeSearch": "Modifier la recherche",
   "noneToList": "Aucun puzzle à afficher. Essayez d'autres choix.",
   "matchOne": "{{ count }} puzzle correspond",
@@ -39,5 +38,10 @@
   "searchLabel": "Recherche",
   "searchPlaceholder": "Mots du nom, de l'auteur ou de la description",
   "language": "Langue",
-  "noOwner": "Sans propriétaire"
+  "noOwner": "Sans propriétaire",
+  "loading": "Chargement des puzzles …",
+  "quickFilters": "Filtres rapides",
+  "addFavorite": "Ajouter aux favoris",
+  "removeFavorite": "Retirer des favoris",
+  "favorites": "Favoris"
 }

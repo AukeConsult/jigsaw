@@ -1,0 +1,58 @@
+import { Component, computed, inject, model } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { JigsawCategories } from '../../models/shared/category';
+import { JigsawFilter, JigsawFilters } from '../../models/shared/jigsaw-filter';
+import { FavoritesService } from '../favorites.service';
+
+/** The quick filters: the categories that are one press away, as they are shown beside a heading (a press looks for the jigsaws in it, and again takes it away). */
+const QUICK_CATEGORIES = ['recommended'] as const;
+
+/**
+ * Quick filters for a line of the page: "All" and the categories in `QUICK_CATEGORIES` (Recommended), as small buttons, and, when something is looked for, a way to change the search (the Find page). Bind the filter of the page with `[(filter)]`: a press
+ * changes what is looked for at once, to that and nothing else (what else was chosen is left aside, for now). The rules are those of `JigsawFilters`.
+ */
+@Component({
+  selector: 'app-quick-filters',
+  imports: [RouterLink, TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawCategories')],
+  host: { class: 'd-inline-flex' },
+  templateUrl: './quick-filters.html',
+})
+export class QuickFilters {
+  protected readonly favorites = inject(FavoritesService);
+  readonly filter = model<JigsawFilter>(JigsawFilters.empty());
+
+  protected readonly categories = QUICK_CATEGORIES.map((key) => JigsawCategories.of(key)!);
+  /** nothing is looked for: "All" is the one that is on */
+  protected readonly all = computed(() => !JigsawFilters.isOn(this.filter()));
+
+  /** The filter is this category and nothing else: the quick filter is on (what else was looked for, in the Find page, makes none of them on). */
+  protected chosen(key: string): boolean {
+    const f = this.filter();
+    return !f.favorites && f.categories.length === 1 && f.categories[0] === key && !f.text.trim() && !f.sizes.length && !f.difficulties.length && !f.languages.length && !f.owners.length;
+  }
+
+  /** The filter is the favorites and nothing else. */
+  protected readonly favoritesOn = computed(() => {
+    const f = this.filter();
+    return f.favorites === true && !f.categories.length && !f.text.trim() && !f.sizes.length && !f.difficulties.length && !f.languages.length && !f.owners.length;
+  });
+
+  /** The button for the favorites is there when the user has some (and while it is on, so it can be taken off). */
+  protected readonly showFavorites = computed(() => this.favorites.ids().size > 0 || this.favoritesOn());
+
+  /** Looks only at the jigsaws the user has ticked with a heart, or at all of them again when that is on (for now, like the other quick filters). */
+  protected toggleFavorites(): void {
+    this.filter.set(this.favoritesOn() ? JigsawFilters.empty() : { ...JigsawFilters.empty(), favorites: true });
+  }
+
+  protected showAll(): void {
+    this.filter.set(JigsawFilters.empty());
+  }
+
+  /** Looks only at this category, or at all the jigsaws again when it is the one that is on. It is for now: what the user looked for on the Find page is not changed (the finder does not keep it). */
+  protected toggle(key: string): void {
+    this.filter.set(this.chosen(key) ? JigsawFilters.empty() : { ...JigsawFilters.empty(), categories: [key] });
+  }
+}

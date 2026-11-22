@@ -1,27 +1,28 @@
-import { Component, OnInit, effect, inject, input, signal, untracked } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, effect, inject, input, model, signal, untracked } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawFilter, JigsawFilters } from '../../models/shared/jigsaw-filter';
 import { JigsawSummary } from '../../models/shared/jigsaw-search';
 import { JigsawCard } from '../jigsaw-card/jigsaw-card';
 import { JigsawRow } from '../jigsaw-row/jigsaw-row';
 import { JigsawService, JigsawSearchRequest } from '../jigsaw.service';
-import { readFinderPreferences, writeFinderPreferences } from './finder-preferences';
+import { JigsawUserService } from '../jigsaw-user.service';
+import { readFinderPreferences } from './finder-preferences';
 
 /**
  * The jigsaws that match what was looked for, the newest first, as cards or as a list: how many there are, and a button for the next page. What is looked for, and how the jigsaws
- * are shown, is what was kept under `storageKey` (the Find page sets it). A search that is on is said, with a way to change it or to look at all the jigsaws again. Use it wherever
+ * are shown, is what was kept under `storageKey` (the Find page sets it, with Go: this component only reads it, so a change made on the page, as with the quick filters, lasts until the page is left and does not replace what the user looked for). A search that is on is said, with a way to change it or to look at all the jigsaws again. Use it wherever
  * a jigsaw is to be picked.
  */
 @Component({
   selector: 'app-jigsaw-finder',
-  imports: [RouterLink, TranslocoDirective, JigsawCard, JigsawRow],
+  imports: [TranslocoDirective, JigsawCard, JigsawRow],
   providers: [provideTranslocoScope('jigsawList')],
   host: { class: 'd-block' },
   templateUrl: './jigsaw-finder.html',
 })
 export class JigsawFinder implements OnInit {
   private readonly service = inject(JigsawService);
+  private readonly users = inject(JigsawUserService);
 
   /** where what is looked for is kept on the device */
   readonly storageKey = input('jigsaw.finder');
@@ -29,8 +30,8 @@ export class JigsawFinder implements OnInit {
   readonly pageSize = input(36);
 
   readonly view = signal<'list' | 'cards'>('cards');
-  /** what is looked for: the jigsaws shown are those it matches */
-  readonly filter = signal<JigsawFilter>(JigsawFilters.empty());
+  /** what is looked for: the jigsaws shown are those it matches (a page can bind it, `[(filter)]`, to change what is looked for: the Find page's choice is read when the finder opens) */
+  readonly filter = model<JigsawFilter>(JigsawFilters.empty());
 
   /** the jigsaws found, as many pages as have been asked for */
   readonly items = signal<JigsawSummary[]>([]);
@@ -41,15 +42,10 @@ export class JigsawFinder implements OnInit {
   private page = 1;
   /** only the answer to the last question is used */
   private asked = 0;
-  /** what was kept has been read: before that, nothing is asked or kept */
+  /** what was kept has been read: before that, nothing is asked */
   private ready = false;
 
   constructor() {
-    // what is chosen is kept on the device each time it changes
-    effect(() => {
-      const now = { view: this.view(), filter: this.filter() };
-      if (this.ready) writeFinderPreferences(this.storageKey(), now);
-    });
     // a new choice of what to look for asks again from the first page
     effect(() => {
       const filter = this.filter();
@@ -58,10 +54,11 @@ export class JigsawFinder implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    await this.users.load(); // the user is read first: a device with no search of its own takes the user's, and it is kept when the user is read
     const saved = readFinderPreferences(this.storageKey());
     this.view.set(saved.view);
-    this.filter.set(saved.filter);
+    this.filter.set(saved.filter); // what the user looked for (the Find page, Go): this page only reads it; a change made here (a quick filter) is for now and is not kept
     this.ready = true; // the first question is asked by the effect, now that the choice is set
   }
 
@@ -86,11 +83,6 @@ export class JigsawFinder implements OnInit {
   /** The next page of what was found is added to the end. */
   protected more(): void {
     void this.load(this.filter(), this.page + 1, this.pageSize());
-  }
-
-  /** Looks at all the jigsaws again. */
-  protected clear(): void {
-    this.filter.set(JigsawFilters.empty());
   }
 
   protected filtered(): boolean {

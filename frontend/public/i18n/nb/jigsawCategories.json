@@ -4,6 +4,7 @@
   "help": "Velg opptil {{ max }}.",
   "subOf": "{{ name }}: mer presist (valgfritt)",
   "name": {
+    "recommended": "Anbefalt",
     "family": "Familie",
     "travel": "Reise",
     "nature": "Natur",

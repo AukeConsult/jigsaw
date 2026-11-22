@@ -30,7 +30,6 @@
   "noneMatch": "Geen puzzel past. Probeer andere keuzes.",
   "go": "Zoek",
   "findTitle": "Een puzzel vinden",
-  "searchOn": "Toont de puzzels die bij je zoekopdracht passen.",
   "changeSearch": "Zoekopdracht wijzigen",
   "noneToList": "Geen puzzels om te tonen. Probeer andere keuzes.",
   "matchOne": "{{ count }} puzzel past",
@@ -39,5 +38,10 @@
   "searchLabel": "Zoeken",
   "searchPlaceholder": "Woorden in de naam, bij de maker of in de beschrijving",
   "language": "Taal",
-  "noOwner": "Geen eigenaar"
+  "noOwner": "Geen eigenaar",
+  "loading": "De puzzels worden opgehaald …",
+  "quickFilters": "Snelfilters",
+  "addFavorite": "Aan favorieten toevoegen",
+  "removeFavorite": "Uit favorieten verwijderen",
+  "favorites": "Favorieten"
 }

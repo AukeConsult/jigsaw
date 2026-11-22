@@ -1,13 +1,19 @@
 <ng-container *transloco="let t">
-  @if (filtered()) {
-    <!-- a search is on (it was made on the Find page): it is said, with a way to change it and to look at all the jigsaws again -->
-    <div class="toolbar mt-1">
-      <span class="text-body-secondary">{{ t('jigsawList.searchOn') || 'Showing the jigsaws that match your search.' }}</span>
-      <a class="link-action" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.changeSearch') || 'Change the search' }}</a>
-      <button type="button" class="link-action" (click)="clear()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.all') || 'All' }}</button>
+  <!-- while the jigsaws are fetched: a message with a wait icon (not a count of nothing); when they are there, how many -->
+  <div class="toolbar-note" role="status">
+    @if (loading()) {
+      <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawList.loading') || 'Fetching the jigsaws…' }}
+    } @else {
+      {{ (total() === 1 ? t('jigsawList.countOne', { count: total() }) : t('jigsawList.countMany', { count: total() })) || total() + ' ' + (total() === 1 ? 'jigsaw' : 'jigsaws') }}
+    }
+  </div>
+  @if (loading() && !items().length && !failed()) {
+    <!-- the first time, with nothing to show yet: the wait is the page -->
+    <div class="d-flex flex-column align-items-center gap-2 py-5 text-body-secondary" aria-hidden="true">
+      <span class="spinner-border" role="presentation"></span>
+      <span>{{ t('jigsawList.loading') || 'Fetching the jigsaws…' }}</span>
     </div>
   }
-  <div class="toolbar-note" role="status">{{ (total() === 1 ? t('jigsawList.countOne', { count: total() }) : t('jigsawList.countMany', { count: total() })) || total() + ' ' + (total() === 1 ? 'jigsaw' : 'jigsaws') }}</div>
 
   @if (failed()) {
     <div class="alert alert-danger py-2 small" role="alert">{{ t('jigsawList.loadFailed') || 'Could not load the jigsaws.' }}</div>
@@ -33,7 +39,7 @@
   }
   @if (!items().length && !loading() && !failed()) {
     @if (filtered()) {
-      <div class="text-body-secondary">{{ t('jigsawList.noneMatch') || 'No jigsaw matches. Try other choices.' }} <button type="button" class="link-inline" (click)="clear()">{{ t('jigsawList.all') || 'All' }}</button></div>
+      <div class="text-body-secondary">{{ t('jigsawList.noneMatch') || 'No jigsaw matches. Try other choices.' }}</div>
     } @else {
       <div class="text-body-secondary">{{ t('jigsawList.none') || 'No jigsaw yet.' }}</div>
     }

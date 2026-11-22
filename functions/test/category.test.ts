@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { CATEGORIES_MAX_PER_JIGSAW, JigsawCategories } from "../src/models";
 
 describe("the categories", () => {
-  it("are the twelve there are, each with a key, a name and an icon, and a key is used once", () => {
+  it("are the thirteen there are, each with a key, a name and an icon, and a key is used once", () => {
     const all = JigsawCategories.all();
-    expect(all).toHaveLength(12);
-    expect(all.map((c) => c.key)).toEqual(["family", "travel", "nature", "animals", "flowers", "food", "art", "buildings", "seasons", "transport", "kids", "other"]);
+    expect(all).toHaveLength(13);
+    expect(all.map((c) => c.key)).toEqual(["recommended", "family", "travel", "nature", "animals", "flowers", "food", "art", "buildings", "seasons", "transport", "kids", "other"]);
     expect(new Set(all.map((c) => c.key)).size).toBe(all.length);
     for (const c of all) {
       expect(c.name.length).toBeGreaterThan(1);
@@ -16,6 +16,7 @@ describe("the categories", () => {
   it("have sub-categories: each with the key of its category, a slash and its own key, the icon of its category, and none of its own", () => {
     expect(JigsawCategories.of("nature")!.subs.map((s) => s.name)).toEqual(["Mountains", "Sea & coast", "Lakes, rivers & waterfalls", "Forest", "Sky & sunsets"]);
     expect(JigsawCategories.of("other")!.subs).toEqual([]);
+    expect(JigsawCategories.of("recommended")).toMatchObject({ name: "Recommended", icon: "bi-star", subs: [] }); // a category on its own, with no sub-categories
     const keys: string[] = [];
     for (const c of JigsawCategories.all()) {
       keys.push(c.key);

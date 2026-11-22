@@ -9,7 +9,7 @@ import { DIFFICULTIES, JigsawFacets, NO_OWNER, SEARCH_MAX_OWNERS, SEARCH_MAX_TEX
 const TEXT_PAUSE_MS = 300;
 
 /** The lists a filter has to tick from. */
-type TickedField = Exclude<JigsawFilterField, 'text'>;
+type TickedField = Exclude<JigsawFilterField, 'text' | 'favorites'>;
 
 /**
  * The choices of what jigsaws to look for, all shown, to tick: words in the name or the author, the categories (and, under each ticked one, its sub-categories, which can be left

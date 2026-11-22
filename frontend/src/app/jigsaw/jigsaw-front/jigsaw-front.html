@@ -1,22 +1,14 @@
 <!-- the band of the user's open rounds: stuck to the top while the page scrolls -->
 <app-my-rounds [jigsaws]="all()" />
 <main class="container py-3" *transloco="let t">
-  <h1 class="page-title mb-2">
-    @if (firstName()) {
-      {{ t('jigsawHome.welcomeBack', { name: firstName() }) || 'Welcome back, ' + firstName() }}
-    } @else {
-      {{ t('jigsawHome.title') || 'Karins jigsaw' }}
-    }
-  </h1>
-  <p class="text-body-secondary mb-3">{{ t('jigsawHome.intro') || 'Turn any picture into a jigsaw puzzle and put it together, wherever you are.' }}</p>
-  <div class="toolbar mb-4">
-    <a class="link-action large" routerLink="/jigsaw/find"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawHome.seeAll') || 'Pick a jigsaw to play' }}</a>
-    <a class="link-action large" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawHome.addNew') || 'Make your own jigsaw' }}</a>
-  </div>
+  <app-start-welcome />
 
   <!-- all the jigsaws, the newest first (looking for one by category, size and so on is the Find page in the menu) -->
   <section class="mb-4" [attr.aria-label]="t('jigsawHome.jigsaws') || 'Jigsaws'">
-    <h2 class="section-title mb-2">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>
-    <app-jigsaw-finder storageKey="jigsaw.front" />
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      <h2 class="section-title mb-0">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>
+      <app-quick-filters [(filter)]="filter" />
+    </div>
+    <app-jigsaw-finder storageKey="jigsaw.front" [(filter)]="filter" />
   </section>
 </main>

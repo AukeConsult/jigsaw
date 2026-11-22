@@ -24,5 +24,6 @@
   "continueName": "Fortsæt med {{ name }}",
   "popular": "Populære",
   "jigsaws": "Puslespil",
-  "imageAlt": "En kvinde med en farverig parasol på en fæstningsterrasse, med grønne bakker og en by bag sig"
+  "imageAlt": "En kvinde med en farverig parasol på en fæstningsterrasse, med grønne bakker og en by bag sig",
+  "noRoundsYet": "Du har ingen runder i gang endnu. Vælg et puslespil nedenfor for at starte en."
 }

@@ -1,0 +1,21 @@
+<ng-container *transloco="let t">
+  <div class="d-flex flex-wrap gap-2" role="group" [attr.aria-label]="t('jigsawList.quickFilters') || 'Quick filters'">
+    <button type="button" class="btn btn-sm rounded-pill" [class.btn-primary]="all()" [class.btn-outline-secondary]="!all()" [attr.aria-pressed]="all()" (click)="showAll()">{{ t('jigsawList.all') || 'All' }}</button>
+    @if (showFavorites()) {
+      <!-- only when the user has favorites: the jigsaws ticked with a heart -->
+      <button type="button" class="btn btn-sm rounded-pill" [class.btn-primary]="favoritesOn()" [class.btn-outline-secondary]="!favoritesOn()" [attr.aria-pressed]="favoritesOn()" (click)="toggleFavorites()">
+        <i class="bi" [class]="favoritesOn() ? 'bi-heart-fill' : 'bi-heart'" aria-hidden="true"></i>{{ t('jigsawList.favorites') || 'Favorites' }}
+      </button>
+    }
+    @for (c of categories; track c.key) {
+      @let on = chosen(c.key);
+      <button type="button" class="btn btn-sm rounded-pill" [class.btn-primary]="on" [class.btn-outline-secondary]="!on" [attr.aria-pressed]="on" (click)="toggle(c.key)">
+        <i class="bi" [class]="on ? 'bi-star-fill' : c.icon" aria-hidden="true"></i>{{ t('jigsawCategories.name.' + c.key) || c.name }}
+      </button>
+    }
+    @if (!all()) {
+      <!-- something is looked for (here or on the Find page): the way to the choices of the search is on this line too -->
+      <a class="link-action align-self-center" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.changeSearch') || 'Change the search' }}</a>
+    }
+  </div>
+</ng-container>

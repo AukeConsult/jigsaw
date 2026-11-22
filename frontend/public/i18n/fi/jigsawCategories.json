@@ -4,6 +4,7 @@
   "help": "Valitse enintään {{ max }}.",
   "subOf": "{{ name }}: tarkemmin (valinnainen)",
   "name": {
+    "recommended": "Suositeltu",
     "family": "Perhe",
     "travel": "Matkat",
     "nature": "Luonto",

@@ -24,5 +24,6 @@
   "continueName": "Jatka: {{ name }}",
   "popular": "Suositut",
   "jigsaws": "Palapelit",
-  "imageAlt": "Nainen värikkään päivänvarjon kanssa linnoituksen terassilla, takanaan vihreitä kukkuloita ja kaupunki"
+  "imageAlt": "Nainen värikkään päivänvarjon kanssa linnoituksen terassilla, takanaan vihreitä kukkuloita ja kaupunki",
+  "noRoundsYet": "Sinulla ei ole vielä yhtään kierrosta kesken. Valitse alta palapeli aloittaaksesi."
 }

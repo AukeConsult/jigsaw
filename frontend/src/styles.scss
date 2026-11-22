@@ -270,6 +270,10 @@ small,
   --bs-btn-padding-x: var(--app-btn-sm-pad-x);
 }
 
+.btn-overlay.is-favorite .bi {
+  color: var(--bs-danger); // a heart that is ticked is red, also on the shade of the button
+}
+
 .btn-overlay {
   // a small see-through button on a picture (Play on the card of a jigsaw): the shade is the text colour of the look at half strength and the icon is the page colour,
   // so it can be seen on any picture, light or dark, and it takes little of it
@@ -525,6 +529,25 @@ small,
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+/* the welcome at the top of the front page: it fades away and gives its room back (`StartWelcome` takes it away when the fade is over) */
+.start-welcome {
+  max-height: 12rem;
+  overflow: hidden;
+  transition:
+    opacity 1s ease,
+    max-height 1s ease;
+
+  &.fading {
+    opacity: 0;
+    max-height: 0;
+  }
+}
+
+/* the element of the band takes no box of its own: the band inside it is sticky, and a sticky box only sticks inside its parent, so its parent has to be the whole page */
+app-my-rounds {
+  display: contents;
 }
 
 /* a band stuck to the top of the page (under the menu on a wide screen, where the menu is at the top) with cards in one row that scrolls sideways */
@@ -1034,6 +1057,10 @@ small,
 @media (prefers-reduced-motion: reduce) {
   .piece-svg.blink {
     animation: none;
+  }
+
+  .start-welcome {
+    transition: none; // it goes at once, without the fade
   }
 }
 

@@ -30,7 +30,6 @@
   "noneMatch": "Ningún puzle coincide. Prueba otras opciones.",
   "go": "Ir",
   "findTitle": "Buscar un puzle",
-  "searchOn": "Se muestran los puzles que coinciden con tu búsqueda.",
   "changeSearch": "Cambiar la búsqueda",
   "noneToList": "No hay puzles que mostrar. Prueba otras opciones.",
   "matchOne": "{{ count }} puzle coincide",
@@ -39,5 +38,10 @@
   "searchLabel": "Búsqueda",
   "searchPlaceholder": "Palabras del nombre, del autor o de la descripción",
   "language": "Idioma",
-  "noOwner": "Sin propietario"
+  "noOwner": "Sin propietario",
+  "loading": "Obteniendo los puzles …",
+  "quickFilters": "Filtros rápidos",
+  "addFavorite": "Añadir a favoritos",
+  "removeFavorite": "Quitar de favoritos",
+  "favorites": "Favoritos"
 }

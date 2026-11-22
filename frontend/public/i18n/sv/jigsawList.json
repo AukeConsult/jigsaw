@@ -30,7 +30,6 @@
   "noneMatch": "Inget pussel passar. Prova andra val.",
   "go": "Kör",
   "findTitle": "Hitta ett pussel",
-  "searchOn": "Visar pusslen som passar din sökning.",
   "changeSearch": "Ändra sökningen",
   "noneToList": "Inga pussel att visa. Prova andra val.",
   "matchOne": "{{ count }} pussel passar",
@@ -39,5 +38,10 @@
   "searchLabel": "Sök",
   "searchPlaceholder": "Ord i namnet, hos upphovspersonen eller i beskrivningen",
   "language": "Språk",
-  "noOwner": "Ingen ägare"
+  "noOwner": "Ingen ägare",
+  "loading": "Hämtar pusslen …",
+  "quickFilters": "Snabbfilter",
+  "addFavorite": "Lägg till som favorit",
+  "removeFavorite": "Ta bort från favoriter",
+  "favorites": "Favoriter"
 }

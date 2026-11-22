@@ -4,6 +4,7 @@
   "help": "Kies er maximaal {{ max }}.",
   "subOf": "{{ name }}: nauwkeuriger (optioneel)",
   "name": {
+    "recommended": "Aanbevolen",
     "family": "Familie",
     "travel": "Reizen",
     "nature": "Natuur",

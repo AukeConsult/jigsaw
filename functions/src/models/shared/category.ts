@@ -26,6 +26,7 @@ const category = (key: string, name: string, icon: string, subs: readonly (reado
  * The categories, in the order they are shown. The keys are kept with the jigsaws, so a key is never changed or reused: a name is only what is shown (and translated).
  */
 const CATEGORIES: readonly JigsawCategory[] = [
+  category('recommended', 'Recommended', 'bi-star', []),
   category('family', 'Family', 'bi-people', [['grandparents', 'Parents & grandparents'], ['children', 'Children'], ['weddings', 'Weddings'], ['parties', 'Parties & birthdays'], ['friends', 'Friends'], ['reunions', 'Reunions']]),
   category('travel', 'Travel', 'bi-airplane', [['cities', 'Cities'], ['landmarks', 'Landmarks'], ['beaches', 'Beaches & islands'], ['roadtrips', 'Road trips'], ['cruises', 'Cruises']]),
   category('nature', 'Nature', 'bi-tree', [['mountains', 'Mountains'], ['coast', 'Sea & coast'], ['water', 'Lakes, rivers & waterfalls'], ['forest', 'Forest'], ['sky', 'Sky & sunsets']]),

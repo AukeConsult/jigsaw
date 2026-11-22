@@ -1,3 +1,4 @@
+import { JigsawFilters, JigsawSetup } from './jigsaw-filter';
 import { DEFAULT_LANGUAGE, JigsawLanguages } from './language';
 
 // A user of the jigsaws: someone who plays. There is no sign-in yet: a person chooses a user name and a name, and plays as that user (the plays of a jigsaw say which user
@@ -29,6 +30,8 @@ export interface JigsawUserSpec {
   email?: string;
   /** the language the app is shown in for the user (a code of `JIGSAW_LANGUAGES`; English when the user has not chosen) */
   language: string;
+  /** how the user looks for jigsaws (the Find page: cards or list, and the filter), kept when Go is pressed, so it is the same on every device; none until Go has been pressed */
+  search?: JigsawSetup;
   /** milliseconds since 1970 */
   createdAt: number;
 }
@@ -71,9 +74,9 @@ export class JigsawUsers {
    * What a change of a user is, from a request: only the fields that are there are changed; an empty e-mail address (or null) takes the address away. The change as it is
    * to be made, or the reason it is not allowed.
    */
-  static change(input: { name?: unknown; username?: unknown; email?: unknown; language?: unknown } | null | undefined): { change: { name?: string; username?: string; email?: string | null; language?: string } } | { error: string } {
+  static change(input: { name?: unknown; username?: unknown; email?: unknown; language?: unknown; search?: unknown } | null | undefined): { change: { name?: string; username?: string; email?: string | null; language?: string; search?: JigsawSetup } } | { error: string } {
     const body = input ?? {};
-    const change: { name?: string; username?: string; email?: string | null; language?: string } = {};
+    const change: { name?: string; username?: string; email?: string | null; language?: string; search?: JigsawSetup } = {};
     if (body.name !== undefined) {
       const error = JigsawUsers.nameError(body.name);
       if (error) return { error };
@@ -93,7 +96,11 @@ export class JigsawUsers {
       if (!JigsawLanguages.is(body.language)) return { error: JigsawLanguages.error(body.language) || 'Choose a language.' };
       change.language = body.language;
     }
-    return Object.keys(change).length ? { change } : { error: 'Say what to change: the name, the user name, the e-mail address or the language.' };
+    if (body.search !== undefined) {
+      if (!JigsawFilters.isSetup(body.search)) return { error: 'The search is not one the Find page makes.' };
+      change.search = { view: body.search.view, filter: body.search.filter };
+    }
+    return Object.keys(change).length ? { change } : { error: 'Say what to change: the name, the user name, the e-mail address, the language or the search.' };
   }
 
   /** The reason a UID (the id of a user in the address) is not allowed, or ''. */
@@ -116,6 +123,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, ...(doc.email ? { email: doc.email } : {}), language: JigsawLanguages.of(doc), createdAt: doc.createdAt ?? 0 };
+    return { id, username, name: doc.name ?? username, ...(doc.email ? { email: doc.email } : {}), language: JigsawLanguages.of(doc), ...(JigsawFilters.isSetup(doc.search) ? { search: doc.search } : {}), createdAt: doc.createdAt ?? 0 };
   }
 }

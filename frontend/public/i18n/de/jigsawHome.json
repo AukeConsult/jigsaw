@@ -24,5 +24,6 @@
   "continueName": "{{ name }} fortsetzen",
   "popular": "Beliebt",
   "jigsaws": "Puzzles",
-  "imageAlt": "Eine Frau mit einem bunten Sonnenschirm auf einer Festungsterrasse, dahinter grüne Hügel und eine Stadt"
+  "imageAlt": "Eine Frau mit einem bunten Sonnenschirm auf einer Festungsterrasse, dahinter grüne Hügel und eine Stadt",
+  "noRoundsYet": "Du hast noch keine Runde laufen. Wähle unten ein Puzzle, um eine zu starten."
 }

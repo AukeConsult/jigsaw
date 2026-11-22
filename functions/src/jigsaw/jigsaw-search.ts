@@ -63,29 +63,35 @@ export function firestoreJigsawSearch(
 }
 
 /**
- * The route of the search (mounted at `/jigsaw-search`). GET with categories, sizes, difficulties, languages, owners, text, sort, limit and page: the jigsaws the person may see that
+ * The route of the search (mounted at `/jigsaw-search`). GET with categories, sizes, difficulties, languages, owners, text, favorites, sort, limit and page: the jigsaws the person may see that
  * match, a page of them, with how many there are in all. `/facets` counts the jigsaws for each choice. Both are over what `store.load` reads (the newest jigsaws, and up to
  * `SEARCH_MAX_READ` of each owner's, `owners` says who the owners are); `canSee` says which private ones are the person's to see (only when they say who they are: nobody sees a
  * private jigsaw without).
  */
-export function jigsawSearchRouter(store: JigsawSearchStore, canSee: (jigsaw: JigsawSummary, me: string | undefined) => Promise<boolean>, owners: () => Promise<string[]>): express.Router {
+export function jigsawSearchRouter(
+  store: JigsawSearchStore,
+  canSee: (jigsaw: JigsawSummary, me: string | undefined) => Promise<boolean>,
+  owners: () => Promise<string[]>,
+  favorites: (userId: string) => Promise<string[]>,
+): express.Router {
   const router = express.Router();
-  /** The jigsaws the person may see, the newest first. */
-  const visible = async (me: string | undefined): Promise<JigsawSummary[]> => {
-    const all = await store.load(await owners(), SEARCH_MAX_READ);
+  /** The jigsaws the person may see, the newest first; with `onlyFavorites`, those the person has ticked (none for nobody). */
+  const visible = async (me: string | undefined, onlyFavorites = false): Promise<JigsawSummary[]> => {
+    const [all, mine] = await Promise.all([store.load(await owners(), SEARCH_MAX_READ), onlyFavorites && me ? favorites(me) : Promise.resolve([] as string[])]);
     const seen = await Promise.all(all.map((j) => (j.visibility !== "owner" ? true : me ? canSee(j, me) : false))); // the private ones are asked about at the same time
-    return all.filter((_, i) => seen[i]);
+    const favored = new Set(mine);
+    return all.filter((j, i) => seen[i] && (!onlyFavorites || favored.has(j.id)));
   };
   // how many jigsaws there are for each choice of the filter, with the rest of it kept (what the Find page shows beside each tick)
   router.get("/facets", async (req, res) => {
     const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
     if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
-    res.json(JigsawSearch.facets(await visible(req.get("X-Jigsaw-User")), parsed.query));
+    res.json(JigsawSearch.facets(await visible(req.get("X-Jigsaw-User"), parsed.query.favorites), parsed.query));
   });
   router.get("/", async (req, res) => {
     const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
     if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
-    const found = (await visible(req.get("X-Jigsaw-User"))).filter((j) => JigsawSearch.matches(j, parsed.query));
+    const found = (await visible(req.get("X-Jigsaw-User"), parsed.query.favorites)).filter((j) => JigsawSearch.matches(j, parsed.query));
     const page = JigsawSearch.page(found, parsed.query);
     res.json({ ...page, items: page.items.map(({ description: _description, ...summary }) => summary) }); // the description was read to look for words in it: a list does not show it
   });
