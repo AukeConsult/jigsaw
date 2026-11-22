@@ -17,4 +17,6 @@ import { StartWelcome } from '../start-welcome/start-welcome';
 export class JigsawFront {
   /** what is looked for on this page: the finder reads what the Find page chose and says it here; the quick filters change it */
   protected readonly filter = signal<JigsawFilter>(JigsawFilters.empty());
+  /** the open rounds are read: the jigsaws are asked for after them, so the band is there before the list and the list does not jump down when it comes */
+  protected readonly roundsLoaded = signal(false);
 }

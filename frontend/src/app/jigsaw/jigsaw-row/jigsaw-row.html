@@ -12,7 +12,7 @@
         }
       </a>
       <a class="text-decoration-none flex-grow-1 min-w-0" [routerLink]="['/jigsaw', item.id]">
-        <strong class="d-block">{{ item.name }}</strong>
+        <strong class="d-block text-break">{{ item.name }}</strong>
         @if (details.on() && item.author) {
           <span class="d-block text-body-secondary small"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.author }}</span>
         }
@@ -31,7 +31,7 @@
             <i class="bi" [class.bi-heart]="!favorite()" [class.bi-heart-fill]="favorite()" aria-hidden="true"></i>
           </button>
         }
-        <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', item.id]"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawList.play') || 'Show the jigsaw' }}</a>
+        <a class="btn btn-sm btn-outline-primary" [routerLink]="['/jigsaw', item.id]" [title]="t('jigsawList.play') || 'Show the jigsaw'" [attr.aria-label]="t('jigsawList.play') || 'Show the jigsaw'"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
       </div>
     </div>
     @if (details.on()) {

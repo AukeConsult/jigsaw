@@ -1,5 +1,5 @@
 <!-- the band of the user's open rounds: stuck to the top while the page scrolls -->
-<app-my-rounds />
+<app-my-rounds (loaded)="roundsLoaded.set(true)" />
 <main class="container py-3" *transloco="let t">
   <app-start-welcome />
 
@@ -10,6 +10,6 @@
       <h2 class="visually-hidden">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>
       <app-quick-filters [(filter)]="filter" />
     </div>
-    <app-jigsaw-finder storageKey="jigsaw.front" [(filter)]="filter" />
+    <app-jigsaw-finder storageKey="jigsaw.front" [(filter)]="filter" [hold]="!roundsLoaded()" />
   </section>
 </main>

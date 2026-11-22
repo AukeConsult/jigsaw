@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, computed, effect, inject, output, signal, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { Plays } from '../../models/shared/play';
@@ -8,6 +8,7 @@ import { JigsawCard } from '../jigsaw-card/jigsaw-card';
 import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
+import { WELCOME_ART } from '../welcome-art';
 
 /** A band stuck to the top of the page with the user's rounds that are not solved: the picture of each (press it to go straight on with the round), and under it, in tiny text, when it was started and the time played. Scrolls sideways; shows nothing when there are no rounds. */
 @Component({
@@ -38,6 +39,13 @@ export class MyRounds {
   /** the user has no round going (or nobody has been chosen yet): the band welcomes instead; not while the rounds are being read, or when they could not be */
   protected readonly welcome = computed(() => this.going()?.length === 0);
 
+  /** the rounds are read (also when there are none, nobody is chosen, or they could not be read): the page waits for this before it asks for the jigsaws, so the band is there first and nothing below it jumps */
+  readonly loaded = output<void>();
+
+  /** the pictures of the welcome band (jigsaws almost put together), and which one is shown: they follow each other, round and round, every few seconds */
+  protected readonly art = WELCOME_ART;
+  protected readonly artIndex = signal(0);
+
   protected readonly clock = clockOf;
   private readonly row = viewChild<ElementRef<HTMLElement>>('row');
   protected readonly canBack = signal(false);
@@ -45,6 +53,11 @@ export class MyRounds {
 
   constructor() {
     void this.readRounds();
+    // round robin between the pictures (not for a person who has asked for less movement)
+    if (this.art.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const timer = setInterval(() => this.artIndex.update((i) => (i + 1) % this.art.length), 5000);
+      inject(DestroyRef).onDestroy(() => clearInterval(timer));
+    }
     // the buttons are worked out again when the row is drawn or its cards change, and when the window is resized
     effect(() => {
       this.mine();
@@ -68,6 +81,14 @@ export class MyRounds {
   }
 
   private async readRounds(): Promise<void> {
+    try {
+      await this.readOpenRounds();
+    } finally {
+      this.loaded.emit();
+    }
+  }
+
+  private async readOpenRounds(): Promise<void> {
     const me = await this.users.load();
     if (!me) return void this.going.set([]); // nobody chosen yet: no rounds
     try {

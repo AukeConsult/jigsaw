@@ -39,9 +39,9 @@
             <!-- what the AI (or the owner) said the picture is: its categories -->
             <div class="mb-2"><app-category-tags [keys]="jigsaw().categories" /></div>
           }
-          <!-- the details at the left and the main button at their side, pushed down so they end where the picture ends -->
-          <div class="d-flex align-items-end justify-content-between gap-3 mt-auto">
-            <div class="min-w-0">
+          <!-- the details at the left and the main button at their side, pushed down so they end where the picture ends; on a narrow screen the button goes under the details instead of squeezing them -->
+          <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 gap-md-3 mt-auto">
+            <div class="header-details">
               @if (jigsaw().author) {
                 <div class="text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ jigsaw().author }}</div>
               }
@@ -59,7 +59,7 @@
             </div>
             @if (jigsaw().visibility === 'everyone' || !jigsaw().visibility || mayChange()) {
               <!-- a jigsaw only its owner sees can get a new round from its owner only; the players who have a round on it go on with it below -->
-              <button type="button" class="btn btn-heading btn-outline-primary text-nowrap flex-shrink-0" [disabled]="busy()" (click)="play.emit()">
+              <button type="button" class="btn btn-heading btn-outline-primary mx-auto" [disabled]="busy()" (click)="play.emit()">
                 <i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawPage.enterRound') || 'Enter a round, solve it' }}
               </button>
             }

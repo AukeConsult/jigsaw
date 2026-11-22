@@ -29,6 +29,8 @@ export class JigsawFinder implements OnInit {
   readonly storageKey = input('jigsaw.finder');
   /** how many jigsaws a page of the answer has */
   readonly pageSize = input(20);
+  /** the page asks the finder to wait (something above it is still being read): nothing is asked for until this is false */
+  readonly hold = input(false);
 
   readonly view = signal<'list' | 'cards'>('cards');
   /** what is looked for: the jigsaws shown are those it matches (a page can bind it, `[(filter)]`, to change what is looked for: the Find page's choice is read when the finder opens) */
@@ -69,7 +71,7 @@ export class JigsawFinder implements OnInit {
     effect(() => {
       const filter = this.filter();
       const size = this.pageSize();
-      if (this.ready) untracked(() => void this.load(filter, 1, size));
+      if (this.ready && !this.hold()) untracked(() => void this.load(filter, 1, size));
     });
   }
 
