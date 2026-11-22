@@ -28,8 +28,8 @@ export class JigsawHome implements OnInit {
   /** the rounds of the user that are not solved, newest first: where they left off */
   readonly myRounds = signal<UserGame[]>([]);
 
-  /** the popular jigsaws, the best first (up to ten: the server ranks them by rounds played and by being new) */
-  readonly popular = signal<JigsawSpec[]>([]);
+  /** all the jigsaws the person may see, the newest first (the popular ones, `service.popular()`, are for later) */
+  readonly jigsaws = signal<JigsawSpec[]>([]);
   readonly loaded = signal(false);
   /** the jigsaws whose picture could not be read: they get an empty box */
   readonly noPicture = signal<ReadonlySet<string>>(new Set());
@@ -37,7 +37,7 @@ export class JigsawHome implements OnInit {
   async ngOnInit(): Promise<void> {
     void this.readRounds();
     try {
-      this.popular.set(await this.service.popular());
+      this.jigsaws.set((await this.service.list()).sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)));
     } catch {
       /* the front page works without the list: the person can still start a new jigsaw */
     } finally {

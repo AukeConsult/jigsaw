@@ -25,6 +25,11 @@
     "sync:models": "node scripts/sync-models.mjs",
     "check:models": "node scripts/sync-models.mjs --check",
     "check:i18n": "node scripts/check-i18n.mjs",
+    "seed:dummy": "node scripts/seed-dummy.mjs",
+    "seed:dummy:clean": "node scripts/seed-dummy.mjs --clean",
     "test:emulator": "node scripts/with-java.mjs firebase emulators:exec --config firebase.test.json --only firestore,storage --project demo-canvas-test \"npm --prefix functions run test:emulator\""
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^1.2.0"
   }
 }

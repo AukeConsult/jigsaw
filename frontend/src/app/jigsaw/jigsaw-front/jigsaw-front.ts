@@ -21,25 +21,27 @@ export class JigsawFront implements OnInit {
 
   /** the jigsaws the user has a round going on (not solved) */
   protected readonly myRounds = signal<JigsawSpec[]>([]);
-  /** the popular jigsaws, the best first (the server ranks them) */
-  protected readonly popular = signal<JigsawSpec[]>([]);
+  /** every jigsaw the person may see: the popular ones first (the server ranks them), then the rest */
+  protected readonly all = signal<JigsawSpec[]>([]);
 
   async ngOnInit(): Promise<void> {
-    void this.readRounds();
     try {
-      this.popular.set(await this.service.popular());
+      const [list, popular] = await Promise.all([this.service.list(), this.service.popular().catch(() => [] as JigsawSpec[])]);
+      const rank = new Map(popular.map((j, i) => [j.id, i]));
+      this.all.set([...list].sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity)));
     } catch {
       /* the page works without the list: the person can still start a new jigsaw */
     }
+    void this.readRounds();
   }
 
   private async readRounds(): Promise<void> {
     const me = await this.users.load();
     if (!me) return;
     try {
-      // a round only names its jigsaw, so the cards are made from the list, one card for each jigsaw with a round going
+      // a round only names its jigsaw, so the cards come from the list, one for each jigsaw with a round going
       const going = new Set((await this.plays.ofUser(me.id)).filter((g) => g.play.status !== 'solved').map((g) => g.jigsaw.id));
-      this.myRounds.set((await this.service.list()).filter((j) => going.has(j.id)));
+      this.myRounds.set(this.all().filter((j) => going.has(j.id)));
     } catch {
       /* no rounds shown */
     }

@@ -14,18 +14,18 @@
 
   @if (myRounds().length) {
     <h2 class="section-title mb-2">{{ t('jigsawHome.continue') || 'Continue where you left off' }}</h2>
-    <div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-2 g-sm-3 mb-4" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
+    <div class="card-grid mb-4" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
       @for (item of myRounds(); track item.id) {
-        <div class="col"><app-jigsaw-card [jigsaw]="item" /></div>
+        <app-jigsaw-card [jigsaw]="item" />
       }
     </div>
   }
 
-  @if (popular().length) {
-    <h2 class="section-title mb-2">{{ t('jigsawHome.popular') || 'Popular' }}</h2>
-    <div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-2 g-sm-3 mb-4">
-      @for (item of popular(); track item.id) {
-        <div class="col"><app-jigsaw-card [jigsaw]="item" /></div>
+  @if (all().length) {
+    <h2 class="section-title mb-2">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>
+    <div class="card-grid mb-4">
+      @for (item of all(); track item.id) {
+        <app-jigsaw-card [jigsaw]="item" />
       }
     </div>
   }
