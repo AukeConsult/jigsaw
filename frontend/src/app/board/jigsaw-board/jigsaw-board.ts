@@ -539,7 +539,10 @@ export class JigsawBoard {
     const inSelection = picked.length > 1 && picked.includes(item.id);
     if (!inSelection) this.selection.set([item.id]);
     // the pieces that stick together move together: a piece takes the group it is stuck to with it (Shift takes the piece alone, which pulls it loose)
-    const wanted = inSelection ? [...picked] : [item.id];
+    // a piece on its own place is fixed, and so is the whole group it sticks to: they are picked, but never moved (see `Puzzle.isFixed`)
+    const free = item.piece ? this.puzzle().movable(inSelection ? [...picked] : [item.id]) : inSelection ? [...picked] : [item.id];
+    if (!free.includes(item.id)) return;
+    const wanted = free;
     const ids = item.piece && !event.shiftKey ? this.puzzle().stuckGroup(wanted) : wanted;
     if (item.piece) {
       // a piece that is picked up goes in front of the others and stays there when it is dropped (a group keeps its order)

@@ -97,6 +97,7 @@ export class Puzzle {
       const group = this.stuckGroup([id]);
       for (const member of group) seen.add(member);
       if (!group.every((member) => wanted.has(member))) continue; // some of the group is somewhere else
+      if (this.isFixed(group)) continue; // a group on its place stays
       const members = group.map((member) => this.get(member)).filter((m): m is PlacedFigure => !!m);
       const boxes = members.map((m) => m.box());
       const left = Math.min(...boxes.map((b) => b.left));
@@ -173,6 +174,19 @@ export class Puzzle {
   }
 
   /**
+   * Whether these objects are fixed: a piece that lies on its own place stays there, and so does the whole group of pieces that stick to it. A group
+   * that has no piece on its place can be moved (all of it together). Only pieces can be fixed.
+   */
+  isFixed(ids: readonly string[]): boolean {
+    return this.stuckGroup(ids).some((id) => this.get(id)?.inPlace());
+  }
+
+  /** Of these objects, the ones that can be moved: those that are not fixed (see `isFixed`), each with its group. */
+  movable(ids: readonly string[]): string[] {
+    return ids.filter((id) => !this.isFixed([id]));
+  }
+
+  /**
    * Jigsaw pieces that are dropped: each group of pieces that stick together (see `stuckGroup`) that was dropped clicks into place when it comes close
    * enough, within `range` pixels, of one of two things: its own grid point (the home of a piece in it, see `PlacedFigure.home`), or the place where a
    * piece in it fits a neighbour that is not in the group (so the group sticks to it). The whole group moves by the smallest of these steps, so the
@@ -231,7 +245,7 @@ export class Puzzle {
    */
   moveGroup(ids: readonly string[], dx: number, dy: number): Puzzle {
     const figures = ids.map((id) => this.get(id)).filter((p): p is PlacedFigure => !!p);
-    if (!figures.length || !Number.isFinite(dx) || !Number.isFinite(dy)) return this;
+    if (!figures.length || this.isFixed(ids) || !Number.isFinite(dx) || !Number.isFinite(dy)) return this;
     const boxes = figures.map((f) => f.box());
     // the furthest the whole group can go each way: the figure that is nearest to an edge decides
     const lowX = Math.max(...boxes.map((b) => -b.left));
@@ -269,7 +283,7 @@ export class Puzzle {
    */
   moveFigure(id: string, wantedX: number, wantedY: number, step: number, origin = 0): Puzzle {
     const figure = this.get(id);
-    if (!figure) return this;
+    if (!figure || this.isFixed([id])) return this;
     // a piece moves in much finer steps than the grid (a step that goes a whole number of times into the grid, so the grid points are still among them)
     const pieceStep = figure.data.piece ? Math.max(PIECE_MIN_STEP_PX, Math.round(step / PIECE_STEP_DIVISOR / PIECE_MIN_STEP_PX) * PIECE_MIN_STEP_PX) : step;
     const moved = figure.at(

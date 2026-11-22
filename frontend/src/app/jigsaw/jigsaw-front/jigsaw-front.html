@@ -1,3 +1,5 @@
+<!-- the band of the user's open rounds: stuck to the top while the page scrolls -->
+<app-my-rounds [jigsaws]="all()" />
 <main class="container py-3" *transloco="let t">
   <h1 class="page-title mb-2">
     @if (firstName()) {
@@ -11,15 +13,6 @@
     <a class="link-action large" routerLink="/jigsaw/list"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>{{ t('jigsawHome.seeAll') || 'Pick a jigsaw to play' }}</a>
     <a class="link-action large" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawHome.addNew') || 'Make your own jigsaw' }}</a>
   </div>
-
-  @if (myRounds().length) {
-    <h2 class="section-title mb-2">{{ t('jigsawHome.continue') || 'Continue where you left off' }}</h2>
-    <div class="card-grid mb-4" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
-      @for (item of myRounds(); track item.id) {
-        <app-jigsaw-card [jigsaw]="item" />
-      }
-    </div>
-  }
 
   @if (all().length) {
     <h2 class="section-title mb-2">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>

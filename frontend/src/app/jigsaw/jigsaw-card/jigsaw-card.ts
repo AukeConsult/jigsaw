@@ -19,9 +19,19 @@ export class JigsawCard {
   private readonly images = inject(JigsawImageService);
 
   readonly jigsaw = input.required<JigsawSpec>();
+  /** only the picture (with the name as a tooltip), for a band where the cards are small */
+  readonly pictureOnly = input(false);
+  /** where pressing the card goes (the page of the jigsaw when not given): a round goes straight on with the round */
+  readonly route = input<unknown[] | null>(null);
   /** the picture could not be read (a jigsaw can be made without one): the box is empty */
   protected readonly noPicture = signal(false);
 
+  /** a long press (right click on a touch screen) on the picture does not open the browser's menu; a mouse keeps its menu */
+  protected noMenu(event: Event): void {
+    if (window.matchMedia('(pointer: coarse)').matches) event.preventDefault();
+  }
+
+  protected readonly link =computed(() => this.route() ?? ['/jigsaw', this.jigsaw().id]);
   protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw().id, 1));
   protected readonly pieces = computed(() => {
     const j = this.jigsaw();

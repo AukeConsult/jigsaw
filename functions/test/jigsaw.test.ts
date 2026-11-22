@@ -195,10 +195,13 @@ describe("a piece that is dropped close to its own place", () => {
     expect(at(plain)).toEqual([325, 225]);
   });
 
-  it("can be moved away from its place again", () => {
+  it("stays where it is once it lies on its own place: it is fixed", () => {
     const placed = puzzle().moveFigure("p", 130, 80, 50, 25).dropPieces(["p"], 25);
     expect(at(placed)).toEqual([125, 75]);
-    expect(at(placed.moveFigure("p", 325, 225, 50, 25))).toEqual([325, 225]);
+    expect(placed.isFixed(["p"])).toBe(true);
+    expect(placed.moveFigure("p", 325, 225, 50, 25)).toBe(placed);
+    expect(placed.moveGroup(["p"], 100, 100)).toBe(placed);
+    expect(placed.movable(["p"])).toEqual([]);
   });
 });
 
@@ -477,6 +480,39 @@ describe("pieces that stick together", () => {
   const world = (...pieces: ReturnType<typeof mk>[]) => Puzzle.from(pieces, 1000, 800);
   const at = (d: Puzzle, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
   const names = (ids: string[]) => [...ids].sort();
+
+  describe("what is fixed", () => {
+    it("is a piece on its own place, and a piece that is not there can be moved", () => {
+      const d = world(mk(2, 1, 300, 200), mk(4, 4, 600, 600));
+      expect(d.isFixed(["piece-2-1"])).toBe(false); // belongs at 125, 75: it is not there
+      const home = world(mk(2, 1, 125, 75));
+      expect(home.isFixed(["piece-2-1"])).toBe(true);
+      expect(world(mk(2, 1, 125.5, 75)).isFixed(["piece-2-1"])).toBe(true); // a half pixel is still there
+      expect(world(mk(2, 1, 126, 75)).isFixed(["piece-2-1"])).toBe(false);
+    });
+
+    it("is the whole group when one piece of it is on its own place, and none of it when no piece is", () => {
+      const fixed = world(mk(2, 1, 125, 75), mk(3, 1, 175, 75), mk(2, 2, 125, 125)); // the group lies on its place
+      for (const id of ["piece-2-1", "piece-3-1", "piece-2-2"]) expect(fixed.isFixed([id])).toBe(true);
+      expect(fixed.moveGroup(["piece-3-1", "piece-2-1", "piece-2-2"], 40, 40)).toBe(fixed);
+      const loose = world(mk(2, 1, 400, 300), mk(3, 1, 450, 300)); // stuck together, but not on their place
+      expect(loose.isFixed(["piece-2-1"])).toBe(false);
+      expect(at(loose.moveGroup(["piece-2-1", "piece-3-1"], 40, 40), "piece-3-1")).toEqual([490, 340]); // all of it moves together
+      // a piece that lies on its place and is stuck to others holds the whole group, wherever the others are drawn
+      const one = world(mk(2, 1, 125, 75), mk(3, 1, 175, 75), mk(9, 9, 100, 100));
+      expect(one.movable(["piece-2-1", "piece-9-9"])).toEqual(["piece-9-9"]);
+    });
+
+    it("is not collected from the store, and a figure that is not a piece is never fixed", () => {
+      const d = world(mk(2, 1, 125, 75), mk(7, 3, 700, 500));
+      const collected = d.collectPieces(["piece-2-1", "piece-7-3"], { left: 600, top: 0, width: 300 });
+      expect(at(collected, "piece-2-1")).toEqual([125, 75]);
+      expect(at(collected, "piece-7-3")).not.toEqual([700, 500]);
+      const plain = Puzzle.from([{ id: "box", centerX: 25, centerY: 25, object: square }], 1000, 800);
+      expect(plain.isFixed(["box"])).toBe(false);
+      expect(plain.isFixed(["nobody"])).toBe(false);
+    });
+  });
 
   describe("what sticks", () => {
     it("is neighbours in the picture that lie exactly where they belong in relation to each other", () => {

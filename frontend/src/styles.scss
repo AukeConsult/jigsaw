@@ -105,6 +105,7 @@ $fluid-to: 87.5; // 1400px in rem
   --app-list-width: 48rem;
   --app-grip-size: 28px; // the corner that sizes the helper picture
   --app-tile-gap: 0.25rem;
+  --app-navbar-height: 3.5rem; // the menu at the top of a wide screen: what a band stuck under it leaves room for
 
   // layers, from the bottom: the pieces, the handles and frames of picking, the sidebar over a small screen, the helper picture, the dialog
   --app-z-pieces: 1;
@@ -518,6 +519,58 @@ small,
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+/* a band stuck to the top of the page (under the menu on a wide screen, where the menu is at the top) with cards in one row that scrolls sideways */
+.my-rounds {
+  position: sticky;
+  top: 0;
+  z-index: calc(var(--app-z-bar) - 1);
+  padding: 0.5rem 0;
+
+  @include from($bp-xl) {
+    top: var(--app-navbar-height);
+  }
+}
+
+/* a touch screen (phone, tablet): the page is fixed sideways, it only moves up and down (pinch to zoom stays). The cards of the band are moved with its two buttons.
+   Only `html` is set, so the page scrolls as the window does and the sticky bands keep working. */
+@media (pointer: coarse) {
+  html {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+    touch-action: pan-y pinch-zoom;
+  }
+}
+
+/* a picture on a touch screen: pressing and holding does not open the browser's menu (save, share) over it, and the picture is not dragged away */
+@media (pointer: coarse) {
+  .card img {
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+}
+
+/* a round button over the middle of the side of a row of cards that scrolls */
+.card-row-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.card-row {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: none; // a drag at the end of the row does not move the page sideways
+  padding-bottom: 0.5rem;
+
+  > * {
+    flex: 0 0 auto;
+    width: 11rem;
+  }
 }
 
 /* a grid of jigsaw cards: as many 11 rem columns as fit, the page scrolls to the rest */

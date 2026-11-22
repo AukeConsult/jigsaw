@@ -37,6 +37,8 @@ export interface PiecePlace {
 
 /** The most columns or rows of pieces. */
 export const MAX_PIECE_INDEX = 1000;
+/** A piece this close (pixels) to its own place is in place: half a pixel is the finest a piece is put (the same as `JigsawPieces.MATCH_TOLERANCE_PX`). */
+export const PLACE_TOLERANCE_PX = 0.5;
 
 /**
  * A placed figure (a jigsaw piece): a box, it knows its own place, its own box and its own home in the picture area.
@@ -125,6 +127,12 @@ export class PlacedFigure {
     if (!piece) return null;
     const size = this.object.width;
     return { x: (piece.col + 0.5) * size, y: (piece.row + 0.5) * size };
+  }
+
+  /** A jigsaw piece that lies on its own place (its home), to a half pixel, the finest a piece is put. Such a piece is fixed: see `Puzzle.isFixed`. */
+  inPlace(): boolean {
+    const home = this.home();
+    return !!home && Math.abs(this.centerX - home.x) <= PLACE_TOLERANCE_PX && Math.abs(this.centerY - home.y) <= PLACE_TOLERANCE_PX;
   }
 
   /** its box */

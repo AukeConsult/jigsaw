@@ -3,17 +3,21 @@
   <div class="card h-100">
     <!-- the picture, with Play over its bottom right corner -->
     <div class="position-relative">
-      <a [routerLink]="['/jigsaw', item.id]" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
+      <a [routerLink]="link()" [title]="pictureOnly() ? item.name : ''" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
         <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
           @if (!noPicture()) {
-            <img class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
+            <img class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)" (contextmenu)="noMenu($event)">
           }
         </div>
       </a>
-      <a class="btn btn-overlay position-absolute bottom-0 end-0 m-1" [routerLink]="['/jigsaw', item.id]" [title]="t('jigsawList.play') || 'Show the jigsaw'" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
+      <a class="btn btn-overlay position-absolute bottom-0 end-0 m-1" [routerLink]="link()" [title]="t('jigsawList.play') || 'Show the jigsaw'" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
     </div>
+    @if (pictureOnly()) {
+    <!-- what the page puts under the picture (the tiny text of a round) -->
+    <div class="px-2 pb-1"><ng-content /></div>
+    } @else {
     <div class="card-body p-2 text-break">
-      <a class="small fw-semibold text-decoration-none" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      <a class="small fw-semibold text-decoration-none" [routerLink]="link()">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
       @if (item.author) {
         <div class="text-body-secondary tiny">{{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</div>
       }
@@ -26,5 +30,6 @@
         <div class="text-body-secondary tiny d-none d-sm-block"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</div>
       }
     </div>
+    }
   </div>
 </ng-container>
