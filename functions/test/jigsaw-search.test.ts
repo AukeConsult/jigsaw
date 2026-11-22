@@ -318,6 +318,14 @@ describe("the route", () => {
     expect([ids(paged.items), paged.total, paged.hasMore]).toEqual([["forest"], 2, true]);
   });
 
+  it("never finds a hidden jigsaw: not even for its owner (it is only in the list of the owner's own jigsaws)", async () => {
+    const some = [jigsaw("open", { createdAt: 2, ownerUid: "u1" }), jigsaw("tucked", { createdAt: 3, ownerUid: "u1", visibility: "hidden" })];
+    const app = createJigsawApp({ jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() });
+    expect(ids((await get(app, "", "u1")).body.items)).toEqual(["open"]);
+    expect(ids((await get(app, "?owners=u1", "u1")).body.items)).toEqual(["open"]);
+    expect(ids((await get(app, "")).body.items)).toEqual(["open"]);
+  });
+
   it("finds words in the description, and does not send the description on", async () => {
     const some = [jigsaw("harbour", { createdAt: 2, description: "A cold morning at the pier" }), jigsaw("other", { createdAt: 1 })];
     const res = await get(createJigsawApp({ jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() }), "?text=pier");

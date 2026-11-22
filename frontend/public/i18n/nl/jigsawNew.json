@@ -53,9 +53,9 @@
     "large": "Groot 4:3 (1200 × 900)"
   },
   "visibility": "Wie ziet hem",
-  "visibilityEveryone": "Iedereen",
-  "visibilityOwner": "Alleen de eigenaar",
-  "visibilityHelp": "Een puzzel voor iedereen staat in ieders lijsten. Een puzzel die alleen de eigenaar ziet, staat alleen in de lijsten van de eigenaar.",
+  "visibilityEveryone": "Openbaar",
+  "visibilityOwner": "Privé",
+  "visibilityHelp": "Openbaar: in de lijsten van iedereen. Privé: alleen de eigenaar en zijn spelers zien het. Verborgen: alleen in de lijst van je eigen puzzels, niet op de voorpagina of in andere lijsten.",
   "timed": "Met tijdmeting",
   "timedHelp": "Een klok meet hoe lang elke ronde duurt.",
   "sectionBasics": "Basis",
@@ -66,5 +66,12 @@
   "optional": "(optioneel)",
   "descriptionPlaceholder": "Een plek, een dag, een herinnering…",
   "language": "Taal",
-  "languageHelp": "De taal waarin de naam en de beschrijving zijn geschreven. Ze begint als jouw taal."
+  "languageHelp": "De taal waarin de naam en de beschrijving zijn geschreven. Ze begint als jouw taal.",
+  "visibilityHidden": "Verborgen",
+  "classify": "Laat de AI categorieën, naam en beschrijving instellen",
+  "classifying": "De AI bekijkt de afbeelding…",
+  "classifyHelp": "De afbeelding wordt naar OpenAI gestuurd om bekeken te worden. De naam, de beschrijving en de categorieën worden vervangen.",
+  "classifyFailed": "De AI kon het niet: probeer het opnieuw.",
+  "sectionLook": "Uiterlijk",
+  "languageAi": "Als je het wijzigt, laat de AI ze opnieuw schrijven in de nieuwe taal."
 }

@@ -2,7 +2,7 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
 import type { JigsawStore } from "../src/common/jigsaw-list";
-import { memoryPlays } from "./memory-plays";
+import { memoryPlays, memoryUsers } from "./memory-plays";
 import { JIGSAW_MAX_PLACED, JigsawSettings } from "../src/models";
 import type { JigsawSpec } from "../src/models";
 
@@ -33,6 +33,17 @@ function memoryStore(): JigsawStore {
 }
 
 describe("jigsaw-list", () => {
+  it("gives one jigsaw by its id, and 404 for one that is not there or that a private jigsaw hides", async () => {
+    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays(), users: memoryUsers("u1") });
+    const input = { name: "Poster", width: 800, height: 600, gridSize: 50, gridVisible: false, placed: [] };
+    const open = (await request(app).post("/jigsaw/api/jigsaw").send(input)).body as JigsawSpec;
+    const secret = (await request(app).post("/jigsaw/api/jigsaw").send({ ...input, name: "Secret", ownerUid: "u1", visibility: "hidden" })).body as JigsawSpec;
+    expect((await request(app).get(`/jigsaw/api/jigsaw/${open.id}`)).body).toMatchObject({ id: open.id, name: "Poster" });
+    expect((await request(app).get("/jigsaw/api/jigsaw/nothere")).status).toBe(404);
+    expect((await request(app).get(`/jigsaw/api/jigsaw/${secret.id}`)).status).toBe(404); // nobody says who asks
+    expect((await request(app).get(`/jigsaw/api/jigsaw/${secret.id}`).set("X-Jigsaw-User", "u1")).body).toMatchObject({ name: "Secret", visibility: "hidden" });
+  });
+
   it("saves a jigsaw and lists it", async () => {
     const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
     const created = await request(app).post("/jigsaw/api/jigsaw").send({ name: " Poster ", width: 800, height: 600, gridSize: 5, gridVisible: false, placed: [] });

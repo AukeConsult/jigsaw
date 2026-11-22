@@ -53,9 +53,9 @@
     "large": "Grand 4:3 (1200 × 900)"
   },
   "visibility": "Qui le voit",
-  "visibilityEveryone": "Tout le monde",
-  "visibilityOwner": "Seulement le propriétaire",
-  "visibilityHelp": "Un puzzle pour tout le monde apparaît dans les listes de tous. Un puzzle que seul le propriétaire voit n'apparaît que dans les listes du propriétaire.",
+  "visibilityEveryone": "Public",
+  "visibilityOwner": "Privé",
+  "visibilityHelp": "Public : dans les listes de tous. Privé : seuls son propriétaire et ses joueurs le voient. Masqué : seulement dans la liste de vos propres puzzles, pas sur la page d'accueil ni dans d'autres listes.",
   "timed": "Chronométré",
   "timedHelp": "Un chrono mesure la durée de chaque partie.",
   "sectionBasics": "Bases",
@@ -66,5 +66,12 @@
   "optional": "(facultatif)",
   "descriptionPlaceholder": "Un lieu, un jour, un souvenir…",
   "language": "Langue",
-  "languageHelp": "La langue du nom et de la description. Elle commence par votre langue."
+  "languageHelp": "La langue du nom et de la description. Elle commence par votre langue.",
+  "visibilityHidden": "Masqué",
+  "classify": "Laisser l'IA définir catégories, nom et description",
+  "classifying": "L'IA regarde l'image…",
+  "classifyHelp": "L'image est envoyée à OpenAI pour être regardée. Le nom, la description et les catégories sont remplacés.",
+  "classifyFailed": "L'IA n'a pas pu le faire : réessayez.",
+  "sectionLook": "Apparence",
+  "languageAi": "Si vous la changez, l’IA les réécrit dans la nouvelle langue."
 }

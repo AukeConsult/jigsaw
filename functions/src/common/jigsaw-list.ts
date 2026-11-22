@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { DocumentStore, documentStore } from "./document-store";
-import { JigsawSettings, JigsawInput, JigsawSpec } from "../models";
+import { JigsawSettings, JigsawInput, JigsawSpec, JigsawVisibilities } from "../models";
 
 /** Where the jigsaws are kept (Firestore in the app, a memory store in the tests). */
 export type JigsawStore = DocumentStore<JigsawInput, JigsawSpec>;
@@ -19,7 +19,7 @@ function readInput(body: Record<string, unknown>): { input: JigsawInput } | { er
 }
 
 /** The routes of the list of jigsaws (mounted at `/jigsaw`). GET: the saved jigsaws, newest first. POST: save a new one. PUT /:id: change a saved one (the page autosaves with these). DELETE /:id: delete one. */
-export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec, me: string | undefined) => Promise<boolean> = async (j, me) => j.visibility !== "owner" || (!!me && j.ownerUid === me)): express.Router {
+export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec, me: string | undefined) => Promise<boolean> = async (j, me) => !JigsawVisibilities.restricted(j.visibility) || (!!me && j.ownerUid === me)): express.Router {
   const router = express.Router();
 
   // a jigsaw its owner keeps to themselves is listed for those `canSee` says (the owner, and whoever the app adds: the header `X-Jigsaw-User` is the UID of who asks; there is no
@@ -29,6 +29,13 @@ export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec
     const all = await store.list();
     const seen = await Promise.all(all.map((j) => canSee(j, me)));
     res.json(all.filter((_, i) => seen[i]));
+  });
+
+  // one jigsaw by its id (for the page of a jigsaw, a round and the forms: they do not need the whole list); a jigsaw the person may not see is not there
+  router.get("/:id", async (req, res) => {
+    const one = store.get ? await store.get(req.params.id) : ((await store.list()).find((j) => j.id === req.params.id) ?? null);
+    if (!one || !(await canSee(one, req.get("X-Jigsaw-User")))) return void res.status(404).json({ error: "No such jigsaw." });
+    res.json(one);
   });
 
   router.post("/", async (req, res) => {

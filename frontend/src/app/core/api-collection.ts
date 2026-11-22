@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 /** One collection of documents the API keeps (see the backend `documentStore`): list them, make one, change one, delete one. */
@@ -10,6 +10,16 @@ export class ApiCollection<Input, Item> {
 
   list(): Promise<Item[]> {
     return firstValueFrom(this.http.get<Item[]>(this.url));
+  }
+
+  /** one saved one by its id; null when there is none (or it is not for this person to see) */
+  async get(id: string): Promise<Item | null> {
+    try {
+      return await firstValueFrom(this.http.get<Item>(`${this.url}/${encodeURIComponent(id)}`));
+    } catch (err) {
+      if (err instanceof HttpErrorResponse && err.status === 404) return null;
+      throw err;
+    }
   }
 
   /** a new one */

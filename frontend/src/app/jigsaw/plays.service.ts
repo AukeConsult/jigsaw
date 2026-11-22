@@ -87,6 +87,11 @@ export class PlaysService {
     fetch(`${this.one(jigsawId, playId)}/positions`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...this.whoAsks() }, body: JSON.stringify({ moves: [], elapsedMs }), keepalive: true }).catch(() => undefined);
   }
 
+  /** Takes away all the rounds of a jigsaw, also other players' (only its owner can): the jigsaw can then be changed again. */
+  removeAll(jigsawId: string): Promise<unknown> {
+    return firstValueFrom(this.http.delete(this.base(jigsawId), { headers: this.whoAsks() }));
+  }
+
   remove(jigsawId: string, playId: string): Promise<unknown> {
     return firstValueFrom(this.http.delete(this.one(jigsawId, playId), { headers: this.whoAsks() }));
   }

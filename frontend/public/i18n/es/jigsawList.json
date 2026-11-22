@@ -43,5 +43,7 @@
   "quickFilters": "Filtros rápidos",
   "addFavorite": "Añadir a favoritos",
   "removeFavorite": "Quitar de favoritos",
-  "favorites": "Favoritos"
+  "favorites": "Favoritos",
+  "hiddenNote": "Oculto: solo en tu lista de puzles",
+  "details": "Detalles"
 }

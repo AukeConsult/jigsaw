@@ -53,9 +53,9 @@
     "large": "Groß 4:3 (1200 × 900)"
   },
   "visibility": "Wer es sieht",
-  "visibilityEveryone": "Alle",
-  "visibilityOwner": "Nur der Besitzer",
-  "visibilityHelp": "Ein Puzzle für alle steht in den Listen aller. Eines, das nur der Besitzer sieht, steht nur in den Listen des Besitzers.",
+  "visibilityEveryone": "Öffentlich",
+  "visibilityOwner": "Privat",
+  "visibilityHelp": "Öffentlich: in den Listen aller. Privat: nur der Besitzer und seine Spieler sehen es. Versteckt: nur in der Liste deiner eigenen Puzzle, nicht auf der Startseite oder in anderen Listen.",
   "timed": "Mit Zeitmessung",
   "timedHelp": "Eine Uhr misst, wie lange jede Runde dauert.",
   "sectionBasics": "Grundlagen",
@@ -66,5 +66,12 @@
   "optional": "(freiwillig)",
   "descriptionPlaceholder": "Ein Ort, ein Tag, eine Erinnerung…",
   "language": "Sprache",
-  "languageHelp": "Die Sprache, in der Name und Beschreibung geschrieben sind. Sie beginnt als deine Sprache."
+  "languageHelp": "Die Sprache, in der Name und Beschreibung geschrieben sind. Sie beginnt als deine Sprache.",
+  "visibilityHidden": "Versteckt",
+  "classify": "KI Kategorien, Namen und Beschreibung setzen lassen",
+  "classifying": "Die KI sieht sich das Bild an …",
+  "classifyHelp": "Das Bild wird zur Ansicht an OpenAI geschickt. Name, Beschreibung und Kategorien werden ersetzt.",
+  "classifyFailed": "Die KI hat es nicht geschafft: versuche es noch einmal.",
+  "sectionLook": "Aussehen",
+  "languageAi": "Beim Wechseln lässt die KI sie in der neuen Sprache neu schreiben."
 }

@@ -25,18 +25,20 @@
     <div class="px-2 pb-1"><ng-content /></div>
     } @else {
     <div class="card-body p-2 text-break">
-      <a class="small fw-semibold text-decoration-none" [routerLink]="link()">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
-      @if (item.author) {
-        <div class="text-body-secondary tiny">{{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</div>
-      }
-      <app-category-tags [keys]="item.categories" />
-      <!-- the pieces and the difficulty on one short line (icons say what they are; the full words are in the tooltips) -->
-      <div class="text-body-secondary tiny text-nowrap">
-        <span [title]="t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ pieces() }}</span>
-        <span class="ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
-      </div>
-      @if (item.createdAt) {
-        <div class="text-body-secondary tiny d-none d-sm-block"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</div>
+      <a class="card-name fw-semibold text-decoration-none" [routerLink]="link()">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash ms-1 text-body-secondary" [title]="t('jigsawList.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      @if (details.on()) {
+        @if (item.author) {
+          <div class="text-body-secondary tiny">{{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</div>
+        }
+        <app-category-tags [keys]="item.categories" />
+        <!-- the pieces and the difficulty on one short line (icons say what they are; the full words are in the tooltips) -->
+        <div class="text-body-secondary tiny text-nowrap">
+          <span [title]="t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ pieces() }}</span>
+          <span class="ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
+        </div>
+        @if (item.createdAt) {
+          <div class="text-body-secondary tiny d-none d-sm-block"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</div>
+        }
       }
     </div>
     }

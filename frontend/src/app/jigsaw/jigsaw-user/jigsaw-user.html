@@ -1,5 +1,5 @@
 <main class="container py-4" *transloco="let t">
-  <div class="form-card card card-body mx-auto">
+  <div class="form-card wide card card-body mx-auto">
     <h1 class="page-title mb-3"><i class="bi bi-person-circle text-primary me-2" aria-hidden="true"></i>{{ t('jigsawUser.title') || 'Who plays?' }}</h1>
 
     @if (users.user(); as me) {
@@ -60,6 +60,8 @@
           <label class="btn" for="tab-rounds"><i class="bi bi-play-circle" aria-hidden="true"></i>{{ t('jigsawUser.yourRounds') || 'Your rounds' }}</label>
           <input id="tab-jigsaws" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'jigsaws'" (change)="tab.set('jigsaws')">
           <label class="btn" for="tab-jigsaws"><i class="bi bi-puzzle" aria-hidden="true"></i>{{ t('jigsawUser.yourJigsaws') || 'Your jigsaws' }}</label>
+          <input id="tab-ai" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'ai'" (change)="tab.set('ai')">
+          <label class="btn" for="tab-ai"><i class="bi bi-stars" aria-hidden="true"></i>{{ t('jigsawUser.aiUsage') || 'AI use' }}</label>
         </div>
       </div>
       @if (tab() === 'rounds') {
@@ -108,16 +110,114 @@
           }
         </ul>
       }
+      } @else if (tab() === 'ai') {
+      <!-- what the AI has used for the user, each call and the sum (to be paid for later) -->
+      @if (aiUsage() === null) {
+        <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingAi') || 'Looking for the AI use…' }}</div>
+      } @else if (aiFailed()) {
+        <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.aiFailed') || 'Could not read the AI use: reload the page.' }}</div>
+      } @else if (!aiUsage()!.items.length) {
+        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noAi') || 'The AI has not been used for you yet.' }}</p>
       } @else {
+        <div class="toolbar-note mb-2">{{ t('jigsawUser.aiTotals', { calls: aiUsage()!.totals.calls, input: aiUsage()!.totals.inputTokens, output: aiUsage()!.totals.outputTokens, total: aiUsage()!.totals.totalTokens, unbilled: aiUsage()!.totals.unbilledTokens }) || aiUsage()!.totals.calls + ' calls, ' + aiUsage()!.totals.inputTokens + ' tokens in, ' + aiUsage()!.totals.outputTokens + ' out, ' + aiUsage()!.totals.totalTokens + ' in all, ' + aiUsage()!.totals.unbilledTokens + ' not yet paid for' }}</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>{{ t('jigsawUser.aiDate') || 'Date' }}</th>
+                <th>{{ t('jigsawUser.aiJigsaw') || 'Jigsaw' }}</th>
+                <th>{{ t('jigsawUser.aiModel') || 'Model' }}</th>
+                <th class="text-end">{{ t('jigsawUser.aiIn') || 'In' }}</th>
+                <th class="text-end">{{ t('jigsawUser.aiOut') || 'Out' }}</th>
+                <th class="text-end">{{ t('jigsawUser.aiTotal') || 'Total' }}</th>
+                <th>{{ t('jigsawUser.aiStatus') || 'Status' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of aiUsage()!.items; track u.id) {
+                <tr>
+                  <td class="text-nowrap">{{ u.createdAt | date: 'short' }}</td>
+                  <td>@if (u.jigsawId) { <a [routerLink]="['/jigsaw', u.jigsawId]">{{ jigsawName(u.jigsawId) }}</a> }</td>
+                  <td class="text-nowrap">{{ u.responseModel || u.model }}</td>
+                  <td class="text-end">{{ u.inputTokens }}</td>
+                  <td class="text-end">{{ u.outputTokens }}</td>
+                  <td class="text-end">{{ u.totalTokens }}</td>
+                  <td class="text-nowrap">
+                    @if (u.status === 'ok') { <span class="badge text-bg-success">{{ t('jigsawUser.aiOk') || 'Done' }}</span> } @else { <span class="badge text-bg-warning">{{ t('jigsawUser.aiFailedCall') || 'Failed' }}</span> }
+                    @if (u.billed) { <span class="badge text-bg-secondary">{{ t('jigsawUser.aiPaid') || 'Paid' }}</span> }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      } @else {
+      <div class="toolbar mb-2">
+        <a class="link-action" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.addJigsaw') || 'Add a new jigsaw' }}</a>
+        <a class="link-action" routerLink="/jigsaw/batch"><i class="bi bi-images" aria-hidden="true"></i>{{ t('jigsawUser.makeMany') || 'Make many jigsaws at once' }}</a>
+      </div>
       @if (mine() === null) {
         <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingJigsaws') || 'Looking for your jigsaws…' }}</div>
       } @else if (!mine()!.length) {
-        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noJigsaws') || 'You have not made a jigsaw yet.' }} <a routerLink="/jigsaw/new">{{ t('jigsawUser.addJigsaw') || 'Add a new jigsaw' }}</a>.</p>
+        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noJigsaws') || 'You have not made a jigsaw yet.' }}</p>
       } @else {
+        <!-- a short filter: all, public, private or hidden -->
+        <div class="toolbar mb-2">
+          <div class="segmented" role="group" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Show'">
+            <input id="vis-all" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'all'" (change)="chooseVisibility('all')">
+            <label class="btn" for="vis-all">{{ t('jigsawUser.filterAll') || 'All' }} ({{ visibilityCounts().all }})</label>
+            <input id="vis-public" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'everyone'" (change)="chooseVisibility('everyone')">
+            <label class="btn" for="vis-public"><i class="bi bi-eye" aria-hidden="true"></i>{{ t('jigsawUser.visibilityEveryone') || 'Public' }} ({{ visibilityCounts().everyone }})</label>
+            <input id="vis-private" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'owner'" (change)="chooseVisibility('owner')">
+            <label class="btn" for="vis-private"><i class="bi bi-lock" aria-hidden="true"></i>{{ t('jigsawUser.visibilityOwner') || 'Private' }} ({{ visibilityCounts().owner }})</label>
+            <input id="vis-hidden" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'hidden'" (change)="chooseVisibility('hidden')">
+            <label class="btn" for="vis-hidden"><i class="bi bi-eye-slash" aria-hidden="true"></i>{{ t('jigsawUser.visibilityHidden') || 'Hidden' }} ({{ visibilityCounts().hidden }})</label>
+          </div>
+        </div>
+        <!-- tick jigsaws and delete the ticked ones all at once -->
+        <div class="toolbar mb-2">
+          <div class="form-check mb-0">
+            <input id="select-all-jigsaws" class="form-check-input" type="checkbox" [checked]="allSelected()" [indeterminate]="someSelected()" [disabled]="deletingSelected()" (change)="toggleAllSelected()">
+            <label class="form-check-label" for="select-all-jigsaws">{{ t('jigsawUser.selectAll') || 'Select all' }}</label>
+          </div>
+          <!-- what the last change of who sees the jigsaws did: it stays when the ticks are let go -->
+          @if (changingVisibility()) {
+            <span class="small"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawUser.changing') || 'Changing…' }}</span>
+          } @else if (visibilityChanged()) {
+            <span class="small text-success" role="status"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawUser.visibilityChanged', { count: visibilityChanged() }) || 'Changed ' + visibilityChanged() }}</span>
+          }
+          @if (selected().size) {
+            <span class="text-body-secondary small" role="status">{{ t('jigsawUser.selectedCount', { count: selected().size }) || selected().size + ' selected' }}</span>
+            @if (!confirmingSelected() && !deletingSelected()) {
+              <!-- who sees the ticked jigsaws: public (everyone), private (its owner and players) or hidden (only in this list) -->
+              <select class="form-select form-select-sm w-auto" name="visibility-selected" [disabled]="changingVisibility()" [attr.aria-label]="t('jigsawUser.setVisibility') || 'Who sees it…'" (change)="setVisibilitySelected($any($event.target).value); $any($event.target).value = ''">
+                <option value="" selected>{{ t('jigsawUser.setVisibility') || 'Who sees it…' }}</option>
+                <option value="everyone">{{ t('jigsawUser.visibilityEveryone') || 'Public' }}</option>
+                <option value="owner">{{ t('jigsawUser.visibilityOwner') || 'Private' }}</option>
+                <option value="hidden">{{ t('jigsawUser.visibilityHidden') || 'Hidden' }}</option>
+              </select>
+            }
+            @if (deletingSelected()) {
+              <span class="small"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawUser.deleting') || 'Deleting…' }}</span>
+            } @else if (confirmingSelected()) {
+              <div class="w-100 small" role="alert">{{ t('jigsawUser.deleteSelectedAsk', { count: selected().size }) || 'Delete these ' + selected().size + ' jigsaws for good? Their pictures and all their rounds, also those of other players, go too.' }}</div>
+              <button type="button" class="link-action danger" (click)="removeSelected()">{{ t('jigsawUser.yesDeleteSelected', { count: selected().size }) || 'Yes, delete ' + selected().size }}</button>
+              <button type="button" class="link-action" (click)="confirmingSelected.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+            } @else {
+              <button type="button" class="link-action danger" (click)="confirmingSelected.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.deleteSelected') || 'Delete the selected' }}</button>
+            }
+          }
+        </div>
         <ul class="list-group">
-          @for (item of mine(); track item.id) {
-            <li class="list-group-item round-row">
+          @for (item of shownJigsaws(); track item.id) {
+            <li class="list-group-item round-row" [class.row-selected]="selected().has(item.id)" [class.vis-hidden]="item.visibility === 'hidden'" [class.vis-private]="item.visibility === 'owner'" [class.vis-public]="!item.visibility || item.visibility === 'everyone'">
               <div class="round-body">
+                <!-- over the link that covers the row, so it can be ticked -->
+                <!-- the whole padded area round the box ticks it, a big target for a finger -->
+                <label class="select-area position-relative z-2">
+                  <input class="form-check-input m-0" type="checkbox" [id]="'select-' + item.id" [checked]="selected().has(item.id)" [disabled]="deletingSelected()" [attr.aria-label]="t('jigsawUser.select', { name: item.name }) || 'Select ' + item.name" (change)="toggleSelected(item.id)">
+                </label>
                 <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
                   @if (!noPicture().has(item.id)) {
                     <img class="object-fit-cover" [src]="pictureUrl(item.id)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
@@ -125,6 +225,21 @@
                 </div>
                 <div class="round-info">
                   <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>
+                  <!-- pieces, difficulty and the categories the picture is in -->
+                  <div class="tiny text-body-secondary">
+                    <span class="text-nowrap"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: piecesOf(item).count }) || piecesOf(item).count + ' pieces' }} ({{ piecesOf(item).columns }} × {{ piecesOf(item).rows }})</span>
+                    <span class="text-nowrap ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + levelOf(item)) || levelOf(item) }}</span>
+                  </div>
+                  @if (item.categories?.length) {
+                    <app-category-tags [keys]="item.categories" />
+                  }
+                  @if (item.visibility === 'owner') {
+                    <div class="tiny text-body-secondary"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawUser.visibilityOwner') || 'Private' }}</div>
+                  } @else if (item.visibility === 'hidden') {
+                    <div class="tiny text-body-secondary"><i class="bi bi-eye-slash me-1" aria-hidden="true"></i>{{ t('jigsawUser.visibilityHidden') || 'Hidden' }}</div>
+                  } @else {
+                    <div class="tiny text-body-secondary"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('jigsawUser.visibilityEveryone') || 'Public' }}</div>
+                  }
                 </div>
                 <div class="round-actions" [class.confirming]="confirmingJigsawId() === item.id">
                   @if (confirmingJigsawId() === item.id) {
@@ -132,6 +247,7 @@
                     <button type="button" class="link-action danger" (click)="removeJigsaw(item)">{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
                     <button type="button" class="link-action" (click)="confirmingJigsawId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
                   } @else {
+                    <button type="button" class="link-action" [class.text-warning]="isRecommended(item)" [attr.aria-pressed]="isRecommended(item)" [title]="isRecommended(item) ? (t('jigsawUser.unrecommend') || 'Take away from Recommended') : (t('jigsawUser.recommend') || 'Recommend')" (click)="toggleRecommended(item)"><i class="bi" [class.bi-star-fill]="isRecommended(item)" [class.bi-star]="!isRecommended(item)" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.recommended') || 'Recommended' }}</span></button>
                     <a class="link-action" [routerLink]="['/jigsaw', item.id]" [queryParams]="{ edit: 1 }" [title]="t('jigsawUser.edit') || 'Edit'"><i class="bi bi-pencil" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.edit') || 'Edit' }}</span></a>
                     <button type="button" class="link-action danger" [title]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingJigsawId.set(item.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.deleteRound') || 'Delete' }}</span></button>
                   }

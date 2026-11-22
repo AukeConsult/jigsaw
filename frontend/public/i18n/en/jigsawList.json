@@ -43,5 +43,7 @@
   "quickFilters": "Quick filters",
   "addFavorite": "Add to favorites",
   "removeFavorite": "Remove from favorites",
-  "favorites": "Favorites"
+  "favorites": "Favorites",
+  "hiddenNote": "Hidden: only in your list of jigsaws",
+  "details": "Details"
 }

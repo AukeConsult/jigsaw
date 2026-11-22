@@ -53,9 +53,9 @@
     "large": "Stor 4:3 (1200 × 900)"
   },
   "visibility": "Vem ser det",
-  "visibilityEveryone": "Alla",
-  "visibilityOwner": "Bara ägaren",
-  "visibilityHelp": "Ett pussel för alla finns i allas listor. Ett som bara ägaren ser finns bara i ägarens listor.",
+  "visibilityEveryone": "Offentlig",
+  "visibilityOwner": "Privat",
+  "visibilityHelp": "Offentlig: i allas listor. Privat: bara ägaren och spelarna ser det. Dold: bara i listan över dina egna pussel, inte på startsidan eller i andra listor.",
   "timed": "Tidtagning",
   "timedHelp": "En klocka mäter hur lång tid varje omgång tar.",
   "sectionBasics": "Grundläggande",
@@ -66,5 +66,12 @@
   "optional": "(valfritt)",
   "descriptionPlaceholder": "En plats, en dag, ett minne…",
   "language": "Språk",
-  "languageHelp": "Språket som namnet och beskrivningen är skrivna på. Det börjar som ditt språk."
+  "languageHelp": "Språket som namnet och beskrivningen är skrivna på. Det börjar som ditt språk.",
+  "visibilityHidden": "Dold",
+  "classify": "Låt AI sätta kategorier, namn och beskrivning",
+  "classifying": "AI tittar på bilden …",
+  "classifyHelp": "Bilden skickas till OpenAI för att granskas. Namnet, beskrivningen och kategorierna ersätts.",
+  "classifyFailed": "AI klarade det inte: försök igen.",
+  "sectionLook": "Utseende",
+  "languageAi": "När du byter låter AI skriva dem igen på det nya språket."
 }

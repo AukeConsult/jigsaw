@@ -53,9 +53,9 @@
     "large": "Stort 4:3 (1200 × 900)"
   },
   "visibility": "Hvem ser det",
-  "visibilityEveryone": "Alle",
-  "visibilityOwner": "Kun ejeren",
-  "visibilityHelp": "Et puslespil for alle står i alles lister. Et som kun ejeren ser, står kun i ejerens lister.",
+  "visibilityEveryone": "Offentlig",
+  "visibilityOwner": "Privat",
+  "visibilityHelp": "Offentlig: i alles lister. Privat: kun ejeren og spillerne ser det. Skjult: kun i listen over dine egne puslespil, ikke på forsiden eller i andre lister.",
   "timed": "Tidtagning",
   "timedHelp": "Et ur måler, hvor lang tid hver runde tager.",
   "sectionBasics": "Grundlæggende",
@@ -66,5 +66,12 @@
   "optional": "(valgfri)",
   "descriptionPlaceholder": "Et sted, en dag, et minde…",
   "language": "Sprog",
-  "languageHelp": "Sproget navnet og beskrivelsen er skrevet på. Det starter som dit sprog."
+  "languageHelp": "Sproget navnet og beskrivelsen er skrevet på. Det starter som dit sprog.",
+  "visibilityHidden": "Skjult",
+  "classify": "Lad AI sætte kategorier, navn og beskrivelse",
+  "classifying": "AI kigger på billedet …",
+  "classifyHelp": "Billedet sendes til OpenAI for at blive set på. Navnet, beskrivelsen og kategorierne erstattes.",
+  "classifyFailed": "AI kunne ikke: prøv igen.",
+  "sectionLook": "Udseende",
+  "languageAi": "Når du skifter, lader AI dem skrive igen på det nye sprog."
 }

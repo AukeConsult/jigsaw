@@ -35,7 +35,16 @@
   }
 
   @if (hasMore()) {
-    <div class="mt-3"><button type="button" class="btn btn-outline-secondary" [disabled]="loading()" (click)="more()">{{ t('jigsawList.more') || 'Show more' }}</button></div>
+    <!-- endless scroll: this mark is watched, and the next page is added when it comes near; a browser that cannot watch gets the button -->
+    <div #end class="mt-3 text-center">
+      @if (loading()) {
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      } @else if (needsButton) {
+        <button type="button" class="btn btn-outline-secondary" (click)="more()">{{ t('jigsawList.more') || 'Show more' }}</button>
+      } @else {
+        <span class="d-inline-block py-2">&nbsp;</span>
+      }
+    </div>
   }
   @if (!items().length && !loading() && !failed()) {
     @if (filtered()) {

@@ -43,5 +43,7 @@
   "quickFilters": "Snabbfilter",
   "addFavorite": "Lägg till som favorit",
   "removeFavorite": "Ta bort från favoriter",
-  "favorites": "Favoriter"
+  "favorites": "Favoriter",
+  "hiddenNote": "Dold: bara i listan över dina pussel",
+  "details": "Detaljer"
 }

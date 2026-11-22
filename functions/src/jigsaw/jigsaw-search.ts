@@ -1,6 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
-import { JigsawIndex, JigsawSearch, JigsawSummary, SEARCH_MAX_READ, SUMMARY_FIELDS } from "../models";
+import { JigsawIndex, JigsawSearch, JigsawSummary, JigsawVisibilities, SEARCH_MAX_READ, SUMMARY_FIELDS } from "../models";
 
 // Looking for jigsaws. Firestore is asked for the newest jigsaws overall (an order on one field) and for the jigsaws of each owner (one equality), all at the same time, and only for the
 // fields a list needs (`select`): the pieces and the objects of a jigsaw (`placed`) are never read. What matches, the counts, the order and the pages are worked out here on those
@@ -78,7 +78,7 @@ export function jigsawSearchRouter(
   /** The jigsaws the person may see, the newest first; with `onlyFavorites`, those the person has ticked (none for nobody). */
   const visible = async (me: string | undefined, onlyFavorites = false): Promise<JigsawSummary[]> => {
     const [all, mine] = await Promise.all([store.load(await owners(), SEARCH_MAX_READ), onlyFavorites && me ? favorites(me) : Promise.resolve([] as string[])]);
-    const seen = await Promise.all(all.map((j) => (j.visibility !== "owner" ? true : me ? canSee(j, me) : false))); // the private ones are asked about at the same time
+    const seen = await Promise.all(all.map((j) => (!JigsawVisibilities.listed(j.visibility) ? false : j.visibility !== "owner" ? true : me ? canSee(j, me) : false))); // a hidden one is never found; the private ones are asked about at the same time
     const favored = new Set(mine);
     return all.filter((j, i) => seen[i] && (!onlyFavorites || favored.has(j.id)));
   };

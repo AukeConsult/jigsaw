@@ -53,9 +53,9 @@
     "large": "Suuri 4:3 (1200 × 900)"
   },
   "visibility": "Kuka näkee",
-  "visibilityEveryone": "Kaikki",
-  "visibilityOwner": "Vain omistaja",
-  "visibilityHelp": "Kaikille näkyvä palapeli on kaikkien listoilla. Vain omistajalle näkyvä palapeli on vain omistajan listoilla.",
+  "visibilityEveryone": "Julkinen",
+  "visibilityOwner": "Yksityinen",
+  "visibilityHelp": "Julkinen: kaikkien listoilla. Yksityinen: vain omistaja ja pelaajat näkevät sen. Piilotettu: vain omien palapelien listalla, ei etusivulla eikä muilla listoilla.",
   "timed": "Ajastettu",
   "timedHelp": "Kello mittaa, kuinka kauan kukin kierros kestää.",
   "sectionBasics": "Perustiedot",
@@ -66,5 +66,12 @@
   "optional": "(valinnainen)",
   "descriptionPlaceholder": "Paikka, päivä, muisto…",
   "language": "Kieli",
-  "languageHelp": "Kieli, jolla nimi ja kuvaus on kirjoitettu. Se alkaa omana kielenäsi."
+  "languageHelp": "Kieli, jolla nimi ja kuvaus on kirjoitettu. Se alkaa omana kielenäsi.",
+  "visibilityHidden": "Piilotettu",
+  "classify": "Anna tekoälyn asettaa luokat, nimi ja kuvaus",
+  "classifying": "Tekoäly katsoo kuvaa …",
+  "classifyHelp": "Kuva lähetetään OpenAI:lle katsottavaksi. Nimi, kuvaus ja luokat korvataan.",
+  "classifyFailed": "Tekoäly ei onnistunut: yritä uudelleen.",
+  "sectionLook": "Ulkoasu",
+  "languageAi": "Kielen vaihtaminen antaa tekoälyn kirjoittaa ne uudelleen uudella kielellä."
 }

@@ -53,6 +53,17 @@ export class JigsawService extends ApiCollection<JigsawInput, JigsawSpec> {
     return firstValueFrom(this.client.get<JigsawFacets>(`${environment.jigsawApi}/jigsaw-search/facets`, { params: this.params(request) }));
   }
 
+  /**
+   * The AI looks at the picture of the jigsaw and says its categories, a name and a description (the texts in the language of the jigsaw). With `apply` they are also put on the
+   * jigsaw. Only the owner may. Throws when the AI cannot be asked or fails (the error says why).
+   */
+  classify(id: string, apply = false, language?: string): Promise<{ categories: string[]; name: string; description: string; applied: boolean }> {
+    let params = new HttpParams();
+    if (apply) params = params.set('apply', 'true');
+    if (language) params = params.set('language', language); // the texts in this language (and with apply the jigsaw gets it), not the language the jigsaw has
+    return firstValueFrom(this.client.post<{ categories: string[]; name: string; description: string; applied: boolean }>(`${environment.jigsawApi}/jigsaw/${encodeURIComponent(id)}/classify`, null, { params }));
+  }
+
   /** The most popular jigsaws the person may see (at most ten), the best first: by the rounds played and by being new. The server ranks them (`Popularity`). */
   popular(): Promise<JigsawSpec[]> {
     return firstValueFrom(this.client.get<JigsawSpec[]>(`${environment.jigsawApi}/jigsaw-popular`));

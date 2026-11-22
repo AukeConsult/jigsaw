@@ -6,6 +6,7 @@ import { JigsawSummary } from '../../models/shared/jigsaw-search';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { CategoryTags } from '../category-tags/category-tags';
 import { FavoritesService } from '../favorites.service';
+import { CardDetails } from '../card-details';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { snapLevelOfJigsaw } from '../snap-level';
 
@@ -20,6 +21,7 @@ import { snapLevelOfJigsaw } from '../snap-level';
 export class JigsawCard {
   private readonly images = inject(JigsawImageService);
   protected readonly favorites = inject(FavoritesService);
+  protected readonly details = inject(CardDetails);
 
   readonly jigsaw = input.required<JigsawSummary>();
   /** only the picture (with the name as a tooltip), for a band where the cards are small */

@@ -1,22 +1,19 @@
 import { Location } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { Autosave } from '../../core/autosave';
 import { tr } from '../../core/i18n';
-import { LANGUAGES } from '../../core/language.service';
 import { JigsawLanguages } from '../../models/shared/language';
-import { CategoryPicker } from '../category-picker/category-picker';
 import { RoundRow } from '../round-row/round-row';
+import { JigsawFields } from '../jigsaw-fields/jigsaw-fields';
 import { JigsawHeader } from '../jigsaw-header/jigsaw-header';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { PlaysService } from '../plays.service';
-import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { PlaySpec } from '../../models/shared/play';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
-import { LINE_LEVELS, lineLevelOf } from '../line-level';
 
 /**
  * A jigsaw (`/jigsaw/:id`): its picture and what it is, and the games the user has played of it. A game is continued where it was left, or a new one is started
@@ -25,7 +22,7 @@ import { LINE_LEVELS, lineLevelOf } from '../line-level';
  */
 @Component({
   selector: 'app-jigsaw-page',
-  imports: [RouterLink, FormsModule, TranslocoDirective, JigsawHeader, RoundRow, CategoryPicker],
+  imports: [RouterLink, TranslocoDirective, JigsawHeader, JigsawFields, RoundRow],
   providers: [provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-page.html',
 })
@@ -45,7 +42,6 @@ export class JigsawPage implements OnInit {
   readonly error = signal('');
   /** Delete (the jigsaw) was pressed and waits for "Yes" */
   readonly confirmingDelete = signal(false);
-  readonly maxName = JIGSAW_MAX_NAME;
 
   /** the edit form is open, and what is in it (it starts from the jigsaw as it is) */
   readonly editing = signal(false);
@@ -56,23 +52,19 @@ export class JigsawPage implements OnInit {
   readonly description = signal('');
   /** the language of the jigsaw in the edit form */
   readonly language = signal('en');
-  protected readonly languages = LANGUAGES;
   /** the categories in the edit form */
   readonly categories = signal<string[]>([]);
-  readonly maxDescription = JIGSAW_MAX_DESCRIPTION;
-  readonly visibility = signal<'everyone' | 'owner'>('everyone');
+  readonly visibility = signal<'everyone' | 'owner' | 'hidden'>('everyone');
   readonly lineWidth = signal<number>(JigsawSettings.DEFAULT_LINE_WIDTH);
   readonly lineColor = signal<string>(JigsawSettings.DEFAULT_LINE_COLOR);
   readonly backColor = signal<string>(JigsawSettings.DEFAULT_BACK_COLOR);
-  readonly lineLevels = LINE_LEVELS;
-  readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
   /** anyone has started a game of this jigsaw: its picture, size and pieces are then fixed */
   readonly played = signal(false);
 
 
   async ngOnInit(): Promise<void> {
     try {
-      const item = (await this.jigsaws.list()).find((c) => c.id === this.id);
+      const item = await this.jigsaws.get(this.id);
       if (!item) return this.status.set('missing');
       this.item.set(item);
       const me = this.users.user();
@@ -119,13 +111,18 @@ export class JigsawPage implements OnInit {
     return game.userId === this.users.user()?.id;
   }
 
-  /** Starts a new round and goes to it. */
+  /** Goes on with the user's newest round that is not solved, or starts a new one when there is none (the list has the user's own rounds first, each newest first). */
   async play(): Promise<void> {
     const me = this.users.user();
     if (!me || this.busy()) return;
     this.busy.set(true);
     this.error.set('');
+    const unfinished = this.games().find((g) => g.userId === me.id && g.status !== 'solved');
     try {
+      if (unfinished) {
+        await this.router.navigate(['/jigsaw', this.id, 'play', unfinished.id]);
+        return;
+      }
       const game = await this.plays.start(this.id, me.id);
       await this.router.navigate(['/jigsaw', this.id, 'play', game.id]);
     } catch {
@@ -154,7 +151,7 @@ export class JigsawPage implements OnInit {
     return {
       name: this.name().trim(),
       ...(owner ? { author: owner.name, ownerUid: owner.id } : item.author ? { author: item.author } : {}), // the API puts the name of the user in `author` itself
-      ...(this.visibility() === 'owner' && (owner?.id ?? item.ownerUid) ? { visibility: 'owner' as const } : {}),
+      ...(this.visibility() !== 'everyone' && (owner?.id ?? item.ownerUid) ? { visibility: this.visibility() as 'owner' | 'hidden' } : {}),
       ...(item.timed === false ? { timed: false } : {}), // the clock is fixed once somebody has started a round: it is sent back as it is
       ...(item.pictureName ? { pictureName: item.pictureName } : {}),
       ...(this.description().trim() ? { description: this.description().trim() } : {}),
@@ -187,6 +184,27 @@ export class JigsawPage implements OnInit {
     inject(DestroyRef).onDestroy(() => this.autosave.destroy()); // a change that is still waiting is saved when the page is left
   }
 
+  /** "Take away the rounds" was pressed and waits for "Yes" */
+  readonly confirmingReset = signal(false);
+
+  /** All the rounds are taken away (also other players'), and the whole jigsaw can be edited: the person goes on to the form with the picture, the size and the difficulty. */
+  async resetRounds(): Promise<void> {
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await this.plays.removeAll(this.id);
+      this.games.set([]);
+      this.played.set(false);
+      this.editing.set(false);
+      await this.router.navigate(['/jigsaw', this.id, 'edit'], { replaceUrl: true });
+    } catch {
+      this.error.set(tr('jigsawPage.couldNotResetRounds', 'Could not take away the rounds: only its owner can.'));
+      this.confirmingReset.set(false);
+      this.busy.set(false);
+    }
+  }
+
   /** The owner presses "Add a description": the edit opens (the panel of a played jigsaw, else the form of the jigsaw) and the cursor goes to the description. */
   addDescription(): void {
     if (!this.editing()) this.edit();
@@ -205,7 +223,7 @@ export class JigsawPage implements OnInit {
     if (!item || !this.mayChange()) return; // a link that opens the form (`?edit=1`) does not open it for somebody who is not the owner
     // nobody has played it: the whole jigsaw can be edited, with the form of a new one
     if (!this.played()) {
-      void this.router.navigate(['/jigsaw', this.id, 'edit']);
+      void this.router.navigate(['/jigsaw', this.id, 'edit'], { replaceUrl: true }); // the page is replaced by the form, and the form by the page when it is left: the history has one place for it
       return;
     }
     this.name.set(item.name);

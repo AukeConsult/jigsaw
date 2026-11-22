@@ -7,6 +7,10 @@ lib/
 .env
 .env.*
 !.env.example
+# the settings copied from /.env to the functions (scripts/sync-env.mjs): the key is only in .secret.local, and neither is committed
+functions/.env
+functions/.secret.local
+.secret.local
 .emulator-data/
 firebase-export-*/
 .idea/

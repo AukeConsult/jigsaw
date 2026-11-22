@@ -21,64 +21,24 @@
             <form class="card card-body mt-3" (submit)="$event.preventDefault()">
               <!-- closes the panel (what was changed is already saved) -->
               <button type="button" class="btn-close position-absolute top-0 end-0 m-3" [attr.aria-label]="t('jigsawPage.close') || 'Close'" [title]="t('jigsawPage.close') || 'Close'" (click)="editing.set(false)"></button>
-              <h2 class="form-section first"><i class="bi bi-tag" aria-hidden="true"></i>{{ t('jigsawPage.sectionBasics') || 'Basics' }}</h2>
-              <div class="mb-3">
-                <label class="form-label" for="edit-name">{{ t('jigsawPage.name') || 'Name' }} <span class="text-danger" aria-hidden="true">*</span></label>
-                <input id="edit-name" name="name" class="form-control" type="text" required [attr.maxlength]="maxName" [ngModel]="name()" (ngModelChange)="name.set($event)">
-              </div>
-              <div class="mb-3">
-                <label class="form-label" for="edit-description">{{ t('jigsawPage.description') || 'Description' }} <span class="text-body-secondary">{{ t('jigsawPage.optional') || '(optional)' }}</span></label>
-                <textarea id="edit-description" name="description" class="form-control" rows="3" [maxlength]="maxDescription" [ngModel]="description()" (ngModelChange)="description.set($event)"></textarea>
-              </div>
-              <div class="mb-3">
-                <label class="form-label" for="edit-language">{{ t('jigsawPage.language') || 'Language' }}</label>
-                <select id="edit-language" name="language" class="form-select" [ngModel]="language()" (ngModelChange)="language.set($event)">
-                  @for (l of languages; track l.code) {
-                    <option [value]="l.code">{{ l.name }}</option>
-                  }
-                </select>
-              </div>
-              <div class="mb-3">
-                <app-category-picker id="edit-categories" [(selected)]="categories" />
-              </div>
-
-              <h2 class="form-section"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawPage.sectionLook') || 'Look' }}</h2>
-              <div class="row g-3 mb-3">
-                <div class="col-6">
-                  <label class="form-label" for="edit-line">{{ t('jigsawPage.line') || 'Line' }}</label>
-                  <select id="edit-line" name="line" class="form-select" [title]="t('jigsawPage.lineHint') || 'How thick the line round the pieces is in a new round'" (change)="lineWidth.set(+$any($event.target).value)">
-                    @for (l of lineLevels; track l.width) {
-                      <option [value]="l.width" [selected]="lineLevel() === l.width">{{ t('jigsawLevels.line.' + l.key) || l.label }}</option>
-                    }
-                  </select>
+              <app-jigsaw-fields [(name)]="name" [(description)]="description" [(language)]="language" [(categories)]="categories" [(lineWidth)]="lineWidth" [(lineColor)]="lineColor" [(backColor)]="backColor" [(ownerUid)]="ownerUid" [(visibility)]="visibility"
+                                 [owners]="owners()" [classifyId]="id" />
+              <!-- the picture, size, pieces and difficulty are fixed while there are rounds: the owner can take the rounds away to change them -->
+              <h2 class="form-section"><i class="bi bi-lock" aria-hidden="true"></i>{{ t('jigsawPage.sectionFixed') || 'Picture, size and difficulty' }}</h2>
+              <p class="text-body-secondary">{{ t('jigsawPage.fixedNote') || 'The picture, the size, the pieces and the difficulty are fixed, since rounds of this jigsaw have been started.' }}</p>
+              @if (confirmingReset()) {
+                <div class="alert alert-danger py-2 small" role="alert">
+                  {{ t('jigsawPage.resetAsk') || 'Delete all the rounds of this jigsaw for good, also other players’? Then the picture, the size and the difficulty can be changed.' }}
+                  <div class="d-flex gap-1 mt-2">
+                    <button type="button" class="btn btn-sm btn-danger" [disabled]="busy()" (click)="resetRounds()">{{ t('jigsawPage.yesReset') || 'Yes, delete the rounds' }}</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingReset.set(false)">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+                  </div>
                 </div>
-                <div class="col-3">
-                  <label class="form-label" for="edit-line-color">{{ t('jigsawPage.colour') || 'Colour' }}</label>
-                  <input id="edit-line-color" name="lineColor" class="form-control form-control-color w-100" type="color" [ngModel]="lineColor()" (ngModelChange)="lineColor.set($event)">
+              } @else {
+                <div class="toolbar mb-3">
+                  <button type="button" class="link-action danger" (click)="confirmingReset.set(true)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{{ t('jigsawPage.resetRounds') || 'Delete all rounds to change them' }}</button>
                 </div>
-                <div class="col-3">
-                  <label class="form-label" for="edit-back-color">{{ t('jigsawPage.back') || 'Background' }}</label>
-                  <input id="edit-back-color" name="backColor" class="form-control form-control-color w-100" type="color" [ngModel]="backColor()" (ngModelChange)="backColor.set($event)">
-                </div>
-              </div>
-
-              <h2 class="form-section"><i class="bi bi-people" aria-hidden="true"></i>{{ t('jigsawPage.sectionOwner') || 'Owner and sharing' }}</h2>
-              <div class="mb-3">
-                <label class="form-label" for="edit-author">{{ t('jigsawPage.author') || 'Author' }}</label>
-                <select id="edit-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
-                  @if (!ownerUid()) { <option value="">{{ t('jigsawPage.chooseAuthor') || 'Choose the author' }}</option> }
-                  @for (u of owners(); track u.id) {
-                    <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
-                  }
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label" for="edit-visibility">{{ t('jigsawPage.visibility') || 'Who sees it' }}</label>
-                <select id="edit-visibility" name="visibility" class="form-select" [ngModel]="visibility()" (ngModelChange)="visibility.set($event)">
-                  <option value="everyone">{{ t('jigsawPage.visibilityEveryone') || 'Everyone' }}</option>
-                  <option value="owner" [disabled]="!ownerUid()">{{ t('jigsawPage.visibilityOwner') || 'Only the owner' }}</option>
-                </select>
-              </div>
+              }
               <!-- what is changed here is saved by itself; only a problem is said. Only what can be changed is here: the difficulty, the clock, the size, the picture and the pieces are fixed once somebody has started a round, so they are not shown -->
               @if (saveState() === 'failed') {
                 <div class="small text-danger" role="alert">{{ t('jigsawPage.couldNotSave') || 'Could not save the changes: try again.' }}</div>

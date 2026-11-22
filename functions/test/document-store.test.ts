@@ -40,6 +40,16 @@ const store = () => {
 };
 
 describe("the document store", () => {
+  it("reads one document by its id, also one that is older than the newest the list has", async () => {
+    const s = store();
+    s.docs.set("old", { name: "old", size: 1, createdAt: 1 });
+    s.docs.set("mid", { name: "mid", size: 2, createdAt: 2 });
+    s.docs.set("new", { name: "new", size: 3, createdAt: 3 });
+    expect((await s.store.list()).map((i) => i.id)).not.toContain("old"); // the limit is 2
+    expect(await s.store.get!("old")).toMatchObject({ id: "old", name: "old" });
+    expect(await s.store.get!("nothere")).toBeNull();
+  });
+
   it("adds a document with its creation time, and reads it back", async () => {
     const s = store();
     const added = await s.store.add({ name: "a", size: 1 });

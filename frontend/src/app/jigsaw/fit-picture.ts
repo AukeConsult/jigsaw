@@ -1,6 +1,9 @@
 import { cssVar } from '../core/theme';
 import { SourceRect } from '../models/shared/geometry';
 
+/** The biggest picture the API keeps for a jigsaw (about 5 MB; a larger one is made smaller first). */
+export const MAX_PICTURE_BYTES = 5 * 1024 * 1024 - 64 * 1024;
+
 /** The longest side a picture is made first, in pixels. */
 const FIRST_SIDE_PX = 2400;
 /** How the quality of the jpeg goes down while the picture is still too big. */

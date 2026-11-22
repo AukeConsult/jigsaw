@@ -1,5 +1,9 @@
 <main class="container py-3" *transloco="let t">
-  <h1 class="page-title mb-3">{{ t('jigsawList.findTitle') || 'Find a jigsaw' }}</h1>
+  <!-- Go is at the top too, so it is there without scrolling down the choices -->
+  <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="page-title mb-0">{{ t('jigsawList.findTitle') || 'Find a jigsaw' }}</h1>
+    <button type="button" class="btn btn-primary" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button>
+  </div>
   <app-view-switch [(view)]="view" idPrefix="find-view" />
   <app-jigsaw-filter [(filter)]="filter" [facets]="facets()" idPrefix="find" />
   <!-- how many jigsaws match what is chosen, counted at each choice; none: it is said, and Go waits -->

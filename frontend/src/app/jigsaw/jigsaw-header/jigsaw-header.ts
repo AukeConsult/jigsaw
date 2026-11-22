@@ -2,13 +2,14 @@ import { Component, computed, inject, input, model, output, signal } from '@angu
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { pieceGrid } from '../../models/shared/jigsaw';
+import { CategoryTags } from '../category-tags/category-tags';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { snapLevelOfJigsaw } from '../snap-level';
 
 /** The top of the page of a jigsaw: its picture, name, description, author and details, Edit and Delete for the owner, and the button that starts a round. */
 @Component({
   selector: 'app-jigsaw-header',
-  imports: [TranslocoDirective],
+  imports: [TranslocoDirective, CategoryTags],
   providers: [provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-header.html',
 })

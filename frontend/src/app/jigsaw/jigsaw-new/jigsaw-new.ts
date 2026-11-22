@@ -4,7 +4,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
 import { readPreference, writePreference } from '../../core/preferences';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { fitPicture } from '../fit-picture';
+import { MAX_PICTURE_BYTES, fitPicture } from '../fit-picture';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawPiecesService } from '../jigsaw-pieces.service';
 import { JigsawService } from '../jigsaw.service';
@@ -12,14 +12,13 @@ import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
 import { PlaysService } from '../plays.service';
 import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
-import { LINE_LEVELS, lineLevelOf } from '../line-level';
 import { JigsawExample } from '../jigsaw-example/jigsaw-example';
-import { LANGUAGES, LanguageService } from '../../core/language.service';
+import { JigsawFields } from '../jigsaw-fields/jigsaw-fields';
+import { LanguageService } from '../../core/language.service';
 import { JigsawLanguages } from '../../models/shared/language';
-import { CategoryPicker } from '../category-picker/category-picker';
 import { PictureCropper } from '../picture-cropper/picture-cropper';
 import { renderPieceGraphics } from '../piece-graphics';
-import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { SourceRect } from '../../models/shared/geometry';
 import { JigsawCut, JigsawPieces, PieceLayout, pieceGrid } from '../../models/shared/jigsaw';
 
@@ -50,8 +49,6 @@ const isNewJigsawPreferences = (v: unknown): v is NewJigsawPreferences => {
   );
 };
 
-/** The biggest picture the API keeps for a jigsaw (about 5 MB; a larger one is made smaller first). */
-const MAX_PICTURE_BYTES = 5 * 1024 * 1024 - 64 * 1024;
 /** The preview of the cut picture is small. */
 const PREVIEW_BYTES = 300 * 1024;
 
@@ -65,7 +62,7 @@ const PREVIEW_BYTES = 300 * 1024;
  */
 @Component({
   selector: 'app-jigsaw-new',
-  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample, TranslocoDirective, CategoryPicker],
+  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample, TranslocoDirective, JigsawFields],
   providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-new.html',
 })
@@ -80,7 +77,7 @@ export class JigsawNew implements OnDestroy {
   readonly editId = inject(ActivatedRoute).snapshot.paramMap.get('id');
   /** the jigsaw as it was when the edit began, and whether its picture was changed since (a new file, or another cut of it) */
   private original: JigsawSpec | null = null;
-  private readonly pictureChanged = signal(false);
+  protected readonly pictureChanged = signal(false);
   readonly loading = signal(!!this.editId);
 
   /** the standard shapes to choose from (the picture area is then made a whole number of pieces wide and high, which can differ a little) */
@@ -107,15 +104,13 @@ export class JigsawNew implements OnDestroy {
   readonly description = signal('');
   /** the language the name and description are written in: the language the app is shown in (the language of the user), to begin with */
   readonly language = signal(inject(LanguageService).lang());
-  protected readonly languages = LANGUAGES;
   /** the keys of the categories the jigsaw is in */
   readonly categories = signal<string[]>([]);
-  readonly maxDescription = JIGSAW_MAX_DESCRIPTION;
   /** who made the jigsaw: a user chosen from the users (the UID is kept on the jigsaw as its owner, and the user's name is its author) */
   readonly owners = signal<JigsawUserSpec[]>([]);
   readonly ownerUid = signal('');
-  /** who sees the jigsaw in the lists: everyone, or only its owner */
-  readonly visibility = signal<'everyone' | 'owner'>('everyone');
+  /** who sees the jigsaw: a new one is hidden to begin with (only in the list of its owner's jigsaws) until its owner makes it private or public */
+  readonly visibility = signal<'everyone' | 'owner' | 'hidden'>('hidden');
   /** a clock counts how long each round takes */
   readonly timed = signal(true);
   private readonly owner = computed(() => this.owners().find((u) => u.id === this.ownerUid()) ?? null);
@@ -141,8 +136,6 @@ export class JigsawNew implements OnDestroy {
   /** the background colour of the picture area (#rrggbb) */
   readonly backColor = signal(JigsawSettings.DEFAULT_BACK_COLOR);
   /** the thicknesses of the line to choose from, in words, and the one the line is closest to */
-  readonly lineLevels = LINE_LEVELS;
-  readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
 
   readonly pieceInfo = computed(() => pieceGrid(this.width(), this.height(), this.gridSize()));
 
@@ -228,7 +221,7 @@ export class JigsawNew implements OnDestroy {
     return {
       name: this.name().trim(),
       ...(this.owner() ? { author: this.owner()!.name, ownerUid: this.owner()!.id } : this.ownerUid() ? { ownerUid: this.ownerUid() } : {}), // the API puts the name of the user in `author` itself
-      ...(this.visibility() === 'owner' && this.ownerUid() ? { visibility: 'owner' as const } : {}),
+      ...(this.visibility() !== 'everyone' && this.ownerUid() ? { visibility: this.visibility() as 'owner' | 'hidden' } : {}),
       ...(this.timed() ? {} : { timed: false }), // timed is what none says
       ...(this.pictureNameOf() ? { pictureName: this.pictureNameOf() } : {}), // kept with the jigsaw as information
       ...(this.description().trim() ? { description: this.description().trim() } : {}),
@@ -371,10 +364,10 @@ export class JigsawNew implements OnDestroy {
   /** Fills the form with the jigsaw that is edited, and its picture (the picture is the cut one, so the example and the cut are as they were). */
   private async loadForEdit(id: string): Promise<void> {
     try {
-      const item = (await this.service.list()).find((c) => c.id === id);
-      if (!item) return void (await this.router.navigate(['/']));
-      if (item.ownerUid && item.ownerUid !== this.users.user()?.id) return void (await this.router.navigate(['/jigsaw', id])); // only its owner edits a jigsaw, also by its address
-      if (await this.plays.played(id)) return void (await this.router.navigate(['/jigsaw', id])); // it has been played: only the name and the defaults can change, on its page
+      const item = await this.service.get(id);
+      if (!item) return void (await this.router.navigate(['/'], { replaceUrl: true }));
+      if (item.ownerUid && item.ownerUid !== this.users.user()?.id) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // only its owner edits a jigsaw, also by its address
+      if (await this.plays.played(id)) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // it has been played: only the name and the defaults can change, on its page
       this.original = item;
       this.name.set(item.name);
       this.ownerUid.set(item.ownerUid ?? '');
@@ -438,7 +431,7 @@ export class JigsawNew implements OnDestroy {
         }
         await this.pieceApi.replace(id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
       }
-      await this.router.navigate(['/jigsaw', id]);
+      await this.router.navigate(['/jigsaw', id], { replaceUrl: true }); // the form is left out of the history: Back from the page does not come back to it
     } catch {
       this.error.set(tr('jigsawNew.couldNotSave', 'Could not save the changes: nobody may have started playing it in the meantime. Check the picture and try again.'));
       this.saving.set(false);
@@ -478,7 +471,7 @@ export class JigsawNew implements OnDestroy {
       // the first game of the new jigsaw is started for the user, and opened
       const me = this.users.user();
       const game = me ? await this.plays.start(made.id, me.id).catch(() => null) : null;
-      await this.router.navigate(game ? ['/jigsaw', made.id, 'play', game.id] : ['/jigsaw', made.id]);
+      await this.router.navigate(game ? ['/jigsaw', made.id, 'play', game.id] : ['/jigsaw', made.id], { replaceUrl: true }); // the form is left out of the history
     } catch {
       if (madeId) await this.service.remove(madeId).catch(() => undefined); // nothing half made is left
       this.error.set(tr('jigsawNew.couldNotMake', 'Could not make the jigsaw. Nothing was saved: check the picture and try again.'));

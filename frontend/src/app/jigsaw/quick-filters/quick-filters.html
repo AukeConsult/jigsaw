@@ -13,9 +13,7 @@
         <i class="bi" [class]="on ? 'bi-star-fill' : c.icon" aria-hidden="true"></i>{{ t('jigsawCategories.name.' + c.key) || c.name }}
       </button>
     }
-    @if (!all()) {
-      <!-- something is looked for (here or on the Find page): the way to the choices of the search is on this line too -->
-      <a class="link-action align-self-center" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.changeSearch') || 'Change the search' }}</a>
-    }
+    <!-- always there, only the icon: the way to the choices of the search (the Find page); its words are for a screen reader and the tooltip -->
+    <a class="btn btn-sm btn-outline-secondary rounded-pill" routerLink="/jigsaw/find" [attr.aria-label]="t('jigsawList.changeSearch') || 'Change the search'" [title]="t('jigsawList.changeSearch') || 'Change the search'"><i class="bi bi-search" aria-hidden="true"></i></a>
   </div>
 </ng-container>

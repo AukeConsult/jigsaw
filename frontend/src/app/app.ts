@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Activity } from './core/activity';
 
 /**
  * The app: Karins jigsaw, with its own header menu (see `jigsaw/`); this holds the page that is open.
@@ -12,6 +13,11 @@ import { RouterOutlet } from '@angular/router';
   host: { '(document:contextmenu)': 'noBrowserMenu($event)' },
 })
 export class App {
+  /** starts to note when the person is active (the front page welcomes them back only after an hour away) */
+  constructor() {
+    inject(Activity);
+  }
+
   protected noBrowserMenu(event: Event): void {
     if (!(event.target as Element | null)?.closest?.('input, textarea, select, [contenteditable="true"]')) event.preventDefault();
   }

@@ -206,6 +206,22 @@ describe("the plays of a jigsaw", () => {
     expect((await request(app).get(`/jigsaw/api/jigsaw/${made.id}`)).status).toBeLessThan(500);
   });
 
+  it("lets only the owner take away all the rounds, which makes the jigsaw editable again", async () => {
+    const { app, pieces, cut, settings } = await setup();
+    const owned = (await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, ownerUid: "anna" })).body as JigsawSpec;
+    await pieces.replaceAll(owned.id, cut.placed.flatMap((p) => JigsawPieces.of(p, cut.columns) ?? []), new Map());
+    await started(app, owned.id, { userId: "anna" });
+    await started(app, owned.id, { userId: "bo" });
+    expect((await request(app).put(`/jigsaw/api/jigsaw/${owned.id}`).set("X-Jigsaw-User", "anna").send({ ...settings, ownerUid: "anna", snapPercent: 40 })).status).toBe(409);
+    expect((await request(app).delete(`/jigsaw/api/jigsaw/${owned.id}/plays`).set("X-Jigsaw-User", "bo")).status).toBe(403); // not the owner
+    expect((await request(app).get(`/jigsaw/api/jigsaw/${owned.id}/plays`)).body).toHaveLength(2);
+    expect((await request(app).delete(`/jigsaw/api/jigsaw/${owned.id}/plays`).set("X-Jigsaw-User", "anna")).status).toBe(204);
+    expect((await request(app).get(`/jigsaw/api/jigsaw/${owned.id}/plays`)).body).toEqual([]);
+    expect((await request(app).get(`/jigsaw/api/jigsaw/${owned.id}/plays/summary`)).body).toEqual({ played: false });
+    expect((await request(app).put(`/jigsaw/api/jigsaw/${owned.id}`).set("X-Jigsaw-User", "anna").send({ ...settings, ownerUid: "anna", snapPercent: 40 })).status).toBe(200); // the difficulty can be changed again
+    expect((await request(app).delete("/jigsaw/api/jigsaw/nothere/plays").set("X-Jigsaw-User", "anna")).status).toBe(404);
+  });
+
   it("has the difficulty of the jigsaw (fixed once it is played) and follows its look until the play chooses its own", async () => {
     const { app, made, settings } = await setup();
     const play = (await started(app, made.id, { userId: "anna" }));

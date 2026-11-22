@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { Activity } from '../../core/activity';
 import { JigsawUserService } from '../jigsaw-user.service';
 
 /** How long the welcome stays before it fades away, and how long the fading takes (milliseconds; the fade is the `.start-welcome` of `styles.scss`). */
@@ -26,8 +27,14 @@ export class StartWelcome implements OnInit, OnDestroy {
   /** the welcome has faded: only the title for a screen reader is left */
   protected readonly gone = signal(false);
   private timers: ReturnType<typeof setTimeout>[] = [];
+  private readonly activity = inject(Activity);
 
   ngOnInit(): void {
+    // only shown when the person has been away for more than an hour (or is new on this device)
+    if (!this.activity.awayLong) {
+      this.gone.set(true);
+      return;
+    }
     this.timers.push(
       setTimeout(() => {
         this.fading.set(true);

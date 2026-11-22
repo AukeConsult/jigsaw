@@ -43,5 +43,7 @@
   "quickFilters": "Schnellfilter",
   "addFavorite": "Zu den Favoriten hinzufügen",
   "removeFavorite": "Aus den Favoriten entfernen",
-  "favorites": "Favoriten"
+  "favorites": "Favoriten",
+  "hiddenNote": "Versteckt: nur in deiner Liste der Puzzle",
+  "details": "Details"
 }

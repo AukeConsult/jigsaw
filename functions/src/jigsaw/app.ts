@@ -3,10 +3,13 @@ import express from "express";
 import { JigsawStore, jigsawListRouter, firestoreJigsawStore } from "../common/jigsaw-list";
 import { JigsawSearchStore, firestoreJigsawSearch, jigsawSearchRouter } from "./jigsaw-search";
 import { FavoriteStore, firestoreFavoriteStore, jigsawFavoritesRouter } from "./jigsaw-favorites";
+import { Classifier, configuredClassifier } from "./classifier";
+import { jigsawClassifyRouter } from "./jigsaw-classify";
+import { TokenUsageStore, firestoreTokenUsageStore, tokenUsageRouter } from "./token-usage";
 import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
-import { JigsawSettings, JIGSAW, JigsawUsers, Popularity } from "../models";
+import { JigsawSettings, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity } from "../models";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
 import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./plays";
 
@@ -14,7 +17,7 @@ import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./p
 export const JIGSAW_API = "/jigsaw/api";
 
 /** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
-export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; now?: () => number } = {}): express.Express {
+export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; now?: () => number } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
@@ -31,20 +34,25 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   const pieces = stores.jigsawPieces ?? firestorePieceStore();
   const jigsawExists = stores.jigsawExists ?? firestoreJigsawExists;
   const plays = stores.plays ?? firestorePlayStore();
-  const jigsawById = async (id: string) => (await jigsaw.list()).find((c) => c.id === id) ?? null;
+  const images = stores.jigsawImages ?? storageImageStore();
+  // one jigsaw by its id: read by itself (the list is only the newest), so an old jigsaw is found too
+  const jigsawById = async (id: string) => (jigsaw.get ? jigsaw.get(id) : ((await jigsaw.list()).find((c) => c.id === id) ?? null));
   // the plays of a jigsaw: one game each, by one user; a play chooses only the difficulty and the look, never the size, the picture or the pieces
   const users = stores.users ?? firestoreUserStore();
   // the games of a user over all the jigsaws (before the users, whose own routes would take the address first)
   router.use("/jigsaw-users/:id/plays", userPlaysRouter(plays, { jigsaws: () => jigsaw.list(), userOf: async (userId) => (await users.get(userId)) ?? null }));
+  // what the AI has used for a user, kept under the user (written by the classification, read here)
+  const tokenUsage = stores.tokenUsage ?? firestoreTokenUsageStore();
+  router.use("/jigsaw-users/:id/token-usage", tokenUsageRouter(tokenUsage));
   router.use("/jigsaw-users", jigsawUsersRouter(users));
   // A jigsaw only its owner sees (`visibility: "owner"`) is seen by its owner and by the players who have a round on it (they keep what they started); nobody else sees it,
   // its rounds either. A player who is not the owner cannot start another round of it. (The header `X-Jigsaw-User` is the UID of who asks.)
   const isOwnerOf = (c: { ownerUid?: string }, me: string | undefined) => !!me && c.ownerUid === me;
   const hasRoundOn = async (c: { id: string }, me: string | undefined) => !!me && (await plays.list(c.id, me)).length > 0;
-  const canSee = async (c: { id: string; visibility?: string; ownerUid?: string }, me: string | undefined) => c.visibility !== "owner" || isOwnerOf(c, me) || (await hasRoundOn(c, me));
+  const canSee = async (c: { id: string; visibility?: string; ownerUid?: string }, me: string | undefined) => !JigsawVisibilities.restricted(c.visibility) || isOwnerOf(c, me) || (await hasRoundOn(c, me));
   router.use("/jigsaw/:id/plays", async (req, res, next) => {
     const c = await jigsawById(req.params.id);
-    if (!c || c.visibility !== "owner") return next();
+    if (!c || !JigsawVisibilities.restricted(c.visibility)) return next();
     const me = req.get("X-Jigsaw-User");
     if (!(await canSee(c, me))) return void res.status(404).json({ error: "No such jigsaw." });
     if (req.method === "POST" && !isOwnerOf(c, me)) return void res.status(403).json({ error: "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have." });
@@ -78,7 +86,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     const me = req.get("X-Jigsaw-User");
     const all = await jigsaw.list();
     const seen = await Promise.all(all.map((j) => canSee(j, me)));
-    const visible = all.filter((_, i) => seen[i]);
+    const visible = all.filter((j, i) => seen[i] && JigsawVisibilities.listed(j.visibility)); // a hidden jigsaw is not among the popular
     const counted = await Promise.all(visible.map(async (j) => ({ jigsaw: j, rounds: await plays.count(j.id) })));
     res.json(Popularity.rank(counted, (stores.now ?? Date.now)()));
   });
@@ -99,13 +107,31 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     }),
   );
   router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), async () => (await users.list()).map((u) => u.id), (userId) => favorites.list(userId)));
+  // the AI classification of one jigsaw by its picture (categories, name and description); its settings are read when it is asked for (before the routes of one jigsaw)
+  router.use(
+    "/jigsaw/:id/classify",
+    jigsawClassifyRouter({
+      classifier: stores.classifier ?? configuredClassifier(),
+      jigsawById,
+      pictureOf: (id) => images.get(id),
+      update: async (id, input) => (search.forget(), jigsaw.update(id, input)),
+      keepUsage: (userId, usage) => tokenUsage.add(userId, usage),
+      now: stores.now,
+    }),
+  );
   router.delete("/jigsaw/:id", ownerOnly("delete"));
+  // the owner takes away all the rounds of a jigsaw (also other players'), so its picture, size, pieces and difficulty can be changed again
+  router.delete("/jigsaw/:id/plays", ownerOnly("take away the rounds of"), async (req, res) => {
+    if (!(await jigsawById(req.params.id))) return void res.status(404).json({ error: "No such jigsaw." });
+    await plays.removeAll(req.params.id);
+    res.status(204).end();
+  });
   router.post("/jigsaw", stampOwner);
   router.put("/jigsaw/:id", stampOwner);
   // a jigsaw only its owner sees can be changed by its owner only (for anyone else it is not there)
   router.put("/jigsaw/:id", async (req, res, next) => {
     const now = await jigsawById(req.params.id);
-    if (now?.visibility === "owner" && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(404).json({ error: "No such jigsaw." });
+    if (now && JigsawVisibilities.restricted(now.visibility) && req.get("X-Jigsaw-User") !== now.ownerUid) return void res.status(404).json({ error: "No such jigsaw." });
     next();
   });
   router.put("/jigsaw/:id", ownerOnly("change"));
@@ -138,7 +164,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
       (c, me) => canSee(c, me),
     ),
   );
-  router.use("/jigsaw-image", jigsawImageRouter(stores.jigsawImages ?? storageImageStore(), jigsawExists));
+  router.use("/jigsaw-image", jigsawImageRouter(images, jigsawExists));
   router.use("/jigsaw-pieces", jigsawPiecesRouter(pieces, jigsawExists));
   app.use(JIGSAW_API, router);
   return app;

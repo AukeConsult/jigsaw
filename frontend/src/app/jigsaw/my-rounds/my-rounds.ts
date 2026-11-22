@@ -1,9 +1,10 @@
 import { DatePipe } from '@angular/common';
-import { Component, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { clockOf } from '../duration';
 import { JigsawCard } from '../jigsaw-card/jigsaw-card';
+import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
 
@@ -18,9 +19,10 @@ import { PlaysService, UserGame } from '../plays.service';
 export class MyRounds {
   private readonly plays = inject(PlaysService);
   private readonly users = inject(JigsawUserService);
+  private readonly jigsawService = inject(JigsawService);
 
-  /** the jigsaws the person may see: a round only names its jigsaw, so the cards are made from these */
-  readonly jigsaws = input.required<JigsawSpec[]>();
+  /** the jigsaws of the open rounds, each read by itself (a round only names its jigsaw, so the cards are made from these) */
+  private readonly jigsaws = signal<JigsawSpec[]>([]);
   /** the user's rounds that are not solved, newest first; null until they are read */
   private readonly going = signal<UserGame[] | null>(null);
   /** each round with its jigsaw (a round whose jigsaw is not in the list is left out) */
@@ -69,6 +71,10 @@ export class MyRounds {
     if (!me) return void this.going.set([]); // nobody chosen yet: no rounds
     try {
       const open = (await this.plays.ofUser(me.id)).filter((g) => g.play.status !== 'solved');
+      // the jigsaws of the rounds are read one by one, each once (not the whole list of jigsaws); one that cannot be read leaves its round out
+      const ids = [...new Set(open.map((g) => g.jigsaw.id))];
+      const read = await Promise.all(ids.map((id) => this.jigsawService.get(id).catch(() => null)));
+      this.jigsaws.set(read.filter((j): j is JigsawSpec => !!j));
       this.going.set(open.sort((a, b) => b.play.startedAt - a.play.startedAt));
     } catch {
       /* no band without the rounds (and no welcome: it would say there are none) */

@@ -43,5 +43,7 @@
   "quickFilters": "Hurtigfiltre",
   "addFavorite": "Legg til som favoritt",
   "removeFavorite": "Fjern fra favoritter",
-  "favorites": "Favoritter"
+  "favorites": "Favoritter",
+  "hiddenNote": "Skjult: bare i listen over dine puslespill",
+  "details": "Detaljer"
 }

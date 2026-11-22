@@ -24,9 +24,22 @@ const LEGACY_GRID = 5;
 /** How many times the height of the picture area the store frame of a jigsaw is: its pieces are spread over it and it scrolls. */
 export const STORE_HEIGHT_FACTOR = 3;
 
-/** who sees a jigsaw in the lists */
-export type JigsawVisibility = 'everyone' | 'owner';
-export const JIGSAW_VISIBILITIES: readonly JigsawVisibility[] = ['everyone', 'owner'];
+/** who sees a jigsaw in the lists: everyone (public), its owner and its players (private), or only its owner in the list of the owner's own jigsaws (hidden) */
+export type JigsawVisibility = 'everyone' | 'owner' | 'hidden';
+export const JIGSAW_VISIBILITIES: readonly JigsawVisibility[] = ['everyone', 'owner', 'hidden'];
+
+/** What the kinds of visibility mean (what a document without one means is `everyone`). */
+export class JigsawVisibilities {
+  /** only its owner, and the players who have a round on it, may see it (private and hidden) */
+  static restricted(visibility: string | undefined): boolean {
+    return visibility === 'owner' || visibility === 'hidden';
+  }
+
+  /** it may be found: on the front page, in the search and among the popular jigsaws (a hidden one is only in the list of its owner's own jigsaws) */
+  static listed(visibility: string | undefined): boolean {
+    return visibility !== 'hidden';
+  }
+}
 
 /** A jigsaw: a name and its size in pixels. */
 export interface JigsawSpec {
@@ -36,7 +49,7 @@ export interface JigsawSpec {
   author?: string;
   /** a jigsaw: the UID of its owner, the user who is its author (chosen from the users; the API puts that user's name in `author`); without it, a jigsaw from before owners */
   ownerUid?: string;
-  /** a jigsaw: who sees it in the lists: `everyone` (also when it says nothing: the default) or `owner` (only its owner; it needs an owner) */
+  /** a jigsaw: who sees it: `everyone` (also when it says nothing: the default), `owner` (private: its owner and its players) or `hidden` (only in the list of its owner's own jigsaws, nowhere else); the last two need an owner */
   visibility?: JigsawVisibility;
   /** a jigsaw: a clock counts how long each round takes (also when it says nothing: the default); `false` means no clock */
   timed?: boolean;
@@ -157,7 +170,7 @@ export class JigsawSettings {
       name: (i.name as string).trim(),
       ...(typeof i.author === 'string' && i.author.trim() ? { author: i.author.trim() } : {}),
       ...(typeof i.ownerUid === 'string' && i.ownerUid ? { ownerUid: i.ownerUid } : {}),
-      ...(i.visibility === 'owner' ? { visibility: 'owner' as const } : {}), // `everyone` is what none says
+      ...(i.visibility === 'owner' || i.visibility === 'hidden' ? { visibility: i.visibility } : {}), // `everyone` is what none says
       ...(i.timed === false ? { timed: false } : {}), // timed is what none says
       ...(typeof i.pictureName === 'string' && i.pictureName.trim() ? { pictureName: i.pictureName.trim() } : {}),
       ...(typeof i.description === 'string' && i.description.trim() ? { description: i.description.trim() } : {}),
@@ -184,7 +197,7 @@ export class JigsawSettings {
       name: doc.name ?? '',
       ...(doc.author ? { author: doc.author } : {}),
       ...(doc.ownerUid ? { ownerUid: doc.ownerUid } : {}),
-      ...(doc.visibility === 'owner' ? { visibility: 'owner' as const } : {}),
+      ...(doc.visibility === 'owner' || doc.visibility === 'hidden' ? { visibility: doc.visibility } : {}),
       ...(doc.timed === false ? { timed: false } : {}),
       ...(doc.pictureName ? { pictureName: doc.pictureName } : {}),
       ...(doc.description ? { description: doc.description } : {}),
@@ -214,8 +227,8 @@ export class JigsawSettings {
     if (input.author !== undefined && (typeof input.author !== 'string' || input.author.trim().length > JIGSAW_MAX_NAME)) return `The author can be at most ${JIGSAW_MAX_NAME} characters.`;
     if (input.ownerUid !== undefined && (typeof input.ownerUid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(input.ownerUid))) return 'The owner must be the id of a user.';
     if (input.timed !== undefined && typeof input.timed !== 'boolean') return 'Timed is yes or no.';
-    if (input.visibility !== undefined && !(JIGSAW_VISIBILITIES as readonly unknown[]).includes(input.visibility)) return 'A jigsaw is seen by everyone or by its owner only.';
-    if (input.visibility === 'owner' && !input.ownerUid) return 'A jigsaw only its owner sees needs an owner: choose the author from the users.';
+    if (input.visibility !== undefined && !(JIGSAW_VISIBILITIES as readonly unknown[]).includes(input.visibility)) return 'A jigsaw is public, private or hidden.';
+    if (JigsawVisibilities.restricted(input.visibility as string) && !input.ownerUid) return 'A private or hidden jigsaw needs an owner: choose the author from the users.';
     if (input.pictureName !== undefined && (typeof input.pictureName !== 'string' || input.pictureName.trim().length > JIGSAW_MAX_PICTURE_NAME)) {
       return `The name of the picture file can be at most ${JIGSAW_MAX_PICTURE_NAME} characters.`;
     }

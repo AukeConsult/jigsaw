@@ -1,0 +1,129 @@
+<main class="container py-3" *transloco="let t">
+  <h1 class="page-title mb-2"><i class="bi bi-images me-2" aria-hidden="true"></i>{{ t('jigsawBatch.title') || 'Make many jigsaws' }}</h1>
+  <p class="text-body-secondary">{{ t('jigsawBatch.intro') || 'Choose how big and how hard, then pick pictures from your computer. Each picture becomes a jigsaw, and the AI sets its categories, name and description.' }}</p>
+
+  <form (submit)="$event.preventDefault()">
+    <h2 class="form-section first"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawBatch.sectionSettings') || 'Size and difficulty' }}</h2>
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <label class="form-label" for="batch-pieces">{{ t('jigsawBatch.pieces') || 'Number of pieces' }}</label>
+        <select id="batch-pieces" name="pieces" class="form-select" [disabled]="running()" [ngModel]="pieces()" (ngModelChange)="pieces.set(+$event)">
+          @for (n of pieceChoices; track n) {
+            <option [ngValue]="n">{{ n }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label" for="batch-width">{{ t('jigsawBatch.width') || 'Width of the picture (px)' }}</label>
+        <select id="batch-width" name="width" class="form-select" [disabled]="running()" [ngModel]="width()" (ngModelChange)="width.set(+$event)">
+          @for (n of widthChoices; track n) {
+            <option [ngValue]="n">{{ n }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label" for="batch-difficulty">{{ t('jigsawBatch.difficulty') || 'Difficulty' }}</label>
+        <select id="batch-difficulty" name="difficulty" class="form-select" [disabled]="running()" [ngModel]="difficulty()" (ngModelChange)="difficulty.set($event)">
+          @for (l of levels; track l.key) {
+            <option [ngValue]="l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label" for="batch-language">{{ t('jigsawBatch.language') || 'Language' }}</label>
+        <select id="batch-language" name="language" class="form-select" [disabled]="running()" [ngModel]="language()" (ngModelChange)="language.set($event)">
+          @for (l of languages; track l.code) {
+            <option [ngValue]="l.code">{{ l.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="form-text mb-3">{{ t('jigsawBatch.languageHelp') || 'The language the names and the descriptions are written in.' }}</div>
+    <div class="form-check form-switch mb-3">
+      <input id="batch-timed" name="timed" class="form-check-input" type="checkbox" role="switch" [disabled]="running()" [ngModel]="timed()" (ngModelChange)="timed.set($event)">
+      <label class="form-check-label" for="batch-timed"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawBatch.timed') || 'Timed' }}</label>
+    </div>
+    <div class="form-check form-switch mb-3">
+      <input id="batch-ai" name="ai" class="form-check-input" type="checkbox" role="switch" [disabled]="running()" [ngModel]="ai()" (ngModelChange)="ai.set($event)">
+      <label class="form-check-label" for="batch-ai"><i class="bi bi-stars me-1" aria-hidden="true"></i>{{ t('jigsawBatch.ai') || 'Let the AI set the categories, name and description' }}</label>
+      <div class="form-text mt-0">{{ t('jigsawBatch.aiHelp') || 'The pictures are sent to OpenAI to be looked at. Turn it off to keep the file names as the names.' }}</div>
+    </div>
+
+    <h2 class="form-section"><i class="bi bi-image" aria-hidden="true"></i>{{ t('jigsawBatch.sectionPictures') || 'Pictures' }}</h2>
+    <div class="mb-3">
+      <label class="form-label" for="batch-files">{{ t('jigsawBatch.choose') || 'Choose pictures' }}</label>
+      <input id="batch-files" type="file" class="form-control" accept="image/jpeg,image/png,image/webp" multiple [disabled]="running()" (change)="choose($event)">
+      <div class="form-text">{{ t('jigsawBatch.chooseHelp', { max }) || 'Pick many at once: jpeg, png or webp, up to ' + max + ' pictures.' }}</div>
+      @if (leftOut().notPictures || leftOut().tooMany) {
+        <div class="alert alert-warning py-2 small mt-2" role="status">
+          @if (leftOut().notPictures) { <div>{{ t('jigsawBatch.notPictures', { count: leftOut().notPictures }) || leftOut().notPictures + ' files were not jpeg, png or webp pictures and were left out.' }}</div> }
+          @if (leftOut().tooMany) { <div>{{ t('jigsawBatch.tooMany', { max }) || 'Only ' + max + ' pictures at a time: the rest were left out.' }}</div> }
+        </div>
+      }
+    </div>
+  </form>
+
+  @if (items().length) {
+    <ul class="list-group mb-3">
+      @for (item of items(); track item.id) {
+        <li class="list-group-item">
+          <div class="d-flex align-items-center gap-2">
+            <img class="rounded border object-fit-cover flex-shrink-0" [src]="item.preview" alt="" width="64" height="48">
+            <div class="flex-grow-1 min-w-0">
+              <div class="fw-semibold text-break">{{ item.jigsaw?.name || item.file.name }}</div>
+              @if (item.jigsaw?.description) {
+                <div class="tiny text-body-secondary text-break">{{ item.jigsaw?.description }}</div>
+              }
+              @if (item.jigsaw?.categories?.length) {
+                <app-category-tags [keys]="item.jigsaw?.categories" />
+              }
+              @if (item.problem) {
+                <div class="small text-danger text-break">{{ item.state === 'failed' ? item.problem : (t('jigsawBatch.aiFailed', { reason: item.problem }) || 'Made, but the AI could not classify it: ' + item.problem) }}</div>
+              }
+            </div>
+            <div class="text-nowrap small flex-shrink-0 text-end">
+              @switch (item.state) {
+                @case ('waiting') { <span class="text-body-secondary">{{ t('jigsawBatch.waiting') || 'Waiting' }}</span> }
+                @case ('cutting') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.cutting') || 'Cutting…' }} }
+                @case ('uploading') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.uploading') || 'Saving the picture…' }} }
+                @case ('drawing') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.drawing') || 'Saving the pieces…' }} }
+                @case ('classifying') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.classifying') || 'The AI looks at it…' }} }
+                @case ('done') { <span class="text-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawBatch.done') || 'Done' }}</span> }
+                @case ('failed') { <span class="text-danger"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>{{ t('jigsawBatch.failed') || 'Failed' }}</span> }
+              }
+              <div class="toolbar justify-content-end">
+                @if (item.jigsaw) {
+                  <a class="link-action" [routerLink]="['/jigsaw', item.jigsaw.id]">{{ t('jigsawBatch.open') || 'Open' }}</a>
+                }
+                @if (item.state === 'waiting' || item.state === 'failed') {
+                  <button type="button" class="link-action danger" (click)="remove(item)">{{ t('jigsawBatch.remove') || 'Take away' }}</button>
+                }
+              </div>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (finished()) {
+    <div class="alert alert-success py-2" role="status">
+      {{ t('jigsawBatch.summary', { made: made(), classified: classified(), failed: failed() }) || made() + ' made, ' + classified() + ' classified by the AI, ' + failed() + ' failed.' }}
+      <a routerLink="/jigsaw/user">{{ t('jigsawBatch.yourJigsaws') || 'Your jigsaws' }}</a>
+    </div>
+  }
+
+  <div class="d-flex flex-wrap gap-2 align-items-center">
+    @if (running()) {
+      <button type="button" class="btn btn-outline-secondary" (click)="stop()"><i class="bi bi-stop-circle" aria-hidden="true"></i>{{ t('jigsawBatch.stop') || 'Stop after this one' }}</button>
+    } @else {
+      <button type="button" class="btn btn-primary btn-main" [disabled]="!waiting()" (click)="start()">
+        <i class="bi bi-magic" aria-hidden="true"></i>{{ (waiting() === 1 ? t('jigsawBatch.makeOne') : t('jigsawBatch.makeMany', { count: waiting() })) || 'Make ' + waiting() + ' jigsaws' }}
+      </button>
+      @if (items().length) {
+        <button type="button" class="btn btn-outline-secondary" (click)="clear()">{{ t('jigsawBatch.clear') || 'Clear the list' }}</button>
+      }
+    }
+    <a class="link-action" routerLink="/jigsaw/user">{{ t('jigsawBatch.back') || 'Back' }}</a>
+  </div>
+</main>

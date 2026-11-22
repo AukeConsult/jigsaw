@@ -60,7 +60,8 @@ $fluid-to: 87.5; // 1400px in rem
   --app-fs-heading: #{fluid(1.125, 1.5)}; // a part of a page (h2, h3 and under), the line under a title, the name in the header, an icon beside a heading
   --app-fs-text: #{fluid(1, 1.125)}; // the text, what is typed in the fields, and the main button (not under 1rem: a smaller field makes a phone zoom in)
   --app-fs-small: #{fluid(0.8125, 0.9375)}; // labels and the help under a field, notes, the text of every button
-  --app-fs-tiny: #{fluid(0.5, 0.58)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`)
+  --app-fs-compact: #{fluid(0.6875, 0.9375)}; // not one of the five: the name on a card, smaller than `small` on a phone (11 px) and the same as it on a wide screen (class `.card-name`)
+  --app-fs-tiny: #{fluid(0.5625, 0.58)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`)
   // the buttons: the text of every button is `--app-fs-small` (the main one `--app-fs-text`); what makes them three sizes is the room round the text, in em, so it
   // follows the text size and a button keeps its shape whatever size the text has
   --app-btn-pad-y: 0.4em;
@@ -102,6 +103,11 @@ $fluid-to: 87.5; // 1400px in rem
   // sizes
   --app-sidebar-width: 17rem;
   --app-form-width: 40rem;
+  // who sees a jigsaw, as a soft see-through background of its row: hidden grey, private blue, public green
+  --app-vis-hidden-bg: rgba(108, 117, 125, 0.14);
+  --app-vis-private-bg: rgba(13, 110, 253, 0.1);
+  --app-vis-public-bg: rgba(25, 135, 84, 0.1);
+  --app-form-width-wide: 56rem; // a form page with lists in it (the page of the user)
   --app-list-width: 48rem;
   --app-grip-size: 28px; // the corner that sizes the helper picture
   --app-tile-gap: 0.25rem;
@@ -226,6 +232,12 @@ h6,
   font-size: var(--app-fs-heading);
 }
 
+// the name of a jigsaw on a card: a size of its own, smaller than the standard ones on a phone, so a name fits the narrow card in fewer lines
+.card-name {
+  font-size: var(--app-fs-compact);
+  line-height: 1.25;
+}
+
 // the tiniest text: a date, a side note (under `small` in the scale)
 .tiny {
   font-size: var(--app-fs-tiny);
@@ -302,6 +314,14 @@ small,
   --bs-btn-font-size: var(--app-fs-text);
   --bs-btn-padding-y: var(--app-btn-main-pad-y);
   --bs-btn-padding-x: var(--app-btn-main-pad-x);
+}
+
+// a button whose words are as big as a heading (the call to play on the page of a jigsaw), with the room of the main button
+.btn-heading {
+  --bs-btn-font-size: var(--app-fs-heading);
+  --bs-btn-padding-y: var(--app-btn-main-pad-y);
+  --bs-btn-padding-x: var(--app-btn-main-pad-x);
+  font-weight: 600;
 }
 
 .form-control,
@@ -703,6 +723,36 @@ app-my-rounds {
   gap: 0.5rem 0.75rem;
 }
 
+// the tick box of a row with room round it that ticks it too (a finger-sized target)
+.select-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  flex: 0 0 auto;
+  min-width: 2.75rem;
+  margin: -0.5rem 0 -0.5rem -0.5rem;
+  cursor: pointer;
+}
+
+.list-group-item {
+  &.vis-hidden {
+    --bs-list-group-bg: var(--app-vis-hidden-bg);
+  }
+
+  &.vis-private {
+    --bs-list-group-bg: var(--app-vis-private-bg);
+  }
+
+  &.vis-public {
+    --bs-list-group-bg: var(--app-vis-public-bg);
+  }
+}
+
+.list-group-item.row-selected {
+  box-shadow: inset 0.3rem 0 0 var(--app-primary); // a ticked row keeps the colour of who sees it, and gets a bar at its left edge
+}
+
 .round-thumb {
   flex: 0 0 4.5rem;
   width: 4.5rem;
@@ -752,6 +802,12 @@ app-my-rounds {
 }
 
 // ---- small helpers (Bootstrap has `pe-none`, `pe-auto` and `user-select-none`) ---------------------------------------------------------------------
+// a picture is never picked up and dragged away with the mouse (on the cards, the rows, the jigsaw page and the board); a click on it still works
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 .touch-none {
   touch-action: none; // a finger drags instead of scrolling the page
 }
@@ -1119,6 +1175,11 @@ app-my-rounds {
 
 .form-card {
   max-width: var(--app-form-width);
+
+  &.wide {
+    max-width: var(--app-form-width-wide);
+  }
+
   --bs-card-border-width: 0; // the form is the page: no frame round it
 
   @include below($bp-sm) {

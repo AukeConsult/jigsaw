@@ -182,7 +182,7 @@ export class JigsawPlay implements OnDestroy {
     this.placed.set([]);
     this.pieceSync.markSaved([]);
     try {
-      const jigsaw = (await this.service.list()).find((c) => c.id === this.jigsawId);
+      const jigsaw = await this.service.get(this.jigsawId);
       if (!jigsaw) return this.status.set('missing');
       const detail = await this.plays.get(this.jigsawId, this.playId).catch((err) => (err?.status === 404 ? null : Promise.reject(err)));
       if (!detail) return this.status.set('missing');

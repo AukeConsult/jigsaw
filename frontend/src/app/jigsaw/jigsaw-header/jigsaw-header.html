@@ -6,7 +6,7 @@
             <img class="img-fluid rounded-3 w-100" [src]="pictureUrl()" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (error)="hasPicture.set(false)">
           }
         </div>
-          <div class="col-md-7 col-lg-8">
+          <div class="col-md-7 col-lg-8 d-flex flex-column">
           <!-- the name, and Edit at the right corner of the same line -->
           <div class="d-flex justify-content-between align-items-start gap-2">
             <h1 class="page-title mb-1">{{ jigsaw().name }}</h1>
@@ -35,11 +35,18 @@
             <!-- no description yet: its owner is shown where it is added (the others see nothing) -->
             <div class="mb-1"><button type="button" class="link-action" (click)="addDescription.emit()"><i class="bi bi-card-text" aria-hidden="true"></i>{{ t('jigsawPage.addDescription') || 'Add a description' }}</button></div>
           }
-          <!-- the details at the left and the main button at their side -->
-          <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
+          @if (jigsaw().categories?.length) {
+            <!-- what the AI (or the owner) said the picture is: its categories -->
+            <div class="mb-2"><app-category-tags [keys]="jigsaw().categories" /></div>
+          }
+          <!-- the details at the left and the main button at their side, pushed down so they end where the picture ends -->
+          <div class="d-flex align-items-end justify-content-between gap-3 mt-auto">
             <div class="min-w-0">
               @if (jigsaw().author) {
                 <div class="text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ jigsaw().author }}</div>
+              }
+              @if (jigsaw().visibility === 'hidden') {
+                <div class="text-body-secondary small"><i class="bi bi-eye-slash me-1" aria-hidden="true"></i>{{ t('jigsawPage.hiddenNote') || 'Hidden: only in its owner’s own list of jigsaws' }}</div>
               }
               @if (jigsaw().visibility === 'owner') {
                 <div class="text-body-secondary small"><i class="bi bi-lock me-1" aria-hidden="true"></i>@if (mayChange()) { {{ t('jigsawPage.onlyYou') || 'Only you see it' }} } @else { {{ t('jigsawPage.privateForPlayers') || 'Private: only its owner and its players see it' }} }</div>
@@ -50,9 +57,9 @@
                 @if (jigsaw().timed !== false) {<span class="ms-2"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawPage.timed') || 'Timed' }}</span>}
               </div>
             </div>
-            @if (jigsaw().visibility !== 'owner' || mayChange()) {
+            @if (jigsaw().visibility === 'everyone' || !jigsaw().visibility || mayChange()) {
               <!-- a jigsaw only its owner sees can get a new round from its owner only; the players who have a round on it go on with it below -->
-              <button type="button" class="btn btn-sm btn-outline-primary text-nowrap flex-shrink-0" [disabled]="busy()" (click)="play.emit()">
+              <button type="button" class="btn btn-heading btn-outline-primary text-nowrap flex-shrink-0" [disabled]="busy()" (click)="play.emit()">
                 <i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawPage.enterRound') || 'Enter a round, solve it' }}
               </button>
             }

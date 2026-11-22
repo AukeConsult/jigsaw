@@ -43,5 +43,7 @@
   "quickFilters": "Pikasuodattimet",
   "addFavorite": "Lisää suosikkeihin",
   "removeFavorite": "Poista suosikeista",
-  "favorites": "Suosikit"
+  "favorites": "Suosikit",
+  "hiddenNote": "Piilotettu: vain omien palapelien listalla",
+  "details": "Tiedot"
 }

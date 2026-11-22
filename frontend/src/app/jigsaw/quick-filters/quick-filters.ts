@@ -4,6 +4,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawCategories } from '../../models/shared/category';
 import { JigsawFilter, JigsawFilters } from '../../models/shared/jigsaw-filter';
 import { FavoritesService } from '../favorites.service';
+import { FRONT_FINDER_KEY, readFinderPreferences } from '../jigsaw-finder/finder-preferences';
 
 /** The quick filters: the categories that are one press away, as they are shown beside a heading (a press looks for the jigsaws in it, and again takes it away). */
 const QUICK_CATEGORIES = ['recommended'] as const;
@@ -42,17 +43,27 @@ export class QuickFilters {
   /** The button for the favorites is there when the user has some (and while it is on, so it can be taken off). */
   protected readonly showFavorites = computed(() => this.favorites.ids().size > 0 || this.favoritesOn());
 
-  /** Looks only at the jigsaws the user has ticked with a heart, or at all of them again when that is on (for now, like the other quick filters). */
+  /** Looks only at the jigsaws the user has ticked with a heart, or, when that is on, back at the user's own search (all the jigsaws when there is none); for now, like the other quick filters. */
   protected toggleFavorites(): void {
-    this.filter.set(this.favoritesOn() ? JigsawFilters.empty() : { ...JigsawFilters.empty(), favorites: true });
+    this.filter.set(this.favoritesOn() ? this.backFromQuick() : { ...JigsawFilters.empty(), favorites: true });
   }
 
+  /**
+   * "All" is on and off: pressed when it is off, every jigsaw is shown; pressed when it is on, the search the user made on the Find page (kept on the device) is looked for again.
+   * When there is no such search, all is all there is, and it stays on.
+   */
   protected showAll(): void {
-    this.filter.set(JigsawFilters.empty());
+    this.filter.set(this.all() ? this.backFromQuick() : JigsawFilters.empty());
   }
 
-  /** Looks only at this category, or at all the jigsaws again when it is the one that is on. It is for now: what the user looked for on the Find page is not changed (the finder does not keep it). */
+  /** What is looked for when a quick filter is taken off: the search the user made on the Find page, when there is one that is not the filter that is on now; else every jigsaw. */
+  private backFromQuick(): JigsawFilter {
+    const saved = readFinderPreferences(FRONT_FINDER_KEY).filter;
+    return JigsawFilters.isOn(saved) && JSON.stringify(saved) !== JSON.stringify(this.filter()) ? saved : JigsawFilters.empty();
+  }
+
+  /** Looks only at this category, or, when it is the one that is on, back at the user's own search (all the jigsaws when there is none). It is for now: what the user looked for on the Find page is not changed (the finder does not keep it). */
   protected toggle(key: string): void {
-    this.filter.set(this.chosen(key) ? JigsawFilters.empty() : { ...JigsawFilters.empty(), categories: [key] });
+    this.filter.set(this.chosen(key) ? this.backFromQuick() : { ...JigsawFilters.empty(), categories: [key] });
   }
 }

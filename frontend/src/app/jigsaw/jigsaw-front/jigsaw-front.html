@@ -1,12 +1,13 @@
 <!-- the band of the user's open rounds: stuck to the top while the page scrolls -->
-<app-my-rounds [jigsaws]="all()" />
+<app-my-rounds />
 <main class="container py-3" *transloco="let t">
   <app-start-welcome />
 
   <!-- all the jigsaws, the newest first (looking for one by category, size and so on is the Find page in the menu) -->
   <section class="mb-4" [attr.aria-label]="t('jigsawHome.jigsaws') || 'Jigsaws'">
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-      <h2 class="section-title mb-0">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>
+      <!-- everybody knows these are jigsaws: the heading is only for a screen reader -->
+      <h2 class="visually-hidden">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>
       <app-quick-filters [(filter)]="filter" />
     </div>
     <app-jigsaw-finder storageKey="jigsaw.front" [(filter)]="filter" />

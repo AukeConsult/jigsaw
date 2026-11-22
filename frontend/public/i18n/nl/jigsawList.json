@@ -43,5 +43,7 @@
   "quickFilters": "Snelfilters",
   "addFavorite": "Aan favorieten toevoegen",
   "removeFavorite": "Uit favorieten verwijderen",
-  "favorites": "Favorieten"
+  "favorites": "Favorieten",
+  "hiddenNote": "Verborgen: alleen in je lijst met puzzels",
+  "details": "Details"
 }

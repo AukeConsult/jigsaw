@@ -2,6 +2,8 @@
 export interface DocumentStore<Input, Item> {
   /** the newest first (up to the limit of the store) */
   list(): Promise<Item[]>;
+  /** one document by its id, whichever age it is (the list only has the newest); null when there is no such document. A fake store may leave it out: the list is searched then. */
+  get?(id: string): Promise<Item | null>;
   add(input: Input): Promise<Item>;
   /** replaces the settings of a saved document (its id and creation time stay); null when there is no such document */
   update(id: string, input: Input): Promise<Item | null>;
@@ -35,6 +37,10 @@ export function documentStore<Input extends object, Item>(
     async list() {
       const snap = await collection().orderBy("createdAt", "desc").limit(limit).get();
       return snap.docs.map((d) => readDoc(d.id, d.data()));
+    },
+    async get(id) {
+      const doc = await collection().doc(id).get();
+      return doc.exists ? readDoc(id, doc.data()) : null;
     },
     async add(input) {
       const data = { ...input, createdAt: Date.now() };

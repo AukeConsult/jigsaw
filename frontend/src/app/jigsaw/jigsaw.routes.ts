@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { JigsawBatch } from './jigsaw-batch/jigsaw-batch';
 import { JigsawFind } from './jigsaw-find/jigsaw-find';
 import { JigsawHome } from './jigsaw-home/jigsaw-home';
 import { JigsawNew } from './jigsaw-new/jigsaw-new';
@@ -15,6 +16,7 @@ import { JigsawShell } from './jigsaw-shell';
  *  - `/jigsaw/find`: find a jigsaw: choose what to look for (category, size, difficulty, owner), press Go, and the jigsaws that match are shown.
  *  - `/jigsaw/list`: gone; the jigsaws are looked for on the front page (`/`), so an old address goes there.
  *  - `/jigsaw/new`: a new jigsaw: the settings are filled in in the main frame, then saved, and a game of it is started.
+ *  - `/jigsaw/batch`: many jigsaws at once: how many pieces and how hard, many pictures chosen from the computer, each made into a jigsaw and classified by the AI.
  *  - `/jigsaw/user`: who plays: make a user (a user name and a name) or say the user name you have.
  *  - `/jigsaw/guide`: the help (the user guide), and `/jigsaw/about`: the about page (the same component, another document).
  *  - `/jigsaw/:id`: a jigsaw: its picture, and the games of the user (continue one, or start a new one).
@@ -31,6 +33,7 @@ export const JIGSAW_ROUTES: Routes = [
       { path: 'find', component: JigsawFind, title: 'Find a jigsaw' }, // before ':id'
       { path: 'list', redirectTo: '/' }, // the list page is gone: what it did is done by the finder on the front page
       { path: 'new', component: JigsawNew, title: 'New jigsaw', canActivate: [userGuard] },
+      { path: 'batch', component: JigsawBatch, title: 'Make many jigsaws', canActivate: [userGuard] }, // before ':id'
       { path: 'user', component: JigsawUser, title: 'Who plays?' },
       { path: 'guide', component: GuidePage, title: 'Help', data: { guide: 'jigsaw-guide.md' } }, // before ':id'
       { path: 'about', component: GuidePage, title: 'About', data: { guide: 'jigsaw-about.md' } }, // before ':id'

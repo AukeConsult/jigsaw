@@ -1,0 +1,91 @@
+<ng-container *transloco="let t">
+  <h2 class="form-section first"><i class="bi bi-tag" aria-hidden="true"></i>{{ t('jigsawNew.sectionBasics') || 'Basics' }}</h2>
+  <div class="mb-3">
+    <label class="form-label" for="jigsaw-name">{{ t('jigsawNew.name') || 'Name' }} <span class="text-danger" aria-hidden="true">*</span></label>
+    <input id="jigsaw-name" name="name" class="form-control" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required [attr.placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'" aria-describedby="jigsaw-name-problem"
+           [ngModel]="name()" (ngModelChange)="name.set($event)">
+    @if (nameMissing()) {
+      <div id="jigsaw-name-problem" class="invalid-feedback d-block">{{ t('jigsawNew.nameMissing') || 'Give the jigsaw a name.' }}</div>
+    }
+  </div>
+  @if (classifyId()) {
+    <!-- the AI looks at the saved picture and sets the categories, the name and the description -->
+    <div class="mb-3">
+      <div class="toolbar">
+        <button type="button" class="link-action" [disabled]="classifying() || busy()" (click)="classify()">
+          @if (classifying()) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{ t('jigsawNew.classifying') || 'The AI looks at the picture…' }} } @else { <i class="bi bi-stars" aria-hidden="true"></i>{{ t('jigsawNew.classify') || 'Let the AI set categories, name and description' }} }
+        </button>
+      </div>
+      <div class="form-text">{{ t('jigsawNew.classifyHelp') || 'The picture is sent to OpenAI to be looked at. The name, the description and the categories are replaced.' }}</div>
+      @if (classifyError()) {
+        <div class="small text-danger" role="alert">{{ classifyError() }}</div>
+      }
+    </div>
+  }
+  <div class="mb-3">
+    <label class="form-label" for="jigsaw-description">{{ t('jigsawNew.description') || 'Description' }} <span class="text-body-secondary">{{ t('jigsawNew.optional') || '(optional)' }}</span></label>
+    <textarea id="jigsaw-description" name="description" class="form-control" rows="3" [maxlength]="maxDescription" [attr.placeholder]="t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…'"
+              [ngModel]="description()" (ngModelChange)="description.set($event)"></textarea>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="jigsaw-language">{{ t('jigsawNew.language') || 'Language' }}</label>
+    <select id="jigsaw-language" name="language" class="form-select" [ngModel]="language()" (ngModelChange)="changeLanguage($event)">
+      @for (l of languages; track l.code) {
+        <option [value]="l.code">{{ l.name }}</option>
+      }
+    </select>
+    <div class="form-text">{{ t('jigsawNew.languageHelp') || 'The language the name and the description are written in. It starts as your language.' }}@if (classifyId()) { {{ t('jigsawNew.languageAi') || 'Changing it has the AI write them again in the new language.' }} }</div>
+  </div>
+  <div class="mb-3">
+    <app-category-picker id="jigsaw-categories" [(selected)]="categories" />
+  </div>
+
+  <!-- what only some forms have: the picture and the size -->
+  <ng-content />
+
+  <h2 class="form-section"><i class="bi bi-sliders" aria-hidden="true"></i>@if (hasPlaySettings()) { {{ t('jigsawNew.sectionPlay') || 'Play and look' }} } @else { {{ t('jigsawNew.sectionLook') || 'Look' }} }</h2>
+  <!-- what only some forms have: the difficulty and the clock -->
+  <ng-content select="[play-settings]" />
+  <div class="row g-3 mb-3">
+    <div class="col-6">
+      <label class="form-label" for="jigsaw-line-width">{{ t('jigsawNew.line') || 'Line' }}</label>
+      <select id="jigsaw-line-width" name="lineWidth" class="form-select" [title]="t('jigsawNew.lineTitle') || 'How thick the line round each piece and round the picture area is'"
+              (change)="lineWidth.set(+$any($event.target).value)">
+        @for (l of lineLevels; track l.width) {
+          <option [value]="l.width" [selected]="lineLevel() === l.width">{{ t('jigsawLevels.line.' + l.key) || l.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-3">
+      <label class="form-label" for="jigsaw-line-color">{{ t('jigsawNew.colour') || 'Colour' }}</label>
+      <input id="jigsaw-line-color" name="lineColor" class="form-control form-control-color w-100" type="color" [title]="t('jigsawNew.colourTitle') || 'The colour of the line round each piece and round the picture area'"
+             [ngModel]="lineColor()" (ngModelChange)="lineColor.set($event)">
+    </div>
+    <div class="col-3">
+      <label class="form-label" for="jigsaw-back-color">{{ t('jigsawNew.back') || 'Background' }}</label>
+      <input id="jigsaw-back-color" name="backColor" class="form-control form-control-color w-100" type="color" [title]="t('jigsawNew.backTitle') || 'The background colour of the picture area, inside the border'"
+             [ngModel]="backColor()" (ngModelChange)="backColor.set($event)">
+    </div>
+  </div>
+
+  <h2 class="form-section"><i class="bi bi-people" aria-hidden="true"></i>{{ t('jigsawNew.sectionOwner') || 'Owner and sharing' }}</h2>
+  <div class="mb-3">
+    <label class="form-label" for="jigsaw-author">{{ t('jigsawNew.author') || 'Author' }} @if (authorRequired()) { <span class="text-danger" aria-hidden="true">*</span> }</label>
+    <select id="jigsaw-author" name="author" class="form-select" [ngModel]="ownerUid()" (ngModelChange)="ownerUid.set($event)">
+      @if (!ownerUid()) { <option value="">{{ t('jigsawNew.chooseAuthor') || 'Choose the author' }}</option> }
+      @for (u of owners(); track u.id) {
+        <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
+      }
+    </select>
+    <div class="form-text">{{ t('jigsawNew.authorHelp') || 'The author is one of the users, and owns the jigsaw.' }}</div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="jigsaw-visibility">{{ t('jigsawNew.visibility') || 'Who sees it' }}</label>
+    <select id="jigsaw-visibility" name="visibility" class="form-select" [ngModel]="visibility()" (ngModelChange)="visibility.set($event)">
+      <option value="everyone">{{ t('jigsawNew.visibilityEveryone') || 'Public' }}</option>
+      <option value="owner" [disabled]="!ownerUid()">{{ t('jigsawNew.visibilityOwner') || 'Private' }}</option>
+      <option value="hidden" [disabled]="!ownerUid()">{{ t('jigsawNew.visibilityHidden') || 'Hidden' }}</option>
+    </select>
+    <div class="form-text">{{ t('jigsawNew.visibilityHelp') || 'Public: in the lists of everyone. Private: only its owner and its players see it. Hidden: only in the list of your own jigsaws, not on the front page or in any other list.' }}</div>
+  </div>
+</ng-container>
