@@ -24,6 +24,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 /** What goes to `functions/.env` (not secret), and what goes to `functions/.secret.local` (secret). */
 export const PUBLIC_KEYS = ["OPENAI_MODEL", "OPENAI_IMAGE_DETAIL", "OPENAI_ORG_ID", "OPENAI_PROJECT_ID"];
 export const SECRET_KEYS = ["OPENAI_API_KEY"];
+/** The name the key has as a Firebase secret of the deployed function (the emulator reads a declared secret by this name from `.secret.local`). */
+export const SECRET_NAME = "JIGSAW_OPENAI_API_KEY";
 /** What has to be there for the classification to work. */
 export const REQUIRED_KEYS = ["OPENAI_API_KEY", "OPENAI_MODEL"];
 
@@ -67,7 +69,7 @@ function main(args) {
   if (checkOnly) return missing.length ? 1 : 0;
 
   fs.writeFileSync(path.join(to, ".env"), envText(env, PUBLIC_KEYS, "# Copied from /.env by scripts/sync-env.mjs: not secret, not committed. Edit /.env, not this file."));
-  fs.writeFileSync(path.join(to, ".secret.local"), envText(env, SECRET_KEYS, "# Copied from /.env by scripts/sync-env.mjs: the emulator reads it, it is never deployed, never committed. Edit /.env, not this file."));
+  fs.writeFileSync(path.join(to, ".secret.local"), envText({ ...env, [SECRET_NAME]: env.OPENAI_API_KEY }, [...SECRET_KEYS, SECRET_NAME], "# Copied from /.env by scripts/sync-env.mjs: the emulator reads it, it is never deployed, never committed. Edit /.env, not this file."));
   console.log(`sync-env: ${path.relative(root, from)} -> ${path.relative(root, to)}/.env (${PUBLIC_KEYS.filter((k) => env[k]).length} settings) and .secret.local (${SECRET_KEYS.filter((k) => env[k]).length} secret)`);
   return missing.length && !soft ? 1 : 0;
 }

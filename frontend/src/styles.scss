@@ -531,6 +531,15 @@ small,
 }
 
 // the photo on the front page: always the whole picture, never cut, only made smaller to fit the column and the height of the screen (a little less tall on a phone, so the text and buttons stay in view)
+/* Karin's picture in the welcome band: all of the photo, at most a third as high as the screen (and not more than 40 % as wide) */
+.welcome-photo {
+  width: auto;
+  height: auto;
+  max-height: 33dvh;
+  max-width: 40vw;
+  object-fit: cover;
+}
+
 .front-picture {
   display: block;
   width: auto;

@@ -24,6 +24,7 @@ describe("the settings of the AI", () => {
   it("need a key and a model, and say where to put them", () => {
     expect(openAiSettings({})).toEqual({ error: expect.stringMatching(/OPENAI_API_KEY and OPENAI_MODEL are not set.*\.env.*sync:env/) });
     expect(openAiSettings({ OPENAI_API_KEY: "k" })).toEqual({ error: expect.stringMatching(/^OPENAI_MODEL is not set/) });
+    expect(openAiSettings({ JIGSAW_OPENAI_API_KEY: "k", OPENAI_MODEL: "m" })).toMatchObject({ apiKey: "k", model: "m" }); // the deployed function has the key as its Firebase secret
     expect(openAiSettings({ OPENAI_MODEL: "m" })).toEqual({ error: expect.stringMatching(/^OPENAI_API_KEY is not set/) });
     expect(openAiSettings({ OPENAI_API_KEY: "  ", OPENAI_MODEL: "m" })).toEqual({ error: expect.stringMatching(/OPENAI_API_KEY/) }); // spaces are nothing
   });

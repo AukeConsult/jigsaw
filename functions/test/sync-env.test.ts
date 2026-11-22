@@ -46,6 +46,7 @@ describe("copying the settings from /.env to the functions", () => {
     expect(publicFile).not.toContain("sk-test-123"); // the key is not in the file that is deployed
     expect(publicFile).not.toContain("KEYSTORE");
     expect(secretFile).toContain("OPENAI_API_KEY=sk-test-123");
+    expect(secretFile).toContain("JIGSAW_OPENAI_API_KEY=sk-test-123"); // the name of the Firebase secret: the emulator reads a declared secret by it
     expect(secretFile).not.toContain("OPENAI_MODEL");
     expect(run.stdout).not.toContain("sk-test-123"); // and what is said never has it
   });

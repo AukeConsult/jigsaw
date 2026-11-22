@@ -28,11 +28,15 @@
       </div>
     </section>
   } @else if (welcome()) {
-    <!-- no round going: the band is a welcome, so a new player sees what to do -->
+    <!-- no round going: the band is Karin's welcome (her picture, what this is and her note), so a new player sees what to do -->
     <section class="my-rounds bg-body-tertiary border-bottom" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
-      <div class="container">
-        <h2 class="subsection-title mb-1">{{ t('jigsawHome.welcome') || 'Welcome' }}</h2>
-        <p class="text-body-secondary mb-0">{{ t('jigsawHome.noRoundsYet') || 'You have no rounds going yet. Pick a jigsaw below to start one.' }}</p>
+      <div class="container d-flex flex-row-reverse align-items-stretch gap-3 pt-3 pb-2 px-4">
+        <img class="welcome-photo rounded-3 shadow-sm flex-shrink-0" src="images/front.jpg" width="510" height="815" [attr.alt]="t('jigsawHome.imageAlt') || 'Karin with a colourful parasol on a fort terrace'">
+        <div class="min-w-0 d-flex flex-column">
+          <h2 class="subsection-title mb-1">{{ t('jigsawHome.welcome') || 'Welcome' }}</h2>
+          <p class="text-body-secondary mb-1">{{ t('jigsawHome.welcomeIntro') || 'Enjoy my jigsaws, play them and have fun, or use your own picture to make your own.' }}</p>
+          <p class="text-body-secondary fst-italic small text-end mt-auto mb-0 pt-2"><i class="bi bi-heart-fill text-danger" aria-hidden="true"></i> {{ t('jigsawHome.note') || 'I love making jigsaws and puzzles, and I hope you will love my system too.' }} <span class="text-nowrap">&mdash; Karin</span></p>
+        </div>
       </div>
     </section>
   }
