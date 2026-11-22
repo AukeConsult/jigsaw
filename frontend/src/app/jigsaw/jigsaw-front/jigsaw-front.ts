@@ -11,8 +11,7 @@ import { MyRounds } from '../my-rounds/my-rounds';
 @Component({
   selector: 'app-jigsaw-front',
   imports: [RouterLink, TranslocoDirective, JigsawCard, MyRounds],
-  // no browser menu on a right click or a long press anywhere on this page (it lives only while the page is open)
-  host: { class: 'd-block', '(document:contextmenu)': '$event.preventDefault()' },
+  host: { class: 'd-block' },
   providers: [provideTranslocoScope('jigsawHome')],
   templateUrl: './jigsaw-front.html',
 })

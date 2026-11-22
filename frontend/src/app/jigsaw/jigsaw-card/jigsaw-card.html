@@ -6,7 +6,7 @@
       <a [routerLink]="link()" [title]="pictureOnly() ? item.name : ''" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
         <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
           @if (!noPicture()) {
-            <img class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)" (contextmenu)="noMenu($event)">
+            <img class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
           }
         </div>
       </a>
