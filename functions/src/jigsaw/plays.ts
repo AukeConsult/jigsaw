@@ -100,7 +100,8 @@ export function firestorePlayStore(): PlayStore {
 /** A game of a user, with the jigsaw it is a game of (enough to show it in a list). */
 export interface UserGame {
   play: PlaySpec;
-  jigsaw: { id: string; name: string };
+  /** `imageKey`: the key of the pictures, for a jigsaw that is private or hidden and that whoever asks may see (see `ImageAccess`); output only */
+  jigsaw: { id: string; name: string; imageKey?: string };
 }
 
 /**
@@ -110,7 +111,15 @@ export interface UserGame {
 /** Moves that would pull apart pieces that stick together (see `Plays.bondsError`): they are refused, 409. */
 class BondBroken extends Error {}
 
-export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise<JigsawSpec[]>; userOf: (userId: string) => Promise<{ id: string } | null> }): express.Router {
+export function userPlaysRouter(
+  plays: PlayStore,
+  deps: {
+    jigsaws: () => Promise<JigsawSpec[]>;
+    userOf: (userId: string) => Promise<{ id: string } | null>;
+    /** the key of the pictures of a jigsaw for whoever asks (`me`), or nothing when the jigsaw is not private or hidden or they may not see it: the games listed are another user's too, so this is asked, not assumed */
+    imageKeyFor?: (jigsaw: JigsawSpec, me: string | undefined) => Promise<string | undefined>;
+  },
+): express.Router {
   const router = express.Router({ mergeParams: true });
   router.get("/", async (req, res) => {
     const userId = String((req.params as { id?: string }).id);
@@ -118,7 +127,12 @@ export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise
     if (error) return void res.status(400).json({ error });
     if (!(await deps.userOf(userId))) return void res.status(404).json({ error: "No such user." });
     const jigsaws = await deps.jigsaws();
-    const games = (await Promise.all(jigsaws.map(async (j) => (await plays.list(j.id, userId)).map((play): UserGame => ({ play, jigsaw: { id: j.id, name: j.name } })))))
+    const me = req.get("X-Jigsaw-User");
+    const games = (await Promise.all(jigsaws.map(async (j) => {
+      const own = await plays.list(j.id, userId);
+      const imageKey = own.length && deps.imageKeyFor ? await deps.imageKeyFor(j, me) : undefined;
+      return own.map((play): UserGame => ({ play, jigsaw: { id: j.id, name: j.name, ...(imageKey ? { imageKey } : {}) } }));
+    })))
       .flat()
       .filter((g) => !g.play.fresh) // a round nobody has moved a piece in is not listed
       .sort((a, b) => Plays.lastActive(b.play) - Plays.lastActive(a.play))

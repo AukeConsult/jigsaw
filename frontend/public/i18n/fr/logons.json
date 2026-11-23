@@ -1,0 +1,71 @@
+{
+  "login": {
+    "google": "Continuer avec Google",
+    "emailLink": "Recevoir un lien de connexion par e-mail",
+    "orPassword": "ou utilise un mot de passe",
+    "createTitle": "Crée ton compte",
+    "namePlaceholder": "Ton nom (facultatif)",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "repeat": "Répète le mot de passe",
+    "wait": "Patiente…",
+    "signIn": "Se connecter",
+    "createAccount": "Créer le compte",
+    "rejectedText": "Nous n'avons pas pu te connecter avec cet e-mail et ce mot de passe.",
+    "createAnAccount": "Créer un compte",
+    "forgot": "Mot de passe oublié ?",
+    "noAccount": "Pas de compte ? Crée-en un",
+    "haveAccount": "Déjà un compte ? Connecte-toi",
+    "backToSignIn": "Retour à la connexion",
+    "passwordsDiffer": "Les deux mots de passe ne sont pas identiques. Saisis-les de nouveau.",
+    "enterEmail": "Saisis d'abord ton e-mail.",
+    "resetSent": "E-mail de réinitialisation du mot de passe envoyé (si le compte existe).",
+    "resetFail": "Impossible d'envoyer l'e-mail de réinitialisation.",
+    "signInFailed": "La connexion a échoué. Réessaie.",
+    "syncFailed": "Impossible d'enregistrer votre compte ({{ status }}). Veuillez réessayer."
+  },
+  "loginEmail": {
+    "title": "Recevoir un lien de connexion par e-mail",
+    "checkTitle": "Vérifie tes e-mails.",
+    "sentTo": "Nous avons envoyé un lien de connexion à",
+    "openHere": "Ouvre-le sur cet appareil pour te connecter.",
+    "noEmail": "Pas d'e-mail ? Regarde dans tes spams, ou réessaie.",
+    "another": "Utiliser une autre adresse e-mail",
+    "yourEmail": "Ton adresse e-mail",
+    "sending": "Envoi…",
+    "send": "Envoyer le lien",
+    "writeEmail": "Saisis d'abord ton adresse e-mail.",
+    "sendFailed": "Impossible d'envoyer le lien. Réessaie.",
+    "intro": "Pas besoin de mot de passe. Nous vous envoyons un lien, et en l'ouvrant vous êtes connecté."
+  },
+  "loginLink": {
+    "title": "Connexion en cours",
+    "invalid": "Ce lien n'est pas valide, ou il a expiré. Demande-en un nouveau.",
+    "newLink": "Envoie-moi un nouveau lien",
+    "busy": "Connexion en cours…",
+    "confirm": "Pour terminer, confirme l'adresse e-mail à laquelle ce lien a été envoyé.",
+    "failed": "Impossible de te connecter avec ce lien. Demande-en un nouveau."
+  },
+  "account": {
+    "title": "Compte",
+    "signedInAs": "Connecté en tant que",
+    "verified": "E-mail vérifié",
+    "notVerified": "E-mail non vérifié",
+    "shared": "Le compte est le même dans Karins jigsaw et Seven Friends.",
+    "signOut": "Se déconnecter"
+  },
+  "errors": {
+    "invalid-credential": "E-mail ou mot de passe incorrect.",
+    "wrong-password": "E-mail ou mot de passe incorrect.",
+    "user-not-found": "E-mail ou mot de passe incorrect.",
+    "invalid-email": "Saisis une adresse e-mail valide.",
+    "email-already-in-use": "Un compte existe déjà avec cet e-mail.",
+    "weak-password": "Le mot de passe doit contenir au moins 6 caractères.",
+    "too-many-requests": "Trop de tentatives. Réessaie plus tard.",
+    "operation-not-allowed": "Cette méthode de connexion n'est pas activée dans Firebase, ou (pour le téléphone) les SMS vers ce pays n'y sont pas autorisés : Authentication → Settings → SMS region policy.",
+    "requires-recent-login": "Reconnecte-toi, puis réessaie.",
+    "invalid-action-code": "Ce lien n'est plus valide. Demande-en un nouveau.",
+    "expired-action-code": "Ce lien a expiré. Demande-en un nouveau.",
+    "unauthorized-continue-uri": "Cette adresse web n'est pas autorisée à envoyer des liens de connexion (ajoute-la dans Authorized domains dans Firebase)."
+  }
+}

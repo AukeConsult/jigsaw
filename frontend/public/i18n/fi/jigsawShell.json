@@ -17,5 +17,7 @@
   "share": "Jaa",
   "copyLink": "Kopioi linkki",
   "copied": "Linkki kopioitu",
-  "shareEmail": "Sähköposti"
+  "shareEmail": "Sähköposti",
+  "viewing": "Katsot pelaajan {{ name }} kierrosta",
+  "toJigsaw": "Näytä palapelin sivu"
 }

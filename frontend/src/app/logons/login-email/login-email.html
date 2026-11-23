@@ -1,0 +1,31 @@
+<main class="container-fluid page-margin py-4" *transloco="let t">
+  <div class="form-card card card-body mx-auto">
+    <h1 class="page-title d-flex align-items-center gap-2 mb-3"><i class="bi bi-envelope text-primary" aria-hidden="true"></i>{{ t('logons.loginEmail.title') || 'Email me a sign-in link' }}</h1>
+    @if (sentTo(); as address) {
+      <div class="alert alert-success" role="status">
+        <strong>{{ t('logons.loginEmail.checkTitle') || 'Check your email.' }}</strong>
+        {{ t('logons.loginEmail.sentTo') || 'We sent a sign-in link to' }} <strong class="text-break">{{ address }}</strong>. {{ t('logons.loginEmail.openHere') || 'Open it on this device to sign in.' }}
+      </div>
+      <p class="form-text">{{ t('logons.loginEmail.noEmail') || 'No email? Look in your spam folder, or try again.' }}</p>
+      <div class="toolbar">
+        <button type="button" class="link-action" (click)="useAnother()">{{ t('logons.loginEmail.another') || 'Use another email address' }}</button>
+        <a routerLink="/login" class="link-action">{{ t('logons.login.backToSignIn') || 'Back to sign in' }}</a>
+      </div>
+    } @else {
+      <p class="text-body-secondary">{{ t('logons.loginEmail.intro') || 'No password needed. We email you a link, and opening it signs you in.' }}</p>
+      <form (submit)="$event.preventDefault(); send()">
+        <div class="mb-3">
+          <label class="form-label" for="link-email">{{ t('logons.loginEmail.yourEmail') || 'Your email address' }}</label>
+          <input id="link-email" type="email" class="form-control" [value]="email()" (input)="email.set($any($event.target).value)" autocomplete="email" inputmode="email" required />
+        </div>
+        @if (error()) {
+          <div class="alert alert-danger" role="alert">{{ error() }}</div>
+        }
+        <div class="d-flex gap-2">
+          <a routerLink="/login" class="btn btn-outline-secondary">{{ t('logons.login.backToSignIn') || 'Back to sign in' }}</a>
+          <button type="submit" class="btn btn-primary" [disabled]="busy()">{{ busy() ? (t('logons.loginEmail.sending') || 'Sending…') : (t('logons.loginEmail.send') || 'Send link') }}</button>
+        </div>
+      </form>
+    }
+  </div>
+</main>

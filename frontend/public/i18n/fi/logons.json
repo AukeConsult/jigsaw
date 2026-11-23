@@ -1,0 +1,71 @@
+{
+  "login": {
+    "google": "Jatka Googlella",
+    "emailLink": "Lähetä minulle kirjautumislinkki sähköpostilla",
+    "orPassword": "tai käytä salasanaa",
+    "createTitle": "Luo tilisi",
+    "namePlaceholder": "Nimesi (valinnainen)",
+    "email": "Sähköposti",
+    "password": "Salasana",
+    "repeat": "Toista salasana",
+    "wait": "Odota hetki…",
+    "signIn": "Kirjaudu sisään",
+    "createAccount": "Luo tili",
+    "rejectedText": "Emme voineet kirjata sinua sisään tällä sähköpostilla ja salasanalla.",
+    "createAnAccount": "Luo tili",
+    "forgot": "Unohditko salasanan?",
+    "noAccount": "Ei tiliä? Luo se",
+    "haveAccount": "Onko sinulla tili? Kirjaudu sisään",
+    "backToSignIn": "Takaisin kirjautumiseen",
+    "passwordsDiffer": "Salasanat eivät ole samat. Kirjoita ne uudelleen.",
+    "enterEmail": "Kirjoita ensin sähköpostisi.",
+    "resetSent": "Salasanan nollaussähköposti lähetetty (jos tili on olemassa).",
+    "resetFail": "Nollaussähköpostia ei voitu lähettää.",
+    "signInFailed": "Kirjautuminen epäonnistui. Yritä uudelleen.",
+    "syncFailed": "Tilin tallentaminen epäonnistui ({{ status }}). Yritä uudelleen."
+  },
+  "loginEmail": {
+    "title": "Lähetä minulle kirjautumislinkki sähköpostilla",
+    "checkTitle": "Tarkista sähköpostisi.",
+    "sentTo": "Lähetimme kirjautumislinkin osoitteeseen",
+    "openHere": "Avaa se tällä laitteella kirjautuaksesi sisään.",
+    "noEmail": "Ei sähköpostia? Katso roskapostikansiosta tai yritä uudelleen.",
+    "another": "Käytä toista sähköpostiosoitetta",
+    "yourEmail": "Sähköpostiosoitteesi",
+    "sending": "Lähetetään…",
+    "send": "Lähetä linkki",
+    "writeEmail": "Kirjoita ensin sähköpostiosoitteesi.",
+    "sendFailed": "Linkkiä ei voitu lähettää. Yritä uudelleen.",
+    "intro": "Salasanaa ei tarvita. Lähetämme sinulle linkin, ja kun avaat sen, olet kirjautunut sisään."
+  },
+  "loginLink": {
+    "title": "Kirjataan sisään",
+    "invalid": "Tämä linkki ei ole voimassa tai se on vanhentunut. Pyydä uusi.",
+    "newLink": "Lähetä minulle uusi linkki",
+    "busy": "Kirjataan sisään…",
+    "confirm": "Viimeistele vahvistamalla sähköpostiosoite, johon tämä linkki lähetettiin.",
+    "failed": "Kirjautuminen tällä linkillä epäonnistui. Pyydä uusi."
+  },
+  "account": {
+    "title": "Tili",
+    "signedInAs": "Kirjautuneena",
+    "verified": "Sähköposti vahvistettu",
+    "notVerified": "Sähköpostia ei ole vahvistettu",
+    "shared": "Sama tili toimii Karinin palapelissä ja Seven Friendsissä.",
+    "signOut": "Kirjaudu ulos"
+  },
+  "errors": {
+    "invalid-credential": "Väärä sähköposti tai salasana.",
+    "wrong-password": "Väärä sähköposti tai salasana.",
+    "user-not-found": "Väärä sähköposti tai salasana.",
+    "invalid-email": "Kirjoita kelvollinen sähköpostiosoite.",
+    "email-already-in-use": "Tällä sähköpostilla on jo tili.",
+    "weak-password": "Salasanassa pitää olla vähintään 6 merkkiä.",
+    "too-many-requests": "Liian monta yritystä. Yritä myöhemmin uudelleen.",
+    "operation-not-allowed": "Tämä kirjautumistapa ei ole käytössä Firebasessa, tai (puhelimella) tekstiviestit tähän maahan eivät ole sallittuja: Authentication → Settings → SMS region policy.",
+    "requires-recent-login": "Kirjaudu sisään uudelleen ja yritä sitten vielä kerran.",
+    "invalid-action-code": "Tämä linkki ei ole enää voimassa. Pyydä uusi.",
+    "expired-action-code": "Tämä linkki on vanhentunut. Pyydä uusi.",
+    "unauthorized-continue-uri": "Tämä verkko-osoite ei saa lähettää kirjautumislinkkejä (lisää se Firebasen kohtaan Authorized domains)."
+  }
+}

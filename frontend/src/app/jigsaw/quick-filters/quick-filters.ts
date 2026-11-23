@@ -1,4 +1,4 @@
-import { Component, computed, inject, model } from '@angular/core';
+import { Component, computed, inject, input, model } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawCategories } from '../../models/shared/category';
@@ -25,21 +25,23 @@ export class QuickFilters {
   protected readonly favorites = inject(FavoritesService);
   protected readonly solved = inject(SolvedService);
   readonly filter = model<JigsawFilter>(JigsawFilters.empty());
+  /** the page shows something else than the jigsaws (the list of rounds): none of the quick filters looks pressed, and pressing one is a change of what is looked for */
+  readonly muted = input(false);
 
   protected readonly categories = QUICK_CATEGORIES.map((key) => JigsawCategories.of(key)!);
   /** nothing is looked for: "All" is the one that is on */
-  protected readonly all = computed(() => !JigsawFilters.isOn(this.filter()));
+  protected readonly all = computed(() => !this.muted() && !JigsawFilters.isOn(this.filter()));
 
   /** The filter is this category and nothing else: the quick filter is on (what else was looked for, in the Find page, makes none of them on). */
   protected chosen(key: string): boolean {
     const f = this.filter();
-    return !f.favorites && !f.solved && f.categories.length === 1 && f.categories[0] === key && !f.text.trim() && !f.sizes.length && !f.difficulties.length && !f.languages.length && !f.owners.length;
+    return !this.muted() && !f.favorites && !f.solved && f.categories.length === 1 && f.categories[0] === key && !f.text.trim() && !f.sizes.length && !f.difficulties.length && !f.languages.length && !f.owners.length;
   }
 
   /** The filter is the favorites and nothing else. */
   protected readonly favoritesOn = computed(() => {
     const f = this.filter();
-    return f.favorites === true && !f.solved && !f.categories.length && !f.text.trim() && !f.sizes.length && !f.difficulties.length && !f.languages.length && !f.owners.length;
+    return !this.muted() && f.favorites === true && !f.solved && !f.categories.length && !f.text.trim() && !f.sizes.length && !f.difficulties.length && !f.languages.length && !f.owners.length;
   });
 
   /** The button for the favorites is there when the user has some (and while it is on, so it can be taken off). */
@@ -48,7 +50,7 @@ export class QuickFilters {
   /** The filter is the solved jigsaws and nothing else. */
   protected readonly solvedOn = computed(() => {
     const f = this.filter();
-    return f.solved === true && !f.favorites && !f.categories.length && !f.text.trim() && !f.sizes.length && !f.difficulties.length && !f.languages.length && !f.owners.length;
+    return !this.muted() && f.solved === true && !f.favorites && !f.categories.length && !f.text.trim() && !f.sizes.length && !f.difficulties.length && !f.languages.length && !f.owners.length;
   });
 
   /** The button for the solved jigsaws is there when the user has solved some (and while it is on, so it can be taken off). */

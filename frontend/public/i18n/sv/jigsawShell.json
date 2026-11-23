@@ -17,5 +17,7 @@
   "share": "Dela",
   "copyLink": "Kopiera länken",
   "copied": "Länken är kopierad",
-  "shareEmail": "E-post"
+  "shareEmail": "E-post",
+  "viewing": "Du tittar på {{ name }}s omgång",
+  "toJigsaw": "Visa pusselsidan"
 }

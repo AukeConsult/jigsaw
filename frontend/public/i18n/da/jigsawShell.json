@@ -17,5 +17,7 @@
   "share": "Del",
   "copyLink": "Kopiér linket",
   "copied": "Linket er kopieret",
-  "shareEmail": "E-mail"
+  "shareEmail": "E-mail",
+  "viewing": "Du kigger på {{ name }}s runde",
+  "toJigsaw": "Vis puslespillets side"
 }

@@ -3,6 +3,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../core/language.service';
+import { AuthService } from '../logons/auth.service';
 import { JigsawHelper } from './jigsaw-helper';
 import { JigsawUserService } from './jigsaw-user.service';
 import { ShareButton } from './share-button/share-button';
@@ -11,15 +12,23 @@ import { ShareButton } from './share-button/share-button';
 @Component({
   selector: 'app-jigsaw-shell',
   imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, ShareButton],
-  providers: [provideTranslocoScope('jigsawShell')],
+  providers: [provideTranslocoScope('jigsawShell', 'logons')],
   template: `
     <ng-container *transloco="let t">
     <ng-template #helper let-sfx>
   <!-- the helper, on the page of a jigsaw: the helper picture (a frame on top of the page with the whole picture), only the corner and edge pieces -->
   <div class="jigsaw-helper-bar d-flex align-items-center flex-wrap gap-2 gap-sm-3" [attr.aria-label]="t('jigsawShell.helper') || 'Helper'">
+    @if (tools.current(); as jigsawId) {
+      <!-- the page of the jigsaw, for every round (the same as the name of the jigsaw and the details in the sidebar) -->
+      <a class="btn btn-sm btn-outline-secondary" [routerLink]="['/jigsaw', jigsawId]" [title]="t('jigsawShell.toJigsaw') || 'Show the page of the jigsaw'" [attr.aria-label]="t('jigsawShell.toJigsaw') || 'Show the page of the jigsaw'"><i class="bi bi-puzzle" aria-hidden="true"></i></a>
+    }
     @if (tools.clock(); as time) {
       <!-- the time played in this round, a small clock that runs while the round is open on the screen -->
       <span class="small text-nowrap text-body-secondary" role="timer" [title]="t('jigsawShell.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i><span class="visually-hidden">{{ t('jigsawShell.timePlayed') || 'Time played' }}: </span><span class="font-monospace">{{ time }}</span></span>
+    }
+    @if (tools.viewing(); as name) {
+      <!-- another player's round is looked at: whose it is -->
+      <span class="small fw-semibold text-nowrap" role="status" [title]="t('jigsawShell.viewing', { name }) || 'You are looking at the round of ' + name"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ name }}</span>
     }
     <div class="form-check form-switch mb-0">
       <input [id]="'helper-picture' + sfx" class="form-check-input" type="checkbox" role="switch" [checked]="tools.helper()" [disabled]="!tools.hasPicture()"
@@ -66,6 +75,12 @@ import { ShareButton } from './share-button/share-button';
             <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'Help'"><i class="bi bi-book me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.guide') || 'Help' }}</span></a>
             </li>
             <li class="nav-item">
+            <!-- the sign-in with Firebase, beside the users of the jigsaw: the account (shared with Seven Friends) when somebody is signed in, else the way to sign in -->
+            <a class="nav-link text-nowrap" [routerLink]="account.user() ? '/account' : '/login'" routerLinkActive="active" [title]="account.user() ? (t('logons.account.title') || 'Account') : (t('logons.login.signIn') || 'Sign in')">
+              <i class="bi me-md-1 d-block d-md-inline" [class.bi-person-check]="account.user()" [class.bi-box-arrow-in-right]="!account.user()" aria-hidden="true"></i><span class="nav-label">{{ account.user() ? (t('logons.account.title') || 'Account') : (t('logons.login.signIn') || 'Sign in') }}</span>
+            </a>
+            </li>
+            <li class="nav-item">
             <!-- who plays: the name of the user, and a way to choose another -->
             <a class="nav-link text-nowrap" routerLink="/jigsaw/user" routerLinkActive="active" [title]="users.user() ? (t('jigsawShell.whoPlaysTitle', { name: users.user()!.username }) || 'Who plays: ' + users.user()!.username) : (t('jigsawShell.choosePlayer') || 'Choose who plays')">
               <i class="bi bi-person-circle me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ users.user()?.name ?? (t('jigsawShell.whoPlays') || 'Who plays?') }}</span>
@@ -100,6 +115,7 @@ import { ShareButton } from './share-button/share-button';
 export class JigsawShell {
   protected readonly tools = inject(JigsawHelper);
   protected readonly users = inject(JigsawUserService);
+  protected readonly account = inject(AuthService);
   protected readonly language = inject(LanguageService);
   protected readonly languages = LANGUAGES;
   /** the list of languages is open */

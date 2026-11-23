@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JIGSAW_MAX_PIECES, JigsawLanguages, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid } from "../src/models";
+import { FREE_SPACE_COLUMNS_MAX, JIGSAW_MAX_PIECES, JigsawLanguages, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid } from "../src/models";
 
 /** a steady "random" so the tests give the same cut every time */
 function seeded(seed: number) {
@@ -677,6 +677,25 @@ describe("pieces that stick together", () => {
   });
 });
 
+describe("the area has room for the free space beside the picture, with all its columns", () => {
+  it("is as high as the lowest column of the free space, and not lower than the store", () => {
+    const grid = 50;
+    const store = JigsawSettings.storeFrame(800, 1000, grid, 600)!;
+    const extent = JigsawSettings.extent(800, 1000, grid, 600);
+    expect(extent.width).toBe(store.left + store.width);
+    expect(extent.height).toBe(Math.max(store.height, JigsawSettings.freeSpaceBottom(1000, grid)));
+    // the top and the height of a column: a step and a half under the picture, and the picture with a step above and below it
+    expect(JigsawSettings.freeSpaceTop(1000, grid)).toBe(1075);
+    expect(JigsawSettings.freeSpaceColumnHeight(1000, grid)).toBe(1100);
+    expect(JigsawSettings.freeSpaceBottom(1000, grid)).toBe(1075 + FREE_SPACE_COLUMNS_MAX * 1100);
+    expect(extent.height).toBeGreaterThanOrEqual(store.height);
+  });
+
+  it("is the picture area alone when there is no store", () => {
+    expect(JigsawSettings.extent(800, 600, 50, undefined)).toEqual({ width: 800, height: 600 });
+  });
+});
+
 describe("collecting the pieces in the store frame", () => {
   const size = 50;
   const square = { ...DEFAULT_OBJECT, width: size, height: size };
@@ -766,6 +785,26 @@ describe("collecting the pieces in the store frame", () => {
     expect(left(c, "piece-2-0")).toBe(slice.left + down.sliceWidth + margin);
     expect(top(c, "piece-2-0")).toBe(margin);
     expect(c.items.filter((i) => i.data.piece).length).toBe(5);
+  });
+
+  it("strayPieces finds the pieces whose middle is in none of the places (the picture, the free space, the store), whole groups, never a piece on its place", () => {
+    const places = [
+      { left: 0, top: 0, width: 400, height: 300 }, // the picture
+      { left: 450, top: 0, width: 300, height: 1200 }, // the store
+    ];
+    const d = Puzzle.from([mk(0, 0, 100, 100), mk(1, 0, 600, 400), mk(2, 0, 420, 100), mk(3, 0, 200, 800), mk(4, 0, 900, 100)], 1000, 1200);
+    // 0 on the picture, 1 in the store: both fine; 2 in the gap between them, 3 under the picture, 4 right of the store: lost
+    expect(d.strayPieces(places).sort()).toEqual(["piece-2-0", "piece-3-0", "piece-4-0"]);
+    // the free space beside the picture is one more place, and then 3 is not lost
+    expect(d.strayPieces([...places, { left: 0, top: 700, width: 400, height: 200 }]).sort()).toEqual(["piece-2-0", "piece-4-0"]);
+    expect(d.strayPieces([{ left: 0, top: 0, width: 1000, height: 1200 }])).toEqual([]);
+  });
+
+  it("strayPieces takes the whole group when one of its pieces has strayed", () => {
+    // 0,0 and 1,0 stick (one piece apart across, in relation to each other as they belong): 1,0 is in the store, 0,0 under the picture
+    const d = Puzzle.from([mk(0, 0, 200, 800), mk(1, 0, 250, 800)], 1000, 1200);
+    const places = [{ left: 0, top: 0, width: 400, height: 300 }, { left: 220, top: 600, width: 300, height: 400 }];
+    expect(d.strayPieces(places).sort()).toEqual(["piece-0-0", "piece-1-0"]);
   });
 
   it("with a random, the pieces lie more by chance: the places and the distances differ, and every piece is still inside the frame", () => {

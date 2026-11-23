@@ -34,7 +34,7 @@ export class JigsawCard {
   protected readonly noPicture = signal(false);
 
   protected readonly link =computed(() => this.route() ?? ['/jigsaw', this.jigsaw().id]);
-  protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw().id, 1));
+  protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw(), 1));
   protected readonly pieces = computed(() => {
     const j = this.jigsaw();
     const grid = pieceGrid(j.width, j.height, j.gridSize);

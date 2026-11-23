@@ -25,6 +25,12 @@ const LEGACY_GRID = 5;
 /** How many times the height of the picture area the store frame of a jigsaw is: its pieces are spread over it and it scrolls. */
 export const STORE_HEIGHT_FACTOR = 3;
 
+/**
+ * The free space beside the picture (when the store is below it, on a narrow screen) stands for stored places under the picture. When the room beside the picture is wider than the picture it is cut into
+ * columns, each as wide as the picture, one under the other in the stored places: at most this many (the area has the room for them, `JigsawSettings.extent`).
+ */
+export const FREE_SPACE_COLUMNS_MAX = 12;
+
 /** who sees a jigsaw in the lists: everyone (public), its owner and its players (private), or only its owner in the list of the owner's own jigsaws (hidden) */
 export type JigsawVisibility = 'everyone' | 'owner' | 'hidden';
 export const JIGSAW_VISIBILITIES: readonly JigsawVisibility[] = ['everyone', 'owner', 'hidden'];
@@ -88,6 +94,11 @@ export interface JigsawSpec {
   backColor?: string;
   /** milliseconds since 1970 */
   createdAt: number;
+  /**
+   * OUTPUT ONLY, never stored: the key that lets the page read the picture of a jigsaw that is private or hidden (it is put on `?k=` of the address of the picture). The API adds it, in an answer, for the
+   * people who may see such a jigsaw, and it is made again at every answer (it runs out after some hours). A jigsaw that everybody sees has none. Not in `JigsawInput`, so `stored()` never keeps it.
+   */
+  imageKey?: string;
 }
 
 /** What the page sends to make a jigsaw. */
@@ -124,7 +135,22 @@ export class JigsawSettings {
   /** Everything the objects can be on: the picture area, and its store frame when it has one (one box, so an object is checked against it). */
   static extent(width: number, height: number, grid: number, storeWidth: number | undefined): { width: number; height: number } {
     const store = JigsawSettings.storeFrame(width, height, grid, storeWidth);
-    return store ? { width: store.left + store.width, height: Math.max(height, store.height) } : { width, height };
+    return store ? { width: store.left + store.width, height: Math.max(height, store.height, JigsawSettings.freeSpaceBottom(height, grid)) } : { width, height };
+  }
+
+  /** Where the stored places of the free space beside the picture begin: a little under the picture (the picture, a grid step and half a piece). */
+  static freeSpaceTop(height: number, grid: number): number {
+    return height + grid + grid / 2;
+  }
+
+  /** How high a column of the free space is: as high as the picture and a step above and below it, so a piece can be taken all the way from it to the store. */
+  static freeSpaceColumnHeight(height: number, grid: number): number {
+    return height + 2 * grid;
+  }
+
+  /** The lowest stored place of the free space, with all its columns (the area is high enough for it). */
+  static freeSpaceBottom(height: number, grid: number): number {
+    return JigsawSettings.freeSpaceTop(height, grid) + FREE_SPACE_COLUMNS_MAX * JigsawSettings.freeSpaceColumnHeight(height, grid);
   }
 
   /** How close a piece has to be dropped to its own grid point to click into place when the jigsaw says nothing: half a grid step (50 %). */

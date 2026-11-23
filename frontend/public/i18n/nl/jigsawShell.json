@@ -17,5 +17,7 @@
   "share": "Delen",
   "copyLink": "Link kopiëren",
   "copied": "Link gekopieerd",
-  "shareEmail": "E-mail"
+  "shareEmail": "E-mail",
+  "viewing": "Je kijkt naar de ronde van {{ name }}",
+  "toJigsaw": "Toon de pagina van de puzzel"
 }

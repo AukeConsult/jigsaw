@@ -17,5 +17,7 @@
   "share": "Share",
   "copyLink": "Copy link",
   "copied": "Link copied",
-  "shareEmail": "E-mail"
+  "shareEmail": "E-mail",
+  "viewing": "You are looking at the round of {{ name }}",
+  "toJigsaw": "Show the page of the jigsaw"
 }

@@ -1,0 +1,17 @@
+<main class="container-fluid page-margin py-4" *transloco="let t">
+  <div class="form-card card card-body mx-auto">
+    @if (user(); as me) {
+      <h1 class="page-title d-flex align-items-center gap-2 mb-1"><i class="bi bi-person-circle text-primary" aria-hidden="true"></i><span class="text-break">{{ me.displayName || me.email || (t('logons.account.title') || 'Account') }}</span></h1>
+      <p class="text-body-secondary mb-3">{{ t('logons.account.signedInAs') || 'Signed in as' }} <span class="text-break">{{ me.email || me.phoneNumber }}</span></p>
+      <p class="mb-3">
+        @if (me.emailVerified) {
+          <span class="badge text-bg-success fw-normal"><i class="bi bi-patch-check" aria-hidden="true"></i> {{ t('logons.account.verified') || 'Email verified' }}</span>
+        } @else if (me.email) {
+          <span class="badge text-bg-secondary fw-normal">{{ t('logons.account.notVerified') || 'Email not verified' }}</span>
+        }
+      </p>
+      <p class="form-text">{{ t('logons.account.shared') || 'This account is the same in Karins jigsaw and Seven Friends.' }}</p>
+      <div class="toolbar"><button type="button" class="link-action danger" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>{{ t('logons.account.signOut') || 'Sign out' }}</button></div>
+    }
+  </div>
+</main>

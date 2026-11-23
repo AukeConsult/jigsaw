@@ -9,15 +9,19 @@ import { TokenUsageStore, firestoreTokenUsageStore, tokenUsageRouter } from "./t
 import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
-import { JigsawSettings, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity } from "../models";
+import { JigsawSettings, JigsawSpec, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity } from "../models";
+import { ImageAccess } from "./image-access";
+import { roundsListRouter } from "./rounds-list";
+import { SecretSource, ViewKeys, firestoreSecret } from "./view-key";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
+import { LogonDeps, logonsRouter } from "../logons";
 import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./plays";
 
 /** The address the API of Karins jigsaw answers on (Hosting forwards the full path to the function). */
 export const JIGSAW_API = "/jigsaw/api";
 
 /** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
-export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; now?: () => number } = {}): express.Express {
+export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; logons?: LogonDeps; viewKeySecret?: SecretSource; now?: () => number } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
@@ -40,7 +44,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // the plays of a jigsaw: one game each, by one user; a play chooses only the difficulty and the look, never the size, the picture or the pieces
   const users = stores.users ?? firestoreUserStore();
   // the games of a user over all the jigsaws (before the users, whose own routes would take the address first)
-  router.use("/jigsaw-users/:id/plays", userPlaysRouter(plays, { jigsaws: () => jigsaw.list(), userOf: async (userId) => (await users.get(userId)) ?? null }));
+  router.use("/jigsaw-users/:id/plays", userPlaysRouter(plays, { jigsaws: () => jigsaw.list(), userOf: async (userId) => (await users.get(userId)) ?? null, imageKeyFor: (c, me) => keyIfSeen(c, me) }));
   // what the AI has used for a user, kept under the user (written by the classification, read here)
   const tokenUsage = stores.tokenUsage ?? firestoreTokenUsageStore();
   router.use("/jigsaw-users/:id/token-usage", tokenUsageRouter(tokenUsage));
@@ -50,6 +54,9 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   const isOwnerOf = (c: { ownerUid?: string }, me: string | undefined) => !!me && c.ownerUid === me;
   const hasRoundOn = async (c: { id: string }, me: string | undefined) => !!me && (await plays.list(c.id, me)).length > 0;
   const canSee = async (c: { id: string; visibility?: string; ownerUid?: string }, me: string | undefined) => !JigsawVisibilities.restricted(c.visibility) || isOwnerOf(c, me) || (await hasRoundOn(c, me));
+  // the pictures of a jigsaw that is private or hidden are read with a key that the answers about it give to those who may see it (`ImageAccess`): the key is made at each answer and never kept
+  const imageAccess = new ImageAccess(new ViewKeys(stores.viewKeySecret ?? firestoreSecret(), stores.now), async (id) => (await jigsawById(id))?.visibility);
+  const keyIfSeen = async (c: JigsawSpec, me: string | undefined): Promise<string | undefined> => (JigsawVisibilities.restricted(c.visibility) && (await canSee(c, me)) ? (await imageAccess.keyed(c)).imageKey : undefined);
   router.use("/jigsaw/:id/plays", async (req, res, next) => {
     const c = await jigsawById(req.params.id);
     if (!c || !JigsawVisibilities.restricted(c.visibility)) return next();
@@ -81,6 +88,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (await plays.has(req.params.id)) return void res.status(409).json({ error: JigsawSettings.PLAYED_MESSAGE });
     next();
   };
+  // the rounds that the users have played (the person's own too), on the jigsaws the person may see (the button "Rounds" on the front page); before the routes of one jigsaw
+  router.use("/jigsaw-rounds", roundsListRouter(plays, { jigsaws: () => jigsaw.list(), canSee: (c, me) => canSee(c, me), imageKeyFor: (c, me) => keyIfSeen(c, me), now: stores.now }));
   // the popular jigsaws, for the front page: the ones the person may see, ranked by the rounds played and by being new (`Popularity`); before the routes of one jigsaw
   router.get("/jigsaw-popular", async (req, res) => {
     const me = req.get("X-Jigsaw-User");
@@ -88,7 +97,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     const seen = await Promise.all(all.map((j) => canSee(j, me)));
     const visible = all.filter((j, i) => seen[i] && JigsawVisibilities.listed(j.visibility)); // a hidden jigsaw is not among the popular
     const counted = await Promise.all(visible.map(async (j) => ({ jigsaw: j, rounds: await plays.count(j.id) })));
-    res.json(Popularity.rank(counted, (stores.now ?? Date.now)()));
+    res.json(await Promise.all(Popularity.rank(counted, (stores.now ?? Date.now)()).map(imageAccess.keyed)));
   });
   // the favorites of the users: a jigsaw ticked with a heart, one document for each user and jigsaw in `jigsaw-favorites`; they go with a jigsaw that is deleted
   const favorites = stores.favorites ?? firestoreFavoriteStore();
@@ -116,7 +125,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     }
     return found;
   };
-  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), async () => (await users.list()).map((u) => u.id), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among)));
+  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), async () => (await users.list()).map((u) => u.id), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed));
   // the AI classification of one jigsaw by its picture (categories, name and description); its settings are read when it is asked for (before the routes of one jigsaw)
   router.use(
     "/jigsaw/:id/classify",
@@ -124,7 +133,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
       classifier: stores.classifier ?? configuredClassifier(),
       jigsawById,
       pictureOf: (id) => images.get(id),
-      update: async (id, input) => (search.forget(), jigsaw.update(id, input)),
+      update: async (id, input) => (search.forget(), imageAccess.forget(), jigsaw.update(id, input)),
       keepUsage: (userId, usage) => tokenUsage.add(userId, usage),
       now: stores.now,
     }),
@@ -166,16 +175,21 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     jigsawListRouter(
       {
         // what the search has read is forgotten when a jigsaw is made, changed or deleted, so the next question sees it
-        add: async (input) => (search.forget(), jigsaw.add(input)),
-        update: async (id, input) => (search.forget(), jigsaw.update(id, input)),
+        add: async (input) => (search.forget(), imageAccess.forget(), jigsaw.add(input)),
+        update: async (id, input) => (search.forget(), imageAccess.forget(), jigsaw.update(id, input)),
         list: () => jigsaw.list(),
-        remove: async (id) => (search.forget(), (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id), favorites.removeAllOf(id)]).then(() => true, () => true))),
+        remove: async (id) => (search.forget(), imageAccess.forget(), (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id), favorites.removeAllOf(id)]).then(() => true, () => true))),
       },
       (c, me) => canSee(c, me),
+      imageAccess.keyed,
     ),
   );
+  // a picture, or the graphic of a piece, of a jigsaw that is private or hidden is read only with its key (a jigsaw that everybody sees has none); this is before the routes that give them
+  router.get(["/jigsaw-image/:id", "/jigsaw-pieces/:id/graphic/:pieceId"], imageAccess.guard);
   router.use("/jigsaw-image", jigsawImageRouter(images, jigsawExists));
   router.use("/jigsaw-pieces", jigsawPiecesRouter(pieces, jigsawExists));
+  // signing in with Firebase, beside the users above (which are not changed): the account is shared with Seven Friends
+  router.use("/session", logonsRouter(stores.logons));
   app.use(JIGSAW_API, router);
   return app;
 }

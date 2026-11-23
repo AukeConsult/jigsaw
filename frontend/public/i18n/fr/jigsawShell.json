@@ -17,5 +17,7 @@
   "share": "Partager",
   "copyLink": "Copier le lien",
   "copied": "Lien copié",
-  "shareEmail": "E-mail"
+  "shareEmail": "E-mail",
+  "viewing": "Tu regardes la partie jouée par {{ name }}",
+  "toJigsaw": "Afficher la page du puzzle"
 }

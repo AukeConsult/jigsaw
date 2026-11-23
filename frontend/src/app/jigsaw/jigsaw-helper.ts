@@ -32,15 +32,19 @@ export class JigsawHelper {
   readonly hasPieces = signal(false);
   /** the time played in the round that is open, as a clock (null: no round with a clock is open); the menu shows it */
   readonly clock = signal<string | null>(null);
+  /** the name of the player whose round is looked at (another player's round: the menu shows it); null when the round is the person's own, or none is open */
+  readonly viewing = signal<string | null>(null);
   /** how many pieces there are and how many of them are shown */
   readonly counts = signal({ shown: 0, total: 0 });
 
-  /** the jigsaw whose switches these are now (null: none open) */
+  /** the jigsaw whose switches these are now (null: none open); the menu links to its page */
+  readonly current = signal<string | null>(null);
   private jigsawId: string | null = null;
 
   /** Opens a jigsaw: its switches are as the person left them the last time it was open; a jigsaw never opened keeps the switches as they are (the last choice). */
   open(id: string): void {
     this.jigsawId = id || null;
+    this.current.set(this.jigsawId);
     const saved = this.jigsawId ? readPreference<Record<string, HelperState>>(HELPER_KEY, {}, isStateMap)[this.jigsawId] : undefined;
     if (!saved) return;
     this.helper.set(saved.helper);

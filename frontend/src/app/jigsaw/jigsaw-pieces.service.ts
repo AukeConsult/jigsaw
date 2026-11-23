@@ -36,8 +36,8 @@ export class JigsawPiecesService {
     fetch(this.base(id), { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ moves }), keepalive: true }).catch(() => undefined);
   }
 
-  /** where the graphic of a piece can be read */
-  graphicUrl(id: string, pieceId: string): string {
-    return `${this.base(id)}/graphic/${encodeURIComponent(pieceId)}`;
+  /** where the graphic of a piece can be read (with the key of the jigsaw when it is private or hidden, as for its picture: see `JigsawImageService.url`) */
+  graphicUrl(jigsaw: { id: string; imageKey?: string }, pieceId: string): string {
+    return `${this.base(jigsaw.id)}/graphic/${encodeURIComponent(pieceId)}${jigsaw.imageKey ? `?k=${encodeURIComponent(jigsaw.imageKey)}` : ''}`;
   }
 }

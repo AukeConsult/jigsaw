@@ -2,7 +2,7 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
 import type { JigsawStore } from "../src/common/jigsaw-list";
-import { memoryPlays, memoryUsers } from "./memory-plays";
+import { TEST_KEY_SECRET, memoryPlays, memoryUsers } from "./memory-plays";
 import { JIGSAW_MAX_PLACED, JigsawSettings } from "../src/models";
 import type { JigsawSpec } from "../src/models";
 
@@ -34,7 +34,7 @@ function memoryStore(): JigsawStore {
 
 describe("jigsaw-list", () => {
   it("gives one jigsaw by its id, and 404 for one that is not there or that a private jigsaw hides", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays(), users: memoryUsers("u1") });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays(), users: memoryUsers("u1") });
     const input = { name: "Poster", width: 800, height: 600, gridSize: 50, gridVisible: false, placed: [] };
     const open = (await request(app).post("/jigsaw/api/jigsaw").send(input)).body as JigsawSpec;
     const secret = (await request(app).post("/jigsaw/api/jigsaw").send({ ...input, name: "Secret", ownerUid: "u1", visibility: "hidden" })).body as JigsawSpec;
@@ -45,7 +45,7 @@ describe("jigsaw-list", () => {
   });
 
   it("saves a jigsaw and lists it", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const created = await request(app).post("/jigsaw/api/jigsaw").send({ name: " Poster ", width: 800, height: 600, gridSize: 5, gridVisible: false, placed: [] });
     expect(created.status).toBe(201);
     expect(created.body).toMatchObject({ name: "Poster", width: 800, height: 600, gridSize: 5, gridVisible: false });
@@ -57,7 +57,7 @@ describe("jigsaw-list", () => {
   });
 
   it("changes a saved jigsaw in place (autosave), keeping its id", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const made = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed: [] });
     const changed = { ...jigsaw, name: "Renamed", width: 300, placed: [{ id: "a", centerX: 20, centerY: 20, object: box, evil: 1 }] };
     const res = await request(app).put(`/jigsaw/api/jigsaw/${made.body.id}`).send(changed);
@@ -71,14 +71,14 @@ describe("jigsaw-list", () => {
   });
 
   it("refuses to change a jigsaw to something invalid, and says 404 for one that is not there", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const made = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed: [] });
     expect((await request(app).put(`/jigsaw/api/jigsaw/${made.body.id}`).send({ ...jigsaw, name: "", placed: [] })).status).toBe(400);
     expect((await request(app).put("/jigsaw/api/jigsaw/nope").send({ ...jigsaw, placed: [] })).status).toBe(404);
   });
 
   it("deletes a jigsaw, and says 404 for one that is not there", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const a = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed: [] });
     const b = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, name: "Other", placed: [] });
     expect((await request(app).delete(`/jigsaw/api/jigsaw/${a.body.id}`)).status).toBe(204);
@@ -88,7 +88,7 @@ describe("jigsaw-list", () => {
   });
 
   it("saves the layer of a placed object, and refuses a layer that is not allowed", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const at = (layer: unknown) => ({ id: "p", centerX: 50, centerY: 50, layer, object: box });
     const ok = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed: [at(25)] });
     expect(ok.status).toBe(201);
@@ -99,7 +99,7 @@ describe("jigsaw-list", () => {
   });
 
   it("leaves nothing of an object that was removed from the jigsaw: the saved jigsaw is replaced", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const first = { id: "f", centerX: 50, centerY: 50, object: box };
     const second = { id: "g", centerX: 75, centerY: 50, object: box };
     const made = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed: [first, second] });
@@ -119,7 +119,7 @@ describe("jigsaw-list", () => {
   });
 
   it("accepts grid 0 (no grid)", async () => {
-    const res = await request(createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() })).post("/jigsaw/api/jigsaw").send({ name: "x", width: 10, height: 10, gridSize: 0, gridVisible: true, placed: [] });
+    const res = await request(createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() })).post("/jigsaw/api/jigsaw").send({ name: "x", width: 10, height: 10, gridSize: 0, gridVisible: true, placed: [] });
     expect(res.status).toBe(201);
   });
 
@@ -127,7 +127,7 @@ describe("jigsaw-list", () => {
   const jigsaw = { name: "x", width: 100, height: 100, gridSize: 5, gridVisible: true };
 
   it("saves the objects placed on the jigsaw", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const placed = [{ id: "p1", centerX: 20, centerY: 90, object: { ...box, evil: 1 } }];
     const res = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed });
     expect(res.status).toBe(201);
@@ -135,7 +135,7 @@ describe("jigsaw-list", () => {
   });
 
   it("accepts a centre at the very edge, and a half-pixel centre for an odd size", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const edge = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed: [{ id: "a", centerX: 10, centerY: 90, object: box }] });
     expect(edge.status).toBe(201);
     const odd = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed: [{ id: "a", centerX: 10.5, centerY: 10.5, object: { ...box, width: 21, height: 21 } }] });
@@ -143,7 +143,7 @@ describe("jigsaw-list", () => {
   });
 
   it("saves an object that an older version saved as an arrow without what only an arrow had", async () => {
-    const app = createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() });
     const arrow = { id: "a", centerX: 50, centerY: 50, length: 30, angle: 0, bend: 8, connections: { start: { objectId: "f", pointId: "e" } }, object: { ...box, kind: "connector", shape: "line", arrow: "one-way", height: 2 } };
     const res = await request(app).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed: [arrow] });
     expect(res.status).toBe(201);
@@ -162,7 +162,7 @@ describe("jigsaw-list", () => {
     ["no centre (the old top-left fields)", [{ id: "p", x: 0, y: 0, object: box }]],
     ["too many", Array.from({ length: JIGSAW_MAX_PLACED + 1 }, (_, i) => ({ id: "p" + i, centerX: 10, centerY: 10, object: box }))],
   ])("refuses placed objects: %s", async (_why, placed) => {
-    const res = await request(createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() })).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed });
+    const res = await request(createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() })).post("/jigsaw/api/jigsaw").send({ ...jigsaw, placed });
     expect(res.status).toBe(400);
   });
 
@@ -180,7 +180,7 @@ describe("jigsaw-list", () => {
     [{ name: "x", width: 10, height: 10, gridSize: 2.5, gridVisible: true, placed: [] }],
     [{}],
   ])("refuses %j", async (body) => {
-    const res = await request(createJigsawApp({ jigsaw: memoryStore(), plays: memoryPlays() })).post("/jigsaw/api/jigsaw").send(body);
+    const res = await request(createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryStore(), plays: memoryPlays() })).post("/jigsaw/api/jigsaw").send(body);
     expect(res.status).toBe(400);
     expect(res.body.error).toBeTruthy();
   });

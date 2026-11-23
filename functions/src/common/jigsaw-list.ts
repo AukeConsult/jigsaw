@@ -19,7 +19,10 @@ function readInput(body: Record<string, unknown>): { input: JigsawInput } | { er
 }
 
 /** The routes of the list of jigsaws (mounted at `/jigsaw`). GET: the saved jigsaws, newest first. POST: save a new one. PUT /:id: change a saved one (the page autosaves with these). DELETE /:id: delete one. */
-export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec, me: string | undefined) => Promise<boolean> = async (j, me) => !JigsawVisibilities.restricted(j.visibility) || (!!me && j.ownerUid === me)): express.Router {
+export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec, me: string | undefined) => Promise<boolean> = async (j, me) => !JigsawVisibilities.restricted(j.visibility) || (!!me && j.ownerUid === me),
+  /** the jigsaw as an answer for somebody who may see it: with the key of its pictures when it is private or hidden (it is never kept) */
+  keyed: (jigsaw: JigsawSpec) => Promise<JigsawSpec> = async (j) => j,
+): express.Router {
   const router = express.Router();
 
   // a jigsaw its owner keeps to themselves is listed for those `canSee` says (the owner, and whoever the app adds: the header `X-Jigsaw-User` is the UID of who asks; there is no
@@ -28,14 +31,14 @@ export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec
     const me = req.get("X-Jigsaw-User");
     const all = await store.list();
     const seen = await Promise.all(all.map((j) => canSee(j, me)));
-    res.json(all.filter((_, i) => seen[i]));
+    res.json(await Promise.all(all.filter((_, i) => seen[i]).map(keyed)));
   });
 
   // one jigsaw by its id (for the page of a jigsaw, a round and the forms: they do not need the whole list); a jigsaw the person may not see is not there
   router.get("/:id", async (req, res) => {
     const one = store.get ? await store.get(req.params.id) : ((await store.list()).find((j) => j.id === req.params.id) ?? null);
     if (!one || !(await canSee(one, req.get("X-Jigsaw-User")))) return void res.status(404).json({ error: "No such jigsaw." });
-    res.json(one);
+    res.json(await keyed(one));
   });
 
   router.post("/", async (req, res) => {
@@ -44,7 +47,7 @@ export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec
       res.status(400).json({ error: read.error });
       return;
     }
-    res.status(201).json(await store.add(read.input));
+    res.status(201).json(await keyed(await store.add(read.input)));
   });
 
   router.put("/:id", async (req, res) => {
@@ -58,7 +61,7 @@ export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec
       res.status(404).json({ error: "No such jigsaw." });
       return;
     }
-    res.json(saved);
+    res.json(await keyed(saved));
   });
 
   router.delete("/:id", async (req, res) => {

@@ -6,7 +6,7 @@
   const c = window.ng.getComponent(board);
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const fire = (t, type, x, y) => t.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1, isPrimary: true, button: 0, buttons: type === 'pointerup' ? 0 : 1 }));
-  const rootRect = () => board.querySelector(':scope > div').getBoundingClientRect();
+  const rootRect = () => c.root().nativeElement.getBoundingClientRect(); // the pieces area itself (the first div of the board can be the floating helper picture)
   const surfaceRect = () => board.querySelector('.picture-surface').getBoundingClientRect();
   const pieces = () => [...board.querySelectorAll('.placed-object')].map((e) => ({ e, r: e.getBoundingClientRect() })).filter((o) => o.r.width > 5);
   const inside = (o, b, m) => o.r.left > b.left + m && o.r.right < b.right - m && o.r.top > b.top + m && o.r.bottom < b.bottom - m;

@@ -2,7 +2,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { JigsawImageService } from '../jigsaw-image.service';
+import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
@@ -58,8 +58,8 @@ export class JigsawHome implements OnInit {
     }
   }
 
-  pictureUrl(item: { id: string }): string {
-    return this.images.url(item.id, 1);
+  pictureUrl(item: ImageOf): string {
+    return this.images.url(item, 1);
   }
 
   lacksPicture(id: string): void {

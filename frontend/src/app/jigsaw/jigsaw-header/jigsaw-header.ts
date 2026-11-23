@@ -36,7 +36,7 @@ export class JigsawHeader {
 
   /** the picture could not be read (a jigsaw can be made without one): nothing is shown */
   protected readonly hasPicture = signal(true);
-  protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw().id, 1));
+  protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw(), 1));
   protected readonly pieces = computed(() => {
     const j = this.jigsaw();
     const grid = pieceGrid(j.width, j.height, j.gridSize);

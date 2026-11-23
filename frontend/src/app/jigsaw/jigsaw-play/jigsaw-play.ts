@@ -166,6 +166,7 @@ export class JigsawPlay implements OnDestroy {
     onAnyScroll(this.destroyRef, () => this.measureSidebar());
     this.clockTimer = setInterval(() => this.tickClock(), 1000);
     effect(() => this.tools.clock.set(this.status() === 'ready' && this.item()?.timed !== false ? this.clock() : null)); // the menu at the top shows it
+    effect(() => this.tools.viewing.set(this.status() === 'ready' && this.viewOnly() ? this.play()?.userName || tr('jigsawPlay.anotherPlayer', 'another player') : null)); // the menu at the top says whose round it is
     // another game can be opened from this page (a new game): the page is the same, the ids change
     this.route.paramMap.subscribe((params) => {
       this.pieceSync.leaving(); // what waits to be saved goes to the game that is left
@@ -204,7 +205,7 @@ export class JigsawPlay implements OnDestroy {
       this.timeSaved = this.elapsedMs();
       this.lastTick = 0;
       this.status.set('ready');
-      this.picture.set((await this.images.has(this.jigsawId)) ? this.images.url(this.jigsawId, 1) : null);
+      this.picture.set((await this.images.has(jigsaw)) ? this.images.url(jigsaw, 1) : null);
     } catch {
       this.status.set('failed');
     }
@@ -267,6 +268,7 @@ export class JigsawPlay implements OnDestroy {
   ngOnDestroy(): void {
     clearInterval(this.clockTimer);
     this.tools.clock.set(null);
+    this.tools.viewing.set(null);
     this.tools.open(''); // no jigsaw: the switches are not saved for the next one
     this.saveTimeNow();
     this.autosave.destroy();

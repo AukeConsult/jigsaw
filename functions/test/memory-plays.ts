@@ -76,3 +76,6 @@ export function memoryUsers(...names: string[]): UserStore {
     },
   };
 }
+
+/** the secret of the keys of the pictures, in a test: the app asks Firestore for it when it is not given one */
+export const TEST_KEY_SECRET = async (): Promise<string> => "test-secret-test-secret-test-secret-1";

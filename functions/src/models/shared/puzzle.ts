@@ -84,6 +84,23 @@ export class Puzzle {
   }
 
   /**
+   * The pieces that are not in a place a person can see and reach: the middle of the piece is in none of `places` (rectangles, in the pixels the objects are placed in: the picture area, the gutter under
+   * it, the free space beside it, the store). Whole groups: when one piece of a group is lost the whole group is (they move together). A group on its place is never lost. This is how "collect pieces"
+   * finds what has strayed (after the window was made smaller, or the store was changed) and brings it back with the rest.
+   */
+  strayPieces(places: readonly { left: number; top: number; width: number; height: number }[]): string[] {
+    const inAPlace = (m: PlacedFigure) => places.some((r) => m.centerX >= r.left && m.centerX <= r.left + r.width && m.centerY >= r.top && m.centerY <= r.top + r.height);
+    const lost = new Set<string>();
+    for (const item of this.items) {
+      if (!item.data.piece || lost.has(item.id) || inAPlace(item)) continue;
+      const group = this.stuckGroup([item.id]);
+      if (this.isFixed(group)) continue;
+      for (const id of group) lost.add(id);
+    }
+    return [...lost];
+  }
+
+  /**
    * Collects jigsaw pieces: the pieces of `ids` are put together at the top of `frame` (its left edge, its top and its width, in the pixels the objects
    * are placed in), in rows from the top left, close to each other (`COLLECT_GAP`), the way they were lying: from the top down, and in a row from left
    * to right. The pieces that stick together (see `stuckGroup`) stay as they are in relation to each other and are put as one piece; a group that has a

@@ -7,7 +7,7 @@ import { tr } from '../../core/i18n';
 import { readPreference, writePreference } from '../../core/preferences';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AiUsageList, AiUsageService } from '../ai-usage.service';
-import { JigsawImageService } from '../jigsaw-image.service';
+import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { CategoryTags } from '../category-tags/category-tags';
 import { JigsawService } from '../jigsaw.service';
 import { snapLevelOfJigsaw } from '../snap-level';
@@ -429,8 +429,8 @@ export class JigsawUser implements OnInit {
     return snapLevelOfJigsaw(j);
   }
 
-  pictureUrl(jigsawId: string): string {
-    return this.images.url(jigsawId, 1);
+  pictureUrl(jigsaw: ImageOf): string {
+    return this.images.url(jigsaw, 1);
   }
 
   lacksPicture(jigsawId: string): void {

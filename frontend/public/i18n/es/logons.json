@@ -1,0 +1,71 @@
+{
+  "login": {
+    "google": "Continuar con Google",
+    "emailLink": "Enviarme un enlace de acceso por correo",
+    "orPassword": "o usar una contraseña",
+    "createTitle": "Crea tu cuenta",
+    "namePlaceholder": "Tu nombre (opcional)",
+    "email": "Correo",
+    "password": "Contraseña",
+    "repeat": "Repite la contraseña",
+    "wait": "Espera un momento…",
+    "signIn": "Iniciar sesión",
+    "createAccount": "Crear cuenta",
+    "rejectedText": "No pudimos iniciar tu sesión con este correo y esta contraseña.",
+    "createAnAccount": "Crear una cuenta",
+    "forgot": "¿Olvidaste la contraseña?",
+    "noAccount": "¿No tienes cuenta? Crea una",
+    "haveAccount": "¿Ya tienes cuenta? Inicia sesión",
+    "backToSignIn": "Volver a iniciar sesión",
+    "passwordsDiffer": "Las dos contraseñas no coinciden. Escríbelas de nuevo.",
+    "enterEmail": "Escribe primero tu correo.",
+    "resetSent": "Correo para restablecer la contraseña enviado (si la cuenta existe).",
+    "resetFail": "No se pudo enviar el correo para restablecer la contraseña.",
+    "signInFailed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+    "syncFailed": "No se pudo guardar tu cuenta ({{ status }}). Inténtalo de nuevo."
+  },
+  "loginEmail": {
+    "title": "Enviarme un enlace de acceso por correo",
+    "checkTitle": "Revisa tu correo.",
+    "sentTo": "Enviamos un enlace de acceso a",
+    "openHere": "Ábrelo en este dispositivo para iniciar sesión.",
+    "noEmail": "¿No llega? Mira en la carpeta de spam o inténtalo de nuevo.",
+    "another": "Usar otro correo",
+    "yourEmail": "Tu dirección de correo",
+    "sending": "Enviando…",
+    "send": "Enviar enlace",
+    "writeEmail": "Escribe primero tu dirección de correo.",
+    "sendFailed": "No se pudo enviar el enlace. Inténtalo de nuevo.",
+    "intro": "No necesitas contraseña. Te enviamos un enlace y, al abrirlo, inicias sesión."
+  },
+  "loginLink": {
+    "title": "Iniciando tu sesión",
+    "invalid": "Este enlace no es válido o ha caducado. Pide uno nuevo.",
+    "newLink": "Enviarme un enlace nuevo",
+    "busy": "Iniciando tu sesión…",
+    "confirm": "Para terminar, confirma la dirección de correo a la que se envió este enlace.",
+    "failed": "No se pudo iniciar tu sesión con este enlace. Pide uno nuevo."
+  },
+  "account": {
+    "title": "Cuenta",
+    "signedInAs": "Sesión iniciada como",
+    "verified": "Correo verificado",
+    "notVerified": "Correo no verificado",
+    "shared": "La cuenta es la misma en Karins jigsaw y Seven Friends.",
+    "signOut": "Cerrar sesión"
+  },
+  "errors": {
+    "invalid-credential": "Correo o contraseña incorrectos.",
+    "wrong-password": "Correo o contraseña incorrectos.",
+    "user-not-found": "Correo o contraseña incorrectos.",
+    "invalid-email": "Escribe un correo electrónico válido.",
+    "email-already-in-use": "Ya existe una cuenta con este correo.",
+    "weak-password": "La contraseña debe tener al menos 6 caracteres.",
+    "too-many-requests": "Demasiados intentos. Inténtalo más tarde.",
+    "operation-not-allowed": "Este método de inicio de sesión no está activado en Firebase o (en el caso del teléfono) no se permiten SMS a este país: Authentication → Settings → SMS region policy.",
+    "requires-recent-login": "Inicia sesión de nuevo y vuelve a intentarlo.",
+    "invalid-action-code": "Este enlace ya no es válido. Pide uno nuevo.",
+    "expired-action-code": "Este enlace ha caducado. Pide uno nuevo.",
+    "unauthorized-continue-uri": "Esta dirección web no puede enviar enlaces de inicio de sesión (añádela en Authorized domains en Firebase)."
+  }
+}

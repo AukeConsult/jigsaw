@@ -111,7 +111,7 @@
               <div class="round-body">
                 <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
                   @if (!noPicture().has(game.jigsaw.id)) {
-                    <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw.id)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
+                    <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
                   }
                 </div>
                 <div class="round-info">
@@ -288,7 +288,7 @@
                 <div class="round-open">
                   <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
                     @if (!noPicture().has(item.id)) {
-                      <img class="object-fit-cover" [src]="pictureUrl(item.id)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
+                      <img class="object-fit-cover" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
                     }
                   </div>
                   <div class="round-info">

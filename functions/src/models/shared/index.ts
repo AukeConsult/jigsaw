@@ -16,3 +16,5 @@ export * from './jigsaw-search';
 export * from './jigsaw-filter';
 export * from './classification';
 export * from './token-usage';
+export * from './logon';
+export * from './rounds-list';

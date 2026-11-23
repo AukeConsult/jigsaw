@@ -28,7 +28,7 @@ export class JigsawRow {
   /** the picture could not be read (a jigsaw can be made without one): the box is empty */
   protected readonly noPicture = signal(false);
 
-  protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw().id, 1));
+  protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw(), 1));
   protected readonly grid = computed(() => {
     const j = this.jigsaw();
     return pieceGrid(j.width, j.height, j.gridSize);

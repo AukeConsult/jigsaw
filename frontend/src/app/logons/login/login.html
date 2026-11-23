@@ -1,0 +1,59 @@
+<main class="container-fluid page-margin py-4" *transloco="let t">
+  <div class="form-card card card-body mx-auto">
+    <h1 class="page-title d-flex align-items-center gap-2 mb-3">
+      <i class="bi bi-person-circle text-primary" aria-hidden="true"></i>
+      {{ mode() === 'signin' ? (t('logons.login.signIn') || 'Sign in') : (t('logons.login.createTitle') || 'Create your account') }}
+    </h1>
+
+    <div class="vstack gap-2">
+      <button type="button" class="btn btn-outline-secondary w-100" (click)="google()" [disabled]="busy()"><i class="bi bi-google" aria-hidden="true"></i>{{ t('logons.login.google') || 'Continue with Google' }}</button>
+      <a routerLink="/login/email" class="btn btn-outline-secondary w-100"><i class="bi bi-envelope" aria-hidden="true"></i>{{ t('logons.login.emailLink') || 'Email me a sign-in link' }}</a>
+    </div>
+
+    <p class="text-body-secondary text-center my-3">{{ t('logons.login.orPassword') || 'or use a password' }}</p>
+
+    <form class="vstack gap-3" (submit)="$event.preventDefault(); submit()">
+      @if (mode() === 'signup') {
+        <input type="text" name="name" class="form-control" [attr.placeholder]="t('logons.login.namePlaceholder') || 'Your name (optional)'" [attr.aria-label]="t('logons.login.namePlaceholder') || 'Your name (optional)'"
+               autocomplete="name" [value]="name()" (input)="name.set($any($event.target).value)" />
+      }
+      <input type="email" name="email" class="form-control" [attr.placeholder]="t('logons.login.email') || 'Email'" [attr.aria-label]="t('logons.login.email') || 'Email'"
+             autocomplete="email" inputmode="email" required [value]="email()" (input)="email.set($any($event.target).value); rejected.set(false)" />
+      <input type="password" name="password" class="form-control" [attr.placeholder]="t('logons.login.password') || 'Password'" [attr.aria-label]="t('logons.login.password') || 'Password'" required minlength="6"
+             [attr.autocomplete]="mode() === 'signin' ? 'current-password' : 'new-password'" [value]="password()" (input)="password.set($any($event.target).value); rejected.set(false)" />
+      @if (mode() === 'signup') {
+        <!-- creating an account: the password is typed twice, so a typing mistake does not lock the person out -->
+        <input type="password" name="password-again" class="form-control" [attr.placeholder]="t('logons.login.repeat') || 'Repeat the password'" [attr.aria-label]="t('logons.login.repeat') || 'Repeat the password'"
+               required minlength="6" autocomplete="new-password" [value]="again()" (input)="again.set($any($event.target).value)" />
+      }
+
+      @if (!rejected()) {
+        <button type="submit" class="btn btn-primary" [disabled]="busy()">{{ busy() ? (t('logons.login.wait') || 'Please wait…') : mode() === 'signin' ? (t('logons.login.signIn') || 'Sign in') : (t('logons.login.createAccount') || 'Create account') }}</button>
+      }
+
+      @if (error() && !rejected()) {
+        <div class="alert alert-danger mb-0 text-center" role="alert">{{ error() }}</div>
+      }
+      @if (rejected()) {
+        <!-- turned down: no red error, but the two ways on: there may be no account yet, or the password is forgotten -->
+        <div class="alert alert-secondary mb-0 vstack gap-2 text-center" role="region">
+          <p class="mb-0">{{ t('logons.login.rejectedText') || 'We could not sign you in with this email and password.' }}</p>
+          <div class="d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-sm btn-primary" (click)="toggleMode()">{{ t('logons.login.createAnAccount') || 'Create an account' }}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="forgot()">{{ t('logons.login.forgot') || 'Forgot password?' }}</button>
+          </div>
+        </div>
+      }
+      @if (info()) {
+        <div class="alert alert-success mb-0 text-center" role="status">{{ info() }}</div>
+      }
+    </form>
+
+    <div class="toolbar justify-content-center mt-3">
+      @if (mode() === 'signin' && !rejected()) {
+        <button type="button" class="link-action" (click)="forgot()">{{ t('logons.login.forgot') || 'Forgot password?' }}</button>
+      }
+      <button type="button" class="link-action" (click)="toggleMode()">{{ mode() === 'signin' ? (t('logons.login.noAccount') || 'No account? Create one') : (t('logons.login.haveAccount') || 'Have an account? Sign in') }}</button>
+    </div>
+  </div>
+</main>

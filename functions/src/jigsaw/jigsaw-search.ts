@@ -74,6 +74,8 @@ export function jigsawSearchRouter(
   owners: () => Promise<string[]>,
   favorites: (userId: string) => Promise<string[]>,
   solvedOf: (userId: string, among: readonly JigsawSummary[]) => Promise<string[]>,
+  /** a jigsaw of the answer for somebody who may see it: with the key of its pictures when it is private or hidden */
+  keyed: (jigsaw: JigsawSummary) => Promise<JigsawSummary> = async (j) => j,
 ): express.Router {
   const router = express.Router();
   /** The jigsaws the person may see, the newest first; with `only.favorites`, those the person has ticked, with `only.solved`, those the person has solved (none for nobody). */
@@ -96,7 +98,7 @@ export function jigsawSearchRouter(
     if (visibility !== undefined && visibility !== "" && visibility !== "everyone" && visibility !== "owner" && visibility !== "hidden") return void res.status(400).json({ error: "The visibility must be everyone, owner or hidden." });
     const own = (await store.load([me], SEARCH_MAX_READ)).filter((j) => j.ownerUid === me);
     const answer = JigsawSearch.mine(own, parsed.query, visibility === "everyone" || visibility === "owner" || visibility === "hidden" ? visibility : undefined);
-    res.json({ ...answer, items: answer.items.map(({ description: _description, ...summary }) => summary) });
+    res.json({ ...answer, items: await Promise.all(answer.items.map(({ description: _description, ...summary }) => keyed(summary))) });
   });
   // how many jigsaws there are for each choice of the filter, with the rest of it kept (what the Find page shows beside each tick)
   router.get("/facets", async (req, res) => {
@@ -109,7 +111,7 @@ export function jigsawSearchRouter(
     if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
     const found = (await visible(req.get("X-Jigsaw-User"), { favorites: parsed.query.favorites, solved: parsed.query.solved })).filter((j) => JigsawSearch.matches(j, parsed.query));
     const page = JigsawSearch.page(found, parsed.query);
-    res.json({ ...page, items: page.items.map(({ description: _description, ...summary }) => summary) }); // the description was read to look for words in it: a list does not show it
+    res.json({ ...page, items: await Promise.all(page.items.map(({ description: _description, ...summary }) => keyed(summary))) }); // the description was read to look for words in it: a list does not show it
   });
   return router;
 }

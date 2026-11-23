@@ -1,0 +1,71 @@
+{
+  "login": {
+    "google": "Fortsæt med Google",
+    "emailLink": "Send mig et loginlink på e-mail",
+    "orPassword": "eller brug en adgangskode",
+    "createTitle": "Opret din konto",
+    "namePlaceholder": "Dit navn (valgfrit)",
+    "email": "E-mail",
+    "password": "Adgangskode",
+    "repeat": "Gentag adgangskoden",
+    "wait": "Vent lidt…",
+    "signIn": "Log ind",
+    "createAccount": "Opret konto",
+    "rejectedText": "Vi kunne ikke logge dig ind med denne e-mail og adgangskode.",
+    "createAnAccount": "Opret en konto",
+    "forgot": "Glemt adgangskode?",
+    "noAccount": "Ingen konto? Opret en",
+    "haveAccount": "Har du en konto? Log ind",
+    "backToSignIn": "Tilbage til log ind",
+    "passwordsDiffer": "De to adgangskoder er ikke ens. Skriv dem igen.",
+    "enterEmail": "Skriv først din e-mail.",
+    "resetSent": "E-mail til nulstilling af adgangskode er sendt (hvis kontoen findes).",
+    "resetFail": "Kunne ikke sende e-mail til nulstilling.",
+    "signInFailed": "Login mislykkedes. Prøv igen.",
+    "syncFailed": "Kunne ikke gemme din konto ({{ status }}). Prøv igen."
+  },
+  "loginEmail": {
+    "title": "Send mig et loginlink på e-mail",
+    "checkTitle": "Tjek din e-mail.",
+    "sentTo": "Vi sendte et loginlink til",
+    "openHere": "Åbn det på denne enhed for at logge ind.",
+    "noEmail": "Ingen e-mail? Kig i din spam-mappe, eller prøv igen.",
+    "another": "Brug en anden e-mailadresse",
+    "yourEmail": "Din e-mailadresse",
+    "sending": "Sender…",
+    "send": "Send link",
+    "writeEmail": "Skriv først din e-mailadresse.",
+    "sendFailed": "Kunne ikke sende linket. Prøv igen.",
+    "intro": "Du behøver ikke en adgangskode. Vi sender dig et link, og når du åbner det, er du logget ind."
+  },
+  "loginLink": {
+    "title": "Logger dig ind",
+    "invalid": "Dette link er ikke gyldigt, eller det er udløbet. Bed om et nyt.",
+    "newLink": "Send mig et nyt link",
+    "busy": "Logger dig ind…",
+    "confirm": "For at afslutte skal du bekræfte den e-mailadresse, linket blev sendt til.",
+    "failed": "Kunne ikke logge dig ind med dette link. Bed om et nyt."
+  },
+  "account": {
+    "title": "Konto",
+    "signedInAs": "Logget ind som",
+    "verified": "E-mail bekræftet",
+    "notVerified": "E-mail ikke bekræftet",
+    "shared": "Kontoen er den samme i Karins jigsaw og Seven Friends.",
+    "signOut": "Log ud"
+  },
+  "errors": {
+    "invalid-credential": "Forkert e-mail eller adgangskode.",
+    "wrong-password": "Forkert e-mail eller adgangskode.",
+    "user-not-found": "Forkert e-mail eller adgangskode.",
+    "invalid-email": "Skriv en gyldig e-mailadresse.",
+    "email-already-in-use": "Der findes allerede en konto med denne e-mail.",
+    "weak-password": "Adgangskoden skal have mindst 6 tegn.",
+    "too-many-requests": "For mange forsøg. Prøv igen senere.",
+    "operation-not-allowed": "Denne loginmetode er ikke slået til i Firebase, eller (for telefon) sms'er til dette land er ikke tilladt der: Authentication → Settings → SMS region policy.",
+    "requires-recent-login": "Log ind igen, og prøv så en gang til.",
+    "invalid-action-code": "Dette link er ikke gyldigt længere. Bed om et nyt.",
+    "expired-action-code": "Dette link er udløbet. Bed om et nyt.",
+    "unauthorized-continue-uri": "Denne webadresse må ikke sende loginlinks (tilføj den under Authorized domains i Firebase)."
+  }
+}

@@ -51,7 +51,7 @@ export interface JigsawIndexFields {
 }
 
 /** The part of a jigsaw a list needs: everything but the pieces and the picture's details. It is all a search reads (`SUMMARY_FIELDS`). */
-export type JigsawSummary = Pick<JigsawSpec, 'id' | 'name' | 'author' | 'description' | 'language' | 'ownerUid' | 'visibility' | 'timed' | 'categories' | 'motive' | 'width' | 'height' | 'gridSize' | 'snapPercent' | 'createdAt'>;
+export type JigsawSummary = Pick<JigsawSpec, 'id' | 'name' | 'author' | 'description' | 'language' | 'ownerUid' | 'visibility' | 'timed' | 'categories' | 'motive' | 'width' | 'height' | 'gridSize' | 'snapPercent' | 'createdAt' | 'imageKey'>;
 
 /** The fields of a document a search reads (not `placed`, the biggest). */
 export const SUMMARY_FIELDS = ['name', 'author', 'description', 'language', 'ownerUid', 'visibility', 'timed', 'categories', 'motive', 'width', 'height', 'gridSize', 'snapPercent', 'createdAt'] as const;

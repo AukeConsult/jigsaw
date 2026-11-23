@@ -4,7 +4,7 @@ import { createJigsawApp } from "../src/jigsaw/app";
 import { firestoreJigsawSearch, type JigsawSearchStore, type SearchCollectionLike } from "../src/jigsaw/jigsaw-search";
 import { JigsawIndex, JigsawSearch, NO_OWNER, SEARCH_MAX_READ, SEARCH_MAX_TEXT, SEARCH_PAGE, SUMMARY_FIELDS } from "../src/models";
 import type { JigsawQuery, JigsawSpec, JigsawSummary } from "../src/models";
-import { memoryPlays, memoryUsers } from "./memory-plays";
+import { TEST_KEY_SECRET, memoryPlays, memoryUsers } from "./memory-plays";
 
 /** a jigsaw of these pieces (a grid of 50, so 800 × 600 is 16 × 12 = 192 pieces) */
 const jigsaw = (id: string, over: Partial<JigsawSpec> = {}): JigsawSpec => ({ id, name: id, width: 800, height: 600, gridSize: 50, gridVisible: false, placed: [], createdAt: 1, ...over });
@@ -300,7 +300,7 @@ describe("the route", () => {
   ];
 
   it("finds by category, sub-category, size, difficulty and owner, and says how many", async () => {
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
     const body = async (qs: string, me?: string) => (await get(app, qs, me)).body as { items: JigsawSummary[]; total: number; hasMore: boolean };
     expect(ids((await body("")).items)).toEqual(["forest", "family"]);
     expect(ids((await body("?categories=nature")).items)).toEqual(["forest"]);
@@ -320,7 +320,7 @@ describe("the route", () => {
 
   it("never finds a hidden jigsaw: not even for its owner (it is only in the list of the owner's own jigsaws)", async () => {
     const some = [jigsaw("open", { createdAt: 2, ownerUid: "u1" }), jigsaw("tucked", { createdAt: 3, ownerUid: "u1", visibility: "hidden" })];
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() });
     expect(ids((await get(app, "", "u1")).body.items)).toEqual(["open"]);
     expect(ids((await get(app, "?owners=u1", "u1")).body.items)).toEqual(["open"]);
     expect(ids((await get(app, "")).body.items)).toEqual(["open"]);
@@ -328,13 +328,13 @@ describe("the route", () => {
 
   it("finds words in the description, and does not send the description on", async () => {
     const some = [jigsaw("harbour", { createdAt: 2, description: "A cold morning at the pier" }), jigsaw("other", { createdAt: 1 })];
-    const res = await get(createJigsawApp({ jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() }), "?text=pier");
+    const res = await get(createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() }), "?text=pier");
     expect(ids(res.body.items)).toEqual(["harbour"]);
     expect("description" in res.body.items[0]).toBe(false);
   });
 
   it("gives the summary of a jigsaw: never its objects", async () => {
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
     const res = await get(app, "?categories=nature");
     expect(res.body.items[0]).toMatchObject({ id: "forest", name: "forest", categories: ["nature/forest"] });
     expect("placed" in res.body.items[0]).toBe(false);
@@ -348,7 +348,7 @@ describe("the route", () => {
       jigsaw("d"),
       jigsaw("e", { ownerUid: "u3", author: "Hidden", visibility: "owner", language: "sv" }),
     ];
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() });
     const all = (await get(app, "/facets")).body;
     expect(all.total).toBe(4); // not the private one
     expect(all.categories).toEqual({ nature: 1, "nature/forest": 1, family: 1 });
@@ -370,14 +370,14 @@ describe("the route", () => {
   });
 
   it("refuses what is not a search, with the reason", async () => {
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
     const res = await get(app, "?sizes=tiny");
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/not allowed in sizes/);
   });
 
   it("shows a jigsaw only its owner sees to its owner, and to nobody who does not say who they are", async () => {
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
     const seen = async (me?: string) => ids((await get(app, "?sort=name", me)).body.items);
     expect(await seen()).toEqual(["family", "forest"]);
     expect(await seen("u2")).toEqual(["family", "forest"]); // not the owner, and no round on it
@@ -386,7 +386,7 @@ describe("the route", () => {
 
   it("reads once for each question, with the limit, the newest and each user's: what is found and what is counted are the same jigsaws", async () => {
     const calls: { owners: string[]; limit: number }[] = [];
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(all, calls), plays: memoryPlays(), users: memoryUsers("u1", "u2") });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(all, calls), plays: memoryPlays(), users: memoryUsers("u1", "u2") });
     await get(app, "?categories=nature");
     await get(app, "/facets?categories=nature", "u1");
     expect(calls).toEqual([{ owners: ["u1", "u2"], limit: SEARCH_MAX_READ }, { owners: ["u1", "u2"], limit: SEARCH_MAX_READ }]); // the users are the owners
@@ -397,7 +397,7 @@ describe("the route", () => {
       ...Array.from({ length: SEARCH_MAX_READ + 20 }, (_, i) => jigsaw(`a${i}`, { createdAt: 1000 + i, ownerUid: "ua" })),
       ...Array.from({ length: 10 }, (_, i) => jigsaw(`b${i}`, { createdAt: 1 + i, ownerUid: "ub" })), // all older than every jigsaw of ua
     ];
-    const big = createJigsawApp({ jigsawSearch: fakeSearch(many), plays: memoryPlays(), users: memoryUsers("ua", "ub") });
+    const big = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(many), plays: memoryPlays(), users: memoryUsers("ua", "ub") });
     const found = (await get(big, "?limit=100")).body;
     expect(found.total).toBe(SEARCH_MAX_READ + 10); // 500 of ua (the newest) and the 10 of ub, which the newest 500 overall would not have
     const facets = (await get(big, "/facets")).body;
@@ -408,7 +408,7 @@ describe("the route", () => {
 
   it("looks only at the favorites of the user who asks, in the search and in the counts, and at none for nobody", async () => {
     const favorites = { list: async (u: string) => (u === "u1" ? ["forest", "secret"] : []), add: async () => undefined, remove: async () => undefined, removeAllOf: async () => undefined };
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(all), favorites, plays: memoryPlays(), users: memoryUsers("u1", "u2") });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(all), favorites, plays: memoryPlays(), users: memoryUsers("u1", "u2") });
     const found = async (qs: string, me?: string) => ids((await get(app, qs, me)).body.items);
     expect(await found("?favorites=true", "u1")).toEqual(["secret", "forest"]); // their own private jigsaw too: they may see it
     expect(await found("?favorites=true&categories=nature", "u1")).toEqual(["secret", "forest"]); // with the rest of the filter
@@ -426,7 +426,7 @@ describe("the route", () => {
     await plays.create("forest", round("u1", "solved"), {});
     await plays.create("family", round("u1", "active"), {}); // not solved yet
     await plays.create("forest", round("u2", "active"), {});
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(all), plays, users: memoryUsers("u1", "u2") });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(all), plays, users: memoryUsers("u1", "u2") });
     const found = async (qs: string, me?: string) => ids((await get(app, qs, me)).body.items);
     expect(await found("?solved=true", "u1")).toEqual(["forest"]);
     expect(await found("?solved=true&categories=family", "u1")).toEqual([]); // with the rest of the filter
@@ -439,7 +439,7 @@ describe("the route", () => {
   it("makes the search forget what it read when a jigsaw is made, changed or deleted", async () => {
     const forgot: number[] = [];
     const users = memoryUsers("u1");
-    const app = createJigsawApp({ jigsawSearch: fakeSearch(all, [], forgot), plays: memoryPlays(), users, jigsaw: { list: async () => [], add: async (i) => ({ id: "n", ...i, createdAt: 1 }) as JigsawSpec, update: async (id, i) => ({ id, ...i, createdAt: 1 }) as JigsawSpec, remove: async () => true } });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: fakeSearch(all, [], forgot), plays: memoryPlays(), users, jigsaw: { list: async () => [], add: async (i) => ({ id: "n", ...i, createdAt: 1 }) as JigsawSpec, update: async (id, i) => ({ id, ...i, createdAt: 1 }) as JigsawSpec, remove: async () => true } });
     const body = { name: "x", width: 100, height: 100, gridSize: 50, gridVisible: false, placed: [] };
     await request(app).post("/jigsaw/api/jigsaw").send(body);
     await request(app).put("/jigsaw/api/jigsaw/n").send(body);
@@ -496,7 +496,7 @@ describe("the route of one user's jigsaws", () => {
     jigsaw("c", { createdAt: 3, ownerUid: "u2" }),
     jigsaw("d", { createdAt: 4, ownerUid: "u1", visibility: "owner" }),
   ];
-  const app = () => createJigsawApp({ jigsawSearch: store(owned), plays: memoryPlays(), users: memoryUsers("u1", "u2") });
+  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsawSearch: store(owned), plays: memoryPlays(), users: memoryUsers("u1", "u2") });
   const mineOf = (qs: string, me?: string) => {
     const r = request(app()).get(`/jigsaw/api/jigsaw-search/mine${qs}`);
     return me ? r.set("X-Jigsaw-User", me) : r;

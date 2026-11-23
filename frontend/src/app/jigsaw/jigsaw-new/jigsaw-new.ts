@@ -404,7 +404,7 @@ export class JigsawNew implements OnDestroy {
       if (await this.plays.played(id)) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // it has been played: only the name and the defaults can change, on its page
       this.original = item;
       this.fill(item);
-      const response = await fetch(this.images.url(id, 1));
+      const response = await fetch(this.images.url(item, 1));
       if (response.ok) {
         const blob = await response.blob();
         const bitmap = await createImageBitmap(blob);

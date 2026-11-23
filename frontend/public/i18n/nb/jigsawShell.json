@@ -17,5 +17,7 @@
   "share": "Del",
   "copyLink": "Kopier lenken",
   "copied": "Lenken er kopiert",
-  "shareEmail": "E-post"
+  "shareEmail": "E-post",
+  "viewing": "Du ser på runden til {{ name }}",
+  "toJigsaw": "Vis siden til puslespillet"
 }

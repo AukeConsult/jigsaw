@@ -1,0 +1,71 @@
+{
+  "login": {
+    "google": "Doorgaan met Google",
+    "emailLink": "Stuur me een inloglink",
+    "orPassword": "of gebruik een wachtwoord",
+    "createTitle": "Maak je account aan",
+    "namePlaceholder": "Je naam (optioneel)",
+    "email": "E-mail",
+    "password": "Wachtwoord",
+    "repeat": "Herhaal het wachtwoord",
+    "wait": "Even wachten…",
+    "signIn": "Inloggen",
+    "createAccount": "Account aanmaken",
+    "rejectedText": "We konden je niet inloggen met dit e-mailadres en wachtwoord.",
+    "createAnAccount": "Een account aanmaken",
+    "forgot": "Wachtwoord vergeten?",
+    "noAccount": "Geen account? Maak er een",
+    "haveAccount": "Heb je een account? Log in",
+    "backToSignIn": "Terug naar inloggen",
+    "passwordsDiffer": "De twee wachtwoorden zijn niet hetzelfde. Typ ze opnieuw.",
+    "enterEmail": "Vul eerst je e-mailadres in.",
+    "resetSent": "E-mail om het wachtwoord te herstellen is verstuurd (als het account bestaat).",
+    "resetFail": "Kon de herstelmail niet versturen.",
+    "signInFailed": "Inloggen mislukt. Probeer het opnieuw.",
+    "syncFailed": "Je account kon niet worden opgeslagen ({{ status }}). Probeer het opnieuw."
+  },
+  "loginEmail": {
+    "title": "Stuur me een inloglink",
+    "checkTitle": "Check je e-mail.",
+    "sentTo": "We hebben een inloglink gestuurd naar",
+    "openHere": "Open hem op dit apparaat om in te loggen.",
+    "noEmail": "Geen e-mail? Kijk in je spammap, of probeer het opnieuw.",
+    "another": "Een ander e-mailadres gebruiken",
+    "yourEmail": "Je e-mailadres",
+    "sending": "Versturen…",
+    "send": "Link versturen",
+    "writeEmail": "Vul eerst je e-mailadres in.",
+    "sendFailed": "Kon de link niet versturen. Probeer het opnieuw.",
+    "intro": "Je hebt geen wachtwoord nodig. We mailen je een link en als je die opent, ben je ingelogd."
+  },
+  "loginLink": {
+    "title": "Je wordt ingelogd",
+    "invalid": "Deze link is niet geldig of is verlopen. Vraag een nieuwe aan.",
+    "newLink": "Stuur me een nieuwe link",
+    "busy": "Je wordt ingelogd…",
+    "confirm": "Bevestig om af te ronden het e-mailadres waarnaar deze link is gestuurd.",
+    "failed": "Kon je niet inloggen met deze link. Vraag een nieuwe aan."
+  },
+  "account": {
+    "title": "Account",
+    "signedInAs": "Ingelogd als",
+    "verified": "E-mail geverifieerd",
+    "notVerified": "E-mail niet geverifieerd",
+    "shared": "Het account is hetzelfde in Karins jigsaw en Seven Friends.",
+    "signOut": "Uitloggen"
+  },
+  "errors": {
+    "invalid-credential": "Verkeerd e-mailadres of wachtwoord.",
+    "wrong-password": "Verkeerd e-mailadres of wachtwoord.",
+    "user-not-found": "Verkeerd e-mailadres of wachtwoord.",
+    "invalid-email": "Vul een geldig e-mailadres in.",
+    "email-already-in-use": "Er bestaat al een account met dit e-mailadres.",
+    "weak-password": "Het wachtwoord moet minstens 6 tekens hebben.",
+    "too-many-requests": "Te veel pogingen. Probeer het later opnieuw.",
+    "operation-not-allowed": "Deze inlogmethode staat niet aan in Firebase, of (bij telefoon) sms'jes naar dit land zijn daar niet toegestaan: Authentication → Settings → SMS region policy.",
+    "requires-recent-login": "Log opnieuw in en probeer het dan nog eens.",
+    "invalid-action-code": "Deze link is niet meer geldig. Vraag een nieuwe aan.",
+    "expired-action-code": "Deze link is verlopen. Vraag een nieuwe aan.",
+    "unauthorized-continue-uri": "Dit webadres mag geen inloglinks versturen (voeg het toe onder Authorized domains in Firebase)."
+  }
+}
