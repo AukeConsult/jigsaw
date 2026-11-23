@@ -578,6 +578,14 @@ export class JigsawUser implements OnInit {
     }
   }
 
+  /** Log out: stop playing as this user (the user stays in the database, with its rounds and jigsaws) and go to the front page; the next person starts from "What is your name?". */
+  async logout(): Promise<void> {
+    this.users.leave();
+    this.editing.set(false);
+    this.mode.set('start');
+    await this.router.navigateByUrl('/');
+  }
+
   /** Stop playing as the user who is chosen, to choose another. */
   leave(): void {
     this.users.leave();

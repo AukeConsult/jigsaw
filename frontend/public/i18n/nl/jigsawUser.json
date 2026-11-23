@@ -118,5 +118,6 @@
   "sameNames": "Er zijn {{ count }} mensen die {{ name }} heten. Wie ben jij?",
   "noneOfThem": "Geen van hen, maak een nieuwe gebruiker",
   "usernameFree": "Vrij: niemand anders heeft deze gebruikersnaam.",
-  "usernameTaken": "Bezet: iemand anders heeft deze gebruikersnaam."
+  "usernameTaken": "Bezet: iemand anders heeft deze gebruikersnaam.",
+  "logout": "Uitloggen"
 }

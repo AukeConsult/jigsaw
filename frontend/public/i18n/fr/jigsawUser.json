@@ -118,5 +118,6 @@
   "sameNames": "Il y a {{ count }} personnes qui s'appellent {{ name }}. Laquelle es-tu ?",
   "noneOfThem": "Aucune, créer un nouvel utilisateur",
   "usernameFree": "Libre : personne d'autre n'a ce nom d'utilisateur.",
-  "usernameTaken": "Pris : quelqu'un d'autre a ce nom d'utilisateur."
+  "usernameTaken": "Pris : quelqu'un d'autre a ce nom d'utilisateur.",
+  "logout": "Se déconnecter"
 }

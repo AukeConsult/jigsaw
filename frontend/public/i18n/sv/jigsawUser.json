@@ -118,5 +118,6 @@
   "sameNames": "Det finns {{ count }} som heter {{ name }}. Vilken är du?",
   "noneOfThem": "Ingen av dem, skapa en ny användare",
   "usernameFree": "Ledigt: ingen annan har detta användarnamn.",
-  "usernameTaken": "Upptaget: någon annan har detta användarnamn."
+  "usernameTaken": "Upptaget: någon annan har detta användarnamn.",
+  "logout": "Logga ut"
 }

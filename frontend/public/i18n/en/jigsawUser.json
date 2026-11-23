@@ -118,5 +118,6 @@
   "sameNames": "There are {{ count }} people called {{ name }}. Which one is you?",
   "noneOfThem": "None of them, make a new user",
   "usernameFree": "Free: nobody else has this user name.",
-  "usernameTaken": "Taken: somebody else has this user name."
+  "usernameTaken": "Taken: somebody else has this user name.",
+  "logout": "Log out"
 }

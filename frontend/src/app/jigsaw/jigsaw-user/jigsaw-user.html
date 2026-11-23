@@ -19,6 +19,7 @@
           <button type="button" class="link-action" [class.fw-semibold]="editing()" [attr.aria-pressed]="editing()" (click)="toggleEdit()"><i class="bi" [class.bi-pencil]="!editing()" [class.bi-pencil-fill]="editing()" aria-hidden="true"></i>{{ t('jigsawUser.edit') || 'Edit' }}</button>
           <!-- a button, not a plain word: this is how another person gets to play on this device -->
           <button type="button" class="btn btn-sm btn-outline-primary" (click)="leave()"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>{{ t('jigsawUser.chooseAnother') || 'Choose another user' }}</button>
+          <button type="button" class="link-action" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>{{ t('jigsawUser.logout') || 'Log out' }}</button>
         </span>
       }
     </div>

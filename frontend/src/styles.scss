@@ -1219,6 +1219,26 @@ app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet):not(ap
   background-size: $soft-pattern-size;
 }
 
+// the menu and the helper bar have the same soft wash as the pages (blue, green and a warm end, across the width) and no line under them, so the bar runs into the page below it
+.app-navbar,
+.app-toolbar {
+  --bs-border-color: transparent;
+  background-color: var(--bs-body-bg);
+  background-image: linear-gradient(120deg, rgba(13, 110, 253, 0.07), rgba(32, 201, 151, 0.08) 55%, rgba(253, 126, 20, 0.07));
+}
+
+// the helper bar of a round has what the round page has behind it (the pattern, laid over with the page colour), so it runs into the page below it and no edge shows between them
+.app-toolbar {
+  background-image: linear-gradient(rgba(var(--bs-body-bg-rgb), 0.65), rgba(var(--bs-body-bg-rgb), 0.65)), $soft-pattern;
+  background-size: auto, $soft-pattern-size;
+}
+
+// the round (the board) has the same pattern, more discreet: the page colour laid over it, so it does not draw the eye from the pieces
+app-jigsaw-shell > app-jigsaw-play {
+  background-image: linear-gradient(rgba(var(--bs-body-bg-rgb), 0.65), rgba(var(--bs-body-bg-rgb), 0.65)), $soft-pattern;
+  background-size: auto, $soft-pattern-size;
+}
+
 // ---- the jigsaw board ------------------------------------------------------------------------------------------------------------------------------
 .picture-surface {
   background-size: cover;
@@ -1604,8 +1624,12 @@ app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet):not(ap
     width: auto;
     max-height: 70vh;
     border-right: 0 !important;
-    border-bottom: var(--bs-border-width) solid var(--bs-border-color);
-    box-shadow: var(--bs-box-shadow);
+    // over the board it needs a background that hides the pieces under it (beside the board it has none: it runs into the page); it has what the helper bar above it has, so the two run
+    // together, with no line between them and only a very soft shadow under it
+    background-color: var(--bs-body-bg);
+    background-image: linear-gradient(rgba(var(--bs-body-bg-rgb), 0.65), rgba(var(--bs-body-bg-rgb), 0.65)), $soft-pattern;
+    background-size: auto, $soft-pattern-size;
+    box-shadow: 0 0.5rem 0.75rem -0.5rem rgba(0, 0, 0, 0.12);
 
     &.is-open {
       display: block;

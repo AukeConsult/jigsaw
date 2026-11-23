@@ -118,5 +118,6 @@
   "sameNames": "Es gibt {{ count }} Personen namens {{ name }}. Wer bist du?",
   "noneOfThem": "Keiner davon, neuen Benutzer erstellen",
   "usernameFree": "Frei: Niemand sonst hat diesen Benutzernamen.",
-  "usernameTaken": "Vergeben: Jemand anderes hat diesen Benutzernamen."
+  "usernameTaken": "Vergeben: Jemand anderes hat diesen Benutzernamen.",
+  "logout": "Abmelden"
 }

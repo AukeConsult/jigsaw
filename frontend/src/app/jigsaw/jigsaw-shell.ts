@@ -40,9 +40,9 @@ import { JigsawUserService } from './jigsaw-user.service';
     </ng-template>
     @if (tools.active()) {
       <!-- the helper of a round, on a phone or a tablet: at the top of the page, stuck there, while the menu is at the bottom -->
-      <div class="app-toolbar d-xl-none bg-body-tertiary border-bottom"><ng-container *ngTemplateOutlet="helper; context: { $implicit: '-top' }" /></div>
+      <div class="app-toolbar d-xl-none border-bottom"><ng-container *ngTemplateOutlet="helper; context: { $implicit: '-top' }" /></div>
     }
-    <nav class="app-navbar navbar navbar-expand bg-body-tertiary border-bottom" [attr.aria-label]="t('jigsawShell.menu') || 'Karins jigsaw menu'">
+    <nav class="app-navbar navbar navbar-expand border-bottom" [attr.aria-label]="t('jigsawShell.menu') || 'Karins jigsaw menu'">
       <div class="container-fluid flex-wrap gap-1">
         <a class="navbar-brand brand-lockup d-flex align-items-center gap-2" routerLink="/" aria-label="Karins jigsaw">
           <span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32"><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span>

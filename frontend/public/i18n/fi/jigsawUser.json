@@ -118,5 +118,6 @@
   "sameNames": "Nimellä {{ name }} on {{ count }} käyttäjää. Kumpi olet sinä?",
   "noneOfThem": "Ei kukaan heistä, luo uusi käyttäjä",
   "usernameFree": "Vapaa: kenelläkään muulla ei ole tätä käyttäjätunnusta.",
-  "usernameTaken": "Varattu: jollain toisella on tämä käyttäjätunnus."
+  "usernameTaken": "Varattu: jollain toisella on tämä käyttäjätunnus.",
+  "logout": "Kirjaudu ulos"
 }
