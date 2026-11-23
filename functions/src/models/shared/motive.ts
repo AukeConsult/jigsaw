@@ -41,6 +41,22 @@ export class JigsawMotives {
     return old ? ((old as string).slice('motive/'.length) as MotiveLevel) : undefined;
   }
 
+  /**
+   * The level worked out from what the AI saw (it rates, it does not choose the level): how much detail the picture has and how much contrast and colour, each from 1 (hardly any) to 5 (very much),
+   * and whether something clearly stands out (a mark, a line, an object). The two ratings count together: 9-10 easy, 7-8 medium easy, 5-6 normal, 4 hard, and 2-3 (almost no detail and almost
+   * no contrast or colour) is expert, except when something clearly stands out: then it is hard. Undefined when a rating is not a whole number from 1 to 5.
+   */
+  static fromRatings(detail: unknown, colour: unknown, landmark: unknown): MotiveLevel | undefined {
+    const rating = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 5;
+    if (!rating(detail) || !rating(colour)) return undefined;
+    const sum = detail + colour;
+    if (sum >= 9) return 'easy';
+    if (sum >= 7) return 'mediumeasy';
+    if (sum >= 5) return 'normal';
+    if (sum >= 4) return 'hard';
+    return landmark === true ? 'hard' : 'expert';
+  }
+
   /** The reason this is not allowed as the motive difficulty of a jigsaw, or '' (none is fine). */
   static error(value: unknown): string {
     return value === undefined || JigsawMotives.is(value) ? '' : `The motive difficulty must be one of ${JigsawMotives.keys().join(', ')}.`;

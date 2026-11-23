@@ -10,7 +10,7 @@ import { JigsawMotives, MotiveLevel } from './motive';
 export interface Classification {
   /** the keys of the categories and sub-categories (at most `CATEGORIES_MAX_PER_JIGSAW`) */
   categories: string[];
-  /** the motive difficulty (a level of `JigsawMotives`), when the AI said one that exists */
+  /** the motive difficulty (a level of `JigsawMotives`), worked out from the AI's ratings of detail, contrast and colour, and landmark (`JigsawMotives.fromRatings`) */
   motive?: MotiveLevel;
   name: string;
   description: string;
@@ -28,11 +28,13 @@ export class Classifications {
       type: 'object',
       properties: {
         categories: { type: 'array', items: { type: 'string', enum: Classifications.keys() } },
-        motive: { type: 'string', enum: JigsawMotives.keys() },
+        detail: { type: 'integer', enum: [1, 2, 3, 4, 5] },
+        colour: { type: 'integer', enum: [1, 2, 3, 4, 5] },
+        landmark: { type: 'boolean' },
         name: { type: 'string' },
         description: { type: 'string' },
       },
-      required: ['categories', 'motive', 'name', 'description'],
+      required: ['categories', 'detail', 'colour', 'landmark', 'name', 'description'],
       additionalProperties: false,
     };
   }
@@ -45,13 +47,11 @@ export class Classifications {
       'You classify the picture of a jigsaw puzzle.',
       'Answer with the categories the picture belongs to (at most 3, the best fit first; give a sub-category instead of its category when it clearly fits, not both; use "other" only when nothing else fits), a short name and a description.',
       `The categories, by key: ${names.join('; ')}.`,
-      'Also say the motive difficulty: how hard the motive itself is to put together, from how easy it is to tell the parts of the picture apart (not from how many pieces it will be cut into). ' +
-        'The fewer distinct details a picture has, the harder it is, because the pieces look alike: ' +
-        'easy = many clear, different details, shapes and colours everywhere, so every piece has something that tells where it belongs (a busy street, a market, a room full of things); ' +
-        'mediumeasy = mostly clear details, with a few plain areas; ' +
-        'normal = a normal photo with a mix of detailed and plain areas; ' +
-        'hard = large plain or alike areas with few details (a sky, a calm sea, a lawn, foliage) and only a few clear landmarks; ' +
-        'expert = hardly anything that tells the pieces apart: one colour, fog, or a pattern that repeats.',
+      'Also rate how hard the motive itself is to put together, from how easy it is to tell the parts of the picture apart (not from how many pieces it will be cut into). You do not choose a level: you give three ratings, and the level is worked out from them. ' +
+        'detail, from 1 to 5: how many different shapes, objects, edges and textures there are (1 = almost none: a plain surface, a sky, calm water; 3 = a normal photo with a mix of detailed and plain areas; 5 = very many, all over the picture). ' +
+        'colour, from 1 to 5: contrast and colour, how strongly the parts differ in brightness and in colour (1 = one colour or only soft tones, everything about equally bright, fog, an overcast sky; 3 = some clear differences; 5 = many strong colours and clear light and dark differences everywhere). ' +
+        'landmark: true when at least one thing clearly stands out from a plain picture (a mark, a line, an object), so a piece with it shows where it belongs; false when nothing does. ' +
+        'Rate what you see in the whole picture: a plain area that takes up much of it counts for a lot, and when in doubt between two numbers, give the lower one.',
       `The name has at most ${JIGSAW_MAX_NAME} characters and the description at most ${JIGSAW_MAX_DESCRIPTION}: one or two plain sentences about what the picture shows.`,
       `Write the name and the description in ${writeIn}.`,
       'Do not name real people, and do not guess private details such as addresses; say what can be seen.',
@@ -71,8 +71,9 @@ export class Classifications {
   /** What the AI said, checked: only the categories that exist (once each, at most three) and the motive difficulty when it is a level, and the texts tidied and cut to their limits. Or why it cannot be used. */
   static read(raw: unknown): Classification | { error: string } {
     if (!raw || typeof raw !== 'object') return { error: 'The answer is not an object.' };
-    const r = raw as { categories?: unknown; motive?: unknown; name?: unknown; description?: unknown };
+    const r = raw as { categories?: unknown; detail?: unknown; colour?: unknown; landmark?: unknown; motive?: unknown; name?: unknown; description?: unknown };
     const tidy = (value: unknown, most: number) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, most).trim() : '');
-    return { categories: Classifications.tidyCategories(r.categories), ...(JigsawMotives.is(r.motive) ? { motive: r.motive } : {}), name: tidy(r.name, JIGSAW_MAX_NAME), description: tidy(r.description, JIGSAW_MAX_DESCRIPTION) };
+    const motive = JigsawMotives.fromRatings(r.detail, r.colour, r.landmark) ?? (JigsawMotives.is(r.motive) ? r.motive : undefined); // the level follows from the ratings; a level said outright is only used when there are no ratings
+    return { categories: Classifications.tidyCategories(r.categories), ...(motive ? { motive } : {}), name: tidy(r.name, JIGSAW_MAX_NAME), description: tidy(r.description, JIGSAW_MAX_DESCRIPTION) };
   }
 }
