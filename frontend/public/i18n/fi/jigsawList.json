@@ -70,5 +70,6 @@
   "roundsWhoseOthers": "Muiden",
   "roundsWhoseAllTitle": "Kaikkien kierrokset",
   "roundsWhoseMineTitle": "Vain omat kierrokseni",
-  "roundsWhoseOthersTitle": "Vain muiden kierrokset"
+  "roundsWhoseOthersTitle": "Vain muiden kierrokset",
+  "resetAll": "Nollaa kaikki"
 }

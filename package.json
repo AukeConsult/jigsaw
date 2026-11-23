@@ -25,6 +25,7 @@
     "android:open": "npm --prefix frontend run cap -- open android",
     "sync:models": "node scripts/sync-models.mjs",
     "sync:env": "node scripts/sync-env.mjs",
+    "sync:firestore": "node scripts/sync-firestore.mjs",
     "welcome:art": "node scripts/make-welcome-art.mjs",
     "check:env": "node scripts/sync-env.mjs --check",
     "check:models": "node scripts/sync-models.mjs --check",

@@ -1,0 +1,208 @@
+jigsawNew.authorHelp|Den, der har lavet puslespillet, er en af brugerne og ejer det.
+jigsawNew.couldNotReadUsers|Kunne ikke læse brugerne: genindlæs siden.
+jigsawUser.youPlayAs|Aktiv bruger:
+jigsawUser.chooseAnother|Vælg en anden bruger
+jigsawUser.emailHelpEdit|Ingen kan se den, ikke engang du her. Den gemmes, så du senere kan knytte denne bruger til en registrering.
+jigsawUser.makeUser|Opret en bruger
+jigsawUser.lookingUsers|Leder efter brugerne…
+jigsawUser.findUser|Find en bruger
+jigsawUser.emailHelpMake|Ingen kan se den. Den gemmes, så du senere kan knytte denne bruger til en registrering.
+jigsawUser.makeAndPlay|Opret brugeren og spil
+jigsawUser.noSuchUser|Der er ingen bruger med det brugernavn.
+jigsawUser.chooseFirst|Vælg en bruger først.
+jigsawUser.userActionsHelp|Ret ændrer dit brugernavn, dit navn og dit sprog. Vælg en anden bruger skifter til en anden person: dine runder og puslespil bliver hos dig.
+jigsawUser.makeNewUser|Nej, opret en ny bruger
+jigsawUser.noneOfThem|Ingen af dem, opret en ny bruger
+jigsawUser.codeHowTo|Ikke bekræftet for den endnu? Bed en, der allerede kan spille som den, om at åbne brugeren, trykke «Ret» og så «Tilføj et andet login» under Logins: det giver en kode, der virker én gang, i {{minutes}} minutter. Tryk så «Jeg har en linkkode» her og skriv brugernavnet {{username}} og koden.
+jigsawUser.showOthers|Vis andre brugere
+logons.login.needLogin|Denne bruger kræver et login: log ind først.
+logons.userLogins.openNoLogin|Intet login beskytter denne bruger: alle, der vælger den, kan spille som den.
+logons.userLogins.signIn|Log ind for at beskytte denne bruger
+logons.userLogins.openSignedIn|Intet login beskytter denne bruger: alle, der vælger den, kan spille som den. Bekræft dit login for den, så kan kun logins, du tilføjer, bruge den.
+logons.userLogins.protect|Beskyt denne bruger med mit login
+logons.userLogins.onlyThese|Kun disse logins kan bruge denne bruger. Du bruger ét ad gangen.
+logons.userLogins.lastWarning|Dette er det sidste login: brugeren bliver åben for alle igen.
+logons.myUsers.wrong|Den bruger hører til andre logins: log ind med et af dem, eller brug en linkkode.
+logons.myUsers.yourUsers|Brugere med dette login
+logons.myUsers.none|Ingen bruger har dette login endnu.
+logons.myUsers.makeNew|Lav en ny bruger med mit login
+logons.myUsers.codeHelp|Et login, der hører til brugeren, laver koden: åbn Logins for den bruger og tryk på Tilføj et andet login. Skriv brugernavnet og koden her.
+logons.myUsers.noSuchUser|Ingen bruger har det brugernavn.
+logons.myUsers.delete|Slet denne bruger
+logons.myUsers.confirmDelete|Slet {{ name }} ({{ username }}) for altid? Det virker kun, hvis brugeren ingen puslespil har, ingen spillede runder og ingen andre logins.
+logons.myUsers.confirmNew|Oprette en ny bruger, der hedder {{ name }}, med brugernavnet {{ username }}, til dit login?
+jigsawNew.authorHelp|Tekijä on yksi käyttäjistä, ja hän omistaa palapelin.
+jigsawNew.couldNotReadUsers|Käyttäjiä ei voitu lukea: lataa sivu uudelleen.
+jigsawUser.youPlayAs|Aktiivinen käyttäjä:
+jigsawUser.chooseAnother|Valitse toinen käyttäjä
+jigsawUser.usernameLabel|Käyttäjätunnus
+jigsawUser.emailHelpEdit|Kukaan ei näe sitä, et edes sinä täällä. Se säilytetään, jotta voit myöhemmin yhdistää tämän käyttäjän rekisteröitymiseen.
+jigsawUser.makeUser|Luo käyttäjä
+jigsawUser.lookingUsers|Etsitään käyttäjiä…
+jigsawUser.findUser|Etsi käyttäjä
+jigsawUser.emailHelpMake|Kukaan ei näe sitä. Se säilytetään, jotta voit myöhemmin yhdistää tämän käyttäjän rekisteröitymiseen.
+jigsawUser.makeAndPlay|Luo käyttäjä ja pelaa
+jigsawUser.noSuchUser|Tällä käyttäjätunnuksella ei ole käyttäjää.
+jigsawUser.chooseFirst|Valitse ensin käyttäjä.
+jigsawUser.userActionsHelp|Muokkaa vaihtaa käyttäjänimesi, nimesi ja kielesi. Valitse toinen käyttäjä vaihtaa toiseen henkilöön: kierroksesi ja palapelisi pysyvät sinulla.
+jigsawUser.makeNewUser|Ei, luo uusi käyttäjä
+jigsawUser.sameNames|Nimellä {{ name }} on {{ count }} käyttäjää. Kumpi olet sinä?
+jigsawUser.noneOfThem|Ei kukaan heistä, luo uusi käyttäjä
+jigsawUser.usernameFree|Vapaa: kenelläkään muulla ei ole tätä käyttäjätunnusta.
+jigsawUser.usernameTaken|Varattu: jollain toisella on tämä käyttäjätunnus.
+jigsawUser.codeHowTo|Etkö ole vielä vahvistettu sille? Pyydä jotakuta, joka voi jo pelata sillä, avaamaan käyttäjä, painamaan «Muokkaa» ja sitten «Lisää toinen kirjautuminen» kohdassa Kirjautumiset: se antaa koodin, joka toimii kerran, {{minutes}} minuuttia. Paina sitten täällä «Minulla on linkkikoodi» ja kirjoita käyttäjänimi {{username}} ja koodi.
+jigsawUser.showOthers|Näytä muut käyttäjät
+logons.login.needLogin|Tämä käyttäjä tarvitsee kirjautumisen: kirjaudu ensin sisään.
+logons.userLogins.openNoLogin|Mikään kirjautuminen ei suojaa tätä käyttäjää: kuka tahansa, joka valitsee sen, voi pelata sillä.
+logons.userLogins.signIn|Kirjaudu sisään suojataksesi tämän käyttäjän
+logons.userLogins.openSignedIn|Mikään kirjautuminen ei suojaa tätä käyttäjää: kuka tahansa, joka valitsee sen, voi pelata sillä. Vahvista kirjautumisesi sille, niin vain lisäämäsi kirjautumiset voivat käyttää sitä.
+logons.userLogins.protect|Suojaa tämä käyttäjä kirjautumisellani
+logons.userLogins.onlyThese|Vain nämä kirjautumiset voivat käyttää tätä käyttäjää. Käytät yhtä kerrallaan.
+logons.userLogins.lastWarning|Tämä on viimeinen kirjautuminen: käyttäjä on taas kaikkien käytettävissä.
+logons.userLogins.codeIntro|Kirjaudu sisään toisella kirjautumisella, avaa tämä sivu ja käytä tätä koodia käyttäjänimellä {{ username }}:
+logons.myUsers.wrong|Tuo käyttäjä kuuluu muille kirjautumisille: kirjaudu sisään jollakin niistä tai käytä linkkikoodia.
+logons.myUsers.yourUsers|Tämän kirjautumisen käyttäjät
+logons.myUsers.none|Millään käyttäjällä ei ole vielä tätä kirjautumista.
+logons.myUsers.makeNew|Tee uusi käyttäjä kirjautumiselleni
+logons.myUsers.codeHelp|Käyttäjän kirjautuminen tekee koodin: avaa kyseisen käyttäjän Kirjautumiset ja paina Lisää toinen kirjautuminen. Kirjoita käyttäjänimi ja koodi tähän.
+logons.myUsers.done|Valmis: tämä kirjautuminen voi nyt käyttää käyttäjää {{ name }}.
+logons.myUsers.noSuchUser|Millään käyttäjällä ei ole tuota käyttäjänimeä.
+logons.myUsers.delete|Poista tämä käyttäjä
+logons.myUsers.confirmDelete|Poistetaanko {{ name }} ({{ username }}) lopullisesti? Se onnistuu vain, jos käyttäjällä ei ole palapelejä, pelattuja kierroksia eikä muita kirjautumisia.
+logons.myUsers.confirmNew|Luodaanko uusi käyttäjä nimeltä {{ name }} käyttäjänimellä {{ username }} kirjautumisellesi?
+jigsawNew.authorHelp|Der Autor ist einer der Benutzer und besitzt das Puzzle.
+jigsawNew.couldNotReadUsers|Die Benutzer konnten nicht gelesen werden: Lade die Seite neu.
+jigsawUser.youPlayAs|Aktiver Benutzer:
+jigsawUser.chooseAnother|Anderen Benutzer wählen
+jigsawUser.emailHelpEdit|Niemand sieht sie, nicht einmal du hier. Sie wird gespeichert, damit du diesen Benutzer später mit einer Registrierung verbinden kannst.
+jigsawUser.makeUser|Benutzer erstellen
+jigsawUser.lookingUsers|Die Benutzer werden gesucht…
+jigsawUser.findUser|Einen Benutzer finden
+jigsawUser.emailHelpMake|Niemand sieht sie. Sie wird gespeichert, damit du diesen Benutzer später mit einer Registrierung verbinden kannst.
+jigsawUser.makeAndPlay|Benutzer erstellen und spielen
+jigsawUser.noSuchUser|Es gibt keinen Benutzer mit diesem Benutzernamen.
+jigsawUser.chooseFirst|Wähl zuerst einen Benutzer aus.
+jigsawUser.userActionsHelp|Ändern wechselt deinen Benutzernamen, deinen Namen und deine Sprache. Anderen Benutzer wählen wechselt zu jemand anderem: deine Runden und Puzzles bleiben bei dir.
+jigsawUser.makeNewUser|Nein, neuen Benutzer erstellen
+jigsawUser.noneOfThem|Keiner davon, neuen Benutzer erstellen
+jigsawUser.notVerified|{{ name }} ist durch andere Anmeldungen geschützt. Die Anmeldung, mit der du angemeldet bist, ist dafür nicht bestätigt, du kannst also nicht als dieser Benutzer spielen. Melde dich mit einer seiner Anmeldungen an oder benutze einen Verknüpfungscode.
+jigsawUser.needsLoginSignedOut|{{ name }} ist durch eine Anmeldung geschützt. Melde dich mit einer seiner Anmeldungen an, um als dieser Benutzer zu spielen.
+jigsawUser.codeHowTo|Noch nicht dafür bestätigt? Bitten Sie jemanden, der schon als dieser Benutzer spielen kann, den Benutzer zu öffnen, «Bearbeiten» und dann unter Anmeldungen «Weitere Anmeldung hinzufügen» zu drücken: Das ergibt einen Code, der einmal gilt, {{minutes}} Minuten lang. Drücken Sie hier dann «Ich habe einen Verknüpfungscode» und geben Sie den Benutzernamen {{username}} und den Code ein.
+jigsawUser.showOthers|Andere Benutzer anzeigen
+logons.login.needLogin|Dieser Benutzer braucht eine Anmeldung: melde dich zuerst an.
+logons.userLogins.openNoLogin|Keine Anmeldung schützt diesen Benutzer: wer ihn wählt, kann als er spielen.
+logons.userLogins.signIn|Melde dich an, um diesen Benutzer zu schützen
+logons.userLogins.openSignedIn|Keine Anmeldung schützt diesen Benutzer: wer ihn wählt, kann als er spielen. Bestätige deine Anmeldung dafür, dann können ihn nur Anmeldungen benutzen, die du hinzufügst.
+logons.userLogins.protect|Diesen Benutzer mit meiner Anmeldung schützen
+logons.userLogins.onlyThese|Nur diese Anmeldungen können diesen Benutzer benutzen. Du benutzt eine nach der anderen.
+logons.userLogins.lastWarning|Das ist die letzte Anmeldung: der Benutzer ist dann wieder für alle offen.
+logons.myUsers.wrong|Dieser Benutzer gehört zu anderen Anmeldungen: melde dich mit einer davon an oder benutze einen Verknüpfungscode.
+logons.myUsers.yourUsers|Benutzer dieser Anmeldung
+logons.myUsers.none|Noch kein Benutzer hat diese Anmeldung.
+logons.myUsers.makeNew|Neuen Benutzer mit meiner Anmeldung erstellen
+logons.myUsers.codeHelp|Eine Anmeldung des Benutzers erstellt den Code: öffne die Anmeldungen dieses Benutzers und tippe auf Weitere Anmeldung hinzufügen. Gib hier den Benutzernamen und den Code ein.
+logons.myUsers.noSuchUser|Kein Benutzer hat diesen Benutzernamen.
+logons.myUsers.delete|Diesen Benutzer löschen
+logons.myUsers.confirmDelete|{{ name }} ({{ username }}) endgültig löschen? Das geht nur, wenn der Benutzer keine Puzzles, keine gespielten Runden und keine weiteren Anmeldungen hat.
+logons.myUsers.confirmNew|Einen neuen Benutzer namens {{ name }} mit dem Benutzernamen {{ username }} für Ihre Anmeldung anlegen?
+jigsawNew.authorHelp|L'auteur est l'un des utilisateurs, et il est propriétaire du puzzle.
+jigsawNew.couldNotReadUsers|Impossible de lire les utilisateurs : recharge la page.
+jigsawUser.youPlayAs|Utilisateur actif :
+jigsawUser.chooseAnother|Choisir un autre utilisateur
+jigsawUser.emailHelpEdit|Personne ne la voit, pas même toi ici. Elle est conservée pour que tu puisses relier cet utilisateur à une inscription plus tard.
+jigsawUser.makeUser|Créer un utilisateur
+jigsawUser.lookingUsers|Recherche des utilisateurs…
+jigsawUser.findUser|Trouver un utilisateur
+jigsawUser.emailHelpMake|Personne ne la voit. Elle est conservée pour que tu puisses relier cet utilisateur à une inscription plus tard.
+jigsawUser.makeAndPlay|Créer l'utilisateur et jouer
+jigsawUser.noSuchUser|Il n'y a aucun utilisateur avec ce nom d'utilisateur.
+jigsawUser.chooseFirst|Choisis d'abord un utilisateur.
+jigsawUser.userActionsHelp|Modifier change ton nom d’utilisateur, ton nom et ta langue. Choisir un autre utilisateur passe à quelqu’un d’autre : tes manches et tes puzzles restent à toi.
+jigsawUser.makeNewUser|Non, créer un nouvel utilisateur
+jigsawUser.noneOfThem|Aucune, créer un nouvel utilisateur
+jigsawUser.codeHowTo|Pas encore vérifié pour lui ? Demandez à quelqu’un qui peut déjà jouer avec cet utilisateur de l’ouvrir, d’appuyer sur «Modifier», puis sur «Ajouter une autre connexion» sous Connexions : cela donne un code valable une fois, pendant {{minutes}} minutes. Appuyez ensuite ici sur «J'ai un code de liaison» et saisissez le nom d’utilisateur {{username}} et le code.
+jigsawUser.showOthers|Afficher les autres utilisateurs
+logons.login.needLogin|Cet utilisateur a besoin d'une connexion : connecte-toi d'abord.
+logons.userLogins.openNoLogin|Aucune connexion ne protège cet utilisateur : toute personne qui le choisit peut jouer sous ce nom.
+logons.userLogins.signIn|Connecte-toi pour protéger cet utilisateur
+logons.userLogins.openSignedIn|Aucune connexion ne protège cet utilisateur : toute personne qui le choisit peut jouer sous ce nom. Vérifie ta connexion pour lui, et seules les connexions que tu ajoutes pourront l'utiliser.
+logons.userLogins.protect|Protéger cet utilisateur avec ma connexion
+logons.userLogins.onlyThese|Seules ces connexions peuvent utiliser cet utilisateur. Tu en utilises une à la fois.
+logons.userLogins.lastWarning|C'est la dernière connexion : l'utilisateur sera de nouveau ouvert à tous.
+logons.myUsers.wrong|Cet utilisateur appartient à d'autres connexions : connecte-toi avec l'une d'elles, ou utilise un code de liaison.
+logons.myUsers.yourUsers|Utilisateurs de cette connexion
+logons.myUsers.none|Aucun utilisateur n'a encore cette connexion.
+logons.myUsers.makeNew|Créer un nouvel utilisateur avec ma connexion
+logons.myUsers.codeHelp|Une connexion de l'utilisateur crée le code : ouvre les Connexions de cet utilisateur et appuie sur Ajouter une autre connexion. Saisis ici le nom d'utilisateur et le code.
+logons.myUsers.noSuchUser|Aucun utilisateur n'a ce nom d'utilisateur.
+logons.myUsers.delete|Supprimer cet utilisateur
+logons.myUsers.confirmDelete|Supprimer {{ name }} ({{ username }}) définitivement ? C’est possible seulement si l’utilisateur n’a aucun puzzle, aucune partie jouée et aucune autre connexion.
+logons.myUsers.confirmNew|Créer un nouvel utilisateur nommé {{ name }} avec le nom d’utilisateur {{ username }}, pour votre connexion ?
+jigsawNew.authorHelp|El autor es uno de los usuarios y es el dueño del puzle.
+jigsawNew.couldNotReadUsers|No se pudieron leer los usuarios: recarga la página.
+jigsawUser.youPlayAs|Usuario activo:
+jigsawUser.chooseAnother|Elegir otro usuario
+jigsawUser.emailHelpEdit|Nadie lo ve, ni siquiera tú aquí. Se guarda para que más adelante puedas conectar este usuario a un registro.
+jigsawUser.makeUser|Crear un usuario
+jigsawUser.lookingUsers|Buscando los usuarios…
+jigsawUser.findUser|Buscar un usuario
+jigsawUser.emailHelpMake|Nadie lo ve. Se guarda para que más adelante puedas conectar este usuario a un registro.
+jigsawUser.makeAndPlay|Crear el usuario y jugar
+jigsawUser.noSuchUser|No hay ningún usuario con ese nombre de usuario.
+jigsawUser.chooseFirst|Primero elige un usuario.
+jigsawUser.userActionsHelp|Cambiar modifica tu nombre de usuario, tu nombre y tu idioma. Elegir otro usuario cambia a otra persona: tus rondas y tus puzles siguen siendo tuyos.
+jigsawUser.makeNewUser|No, crear un usuario nuevo
+jigsawUser.noneOfThem|Ninguna, crear un usuario nuevo
+jigsawUser.codeHowTo|¿Aún no verificado para él? Pide a alguien que ya pueda jugar como ese usuario que lo abra, pulse «Editar» y luego «Añadir otro inicio de sesión» en Inicios de sesión: da un código que sirve una vez, durante {{minutes}} minutos. Luego pulsa aquí «Tengo un código de enlace» y escribe el nombre de usuario {{username}} y el código.
+jigsawUser.showOthers|Mostrar otros usuarios
+logons.login.needLogin|Este usuario necesita un inicio de sesión: inicia sesión primero.
+logons.userLogins.openNoLogin|Ningún inicio de sesión protege a este usuario: cualquiera que lo elija puede jugar como él.
+logons.userLogins.signIn|Inicia sesión para proteger a este usuario
+logons.userLogins.openSignedIn|Ningún inicio de sesión protege a este usuario: cualquiera que lo elija puede jugar como él. Verifica tu inicio de sesión para él, y solo los inicios de sesión que añadas podrán usarlo.
+logons.userLogins.protect|Proteger a este usuario con mi inicio de sesión
+logons.userLogins.onlyThese|Solo estos inicios de sesión pueden usar a este usuario. Usas uno cada vez.
+logons.userLogins.lastWarning|Es el último inicio de sesión: el usuario volverá a estar abierto a todos.
+logons.myUsers.wrong|Ese usuario pertenece a otros inicios de sesión: inicia sesión con uno de ellos, o usa un código de enlace.
+logons.myUsers.yourUsers|Usuarios de este inicio de sesión
+logons.myUsers.none|Ningún usuario tiene todavía este inicio de sesión.
+logons.myUsers.makeNew|Crear un usuario nuevo con mi inicio de sesión
+logons.myUsers.codeHelp|Un inicio de sesión del usuario crea el código: abre los Inicios de sesión de ese usuario y pulsa Añadir otro inicio de sesión. Escribe aquí el nombre de usuario y el código.
+logons.myUsers.noSuchUser|Ningún usuario tiene ese nombre de usuario.
+logons.myUsers.delete|Eliminar este usuario
+logons.myUsers.confirmDelete|¿Eliminar a {{ name }} ({{ username }}) para siempre? Solo funciona si el usuario no tiene puzles, ni partidas jugadas ni otros inicios de sesión.
+logons.myUsers.confirmNew|¿Crear un usuario nuevo llamado {{ name }} con el nombre de usuario {{ username }}, para tu inicio de sesión?
+jigsawNew.authorHelp|De maker is een van de gebruikers en is de eigenaar van de puzzel.
+jigsawNew.couldNotReadUsers|De gebruikers konden niet worden gelezen: laad de pagina opnieuw.
+jigsawUser.youPlayAs|Actieve gebruiker:
+jigsawUser.chooseAnother|Een andere gebruiker kiezen
+jigsawUser.emailHelpEdit|Niemand ziet het, ook jij hier niet. Het wordt bewaard zodat je deze gebruiker later aan een registratie kunt koppelen.
+jigsawUser.makeUser|Een gebruiker maken
+jigsawUser.lookingUsers|De gebruikers worden opgezocht…
+jigsawUser.findUser|Een gebruiker zoeken
+jigsawUser.emailHelpMake|Niemand ziet het. Het wordt bewaard zodat je deze gebruiker later aan een registratie kunt koppelen.
+jigsawUser.makeAndPlay|De gebruiker maken en spelen
+jigsawUser.noSuchUser|Er is geen gebruiker met die gebruikersnaam.
+jigsawUser.chooseFirst|Kies eerst een gebruiker.
+jigsawUser.userActionsHelp|Wijzigen verandert je gebruikersnaam, je naam en je taal. Kies een andere gebruiker schakelt naar iemand anders: je rondes en puzzels blijven van jou.
+jigsawUser.makeNewUser|Nee, maak een nieuwe gebruiker
+jigsawUser.noneOfThem|Geen van hen, maak een nieuwe gebruiker
+jigsawUser.notVerified|{{ name }} wordt beschermd door andere logins. De login waarmee je bent ingelogd is er niet voor bevestigd, dus je kunt niet als deze gebruiker spelen. Log in met een van zijn logins, of gebruik een koppelcode.
+jigsawUser.needsLoginSignedOut|{{ name }} wordt beschermd door een login. Log in met een van zijn logins om als deze gebruiker te spelen.
+jigsawUser.codeHowTo|Nog niet geverifieerd voor deze gebruiker? Vraag iemand die er al als kan spelen de gebruiker te openen, op «Bewerken» te drukken en dan onder Logins op «Nog een login toevoegen»: dat geeft een code die één keer werkt, {{minutes}} minuten lang. Druk hier dan op «Ik heb een koppelcode» en typ de gebruikersnaam {{username}} en de code.
+jigsawUser.showOthers|Andere gebruikers tonen
+logons.login.needLogin|Deze gebruiker heeft een login nodig: log eerst in.
+logons.userLogins.openNoLogin|Geen login beschermt deze gebruiker: iedereen die hem kiest, kan als hem spelen.
+logons.userLogins.signIn|Log in om deze gebruiker te beschermen
+logons.userLogins.openSignedIn|Geen login beschermt deze gebruiker: iedereen die hem kiest, kan als hem spelen. Bevestig je login ervoor, dan kunnen alleen logins die je toevoegt hem gebruiken.
+logons.userLogins.protect|Bescherm deze gebruiker met mijn login
+logons.userLogins.onlyThese|Alleen deze logins kunnen deze gebruiker gebruiken. Je gebruikt er één tegelijk.
+logons.userLogins.lastWarning|Dit is de laatste login: de gebruiker is dan weer open voor iedereen.
+logons.myUsers.wrong|Die gebruiker hoort bij andere logins: log in met een ervan, of gebruik een koppelcode.
+logons.myUsers.yourUsers|Gebruikers van deze login
+logons.myUsers.none|Nog geen gebruiker heeft deze login.
+logons.myUsers.makeNew|Nieuwe gebruiker maken met mijn login
+logons.myUsers.codeHelp|Een login van de gebruiker maakt de code: open de Logins van die gebruiker en kies Nog een login toevoegen. Typ hier de gebruikersnaam en de code.
+logons.myUsers.noSuchUser|Geen gebruiker heeft die gebruikersnaam.
+logons.myUsers.delete|Deze gebruiker verwijderen
+logons.myUsers.confirmDelete|{{ name }} ({{ username }}) definitief verwijderen? Dat kan alleen als de gebruiker geen puzzels, geen gespeelde rondes en geen andere logins heeft.
+logons.myUsers.confirmNew|Een nieuwe gebruiker met de naam {{ name }} en de gebruikersnaam {{ username }} maken voor je login?

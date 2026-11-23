@@ -1,6 +1,7 @@
 import { JigsawSettings, JigsawSpec } from './jigsaw-settings';
 import { JigsawCut, JigsawPiece, JigsawPieces, PieceMove, JIGSAW_MAX_PIECES } from './jigsaw';
 import { STICK_TOLERANCE_PX } from './puzzle';
+import { JigsawUsers } from './jigsaw-user';
 
 // A play: one game of a jigsaw, by one user. The jigsaw is what is fixed (its picture, size, grid and the cut into pieces, and the defaults of difficulty and look);
 // a play holds what a person changes while playing: where the pieces are, how far the game has come, and the few settings a player may choose for themselves.
@@ -49,6 +50,13 @@ export interface PlaySpec {
   elapsedMs?: number;
   /** how wide the store frame of this game is (it depends on the screen, and grows when the pieces are collected over the whole frame) */
   storeWidth: number;
+  /**
+   * SERVER ONLY, never in what the API tells the page (`Plays.publicOf` takes it away): the UID of the Firebase login that started the round, kept for later use. A round is only marked when the
+   * account that plays is one of the logins of the jigsaw account; a round of an open account has none.
+   */
+  logonUid?: string;
+  /** what the page is told instead of the login: the round was started by a login of its account, so it is protected by that account */
+  protected?: boolean;
   /** the round is made but nobody has moved a piece yet (looking at it and going back does not make a round): it is not listed, and not counted as played, until the first piece is moved */
   fresh?: boolean;
   /** the look this play has chosen (the jigsaw's is used until the player changes it); never the difficulty, which is the jigsaw's */
@@ -69,7 +77,7 @@ export interface PlaySettings {
 export class Plays {
   /** The reason a user id is not allowed, or ''. */
   static userIdError(value: unknown): string {
-    if (typeof value !== 'string' || !/^[A-Za-z0-9_.:-]+$/.test(value) || value.length > PLAY_MAX_USER_ID) return 'A play needs the id of its user (letters, digits and _ . : -).';
+    if (typeof value !== 'string' || !/^[A-Za-z0-9_.:-]+$/.test(value) || value.length > PLAY_MAX_USER_ID) return 'A play needs the id of its account (letters, digits and _ . : -).';
     return '';
   }
 
@@ -219,6 +227,17 @@ export class Plays {
     return play.updatedAt ?? play.solvedAt ?? play.startedAt;
   }
 
+  /** The round as the API tells it: without the login that started it (`protected` says there was one). */
+  static publicOf(play: PlaySpec): PlaySpec {
+    const { logonUid, ...open } = play;
+    return logonUid ? { ...open, protected: true } : open;
+  }
+
+  /** The round marked with the login that is playing it (a login of the account it is played by), for later use; unchanged when the login is not one of the account's. */
+  static marked(play: Omit<PlaySpec, 'id'>, user: { firebaseUids?: unknown }, logonUid: string | undefined): Omit<PlaySpec, 'id'> {
+    return logonUid && JigsawUsers.requiresLogon(user) && JigsawUsers.mayAct(user, logonUid) ? { ...play, logonUid } : play;
+  }
+
   /** The reason a time played is not allowed, or ''. */
   static elapsedError(value: unknown): string {
     if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > PLAY_MAX_ELAPSED_MS) return 'The time played must be a whole number of milliseconds, at most a month.';
@@ -244,6 +263,7 @@ export class Plays {
   /** The play as it is stored: only the known fields. */
   static stored(play: Omit<PlaySpec, 'id'>): Omit<PlaySpec, 'id'> {
     return {
+      ...(typeof play.logonUid === 'string' && play.logonUid ? { logonUid: play.logonUid } : {}),
       jigsawId: play.jigsawId,
       userId: play.userId,
       userName: typeof play.userName === 'string' ? play.userName : '', // a game from before the name was kept has none

@@ -70,5 +70,6 @@
   "roundsWhoseOthers": "Andere",
   "roundsWhoseAllTitle": "Die Runden aller",
   "roundsWhoseMineTitle": "Nur meine Runden",
-  "roundsWhoseOthersTitle": "Nur die Runden der anderen"
+  "roundsWhoseOthersTitle": "Nur die Runden der anderen",
+  "resetAll": "Alles zurücksetzen"
 }

@@ -12,8 +12,6 @@ export const JIGSAW_USERS = 'jigsaw-users';
 export const USERNAME_MIN = 3;
 export const USERNAME_MAX = 30;
 export const USER_NAME_MAX = 60;
-/** The longest e-mail address (the most an address can be). */
-export const USER_EMAIL_MAX = 254;
 
 /** A user as the app has it. */
 export interface JigsawUserSpec {
@@ -23,20 +21,61 @@ export interface JigsawUserSpec {
   username: string;
   /** the name that is shown ("Karin") */
   name: string;
-  /**
-   * an e-mail address the person may give (optional), kept so the user can later be connected to a registered user (a Firebase account with the same address).
-   * It is private: the API gives it back only to the person who made the user, when it is made, and never in a lookup (`JigsawUsers.publicOf`).
-   */
-  email?: string;
   /** the language the app is shown in for the user (a code of `JIGSAW_LANGUAGES`; English when the user has not chosen) */
   language: string;
   /** how the user looks for jigsaws (the Find page: cards or list, and the filter), kept when Go is pressed, so it is the same on every device; none until Go has been pressed */
   search?: JigsawSetup;
   /** milliseconds since 1970 */
   createdAt: number;
+  /** when somebody last chose to play as this account (milliseconds since 1970): the accounts are listed with the one used last first; an account never chosen since this was kept has none */
+  lastUsedAt?: number;
+  /**
+   * when the picture of the account was set (milliseconds since 1970); the picture itself is a file in Storage (`jigsaw/accounts/<id>/picture`), read at `/jigsaw-users/:id/picture`. The page asks for it with
+   * this time, so a new picture is seen at once and an old one is kept by the browser.
+   */
+  pictureAt?: number;
+  /**
+   * SERVER ONLY, never in what the API tells the page: the UIDs of the Firebase accounts that are verified for this user, at most `LOGONS_MAX`. Any one of them is enough to act as the user (the
+   * person is signed in with one account at a time); a user with none needs no login, as before. They are changed only by the routes of the logons (`functions/src/logons/`), never by a body from the page.
+   */
+  firebaseUids?: string[];
+  /** OUTPUT ONLY, never stored: the user has verified accounts, so it needs a login to be used (the page is told this instead of the accounts) */
+  protected?: boolean;
 }
 
+/** The most Firebase accounts that can be verified for one jigsaw user. */
+export const LOGONS_MAX = 7;
+
 export class JigsawUsers {
+  /** The verified accounts as a document has them: a list of different texts, at most `LOGONS_MAX` (anything else is left out). */
+  static logonsOf(doc: { firebaseUids?: unknown } | null | undefined): string[] {
+    const list = Array.isArray(doc?.firebaseUids) ? (doc.firebaseUids as unknown[]) : [];
+    return [...new Set(list.filter((u): u is string => typeof u === 'string' && u.length > 0 && u.length <= 128))].slice(0, LOGONS_MAX);
+  }
+
+  /** The user needs a login: it has at least one verified account. */
+  static requiresLogon(user: { firebaseUids?: unknown } | null | undefined): boolean {
+    return JigsawUsers.logonsOf(user).length > 0;
+  }
+
+  /** Whether the Firebase account `uid` (from a token that was checked) may act as the user: any user with no verified account is open to anybody, one with some only to those. */
+  static mayAct(user: { firebaseUids?: unknown } | null | undefined, uid: string | undefined): boolean {
+    const list = JigsawUsers.logonsOf(user);
+    return list.length === 0 || (!!uid && list.includes(uid));
+  }
+
+  /** The list with this account added (as it is when it is there already), or the reason it cannot be: there are `LOGONS_MAX` already. */
+  static withLogon(list: readonly string[], uid: string): { list: string[] } | { error: string } {
+    if (list.includes(uid)) return { list: [...list] };
+    if (list.length >= LOGONS_MAX) return { error: `A user can have at most ${LOGONS_MAX} logins: take one away first.` };
+    return { list: [...list, uid] };
+  }
+
+  /** The list without this account. */
+  static withoutLogon(list: readonly string[], uid: string): string[] {
+    return list.filter((u) => u !== uid);
+  }
+
   /** A user name as it is kept: without spaces round it, in small letters (so "Karin" and "karin" are the same user). */
   static normalised(username: string): string {
     return username.trim().toLowerCase();
@@ -69,10 +108,9 @@ export class JigsawUsers {
 
   /** The reason a user name is not allowed, or ''. */
   static usernameError(value: unknown): string {
-    if (typeof value !== 'string') return 'Choose a user name.';
+    if (typeof value !== 'string') return 'Choose an alias.';
     const username = JigsawUsers.normalised(value);
-    if (username.length < USERNAME_MIN || username.length > USERNAME_MAX) return `The user name must be ${USERNAME_MIN} to ${USERNAME_MAX} characters.`;
-    if (!/^[a-z0-9_-]+$/.test(username)) return 'The user name can have letters (a-z, no accents), digits, _ and - only.';
+    if (username.length < USERNAME_MIN || username.length > USERNAME_MAX) return `The alias must be ${USERNAME_MIN} to ${USERNAME_MAX} characters.`;
     return '';
   }
 
@@ -83,25 +121,23 @@ export class JigsawUsers {
     return '';
   }
 
-  /** The reason an e-mail address is not allowed, or ''. It is optional: none (or an empty one) is fine. */
-  static emailError(value: unknown): string {
-    if (value === undefined || value === null || value === '') return '';
-    if (typeof value !== 'string' || value.trim().length > USER_EMAIL_MAX || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'That is not an e-mail address.';
-    return '';
-  }
-
   /** The reason a new user is not allowed, or ''. */
-  static error(input: { username?: unknown; name?: unknown; email?: unknown; language?: unknown } | null | undefined): string {
-    return JigsawUsers.usernameError(input?.username) || JigsawUsers.nameError(input?.name) || JigsawUsers.emailError(input?.email) || JigsawLanguages.error(input?.language);
+  static error(input: { username?: unknown; name?: unknown; language?: unknown } | null | undefined): string {
+    return JigsawUsers.usernameError(input?.username) || JigsawUsers.nameError(input?.name) || JigsawLanguages.error(input?.language);
   }
 
   /**
    * What a change of a user is, from a request: only the fields that are there are changed; an empty e-mail address (or null) takes the address away. The change as it is
    * to be made, or the reason it is not allowed.
    */
-  static change(input: { name?: unknown; username?: unknown; email?: unknown; language?: unknown; search?: unknown } | null | undefined): { change: { name?: string; username?: string; email?: string | null; language?: string; search?: JigsawSetup } } | { error: string } {
+  static change(input: { name?: unknown; username?: unknown; language?: unknown; search?: unknown; picture?: unknown } | null | undefined): { change: { name?: string; username?: string; language?: string; search?: JigsawSetup; picture?: string | null } } | { error: string } {
     const body = input ?? {};
-    const change: { name?: string; username?: string; email?: string | null; language?: string; search?: JigsawSetup } = {};
+    const change: { name?: string; username?: string; language?: string; search?: JigsawSetup; picture?: string | null } = {};
+    if (body.picture !== undefined) {
+      const error = JigsawUsers.pictureError(body.picture);
+      if (error) return { error };
+      change.picture = body.picture as string | null;
+    }
     if (body.name !== undefined) {
       const error = JigsawUsers.nameError(body.name);
       if (error) return { error };
@@ -112,11 +148,6 @@ export class JigsawUsers {
       if (error) return { error };
       change.username = JigsawUsers.normalised(body.username as string);
     }
-    if (body.email !== undefined) {
-      const error = JigsawUsers.emailError(body.email);
-      if (error) return { error };
-      change.email = typeof body.email === 'string' && body.email.trim() ? body.email.trim().toLowerCase() : null;
-    }
     if (body.language !== undefined) {
       if (!JigsawLanguages.is(body.language)) return { error: JigsawLanguages.error(body.language) || 'Choose a language.' };
       change.language = body.language;
@@ -125,7 +156,26 @@ export class JigsawUsers {
       if (!JigsawFilters.isSetup(body.search)) return { error: 'The search is not one the Find page makes.' };
       change.search = { view: body.search.view, filter: body.search.filter };
     }
-    return Object.keys(change).length ? { change } : { error: 'Say what to change: the name, the user name, the e-mail address, the language or the search.' };
+    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture or the search.' };
+  }
+
+  /** The order of the accounts in a list: the one used last first; those never used after those that were, newest made first; then by name. */
+  static byLastUsed(a: Pick<JigsawUserSpec, 'name' | 'createdAt' | 'lastUsedAt'>, b: Pick<JigsawUserSpec, 'name' | 'createdAt' | 'lastUsedAt'>): number {
+    return (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0) || b.createdAt - a.createdAt || a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+  }
+
+  /** How long a choice of the account is not written down again (milliseconds): choosing it twice in a minute is one use. */
+  static readonly USED_KEEP_MS = 60_000;
+
+  /** The largest picture: a square of at most 128 px as a JPEG is some thousands of characters; this leaves room and no more. */
+  static readonly PICTURE_MAX_CHARS = 30_000;
+
+  /** The reason a picture is not allowed, or '': a JPEG as a data address (the page cuts it square and shrinks it to 128 px first; the server keeps it as a file), not larger than `PICTURE_MAX_CHARS`. null takes the picture away. */
+  static pictureError(value: unknown): string {
+    if (value === null) return '';
+    if (typeof value !== 'string' || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value)) return 'The picture must be a small JPEG.';
+    if (value.length > JigsawUsers.PICTURE_MAX_CHARS) return 'The picture is too large: choose a smaller one.';
+    return '';
   }
 
   /** The reason a UID (the id of a user in the address) is not allowed, or ''. */
@@ -134,20 +184,36 @@ export class JigsawUsers {
   }
 
   /** The user as it is stored (the UID is the id of the document), for one that is allowed: only the known fields, the user name in small letters, the name trimmed. */
-  static stored(input: { username: string; name: string; email?: string | null; language?: string }, createdAt: number): Omit<JigsawUserSpec, 'id'> {
-    const email = typeof input.email === 'string' ? input.email.trim().toLowerCase() : '';
-    return { username: JigsawUsers.normalised(input.username), name: input.name.trim(), ...(email ? { email } : {}), language: JigsawLanguages.is(input.language) ? input.language : DEFAULT_LANGUAGE, createdAt };
+  static stored(input: { username: string; name: string; language?: string }, createdAt: number): Omit<JigsawUserSpec, 'id'> {
+    return { username: JigsawUsers.normalised(input.username), name: input.name.trim(), language: JigsawLanguages.is(input.language) ? input.language : DEFAULT_LANGUAGE, createdAt };
   }
 
-  /** The user as the API tells it to anyone: without the e-mail address, which is private. */
-  static publicOf(user: JigsawUserSpec): Omit<JigsawUserSpec, 'email'> {
-    const { email: _private, ...open } = user;
-    return open;
+  /** The user as the API tells it to anyone: without the e-mail address, which is private, and without the verified accounts (`protected` says there are some). */
+  static publicOf(user: JigsawUserSpec): Omit<JigsawUserSpec, 'firebaseUids'> {
+    const { firebaseUids: _accounts, ...open } = user;
+    return { ...open, ...(JigsawUsers.requiresLogon(user) ? { protected: true } : {}) };
+  }
+
+  /** The user as the person who made it gets it back: the e-mail address too, but never the verified accounts. */
+  static ownerView(user: JigsawUserSpec): Omit<JigsawUserSpec, 'firebaseUids'> {
+    const { firebaseUids: _accounts, ...rest } = user;
+    return { ...rest, ...(JigsawUsers.requiresLogon(user) ? { protected: true } : {}) };
+  }
+
+  /**
+   * Why a user may not be deleted, or '': a user is deleted only when nothing is attached to it: no jigsaw it owns, no round it has played (a round nobody moved a piece in does not count), and no
+   * login besides the one that asks (`logins` is how many logins are verified for it; the one that asks may be one of them).
+   */
+  static removeError(use: { jigsaws: number; rounds: number; logins: number }): string {
+    if (use.jigsaws) return 'This account owns jigsaws: delete them first.';
+    if (use.rounds) return 'This account has played rounds: delete them first.';
+    if (use.logins > 1) return 'Other logins are verified for this account: take them away first.';
+    return '';
   }
 
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, ...(doc.email ? { email: doc.email } : {}), language: JigsawLanguages.of(doc), ...(JigsawFilters.isSetup(doc.search) ? { search: doc.search } : {}), createdAt: doc.createdAt ?? 0 };
+    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.isSetup(doc.search) ? { search: doc.search } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}) };
   }
 }

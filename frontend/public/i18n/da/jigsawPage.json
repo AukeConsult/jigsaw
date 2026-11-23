@@ -61,5 +61,6 @@
   "yesReset": "Ja, slet runderne",
   "couldNotResetRounds": "Kunne ikke slette runderne: kun ejeren kan.",
   "motive": "Motivets sværhedsgrad",
-  "youSolvedIt": "Du har løst dette puslespil"
+  "youSolvedIt": "Du har løst dette puslespil",
+  "roundProtected": "Låst: startet med et login på kontoen"
 }

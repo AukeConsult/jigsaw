@@ -44,9 +44,9 @@ export function pictureType(b: Buffer): string | null {
 /** The tag of a file: it changes when the bytes do. */
 export const etagOf = (data: Buffer) => createHash("md5").update(data).digest("hex");
 
-/** The bucket of the project: a picture is the file `jigsaw/<id>/picture`. */
-export function storageImageStore(): ImageStore {
-  const file = (id: string) => getStorage().bucket().file(`${JIGSAW_ROOT}/${id}/picture`);
+/** The bucket of the project: a picture is the file `<root>/<id>/picture` (the background pictures of the jigsaws under `jigsaw/`, the pictures of the accounts under `jigsaw/accounts/`). */
+export function storageImageStore(root: string = JIGSAW_ROOT): ImageStore {
+  const file = (id: string) => getStorage().bucket().file(`${root}/${id}/picture`);
   return {
     async put(id, data, mime) {
       await file(id).save(data, { contentType: mime, resumable: false, metadata: { cacheControl: "private, no-cache" } });

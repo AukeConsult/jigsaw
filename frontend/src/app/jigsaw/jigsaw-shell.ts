@@ -3,7 +3,6 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../core/language.service';
-import { AuthService } from '../logons/auth.service';
 import { JigsawHelper } from './jigsaw-helper';
 import { JigsawUserService } from './jigsaw-user.service';
 import { ShareButton } from './share-button/share-button';
@@ -12,7 +11,7 @@ import { ShareButton } from './share-button/share-button';
 @Component({
   selector: 'app-jigsaw-shell',
   imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, ShareButton],
-  providers: [provideTranslocoScope('jigsawShell', 'logons')],
+  providers: [provideTranslocoScope('jigsawShell')],
   template: `
     <ng-container *transloco="let t">
     <ng-template #helper let-sfx>
@@ -75,12 +74,6 @@ import { ShareButton } from './share-button/share-button';
             <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'Help'"><i class="bi bi-book me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.guide') || 'Help' }}</span></a>
             </li>
             <li class="nav-item">
-            <!-- the sign-in with Firebase, beside the users of the jigsaw: the account (shared with Seven Friends) when somebody is signed in, else the way to sign in -->
-            <a class="nav-link text-nowrap" [routerLink]="account.user() ? '/account' : '/login'" routerLinkActive="active" [title]="account.user() ? (t('logons.account.title') || 'Account') : (t('logons.login.signIn') || 'Sign in')">
-              <i class="bi me-md-1 d-block d-md-inline" [class.bi-person-check]="account.user()" [class.bi-box-arrow-in-right]="!account.user()" aria-hidden="true"></i><span class="nav-label">{{ account.user() ? (t('logons.account.title') || 'Account') : (t('logons.login.signIn') || 'Sign in') }}</span>
-            </a>
-            </li>
-            <li class="nav-item">
             <!-- who plays: the name of the user, and a way to choose another -->
             <a class="nav-link text-nowrap" routerLink="/jigsaw/user" routerLinkActive="active" [title]="users.user() ? (t('jigsawShell.whoPlaysTitle', { name: users.user()!.username }) || 'Who plays: ' + users.user()!.username) : (t('jigsawShell.choosePlayer') || 'Choose who plays')">
               <i class="bi bi-person-circle me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ users.user()?.name ?? (t('jigsawShell.whoPlays') || 'Who plays?') }}</span>
@@ -115,7 +108,6 @@ import { ShareButton } from './share-button/share-button';
 export class JigsawShell {
   protected readonly tools = inject(JigsawHelper);
   protected readonly users = inject(JigsawUserService);
-  protected readonly account = inject(AuthService);
   protected readonly language = inject(LanguageService);
   protected readonly languages = LANGUAGES;
   /** the list of languages is open */

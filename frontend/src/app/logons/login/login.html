@@ -2,9 +2,12 @@
   <div class="form-card card card-body mx-auto">
     <h1 class="page-title d-flex align-items-center gap-2 mb-3">
       <i class="bi bi-person-circle text-primary" aria-hidden="true"></i>
-      {{ mode() === 'signin' ? (t('logons.login.signIn') || 'Sign in') : (t('logons.login.createTitle') || 'Create your account') }}
+      {{ mode() === 'signin' ? (t('logons.login.signIn') || 'Sign in') : (t('logons.login.createTitle') || 'Create your sign-in') }}
     </h1>
 
+    @if (needsLogin) {
+      <div class="alert alert-info py-2 small" role="status">{{ t('logons.login.needLogin') || 'This account is locked. Sign in first.' }}</div>
+    }
     <div class="vstack gap-2">
       <button type="button" class="btn btn-outline-secondary w-100" (click)="google()" [disabled]="busy()"><i class="bi bi-google" aria-hidden="true"></i>{{ t('logons.login.google') || 'Continue with Google' }}</button>
       <a routerLink="/login/email" class="btn btn-outline-secondary w-100"><i class="bi bi-envelope" aria-hidden="true"></i>{{ t('logons.login.emailLink') || 'Email me a sign-in link' }}</a>
@@ -28,7 +31,7 @@
       }
 
       @if (!rejected()) {
-        <button type="submit" class="btn btn-primary" [disabled]="busy()">{{ busy() ? (t('logons.login.wait') || 'Please wait…') : mode() === 'signin' ? (t('logons.login.signIn') || 'Sign in') : (t('logons.login.createAccount') || 'Create account') }}</button>
+        <button type="submit" class="btn btn-primary" [disabled]="busy()">{{ busy() ? (t('logons.login.wait') || 'Please wait…') : mode() === 'signin' ? (t('logons.login.signIn') || 'Sign in') : (t('logons.login.createAccount') || 'Create sign-in') }}</button>
       }
 
       @if (error() && !rejected()) {
@@ -39,7 +42,7 @@
         <div class="alert alert-secondary mb-0 vstack gap-2 text-center" role="region">
           <p class="mb-0">{{ t('logons.login.rejectedText') || 'We could not sign you in with this email and password.' }}</p>
           <div class="d-flex gap-2 justify-content-center">
-            <button type="button" class="btn btn-sm btn-primary" (click)="toggleMode()">{{ t('logons.login.createAnAccount') || 'Create an account' }}</button>
+            <button type="button" class="btn btn-sm btn-primary" (click)="toggleMode()">{{ t('logons.login.createAnAccount') || 'Create a sign-in' }}</button>
             <button type="button" class="btn btn-sm btn-outline-secondary" (click)="forgot()">{{ t('logons.login.forgot') || 'Forgot password?' }}</button>
           </div>
         </div>
@@ -53,7 +56,7 @@
       @if (mode() === 'signin' && !rejected()) {
         <button type="button" class="link-action" (click)="forgot()">{{ t('logons.login.forgot') || 'Forgot password?' }}</button>
       }
-      <button type="button" class="link-action" (click)="toggleMode()">{{ mode() === 'signin' ? (t('logons.login.noAccount') || 'No account? Create one') : (t('logons.login.haveAccount') || 'Have an account? Sign in') }}</button>
+      <button type="button" class="link-action" (click)="toggleMode()">{{ mode() === 'signin' ? (t('logons.login.noAccount') || 'New here? Create a sign-in') : (t('logons.login.haveAccount') || 'Already signed up? Sign in') }}</button>
     </div>
   </div>
 </main>

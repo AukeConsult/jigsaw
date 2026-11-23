@@ -1,6 +1,8 @@
 import type { UserStore } from "../src/jigsaw/jigsaw-users";
+import { etagOf } from "../src/jigsaw/jigsaw-image";
+import type { ImageStore, Picture } from "../src/jigsaw/jigsaw-image";
 import type { PlayRecord, PlayStore } from "../src/jigsaw/plays";
-import { JigsawUserSpec, PlaySpec, Plays } from "../src/models";
+import { JigsawUserSpec, JigsawUsers, PlaySpec, Plays } from "../src/models";
 
 /** the plays in memory: what the subcollection of a jigsaw is in the app */
 export function memoryPlays(): PlayStore & { all: Map<string, Map<string, PlayRecord>> } {
@@ -65,14 +67,50 @@ export function memoryUsers(...names: string[]): UserStore {
       users.set(made.id, made);
       return made;
     },
+    async linkedTo(uid) {
+      return [...users.values()].filter((u) => u.firebaseUids?.includes(uid)).sort((a, b) => a.name.localeCompare(b.name));
+    },
+    async remove(id) {
+      return users.delete(id);
+    },
+    async changeLogons(id, change) {
+      const user = users.get(id);
+      if (!user) return null;
+      const now = JigsawUsers.logonsOf(user);
+      const next = change(now);
+      if (!Array.isArray(next)) return next;
+      const { firebaseUids: _was, ...rest } = user;
+      users.set(id, { ...rest, ...(next.length ? { firebaseUids: next } : {}) });
+      return next;
+    },
     async update(id, change) {
       const user = users.get(id);
       if (!user) return null;
       if (change.username !== undefined && [...users.values()].some((u) => u.id !== id && u.username === change.username)) return "taken";
-      const { email: _was, ...rest } = user;
-      const email = change.email === undefined ? user.email : (change.email ?? undefined);
-      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(email ? { email } : {}) });
+      const rest = user;
+      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}) });
+      if (change.pictureAt !== undefined) {
+        const { pictureAt: _was, ...bare } = users.get(id)!;
+        users.set(id, change.pictureAt ? { ...bare, pictureAt: change.pictureAt } : bare);
+      }
       return users.get(id)!;
+    },
+  };
+}
+
+/** the pictures in memory: what the files in Storage are in the app (the pictures of the accounts, in the tests) */
+export function memoryImages(): ImageStore & { files: Map<string, Picture> } {
+  const files = new Map<string, Picture>();
+  return {
+    files,
+    async put(id, data, mime) {
+      files.set(id, { data, mime, etag: etagOf(data) });
+    },
+    async get(id) {
+      return files.get(id) ?? null;
+    },
+    async remove(id) {
+      files.delete(id);
     },
   };
 }

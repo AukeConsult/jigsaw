@@ -1,9 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
 import { authMessage, wasCancelled, wasRejected } from '../auth-errors';
 import { AuthService } from '../auth.service';
+import { LogonLanding } from '../logon-landing';
 
 /** Sign in or create an account: Google, an emailed link, or email and password. */
 @Component({
@@ -14,8 +15,11 @@ import { AuthService } from '../auth.service';
 })
 export class Login {
   private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
-  private readonly next = inject(ActivatedRoute).snapshot.queryParamMap.get('next');
+  private readonly landing = inject(LogonLanding);
+  private readonly query = inject(ActivatedRoute).snapshot.queryParamMap;
+  private readonly next = this.query.get('next');
+  /** the person was sent here because the user they had needs a login */
+  protected readonly needsLogin = this.query.get('notice') === 'needlogin';
 
   protected readonly mode = signal<'signin' | 'signup'>('signin');
   protected readonly name = signal('');
@@ -72,7 +76,7 @@ export class Login {
     this.rejected.set(false);
     try {
       await action();
-      await this.router.navigateByUrl(this.auth.landingPath(this.next));
+      await this.landing.go(this.next);
     } catch (err) {
       if (!wasCancelled(err)) this.error.set(authMessage(err, tr('logons.login.signInFailed', 'Sign-in failed. Please try again.')));
       if (this.mode() === 'signin' && wasRejected(err)) this.rejected.set(true);

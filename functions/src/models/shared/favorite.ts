@@ -22,7 +22,7 @@ export class JigsawFavorites {
 
   /** The reason this user and jigsaw are not allowed, or ''. */
   static error(userId: unknown, jigsawId: unknown): string {
-    if (typeof userId !== 'string' || !ID.test(userId)) return 'Say who you are: a favorite belongs to a user.';
+    if (typeof userId !== 'string' || !ID.test(userId)) return 'Say who you are: a favorite belongs to an account.';
     if (typeof jigsawId !== 'string' || !ID.test(jigsawId)) return 'Not a jigsaw id.';
     return '';
   }

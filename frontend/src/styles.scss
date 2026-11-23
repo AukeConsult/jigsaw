@@ -290,6 +290,18 @@ small,
   --bs-btn-padding-x: var(--app-btn-sm-pad-x);
 }
 
+// the Find page is at most 1200 px wide and in the middle, so the choices are not spread over a wide screen
+.find-page {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.find-loading {
+  // the bar of the Find page while it is loading: thin, along the top of the page content
+  height: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
 .solved-mark {
   // a small green round mark with a check, in the top right corner of a card's picture (right: 0.25rem from the edge, or left of the heart)
   right: 0;
@@ -387,6 +399,50 @@ small,
 .checklist {
   max-height: 10rem;
   overflow-y: auto;
+}
+
+// the choices of a search (Find page, the filter of a list) are packed close: small gaps between the rows and under the headings, so more of them are seen at once
+app-jigsaw-filter {
+  display: block;
+
+  .form-check {
+    min-height: 0;
+    margin-bottom: 0.1875rem;
+    line-height: 1.4;
+  }
+
+  fieldset {
+    margin-bottom: 0.875rem !important; // beats the mb-2 of the template: the gap between two groups
+  }
+
+  .form-label,
+  legend {
+    margin-bottom: 0.25rem;
+    float: none; // a legend is a block here
+    width: auto;
+  }
+
+  // the heading of each kind of choice (Search, Category, Language, Size ...): bold, in the strong text colour, over a thin line, so the groups are told apart at a glance
+  > div > .form-label,
+  fieldset > legend.form-label {
+    display: block;
+    font-weight: 700;
+    color: var(--bs-emphasis-color);
+    padding-bottom: 0.125rem;
+    border-bottom: 1px solid var(--bs-border-color);
+  }
+
+  fieldset > legend.form-label .text-body-secondary {
+    font-weight: 400; // the help beside a heading (choose one or more) stays plain
+  }
+
+  .row {
+    --bs-gutter-y: 0;
+  }
+
+  .checklist {
+    padding: 0.375rem 0.625rem !important;
+  }
 }
 
 .toolbar-note {

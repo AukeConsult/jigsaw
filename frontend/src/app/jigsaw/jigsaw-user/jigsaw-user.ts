@@ -14,6 +14,11 @@ import { snapLevelOfJigsaw } from '../snap-level';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { PlaysService, UserGame } from '../plays.service';
 import { JigsawUserService } from '../jigsaw-user.service';
+import { AuthService } from '../../logons/auth.service';
+import { MyLogonUsers } from '../../logons/my-logon-users/my-logon-users';
+import { AccountAvatar } from '../account-avatar/account-avatar';
+import { pictureFromFile } from '../account-picture';
+import { UserLogins } from '../../logons/user-logins/user-logins';
 import { JigsawCategories } from '../../models/shared/category';
 import { JigsawInput, JigsawSettings, JigsawSpec, JigsawVisibility } from '../../models/shared/jigsaw-settings';
 import { JigsawSummary, SearchSort } from '../../models/shared/jigsaw-search';
@@ -34,7 +39,7 @@ export type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number];
  */
 @Component({
   selector: 'app-jigsaw-user',
-  imports: [FormsModule, RouterLink, DatePipe, TranslocoDirective, CategoryTags],
+  imports: [FormsModule, RouterLink, DatePipe, TranslocoDirective, CategoryTags, UserLogins, MyLogonUsers, AccountAvatar],
   providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-user.html',
 })
@@ -45,20 +50,19 @@ export class JigsawUser implements OnInit {
   protected readonly users = inject(JigsawUserService);
   private readonly plays = inject(PlaysService);
   private readonly aiUsages = inject(AiUsageService);
+  protected readonly auth = inject(AuthService);
   private readonly images = inject(JigsawImageService);
   private readonly jigsaws = inject(JigsawService);
   private readonly router = inject(Router);
   private readonly next = inject(ActivatedRoute).snapshot.queryParamMap.get('next');
+  /** the page was opened as `/jigsaw/user/new`: the form of a new account (anywhere else it is the accounts to choose from) */
+  protected readonly isNew = inject(ActivatedRoute).snapshot.routeConfig?.path === 'user/new';
 
-  /** start: a new person says only their name; choose: pick a user from the list (somebody who has played before); make: the whole form of a new user */
-  readonly mode = signal<'start' | 'choose' | 'make'>('start');
+  /** start: a new person says only their name (a signed-in person sees the box of their accounts); choose: pick an account from the list */
+  readonly mode = signal<'start' | 'choose'>('start');
+  /** the accounts are read and it is known whether somebody is signed in: until then the page shows nothing to choose from, so the form of a new account is not seen for a moment before the list */
+  readonly ready = signal(false);
 
-  /** The form to make a user is opened: the language of the user starts as the language the app is shown in now (it may have been changed in the menu since the page was opened). */
-  startMaking(): void {
-    this.language.set(this.appLanguage.lang());
-    this.error.set('');
-    this.mode.set('make');
-  }
   /** the users to choose from (null: not read yet) */
   readonly list = signal<JigsawUserSpec[] | null>(null);
   readonly listFailed = signal(false);
@@ -66,8 +70,6 @@ export class JigsawUser implements OnInit {
   readonly filter = signal(readPreference('jigsaw.userFilter', '', (v): v is string => typeof v === 'string'));
   readonly username = signal('');
   readonly name = signal('');
-  /** an e-mail address, optional: kept so the user can be connected to a registration later */
-  readonly email = signal('');
   /** the language of the user: a new user starts with the language the app is shown in */
   private readonly appLanguage = inject(LanguageService);
   readonly language = signal(this.appLanguage.lang());
@@ -98,7 +100,19 @@ export class JigsawUser implements OnInit {
     return this.aiNames()[id] ?? this.mine()?.find((j) => j.id === id)?.name ?? id.slice(0, 6);
   }
 
+  /** the person was sent here after signing in to protect the user: the edit form is opened, at the list of the logins */
+  private readonly showLogins = inject(ActivatedRoute).snapshot.queryParamMap.get('logins') === '1';
+  private openedLogins = false;
+
   constructor() {
+    effect(() => {
+      if (!this.showLogins || this.openedLogins || !this.users.user()) return;
+      this.openedLogins = true;
+      untracked(() => {
+        this.edit();
+        setTimeout(() => document.querySelector('app-user-logins')?.scrollIntoView({ block: 'center' }), 400); // when the form is drawn
+      });
+    });
     effect(() => writePreference('jigsaw.userTab', this.tab()));
     effect(() => writePreference('jigsaw.userFilter', this.filter()));
     effect(() => writePreference('jigsaw.userVisibility', this.visibilityFilter()));
@@ -441,21 +455,52 @@ export class JigsawUser implements OnInit {
     try {
       const list = await this.users.list();
       this.list.set(list);
+      await this.auth.ready;
+      // the form of a new account is only at /jigsaw/user/new; /jigsaw/user shows the accounts to choose from (a signed-in person sees the box of their accounts first)
+      if (!this.isNew && !this.auth.user()) this.mode.set('choose');
     } catch {
       this.list.set([]);
       this.listFailed.set(true);
+    } finally {
+      this.ready.set(true);
     }
   }
 
-  /** the users that fit what is typed (the name or the user name) */
+  /** the users that fit what is typed (the name or the user name); the ones the signed-in login is verified for are left out, they are in the box above the list */
   shown(): JigsawUserSpec[] {
     const text = this.filter().trim().toLowerCase();
-    return (this.list() ?? []).filter((u) => !text || u.name.toLowerCase().includes(text) || u.username.includes(text));
+    const mine = new Set(this.auth.linked().map((u) => u.id));
+    return (this.list() ?? []).filter((u) => !mine.has(u.id)).sort(JigsawUsers.byLastUsed).filter((u) => !text || u.name.toLowerCase().includes(text) || u.username.includes(text));
   }
 
-  /** A user was picked from the list: the person plays as them, and goes on. */
+  /** A user the person chose but cannot play as, and why: nobody is signed in, or the login that is signed in is not verified for it. Shown above the list; nothing was switched. */
+  readonly blocked = signal<{ name: string; username: string; signedIn: boolean } | null>(null);
+
+  /**
+   * A user was picked from the list: the person plays as them, and goes on. A user that has verified logins can be played as only by one of them: it is checked **before** anything is switched, and
+   * when the person is not signed in, or the login they are signed in with is not verified for the user, they are told so (`blocked`) and stay as they are.
+   */
   async pick(user: JigsawUserSpec): Promise<void> {
+    this.blocked.set(null);
+    if (user.protected && !(await this.mayPlayAs(user))) return;
     this.users.select(user);
+    await this.goOn();
+  }
+
+  /** Whether the person may play as this user: it is open, or the login that is signed in is verified for it (the logins of that account are read again, so one added elsewhere counts). Says why not when it is not. */
+  private async mayPlayAs(user: JigsawUserSpec): Promise<boolean> {
+    if (!this.auth.user()) {
+      this.blocked.set({ name: user.name, username: user.username, signedIn: false });
+      return false;
+    }
+    await this.auth.loadLinked();
+    if (this.auth.linked().some((u) => u.id === user.id)) return true;
+    this.blocked.set({ name: user.name, username: user.username, signedIn: true });
+    return false;
+  }
+
+  /** A user was chosen or made with the login that is signed in: the person goes on as after any other choice. */
+  protected async onLogonChosen(): Promise<void> {
     await this.goOn();
   }
 
@@ -497,16 +542,6 @@ export class JigsawUser implements OnInit {
     await this.goOn();
   }
 
-  async submit(): Promise<void> {
-    this.busy.set(true);
-    this.error.set('');
-    const error = await this.users.create(this.username(), this.name(), this.email(), this.language());
-    this.busy.set(false);
-    if (error) return this.error.set(error);
-    await this.refreshList();
-    await this.goOn();
-  }
-
   /** whether the user name typed in the edit form is free ('free'), has another user ('taken') or is not looked at (''): the same, or not yet looked up, or not allowed */
   readonly usernameCheck = signal<'' | 'free' | 'taken'>('');
   private checkTimer: ReturnType<typeof setTimeout> | undefined;
@@ -527,8 +562,23 @@ export class JigsawUser implements OnInit {
 
   /** the user who plays is being edited, and what is in the form */
   readonly editing = signal(false);
-  /** an e-mail address is kept but never shown: a new one can be typed, or the one there is can be taken away */
-  readonly removeEmail = signal(false);
+  /** the picture in the form: undefined is the one the account has, null that it is taken away, a data address a new one that is chosen */
+  readonly picture = signal<string | null | undefined>(undefined);
+  readonly pictureFailed = signal(false);
+
+  /** A file is chosen for the picture: it is cut square and shrunk (nothing is saved until Save). */
+  async onPicture(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // the same file can be chosen again
+    if (!file) return;
+    this.pictureFailed.set(false);
+    try {
+      this.picture.set(await pictureFromFile(file));
+    } catch {
+      this.pictureFailed.set(true);
+    }
+  }
 
   /** Edit is a switch: it opens the form of the user, and pressed again it closes it (what was typed is let go). */
   toggleEdit(): void {
@@ -541,9 +591,9 @@ export class JigsawUser implements OnInit {
     if (!me) return;
     this.name.set(me.name);
     this.username.set(me.username);
-    this.email.set('');
     this.language.set(me.language);
-    this.removeEmail.set(false);
+    this.picture.set(undefined);
+    this.pictureFailed.set(false);
     this.usernameCheck.set('');
     this.error.set('');
     this.editing.set(true);
@@ -553,12 +603,11 @@ export class JigsawUser implements OnInit {
   async saveEdit(): Promise<void> {
     const me = this.users.user();
     if (!me) return;
-    const change: { name?: string; username?: string; email?: string | null; language?: string } = {};
+    const change: { name?: string; username?: string; language?: string; picture?: string | null } = {};
     if (this.name().trim() !== me.name) change.name = this.name();
     if (this.username().trim().toLowerCase() !== me.username) change.username = this.username();
     if (this.language() !== me.language) change.language = this.language();
-    if (this.removeEmail()) change.email = null;
-    else if (this.email().trim()) change.email = this.email();
+    if (this.picture() !== undefined && (this.picture() !== null || me.pictureAt)) change.picture = this.picture();
     if (!Object.keys(change).length) return void this.editing.set(false); // nothing changed
     this.busy.set(true);
     this.error.set('');
@@ -578,11 +627,15 @@ export class JigsawUser implements OnInit {
     }
   }
 
-  /** Log out: stop playing as this user (the user stays in the database, with its rounds and jigsaws) and go to the front page; the next person starts from "What is your name?". */
+  /**
+   * Log out: stop playing as this user (the user stays in the database, with its rounds and jigsaws), sign out the Firebase login too (when one is signed in), and go to the front page; the next person starts
+   * from "What is your name?". The user is let go first, so nothing acts as it after the login is gone.
+   */
   async logout(): Promise<void> {
     this.users.leave();
     this.editing.set(false);
-    this.mode.set('start');
+    this.mode.set(this.list()?.length ? 'choose' : 'start');
+    if (this.auth.user()) await this.auth.logout();
     await this.router.navigateByUrl('/');
   }
 

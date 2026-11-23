@@ -9,6 +9,10 @@
           <span class="badge text-bg-dark"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.yours') || 'Yours' }}</span>
         } @else {
           <span class="small fw-semibold"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ g.userName || t('jigsawPage.someone') || 'Someone' }}</span>
+          @if (g.protected) {
+            <!-- started by a login of the account that plays it -->
+            <i class="bi bi-lock text-primary" role="img" [title]="t('jigsawPage.roundProtected') || 'Locked: started with a sign-in of this account'" [attr.aria-label]="t('jigsawPage.roundProtected') || 'Locked: started with a sign-in of this account'"></i>
+          }
         }
         @if (g.status === 'solved') {
           <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawPage.solved') || 'Solved' }}</span>

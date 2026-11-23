@@ -56,7 +56,7 @@ export function jigsawFavoritesRouter(store: FavoriteStore, deps: FavoriteDeps):
       return null;
     }
     if (!(await deps.userExists(userId as string))) {
-      bad(res, "No such user: choose a user first.", 404);
+      bad(res, "No such account: choose an account first.", 404);
       return null;
     }
     return userId as string;

@@ -39,7 +39,7 @@ export function tokenUsageRouter(store: TokenUsageStore): express.Router {
   const router = express.Router({ mergeParams: true });
   router.get("/", async (req, res) => {
     const id = (req.params as { id: string }).id;
-    if (req.get("X-Jigsaw-User") !== id) return void res.status(403).json({ error: "The use of the AI is only shown to the user it is for." });
+    if (req.get("X-Jigsaw-User") !== id) return void res.status(403).json({ error: "The use of the AI is only shown to the account it is for." });
     const items = await store.list(id);
     res.json({ items, totals: TokenUsages.totals(items) });
   });

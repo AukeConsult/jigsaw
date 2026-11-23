@@ -1,8 +1,16 @@
-<main class="container-fluid page-margin py-3" *transloco="let t">
+<main class="container-fluid page-margin find-page py-3" *transloco="let t">
+  <!-- a bar at the top of the page that moves while the counts are being read (the page is loading or a choice is being counted) -->
+  @if (loading()) {
+    <div class="progress find-loading" role="progressbar" [attr.aria-label]="t('jigsawList.loading') || 'Loading'"><div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div></div>
+  }
   <!-- Go is at the top too, so it is there without scrolling down the choices -->
   <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
     <h1 class="page-title mb-0">{{ t('jigsawList.findTitle') || 'Find a jigsaw' }}</h1>
-    <button type="button" class="btn btn-primary" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button>
+    <div class="d-flex gap-2">
+      <!-- Reset all: a button that can be seen, there as soon as something is chosen -->
+      <button type="button" class="btn btn-outline-danger" [disabled]="!chosen()" (click)="resetAll()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.resetAll') || 'Reset all' }}</button>
+      <button type="button" class="btn btn-primary" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button>
+    </div>
   </div>
   <!-- the choices are in a frame of their own, so they are read on a plain background and not on the soft pattern of the page -->
   <div class="card card-body">
@@ -18,6 +26,6 @@
         <span class="text-body-secondary">&nbsp;</span>
       }
     </div>
-    <div class="mb-3"><button type="button" class="btn btn-primary btn-main" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button></div>
+    <div class="mb-3 d-flex flex-wrap gap-2"><button type="button" class="btn btn-primary btn-main" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button><button type="button" class="btn btn-outline-danger btn-main" [disabled]="!chosen()" (click)="resetAll()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.resetAll') || 'Reset all' }}</button></div>
   </div>
 </main>

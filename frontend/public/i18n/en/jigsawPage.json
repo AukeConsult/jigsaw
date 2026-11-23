@@ -61,5 +61,6 @@
   "yesReset": "Yes, delete the rounds",
   "couldNotResetRounds": "Could not take away the rounds: only its owner can.",
   "motive": "Motive difficulty",
-  "youSolvedIt": "You have solved this jigsaw"
+  "youSolvedIt": "You have solved this jigsaw",
+  "roundProtected": "Locked: started with a sign-in of this account"
 }

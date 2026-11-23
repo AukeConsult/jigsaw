@@ -201,7 +201,7 @@ export class JigsawNew implements OnDestroy {
     try {
       this.owners.set(await this.users.list());
     } catch {
-      this.error.set(tr('jigsawNew.couldNotReadUsers', 'Could not read the users: reload the page.'));
+      this.error.set(tr('jigsawNew.couldNotReadUsers', 'Could not read the accounts: reload the page.'));
     }
     const me = this.users.user();
     if (!this.editId && me && !this.ownerUid()) this.ownerUid.set(me.id);

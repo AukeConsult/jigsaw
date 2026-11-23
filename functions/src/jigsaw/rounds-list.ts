@@ -1,5 +1,5 @@
 import express from "express";
-import { JigsawSpec, JigsawVisibilities, ListedRound, RoundsList } from "../models";
+import { JigsawSpec, JigsawVisibilities, ListedRound, Plays, RoundsList } from "../models";
 import type { PlayStore } from "./plays";
 
 // The list of rounds, `GET /jigsaw-rounds?page=&limit=&whose=&status=&sort=`: what the button "Rounds" on the front page shows, the rounds of every user (the person's own too; `whose` keeps all of
@@ -40,7 +40,7 @@ export function roundsListRouter(plays: PlayStore, deps: RoundsListDeps): expres
       for (const [n, j] of batch.entries()) {
         if (!rounds[n].length) continue;
         const imageKey = await deps.imageKeyFor(j, me); // asked only for a jigsaw that has rounds to show
-        for (const play of rounds[n]) found.push({ play, jigsaw: { id: j.id, name: j.name, ...(j.timed === false ? { timed: false } : {}), ...(imageKey ? { imageKey } : {}) } });
+        for (const play of rounds[n]) found.push({ play: Plays.publicOf(play), jigsaw: { id: j.id, name: j.name, ...(j.timed === false ? { timed: false } : {}), ...(imageKey ? { imageKey } : {}) } });
       }
     }
     return RoundsList.select(found);

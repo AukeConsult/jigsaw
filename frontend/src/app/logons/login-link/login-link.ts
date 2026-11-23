@@ -1,9 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
 import { authMessage } from '../auth-errors';
 import { AuthService } from '../auth.service';
+import { LogonLanding } from '../logon-landing';
 
 /** The page the emailed link opens: it finishes the sign-in. */
 @Component({
@@ -14,7 +15,7 @@ import { AuthService } from '../auth.service';
 })
 export class LoginLink {
   private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
+  private readonly landing = inject(LogonLanding);
 
   /** false when this page was not opened from a sign-in link (or the link is broken) */
   protected readonly valid = this.auth.isSignInLink();
@@ -40,7 +41,7 @@ export class LoginLink {
     this.error.set(null);
     try {
       await this.auth.completeSignInLink(email);
-      await this.router.navigateByUrl(this.auth.landingPath(null));
+      await this.landing.go(null);
     } catch (err) {
       this.error.set(authMessage(err, tr('logons.loginLink.failed', 'Could not sign you in with this link. Ask for a new one.')));
       this.needEmail.set(true);

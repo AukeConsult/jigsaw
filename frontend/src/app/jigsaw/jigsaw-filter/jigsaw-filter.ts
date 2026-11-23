@@ -49,7 +49,6 @@ export class JigsawFilterBar implements OnDestroy {
   protected readonly maxText = SEARCH_MAX_TEXT;
   /** the ticked categories that have sub-categories to tick from, in the order they are shown */
   protected readonly withSubs = computed(() => this.categories.filter((c) => c.subs.length && JigsawFilters.isChosen(this.filter(), 'categories', c.key)));
-  protected readonly on = computed(() => JigsawFilters.isOn(this.filter()));
   private timer: ReturnType<typeof setTimeout> | undefined;
 
   /** Whether a choice is shown: it is one of the `fields`, owners only when there are some to tick from, and languages only when there are some. */
@@ -80,11 +79,6 @@ export class JigsawFilterBar implements OnDestroy {
   protected typed(text: string): void {
     clearTimeout(this.timer);
     this.timer = setTimeout(() => this.filter.set(JigsawFilters.withText(this.filter(), text)), TEXT_PAUSE_MS);
-  }
-
-  protected clear(): void {
-    clearTimeout(this.timer);
-    this.filter.set(JigsawFilters.empty());
   }
 
   ngOnDestroy(): void {

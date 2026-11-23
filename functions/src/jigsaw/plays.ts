@@ -125,7 +125,7 @@ export function userPlaysRouter(
     const userId = String((req.params as { id?: string }).id);
     const error = Plays.userIdError(userId);
     if (error) return void res.status(400).json({ error });
-    if (!(await deps.userOf(userId))) return void res.status(404).json({ error: "No such user." });
+    if (!(await deps.userOf(userId))) return void res.status(404).json({ error: "No such account." });
     const jigsaws = await deps.jigsaws();
     const me = req.get("X-Jigsaw-User");
     const games = (await Promise.all(jigsaws.map(async (j) => {
@@ -136,7 +136,8 @@ export function userPlaysRouter(
       .flat()
       .filter((g) => !g.play.fresh) // a round nobody has moved a piece in is not listed
       .sort((a, b) => Plays.lastActive(b.play) - Plays.lastActive(a.play))
-      .slice(0, LIST_LIMIT);
+      .slice(0, LIST_LIMIT)
+      .map((g) => ({ ...g, play: Plays.publicOf(g.play) }));
     res.json(games);
   });
   return router;
@@ -147,7 +148,7 @@ export interface PlayDeps {
   jigsaw: (id: string) => Promise<JigsawSpec | null>;
   pieces: PieceStore;
   /** the user with this UID, or null (a play is played by a user that exists: it keeps the UID and the name of the user) */
-  userOf: (userId: string) => Promise<{ id: string; name: string } | null>;
+  userOf: (userId: string) => Promise<{ id: string; name: string; firebaseUids?: string[] } | null>;
   /** the time now, in milliseconds (the tests give their own) */
   now?: () => number;
 }
@@ -190,7 +191,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
       const error = Plays.userIdError(userId);
       if (error) return bad(res, error);
     }
-    res.json((await plays.list(idOf(req), userId)).filter((p) => !p.fresh)); // a round nobody has moved a piece in is not listed
+    res.json((await plays.list(idOf(req), userId)).filter((p) => !p.fresh).map(Plays.publicOf)); // a round nobody has moved a piece in is not listed
   });
 
   router.post("/", async (req, res) => {
@@ -200,16 +201,18 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     const error = Plays.userIdError(userId);
     if (error) return bad(res, error);
     const user = await deps.userOf(userId as string);
-    if (!user) return bad(res, "No such user: choose a user first.", 404);
+    if (!user) return bad(res, "No such account: choose an account first.", 404);
     // a jigsaw that the user has solved is not played again by them (it can be looked at, or the solved round deleted)
     const theirs = await plays.list(jigsaw.id, user.id);
     if (theirs.some((p) => p.status === "solved")) return bad(res, "You have solved this jigsaw: it cannot be played again.", 409);
     // opening a jigsaw again does not make another round: the player's round with no piece moved in it is the one to go on with
     const waiting = theirs.find((p) => p.fresh);
-    if (waiting) return void res.status(200).json(waiting);
+    if (waiting) return void res.status(200).json(Plays.publicOf(waiting));
     const started = Plays.start(jigsaw, { id: user.id, name: user.name }, await deps.pieces.list(jigsaw.id), now());
     if ("error" in started) return bad(res, started.error, 409);
-    res.status(201).json(await plays.create(jigsaw.id, started.play, started.positions));
+    // a login of the account that plays marks the round (its UID is kept for later use, and the page is told only that the round is protected)
+    const marked = Plays.marked(started.play, user, res.locals.logonUid as string | undefined);
+    res.status(201).json(Plays.publicOf(await plays.create(jigsaw.id, marked, started.positions)));
   });
 
   router.get("/summary", async (req, res) => {
@@ -223,7 +226,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     const record = await plays.get(jigsaw.id, req.params.playId);
     if (!record) return bad(res, "No such play.", 404);
     const pieces = await deps.pieces.list(jigsaw.id);
-    res.json({ play: record.play, settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, record.positions) });
+    res.json({ play: Plays.publicOf(record.play), settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, record.positions) });
   });
 
   // starts this round over: the pieces are scattered anew and the time is back to nothing (the same round, not another one)
@@ -259,7 +262,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (error) return bad(res, error);
     const saved = await plays.update(jigsaw.id, req.params.playId, (cur) => ({ ...cur, play: { ...cur.play, overrides: Plays.changed(cur.play.overrides, change as never) } }));
     if (!saved) return bad(res, "No such play.", 404);
-    res.json({ play: saved.play, settings: Plays.effective(jigsaw, saved.play) });
+    res.json({ play: Plays.publicOf(saved.play), settings: Plays.effective(jigsaw, saved.play) });
   });
 
   router.patch("/:playId/positions", ownRound, async (req, res) => {

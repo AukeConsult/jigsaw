@@ -10,9 +10,9 @@
   @if (shows('categories')) {
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.category') || 'Category' }}</legend>
-      <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-1">
+      <div class="d-flex flex-wrap column-gap-4 row-gap-1">
         @for (c of categories; track c.key) {
-          <div class="col">
+          <div class="col-auto">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-cat-' + c.key" [checked]="chosen('categories', c.key)" [disabled]="!canChoose('categories', c.key)" (change)="toggle('categories', c.key)">
               <label class="form-check-label" [for]="idPrefix() + '-cat-' + c.key"><i class="bi me-1" [class]="c.icon" aria-hidden="true"></i>{{ t('jigsawCategories.name.' + c.key) || c.name }} <span class="text-body-secondary">{{ count('categories', c.key) }}</span></label>
@@ -25,9 +25,9 @@
     @for (c of withSubs(); track c.key) {
       <fieldset class="mb-2 ms-3">
         <legend class="small text-body-secondary mb-1">{{ t('jigsawCategories.subOf', { name: t('jigsawCategories.name.' + c.key) || c.name }) || (t('jigsawCategories.name.' + c.key) || c.name) + ': more exactly (optional)' }}</legend>
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-1">
+        <div class="d-flex flex-wrap column-gap-4 row-gap-1">
           @for (s of c.subs; track s.key) {
-            <div class="col">
+            <div class="col-auto">
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-cat-' + s.key" [checked]="chosen('categories', s.key)" [disabled]="!canChoose('categories', s.key)" (change)="toggle('categories', s.key)">
                 <label class="form-check-label" [for]="idPrefix() + '-cat-' + s.key">{{ t('jigsawCategories.name.' + s.key) || s.name }} <span class="text-body-secondary">{{ count('categories', s.key) }}</span></label>
@@ -52,9 +52,9 @@
       </div>
     </fieldset>
   }
-  <div class="row row-cols-1 row-cols-md-3 g-2 mb-1">
+  <div class="d-flex flex-wrap column-gap-5 row-gap-1 mb-1">
     @if (shows('sizes')) {
-      <div class="col">
+      <div class="col-auto">
         <fieldset>
           <legend class="form-label">{{ t('jigsawList.size') || 'Size' }}</legend>
           @for (s of sizes; track s.key) {
@@ -67,7 +67,7 @@
       </div>
     }
     @if (shows('difficulties')) {
-      <div class="col">
+      <div class="col-auto">
         <fieldset>
           <legend class="form-label">{{ t('jigsawList.difficulty') || 'Difficulty' }}</legend>
           @for (d of difficulties; track d.key) {
@@ -81,7 +81,7 @@
     }
     @if (shows('motives')) {
       <!-- the motive difficulty: how hard the picture itself is, a property of the jigsaw like its difficulty -->
-      <div class="col">
+      <div class="col-auto">
         <fieldset>
           <legend class="form-label">{{ t('jigsawList.motive') || 'Motive difficulty' }}</legend>
           @for (m of motives; track m.key) {
@@ -94,7 +94,7 @@
       </div>
     }
     @if (shows('owners')) {
-      <div class="col">
+      <div class="col-auto">
         <fieldset>
           <legend class="form-label">{{ t('jigsawList.owner') || 'Made by' }} <span class="text-body-secondary">{{ t('jigsawList.ownersHelp', { max: maxOwners }) || '(choose one or more)' }}</span></legend>
           <div class="checklist border rounded p-2">
@@ -109,8 +109,4 @@
       </div>
     }
   </div>
-  @if (on()) {
-    <!-- a choice is made: this puts all the jigsaws back -->
-    <div class="toolbar"><button type="button" class="link-action" (click)="clear()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.all') || 'All' }}</button></div>
-  }
 </ng-container>

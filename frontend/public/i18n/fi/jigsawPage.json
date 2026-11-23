@@ -61,5 +61,6 @@
   "yesReset": "Kyllä, poista kierrokset",
   "couldNotResetRounds": "Kierroksia ei voitu poistaa: vain omistaja voi.",
   "motive": "Kuvan vaikeus",
-  "youSolvedIt": "Olet ratkaissut tämän palapelin"
+  "youSolvedIt": "Olet ratkaissut tämän palapelin",
+  "roundProtected": "Lukittu: aloitettu tilin kirjautumisella"
 }

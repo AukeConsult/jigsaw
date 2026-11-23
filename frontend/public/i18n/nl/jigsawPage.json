@@ -61,5 +61,6 @@
   "yesReset": "Ja, verwijder de rondes",
   "couldNotResetRounds": "De rondes konden niet worden verwijderd: alleen de eigenaar kan dat.",
   "motive": "Moeilijkheid van het motief",
-  "youSolvedIt": "Je hebt deze puzzel opgelost"
+  "youSolvedIt": "Je hebt deze puzzel opgelost",
+  "roundProtected": "Vergrendeld: gestart met een login van het account"
 }

@@ -61,5 +61,6 @@
   "yesReset": "Ja, ta bort rundorna",
   "couldNotResetRounds": "Kunde inte ta bort rundorna: bara ägaren kan.",
   "motive": "Motivets svårighet",
-  "youSolvedIt": "Du har löst det här pusslet"
+  "youSolvedIt": "Du har löst det här pusslet",
+  "roundProtected": "Låst: startad med en inloggning på kontot"
 }

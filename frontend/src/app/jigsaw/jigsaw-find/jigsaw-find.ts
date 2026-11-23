@@ -32,6 +32,10 @@ export class JigsawFind implements OnInit {
   readonly facets = signal<JigsawFacets | null>(null);
   /** how many jigsaws match what is chosen */
   readonly count = computed(() => this.facets()?.total ?? null);
+  /** the counts are being read (the bar at the top of the page moves meanwhile) */
+  readonly loading = signal(true);
+  /** something is chosen: Reset all can be pressed */
+  readonly chosen = computed(() => JigsawFilters.isOn(this.filter()));
   /** only the answer to the last count is used */
   private asked = 0;
 
@@ -52,12 +56,20 @@ export class JigsawFind implements OnInit {
 
   private async recount(filter: JigsawFilter): Promise<void> {
     const ticket = ++this.asked;
+    this.loading.set(true);
     try {
       const found = await this.service.facets(JigsawFilters.query(filter) as JigsawSearchRequest);
       if (ticket === this.asked) this.facets.set(found);
     } catch {
       /* the counts stay as they were: Go still works, and the front page says if it cannot load */
+    } finally {
+      if (ticket === this.asked) this.loading.set(false);
     }
+  }
+
+  /** Reset all: nothing is chosen (every jigsaw), and the counts are read again. */
+  protected resetAll(): void {
+    this.filter.set(JigsawFilters.empty());
   }
 
   /** Go: what is chosen (cards or list, and what to look for) is kept, and the front page shows the jigsaws that match. */

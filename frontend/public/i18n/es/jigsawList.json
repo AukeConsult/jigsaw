@@ -70,5 +70,6 @@
   "roundsWhoseOthers": "De otros",
   "roundsWhoseAllTitle": "Las partidas de todos",
   "roundsWhoseMineTitle": "Solo mis partidas",
-  "roundsWhoseOthersTitle": "Solo las partidas de otros"
+  "roundsWhoseOthersTitle": "Solo las partidas de otros",
+  "resetAll": "Restablecer todo"
 }

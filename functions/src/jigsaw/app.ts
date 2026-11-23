@@ -7,21 +7,21 @@ import { Classifier, configuredClassifier } from "./classifier";
 import { jigsawClassifyRouter } from "./jigsaw-classify";
 import { TokenUsageStore, firestoreTokenUsageStore, tokenUsageRouter } from "./token-usage";
 import { ALLOWED_ORIGINS } from "../common/cors";
-import { ImageStore, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
+import { ImageStore, JIGSAW_ROOT, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
 import { JigsawSettings, JigsawSpec, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity } from "../models";
 import { ImageAccess } from "./image-access";
 import { roundsListRouter } from "./rounds-list";
 import { SecretSource, ViewKeys, firestoreSecret } from "./view-key";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
-import { LogonDeps, logonsRouter } from "../logons";
+import { LogonDeps, createLogons } from "../logons";
 import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./plays";
 
 /** The address the API of Karins jigsaw answers on (Hosting forwards the full path to the function). */
 export const JIGSAW_API = "/jigsaw/api";
 
 /** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
-export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; logons?: LogonDeps; viewKeySecret?: SecretSource; now?: () => number } = {}): express.Express {
+export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; accountPictures?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; logons?: LogonDeps; viewKeySecret?: SecretSource; now?: () => number } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
@@ -43,12 +43,29 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   const jigsawById = async (id: string) => (jigsaw.get ? jigsaw.get(id) : ((await jigsaw.list()).find((c) => c.id === id) ?? null));
   // the plays of a jigsaw: one game each, by one user; a play chooses only the difficulty and the look, never the size, the picture or the pieces
   const users = stores.users ?? firestoreUserStore();
+  // a jigsaw user that has verified Firebase accounts is used only by somebody signed in with one of them: the gate looks at the token that comes with every call, and the user the call acts as decides
+  // whether it is needed (`functions/src/logons/`); a user with none is used as before
+  const logons = createLogons(users, { ...stores.logons, now: stores.now });
+  router.use(logons.gate);
   // the games of a user over all the jigsaws (before the users, whose own routes would take the address first)
   router.use("/jigsaw-users/:id/plays", userPlaysRouter(plays, { jigsaws: () => jigsaw.list(), userOf: async (userId) => (await users.get(userId)) ?? null, imageKeyFor: (c, me) => keyIfSeen(c, me) }));
   // what the AI has used for a user, kept under the user (written by the classification, read here)
   const tokenUsage = stores.tokenUsage ?? firestoreTokenUsageStore();
   router.use("/jigsaw-users/:id/token-usage", tokenUsageRouter(tokenUsage));
-  router.use("/jigsaw-users", jigsawUsersRouter(users));
+  router.use("/jigsaw-users/:id/logons", logons.link); // the logins of one user: add, take away, link codes
+  router.get("/jigsaw-users", logons.sweepList);
+  router.post("/jigsaw-users", logons.attachLogon);
+  router.use("/jigsaw-users", jigsawUsersRouter(users, stores.accountPictures ?? storageImageStore(`${JIGSAW_ROOT}/accounts`), {
+    // what is attached to a user: the jigsaws it owns and the rounds it has played (a round nobody moved a piece in does not count)
+    async count(userId) {
+      const jigsaws = (await search.load([userId], 1)).filter((j) => j.ownerUid === userId).length;
+      const rounds = (await Promise.all((await jigsaw.list()).map(async (j) => (await plays.list(j.id, userId)).filter((p) => !p.fresh).length))).reduce((a, b) => a + b, 0);
+      return { jigsaws, rounds };
+    },
+    async clearFresh(userId) {
+      await Promise.all((await jigsaw.list()).map(async (j) => Promise.all((await plays.list(j.id, userId)).map((p) => plays.remove(j.id, p.id)))));
+    },
+  }, stores.now));
   // A jigsaw only its owner sees (`visibility: "owner"`) is seen by its owner and by the players who have a round on it (they keep what they started); nobody else sees it,
   // its rounds either. A player who is not the owner cannot start another round of it. (The header `X-Jigsaw-User` is the UID of who asks.)
   const isOwnerOf = (c: { ownerUid?: string }, me: string | undefined) => !!me && c.ownerUid === me;
@@ -65,13 +82,13 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (req.method === "POST" && !isOwnerOf(c, me)) return void res.status(403).json({ error: "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have." });
     next();
   });
-  router.use("/jigsaw/:id/plays", playsRouter(plays, { jigsaw: jigsawById, pieces, userOf: async (userId) => (await users.get(userId)) ?? null }));
+  router.use("/jigsaw/:id/plays", logons.identify, playsRouter(plays, { jigsaw: jigsawById, pieces, userOf: async (userId) => (await users.get(userId)) ?? null }));
   // the owner of a jigsaw is a user that exists (chosen from the users); the author of the jigsaw is then that user's name, put there here, not taken from the request
   const stampOwner: express.RequestHandler = async (req, res, next) => {
     const body = (req.body ?? {}) as { ownerUid?: unknown; author?: unknown };
     if (body.ownerUid === undefined) return next();
     const user = typeof body.ownerUid === "string" && !JigsawUsers.idError(body.ownerUid) ? await users.get(body.ownerUid) : null;
-    if (!user) return void res.status(400).json({ error: "The owner must be a user that exists: choose the author from the users." });
+    if (!user) return void res.status(400).json({ error: "The owner must be an account that exists: choose the author from the accounts." });
     body.author = user.name;
     next();
   };
@@ -189,7 +206,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   router.use("/jigsaw-image", jigsawImageRouter(images, jigsawExists));
   router.use("/jigsaw-pieces", jigsawPiecesRouter(pieces, jigsawExists));
   // signing in with Firebase, beside the users above (which are not changed): the account is shared with Seven Friends
-  router.use("/session", logonsRouter(stores.logons));
+  router.use("/session", logons.session);
   app.use(JIGSAW_API, router);
   return app;
 }

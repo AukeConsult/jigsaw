@@ -72,32 +72,19 @@ export class JigsawUserService {
     return this.loaded;
   }
 
-  /** Makes a user and plays as them. The reason when it could not be made (the user name is taken, a field is not allowed). */
-  async create(username: string, name: string, email = '', language?: string): Promise<string> {
-    const error = JigsawUsers.error({ username, name, email, language });
-    if (error) return error;
-    try {
-      const user = await firstValueFrom(this.http.post<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users`, { username, name, ...(email.trim() ? { email: email.trim() } : {}), ...(language ? { language } : {}) }));
-      this.choose(user);
-      return '';
-    } catch (err) {
-      return reasonOf(err);
-    }
-  }
-
   /**
    * Makes a user from only a name, and plays as them: the user name is the name itself (`JigsawUsers.usernameFrom`). When the server says it is taken (409) nothing is made and
    * `takenUsername` says which user name it was, so the page can show who has it and let the person choose between that user and a new one; digits are added only when that
    * choice is made (`withDigits`: four digits to tell the two apart, tried again with other digits when those are taken). Any other trouble is given back at once.
    */
-  async createFromName(name: string, language?: string, withDigits = false): Promise<{ error: string; takenUsername: string }> {
+  async createFromName(name: string, language?: string, withDigits = false, linkLogon = false): Promise<{ error: string; takenUsername: string }> {
     let reason = '';
     for (let attempt = 0; attempt < (withDigits ? 5 : 1); attempt++) {
       const username = JigsawUsers.usernameFrom(name, withDigits ? String(Math.floor(1000 + Math.random() * 9000)) : '');
       const error = JigsawUsers.error({ username, name, language });
       if (error) return { error, takenUsername: '' };
       try {
-        this.choose(await firstValueFrom(this.http.post<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users`, { username, name, ...(language ? { language } : {}) })));
+        this.choose(await firstValueFrom(this.http.post<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users`, { username, name, ...(language ? { language } : {}), ...(linkLogon ? { linkLogon: true } : {}) }))); // `linkLogon`: the user is verified for the login that is signed in
         return { error: '', takenUsername: '' };
       } catch (err) {
         if (!(err instanceof HttpErrorResponse && err.status === 409)) return { error: reasonOf(err), takenUsername: '' };
@@ -127,6 +114,27 @@ export class JigsawUserService {
     this.choose(user);
   }
 
+  /** Plays as the user with this UID (one that a login is verified for): the user is read first, since the list of a login has only the name. The reason when it could not be read, or ''. */
+  async selectById(id: string): Promise<string> {
+    try {
+      this.choose(await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id))));
+      return '';
+    } catch (err) {
+      return reasonOf(err);
+    }
+  }
+
+  /** Reads the user who plays again (it was changed on the server, say a login was added), without changing who plays. */
+  async refresh(): Promise<void> {
+    const me = this.user();
+    if (!me) return;
+    try {
+      this.user.set(await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(me.id))));
+    } catch {
+      /* it is read again at the next visit */
+    }
+  }
+
   /** Plays as a user that exists: found by the user name. The reason when there is no such user. */
   async use(username: string): Promise<string> {
     const error = JigsawUsers.usernameError(username);
@@ -135,7 +143,7 @@ export class JigsawUserService {
       this.choose(await firstValueFrom(this.http.get<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users/by-username/${encodeURIComponent(JigsawUsers.normalised(username))}`)));
       return '';
     } catch (err) {
-      return err instanceof HttpErrorResponse && err.status === 404 ? tr('jigsawUser.noSuchUser', 'There is no user with that user name.') : reasonOf(err);
+      return err instanceof HttpErrorResponse && err.status === 404 ? tr('jigsawUser.noSuchUser', 'There is no user with that alias.') : reasonOf(err);
     }
   }
 
@@ -143,9 +151,9 @@ export class JigsawUserService {
    * Changes the user who plays: only what is given (an e-mail address that is null is taken away; the address is private and is never read back). The reason when it could
    * not be changed (the user name is taken, a field is not allowed).
    */
-  async update(change: { name?: string; username?: string; email?: string | null; language?: string; search?: JigsawSetup }): Promise<string> {
+  async update(change: { name?: string; username?: string; language?: string; search?: JigsawSetup; picture?: string | null }): Promise<string> {
     const me = this.user();
-    if (!me) return tr('jigsawUser.chooseFirst', 'Choose a user first.');
+    if (!me) return tr('jigsawUser.chooseFirst', 'Choose an account first.');
     try {
       const saved = await firstValueFrom(this.http.put<JigsawUserSpec>(this.url(me.id), change));
       this.user.set(saved);
@@ -168,6 +176,12 @@ export class JigsawUserService {
     if (this.user()) await this.update({ search });
   }
 
+  /** Deletes a user for good; the server only does it when nothing is attached to it (no jigsaws, no rounds played, no other login), and says why when not. Lets the user go when it was the one playing. */
+  async remove(id: string): Promise<void> {
+    await firstValueFrom(this.http.delete(this.url(id)));
+    if (this.user()?.id === id) this.leave();
+  }
+
   /** Stops playing as this user (the user stays in the database). */
   leave(): void {
     this.remember(null);
@@ -177,6 +191,8 @@ export class JigsawUserService {
 
   private choose(user: JigsawUserSpec): void {
     this.remember(user.id);
+    // the account was chosen: the lists put it first the next time (a failure is not worth telling the person about)
+    void firstValueFrom(this.http.post(`${this.url(user.id)}/used`, {})).catch(() => undefined);
     this.user.set(user);
     this.language.use(user.language); // the app is shown in the language of the user
     if (user.search) writeFinderPreferences(FRONT_FINDER_KEY, user.search); // a user who is chosen brings their search

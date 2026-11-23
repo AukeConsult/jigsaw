@@ -261,10 +261,10 @@ export class JigsawSettings {
     if (!name) return 'Give the jigsaw a name.';
     if (name.length > JIGSAW_MAX_NAME) return `The name can be at most ${JIGSAW_MAX_NAME} characters.`;
     if (input.author !== undefined && (typeof input.author !== 'string' || input.author.trim().length > JIGSAW_MAX_NAME)) return `The author can be at most ${JIGSAW_MAX_NAME} characters.`;
-    if (input.ownerUid !== undefined && (typeof input.ownerUid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(input.ownerUid))) return 'The owner must be the id of a user.';
+    if (input.ownerUid !== undefined && (typeof input.ownerUid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(input.ownerUid))) return 'The owner must be the id of an account.';
     if (input.timed !== undefined && typeof input.timed !== 'boolean') return 'Timed is yes or no.';
     if (input.visibility !== undefined && !(JIGSAW_VISIBILITIES as readonly unknown[]).includes(input.visibility)) return 'A jigsaw is public, private or hidden.';
-    if (JigsawVisibilities.restricted(input.visibility as string) && !input.ownerUid) return 'A private or hidden jigsaw needs an owner: choose the author from the users.';
+    if (JigsawVisibilities.restricted(input.visibility as string) && !input.ownerUid) return 'A private or hidden jigsaw needs an owner: choose the author from the accounts.';
     if (input.pictureName !== undefined && (typeof input.pictureName !== 'string' || input.pictureName.trim().length > JIGSAW_MAX_PICTURE_NAME)) {
       return `The name of the picture file can be at most ${JIGSAW_MAX_PICTURE_NAME} characters.`;
     }

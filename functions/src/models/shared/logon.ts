@@ -51,6 +51,14 @@ export interface LogonUser {
   provider: string | null;
 }
 
+/** A jigsaw user that the signed-in account is verified for (enough to choose it from a list). */
+export interface LinkedUser {
+  id: string;
+  name: string;
+  username: string;
+  pictureAt?: number;
+}
+
 /** The answer of `POST /jigsaw/api/session`. */
 export interface LogonSession {
   ok: true;
@@ -58,6 +66,48 @@ export interface LogonSession {
   /** true when this login made the account (it did not exist in either app) */
   created: boolean;
   user: LogonUser;
+  /** the jigsaw users this account is verified for (none when it has not been linked to any) */
+  users: LinkedUser[];
+}
+
+/**
+ * One verified login of a jigsaw user as the page is told it: `ref` is what a removal asks for (a short hash, never the account's own id), `you` says it is the one signed in now, and the rest says
+ * which login it is: the kind (`provider`: `google.com`, `password`, `phone`), the name, the e-mail address, the phone number (its last four digits only) and the picture of the account. All of it is read
+ * from the account when it is shown, never kept with the user.
+ */
+export interface UserLogon {
+  ref: string;
+  you: boolean;
+  provider: string | null;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  photoURL: string | null;
+}
+
+/** The link code: what a person types on a second login to have it verified for a user that the first login already is verified for. */
+export class LinkCodes {
+  /** Letters and digits that are not mistaken for each other. */
+  static readonly ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  static readonly LENGTH = 10;
+  /** How long a code works, in minutes. */
+  static readonly MINUTES = 10;
+
+  /** The code as it is compared: capitals, without spaces and hyphens (it is shown as `ABCDE-FGHJK`). */
+  static normalise(text: unknown): string {
+    return typeof text === 'string' ? text.toUpperCase().replace(/[\s-]/g, '') : '';
+  }
+
+  /** The reason a code is not one, or ''. */
+  static error(text: unknown): string {
+    const code = LinkCodes.normalise(text);
+    return code.length === LinkCodes.LENGTH && [...code].every((c) => LinkCodes.ALPHABET.includes(c)) ? '' : 'That is not a link code.';
+  }
+
+  /** The code for showing: two groups of five. */
+  static shown(code: string): string {
+    return `${code.slice(0, 5)}-${code.slice(5)}`;
+  }
 }
 
 export class LogonAccounts {
@@ -108,6 +158,21 @@ export class LogonAccounts {
     if (phoneKey) account.phoneKey = phoneKey;
     if (token.phone_number) account.phone = token.phone_number;
     return account;
+  }
+
+  /**
+   * What says which login an account is, for the list of the logins of a user: the kind, the name, the e-mail address, the phone number with only its last four digits, and the picture (only an https
+   * address: nothing else is put in a page as a picture). An account that is not known (its document is gone) says nothing.
+   */
+  static shown(account: { provider?: string | null; email?: string | null; verifiedPhone?: string | null; displayName?: string | null; photoURL?: string | null } | null | undefined): Omit<UserLogon, 'ref' | 'you'> {
+    const digits = (account?.verifiedPhone ?? '').replace(/\D/g, '');
+    return {
+      provider: account?.provider ?? null,
+      name: LogonAccounts.text(account?.displayName),
+      email: LogonAccounts.text(account?.email),
+      phone: digits.length >= 4 ? `***${digits.slice(-4)}` : null,
+      photoURL: typeof account?.photoURL === 'string' && account.photoURL.startsWith('https://') ? account.photoURL : null,
+    };
   }
 
   /** What the page gets: no stamp and no key, only what is about the person. */

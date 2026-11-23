@@ -70,5 +70,6 @@
   "roundsWhoseOthers": "Anderen",
   "roundsWhoseAllTitle": "De rondes van iedereen",
   "roundsWhoseMineTitle": "Alleen mijn rondes",
-  "roundsWhoseOthersTitle": "Alleen de rondes van anderen"
+  "roundsWhoseOthersTitle": "Alleen de rondes van anderen",
+  "resetAll": "Alles resetten"
 }

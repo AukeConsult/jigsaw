@@ -188,7 +188,7 @@ describe("the plays of a jigsaw", () => {
     expect((await request(app).post(`/jigsaw/api/jigsaw/nothing/plays`).send({ userId: "anna" })).status).toBe(404);
     const stranger = await request(app).post(`/jigsaw/api/jigsaw/${made.id}/plays`).send({ userId: "nobody" });
     expect(stranger.status).toBe(404); // a play is played by a user that exists
-    expect(stranger.body.error).toContain("No such user");
+    expect(stranger.body.error).toContain("No such account");
     expect((await request(app).get(`/jigsaw/api/jigsaw/${made.id}/plays/nothing`)).status).toBe(404);
     expect((await request(app).get(`/jigsaw/api/jigsaw/${made.id}/plays?userId=a%20b`)).status).toBe(400);
   });
@@ -682,7 +682,7 @@ describe("the users of the jigsaws", () => {
     expect((await request(a).get("/jigsaw/api/jigsaw-users/by-username/KARIN")).body).toEqual(made);
     expect((await request(a).get("/jigsaw/api/jigsaw-users/karin")).status).toBe(404); // the user name is not the id
     expect((await request(a).get("/jigsaw/api/jigsaw-users/by-username/nobody")).status).toBe(404);
-    expect((await request(a).get("/jigsaw/api/jigsaw-users/by-username/a b")).status).toBe(400);
+    expect((await request(a).get("/jigsaw/api/jigsaw-users/by-username/a b")).status).toBe(404); // an alias can have spaces: there is just none like it
     expect((await request(a).get("/jigsaw/api/jigsaw-users/a b")).status).toBe(400);
     expect((await request(a).get("/jigsaw/api/jigsaw-users/nothing")).status).toBe(404);
   });
@@ -696,11 +696,11 @@ describe("the users of the jigsaws", () => {
 
   it("checks the user name and the name", async () => {
     const a = app();
-    for (const username of [undefined, "", "ab", "x".repeat(31), "a b", "åke", "a.b", 5]) expect((await request(a).post("/jigsaw/api/jigsaw-users").send({ username, name: "Karin" })).status).toBe(400);
+    for (const username of [undefined, "", "ab", "x".repeat(31), 5]) expect((await request(a).post("/jigsaw/api/jigsaw-users").send({ username, name: "Karin" })).status).toBe(400);
     for (const name of [undefined, "", "   ", "x".repeat(61), 5]) expect((await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "karin", name })).status).toBe(400);
   });
 
-  it("changes only what the request says: the name, the user name, the e-mail address", async () => {
+  it("changes only what the request says: the name, the alias", async () => {
     const users = memoryUsers("anna", "bo");
     const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users });
     const named = await request(a).put("/jigsaw/api/jigsaw-users/anna").send({ name: " Anna B " });
@@ -709,13 +709,6 @@ describe("the users of the jigsaws", () => {
     expect(renamed.body).toMatchObject({ id: "anna", username: "anna_b", name: "Anna B" }); // the UID stays, and so do the plays
     expect((await request(a).get("/jigsaw/api/jigsaw-users/by-username/anna_b")).body.id).toBe("anna");
     expect((await request(a).get("/jigsaw/api/jigsaw-users/by-username/anna")).status).toBe(404);
-    const mail = await request(a).put("/jigsaw/api/jigsaw-users/anna").send({ email: " A@Example.com " });
-    expect("email" in mail.body).toBe(false); // private: not given back
-    expect((await users.get("anna"))?.email).toBe("a@example.com");
-    await request(a).put("/jigsaw/api/jigsaw-users/anna").send({ name: "Anna C" });
-    expect((await users.get("anna"))?.email).toBe("a@example.com"); // not said: not changed
-    await request(a).put("/jigsaw/api/jigsaw-users/anna").send({ email: "" });
-    expect((await users.get("anna"))?.email).toBeUndefined(); // empty: taken away
   });
 
   it("refuses a user name that another user has, and a change that says nothing or is not allowed", async () => {
@@ -724,34 +717,13 @@ describe("the users of the jigsaws", () => {
     expect(taken.status).toBe(409);
     expect(taken.body.error).toContain("taken");
     expect((await request(a).put("/jigsaw/api/jigsaw-users/anna").send({ username: "anna" })).status).toBe(200); // its own user name is fine
-    for (const body of [{}, { name: "" }, { username: "a b" }, { email: "nope" }, { name: "x".repeat(61) }]) expect((await request(a).put("/jigsaw/api/jigsaw-users/anna").send(body)).status).toBe(400);
+    for (const body of [{}, { name: "" }, { username: "ab" }, { name: "x".repeat(61) }]) expect((await request(a).put("/jigsaw/api/jigsaw-users/anna").send(body)).status).toBe(400);
     expect((await request(a).put("/jigsaw/api/jigsaw-users/nobody").send({ name: "X" })).status).toBe(404);
   });
 
-  it("keeps an optional e-mail address, in small letters, and gives it back only to the person who made the user", async () => {
-    const users = memoryUsers();
-    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users });
-    const made = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "karin", name: "Karin", email: "  Karin@Example.COM " });
-    expect(made.status).toBe(201);
-    expect(made.body.email).toBe("karin@example.com");
-    expect((await users.get(made.body.id))?.email).toBe("karin@example.com"); // kept in the database, for a later connection to a registration
-    for (const url of [`/jigsaw/api/jigsaw-users/${made.body.id}`, "/jigsaw/api/jigsaw-users/by-username/karin"]) expect("email" in (await request(a).get(url)).body).toBe(false);
-    expect("email" in (await request(a).put(`/jigsaw/api/jigsaw-users/${made.body.id}`).send({ name: "K" })).body).toBe(false);
-    expect((await users.get(made.body.id))?.email).toBe("karin@example.com"); // a rename leaves it
-    const without = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "bob", name: "Bob", email: "" });
-    expect(without.status).toBe(201);
-    expect("email" in without.body).toBe(false);
-  });
-
-  it("checks the e-mail address when there is one", async () => {
-    const a = app();
-    for (const email of ["karin", "a@b", "@b.c", "a b@c.de", "x".repeat(250) + "@b.cd", 5]) expect((await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "karin", name: "Karin", email })).status).toBe(400);
-    for (const email of [undefined, null, "", "a@b.co"]) expect((await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "kar" + String(email).length, name: "Karin", email })).status).toBe(201);
-  });
-
-  it("lists the users by name, to choose who plays from, without their e-mail addresses", async () => {
+  it("lists the users by name, to choose who plays from", async () => {
     const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users: memoryUsers("zed", "anna") });
-    await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "karin", name: "karin", email: "k@example.com" });
+    await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "karin", name: "karin" });
     const list = await request(a).get("/jigsaw/api/jigsaw-users");
     expect(list.status).toBe(200);
     expect(list.body.map((u: { name: string }) => u.name)).toEqual(["Anna", "karin", "Zed"]);

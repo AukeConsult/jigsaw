@@ -16,6 +16,7 @@ import {
 } from 'firebase/auth';
 import { environment } from '../../environments/environment';
 import { tr } from '../core/i18n';
+import { LinkedUser, LogonSession } from '../models/shared/logon';
 import { auth } from './firebase';
 
 /** Where the email is kept between asking for a sign-in link and opening it (the same device). */
@@ -30,12 +31,17 @@ export class AuthService {
   /** the person who is signed in (null: nobody) */
   readonly user = signal<User | null>(null);
 
+  /** the jigsaw users that the account that is signed in is verified for (none when nobody is signed in, or the account has not been linked to any) */
+  readonly linked = signal<LinkedUser[]>([]);
+
   /** Resolves once Firebase has restored (or not) the earlier sign-in. */
   readonly ready = new Promise<void>((resolve) => {
     onAuthStateChanged(
       auth,
       (user) => {
         this.user.set(user);
+        if (user) void this.loadLinked(user);
+        else this.linked.set([]);
         resolve();
       },
       () => resolve(), // the login did not start (a wrong Firebase setting): treated as signed out
@@ -116,12 +122,24 @@ export class AuthService {
     return signOut(auth);
   }
 
+  /** Reads which jigsaw users the account is verified for (for an account that was signed in before this visit; a login tells it with the session). A failure leaves the list as it is. */
+  async loadLinked(user: User | null = auth.currentUser): Promise<void> {
+    if (!user) return;
+    try {
+      const res = await fetch(`${environment.jigsawApi}/session`, { headers: { Authorization: `Bearer ${await user.getIdToken()}` } });
+      if (res.ok) this.linked.set(((await res.json()) as { users: LinkedUser[] }).users);
+    } catch {
+      /* the list is read again at the next change */
+    }
+  }
+
   /** Tells the API who has signed in, so the account is kept; signs out again when that fails, so the app and the API agree. */
   private async finishLogin(user: User): Promise<void> {
     try {
       const token = await user.getIdToken();
       const res = await fetch(`${environment.jigsawApi}/session`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error(tr('logons.login.syncFailed', 'Could not keep your account ({{ status }}). Please try again.', { status: res.status }));
+      this.linked.set(((await res.json()) as LogonSession).users);
     } catch (err) {
       await signOut(auth);
       throw err;

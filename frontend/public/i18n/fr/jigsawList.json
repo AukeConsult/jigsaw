@@ -70,5 +70,6 @@
   "roundsWhoseOthers": "Les autres",
   "roundsWhoseAllTitle": "Les parties de tous",
   "roundsWhoseMineTitle": "Seulement mes parties",
-  "roundsWhoseOthersTitle": "Seulement les parties des autres"
+  "roundsWhoseOthersTitle": "Seulement les parties des autres",
+  "resetAll": "Tout réinitialiser"
 }

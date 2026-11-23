@@ -61,5 +61,6 @@
   "yesReset": "Ja, Runden löschen",
   "couldNotResetRounds": "Die Runden konnten nicht gelöscht werden: nur der Besitzer kann das.",
   "motive": "Motiv-Schwierigkeit",
-  "youSolvedIt": "Du hast dieses Puzzle gelöst"
+  "youSolvedIt": "Du hast dieses Puzzle gelöst",
+  "roundProtected": "Gesperrt: mit einer Anmeldung des Kontos gestartet"
 }

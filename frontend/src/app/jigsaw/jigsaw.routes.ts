@@ -17,7 +17,7 @@ import { JigsawShell } from './jigsaw-shell';
  *  - `/jigsaw/list`: gone; the jigsaws are looked for on the front page (`/`), so an old address goes there.
  *  - `/jigsaw/new`: a new jigsaw: the settings are filled in in the main frame, then saved, and a game of it is started.
  *  - `/jigsaw/batch`: many jigsaws at once: how many pieces and how hard, many pictures chosen from the computer, each made into a jigsaw and classified by the AI.
- *  - `/jigsaw/user`: who plays: make a user (a user name and a name) or say the user name you have.
+ *  - `/jigsaw/user`: who plays: the accounts to choose from; `/jigsaw/user/new`: make an account of one's own (only a name).
  *  - `/jigsaw/guide`: the help (the user guide), and `/jigsaw/about`: the about page (the same component, another document).
  *  - `/jigsaw/:id`: a jigsaw: its picture, and the games of the user (continue one, or start a new one).
  *  - `/jigsaw/:id/edit`: edit the whole jigsaw (the form of a new one, filled in), while nobody has played it.
@@ -35,6 +35,7 @@ export const JIGSAW_ROUTES: Routes = [
       { path: 'new', component: JigsawNew, title: 'New jigsaw', canActivate: [userGuard] },
       { path: 'batch', component: JigsawBatch, title: 'Make many jigsaws', canActivate: [userGuard] }, // before ':id'
       { path: 'user', component: JigsawUser, title: 'Who plays?' },
+      { path: 'user/new', component: JigsawUser, title: 'What is your name?' }, // the form of a new account: only here, never as the first thing on /jigsaw/user
       { path: 'guide', component: GuidePage, title: 'Help', data: { guide: 'jigsaw-guide.md' } }, // before ':id'
       { path: 'about', component: GuidePage, title: 'About', data: { guide: 'jigsaw-about.md' } }, // before ':id'
       { path: ':id/edit', component: JigsawNew, title: 'Edit jigsaw', canActivate: [userGuard] },

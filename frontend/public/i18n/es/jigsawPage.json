@@ -61,5 +61,6 @@
   "yesReset": "Sí, borrar las rondas",
   "couldNotResetRounds": "No se pudieron borrar las rondas: solo su propietario puede.",
   "motive": "Dificultad del motivo",
-  "youSolvedIt": "Has resuelto este rompecabezas"
+  "youSolvedIt": "Has resuelto este rompecabezas",
+  "roundProtected": "Bloqueada: iniciada con un inicio de sesión de la cuenta"
 }
