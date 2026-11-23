@@ -14,6 +14,9 @@ import { ViewSwitch } from '../view-switch/view-switch';
  * each choice), and a Go button. Go keeps what was chosen for the front page (on this device, and with the user) and goes there: the front page shows the jigsaws that match, the newest first. When none match it is
  * said, and Go waits. The choices start as they were the last time.
  */
+/** How long reading the counts has to take before the spinner is shown (milliseconds). */
+const SPINNER_AFTER_MS = 3000;
+
 @Component({
   selector: 'app-jigsaw-find',
   imports: [TranslocoDirective, JigsawFilterBar, ViewSwitch],
@@ -34,6 +37,9 @@ export class JigsawFind implements OnInit {
   readonly count = computed(() => this.facets()?.total ?? null);
   /** the counts are being read (the bar at the top of the page moves meanwhile) */
   readonly loading = signal(true);
+  /** the spinner is shown only when reading has taken more than 3 seconds (a quick answer shows nothing, so nothing flashes) */
+  readonly slow = signal(false);
+  private slowTimer: ReturnType<typeof setTimeout> | undefined;
   /** something is chosen: Reset all can be pressed */
   readonly chosen = computed(() => JigsawFilters.isOn(this.filter()));
   /** only the answer to the last count is used */
@@ -57,13 +63,19 @@ export class JigsawFind implements OnInit {
   private async recount(filter: JigsawFilter): Promise<void> {
     const ticket = ++this.asked;
     this.loading.set(true);
+    clearTimeout(this.slowTimer);
+    this.slowTimer = setTimeout(() => this.slow.set(this.loading()), SPINNER_AFTER_MS);
     try {
       const found = await this.service.facets(JigsawFilters.query(filter) as JigsawSearchRequest);
       if (ticket === this.asked) this.facets.set(found);
     } catch {
       /* the counts stay as they were: Go still works, and the front page says if it cannot load */
     } finally {
-      if (ticket === this.asked) this.loading.set(false);
+      if (ticket === this.asked) {
+        clearTimeout(this.slowTimer);
+        this.loading.set(false);
+        this.slow.set(false);
+      }
     }
   }
 

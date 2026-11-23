@@ -29,7 +29,9 @@
     </section>
   } @else if (welcome()) {
     <!-- no round going: the band is Karin's welcome. On a wide screen: the jigsaws that are almost put together (one after the other), the welcome in the middle, and Karin's picture with her note under it; on a narrow one the welcome is under the jigsaws -->
-    <section class="my-rounds welcome-band bg-body-tertiary border" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
+    <section class="my-rounds welcome-band position-relative bg-body-tertiary border" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
+      <!-- Hide: in the lower right corner, takes the welcome away at once (it stays away for 24 hours) -->
+      <button type="button" class="btn btn-sm btn-outline-secondary position-absolute bottom-0 end-0 m-2 z-1" (click)="hideWelcome()"><i class="bi bi-eye-slash" aria-hidden="true"></i>{{ t('jigsawHome.hide') || 'Hide' }}</button>
       <div class="container pt-3 pb-2 px-4">
         <div class="welcome-grid">
           <div class="welcome-art" aria-hidden="true">

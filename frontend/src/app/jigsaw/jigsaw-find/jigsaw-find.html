@@ -1,8 +1,7 @@
 <main class="container-fluid page-margin find-page py-3" *transloco="let t">
-  <!-- a bar at the top of the page that moves while the counts are being read (the page is loading or a choice is being counted) -->
-  @if (loading()) {
-    <div class="progress find-loading" role="progressbar" [attr.aria-label]="t('jigsawList.loading') || 'Loading'"><div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div></div>
-  }
+  <!-- a spinner at the top of the page that turns while the counts are being read (the page is loading or a choice is being counted) -->
+  <!-- always there, only unseen when nothing is being read: it takes its room all the time, so the page below it does not move when it turns up and goes -->
+  <div class="find-loading d-flex align-items-center gap-2 text-body-secondary" [class.invisible]="!slow()" [attr.aria-hidden]="!slow()" role="status"><span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span><span>{{ t('jigsawList.loading') || 'Fetching the jigsaws…' }}</span></div>
   <!-- Go is at the top too, so it is there without scrolling down the choices -->
   <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
     <h1 class="page-title mb-0">{{ t('jigsawList.findTitle') || 'Find a jigsaw' }}</h1>

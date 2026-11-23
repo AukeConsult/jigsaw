@@ -2,6 +2,8 @@ import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, computed, effect, inject, output, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { WelcomeTime } from '../../core/welcome-time';
+import { AuthService } from '../../logons/auth.service';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { Plays } from '../../models/shared/play';
 import { clockOf } from '../duration';
@@ -23,6 +25,8 @@ export class MyRounds {
   private readonly plays = inject(PlaysService);
   private readonly users = inject(JigsawUserService);
   private readonly jigsawService = inject(JigsawService);
+  private readonly welcomeTime = inject(WelcomeTime);
+  private readonly auth = inject(AuthService);
 
   /** the jigsaws of the open rounds, each read by itself (a round only names its jigsaw, so the cards are made from these) */
   private readonly jigsaws = signal<JigsawSpec[]>([]);
@@ -38,7 +42,12 @@ export class MyRounds {
   });
 
   /** the user has no round going (or nobody has been chosen yet): the band welcomes instead; not while the rounds are being read, or when they could not be */
-  protected readonly welcome = computed(() => this.going()?.length === 0);
+  /** Hide, in the corner of the welcome: it goes away at once */
+  protected hideWelcome(): void {
+    this.welcomeTime.hide();
+  }
+
+  protected readonly welcome = computed(() => this.going()?.length === 0 && this.welcomeTime.visible()); // and only for a minute after the app is opened, then not for 24 hours (`WelcomeTime`)
 
   /** the rounds are read (also when there are none, nobody is chosen, or they could not be read): the page waits for this before it asks for the jigsaws, so the band is there first and nothing below it jumps */
   readonly loaded = output<void>();
@@ -90,8 +99,10 @@ export class MyRounds {
   }
 
   private async readOpenRounds(): Promise<void> {
-    const me = await this.users.load();
-    if (!me) return void this.going.set([]); // nobody chosen yet: no rounds
+    await this.users.load();
+    await this.auth.ready; // a sign-in of an earlier visit is restored first
+    const me = this.users.acting(); // nobody chosen, or one that needs a login and is not signed in: no rounds of one's own
+    if (!me) return void this.going.set([]);
     try {
       const open = (await this.plays.ofUser(me.id)).filter((g) => g.play.status !== 'solved');
       // the jigsaws of the rounds are read one by one, each once (not the whole list of jigsaws); one that cannot be read leaves its round out

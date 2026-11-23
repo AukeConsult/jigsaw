@@ -39,11 +39,8 @@ export class JigsawFilterBar implements OnDestroy {
   protected readonly difficulties = DIFFICULTIES;
   protected readonly motives = MOTIVES;
   protected readonly owners = computed(() => this.facets()?.owners ?? []);
-  /** the languages to tick from: only those that jigsaws have (and one that is ticked), all of them until they are counted */
-  protected readonly languages = computed(() => {
-    const facets = this.facets();
-    return facets ? JIGSAW_LANGUAGES.filter((l) => (facets.languages[l.code] ?? 0) > 0 || this.filter().languages.includes(l.code)) : JIGSAW_LANGUAGES;
-  });
+  /** the languages to tick from: all of them, always (a count of 0 says there is none, as for the categories), so the list does not grow and shrink with what is chosen and the page below it does not jump */
+  protected readonly languages = computed(() => JIGSAW_LANGUAGES);
   protected readonly maxOwners = SEARCH_MAX_OWNERS;
   protected readonly noOwner = NO_OWNER;
   protected readonly maxText = SEARCH_MAX_TEXT;

@@ -3,6 +3,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../core/language.service';
+import { WelcomeTime } from '../core/welcome-time';
 import { JigsawHelper } from './jigsaw-helper';
 import { JigsawUserService } from './jigsaw-user.service';
 import { ShareButton } from './share-button/share-button';
@@ -139,6 +140,7 @@ export class JigsawShell {
 
   constructor() {
     void this.users.load(); // the user who played here last is read, so the menu can show the name
+    inject(WelcomeTime); // the minute of the welcome begins when the app is opened, on whatever page
   }
 
   /** A click anywhere closes the details again, also on the empty parts of them; the title, the buttons and the settings in them are used, so they stay open, as does the button that opened them. */

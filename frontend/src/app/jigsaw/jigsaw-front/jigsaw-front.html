@@ -10,7 +10,7 @@
       <h2 class="visually-hidden">{{ t('jigsawHome.jigsaws') || 'Jigsaws' }}</h2>
       <!-- a press of a quick filter looks for jigsaws again: it takes the list of rounds away -->
       <app-quick-filters [filter]="filter()" (filterChange)="filter.set($event); roundsOn.set(false)" [muted]="roundsShown()" />
-      @if (users.user()) {
+      @if (users.acting()) {
         <!-- at the right end of the line: the rounds the users have played, the person's own too (it needs a user: the API says who asks) -->
         <button type="button" class="btn btn-sm rounded-pill ms-auto" [class.btn-primary]="roundsShown()" [class.btn-outline-secondary]="!roundsShown()" [attr.aria-pressed]="roundsShown()"
                 [title]="t('jigsawList.roundsButtonTitle') || 'Show the rounds the players have played'" (click)="roundsOn.set(!roundsOn())">

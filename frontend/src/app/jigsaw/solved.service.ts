@@ -16,14 +16,14 @@ export class SolvedService {
 
   constructor() {
     effect(() => {
-      const id = this.users.user()?.id ?? null;
+      const id = this.users.acting()?.id ?? null;
       untracked(() => void this.read(id));
     });
   }
 
   /** reads the rounds again (a round may have been solved since) */
   refresh(): void {
-    void this.read(this.users.user()?.id ?? null);
+    void this.read(this.users.acting()?.id ?? null);
   }
 
   isSolved(jigsawId: string): boolean {
@@ -34,7 +34,7 @@ export class SolvedService {
     if (!userId) return this.ids.set(new Set());
     try {
       const games = await this.plays.ofUser(userId);
-      if (this.users.user()?.id === userId) this.ids.set(new Set(games.filter((g) => g.play.status === 'solved').map((g) => g.jigsaw.id)));
+      if (this.users.acting()?.id === userId) this.ids.set(new Set(games.filter((g) => g.play.status === 'solved').map((g) => g.jigsaw.id)));
     } catch {
       /* none marked: it is read again the next time a list is opened */
     }

@@ -1,7 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { tr } from '../core/i18n';
+import { AuthService } from '../logons/auth.service';
 import { LanguageService } from '../core/language.service';
 import { environment } from '../../environments/environment';
 import { JigsawSetup } from '../models/shared/jigsaw-filter';
@@ -29,6 +30,15 @@ export class JigsawUserService {
 
   /** the user who is playing now (null: none chosen yet) */
   readonly user = signal<JigsawUserSpec | null>(null);
+  private readonly auth = inject(AuthService);
+  /**
+   * The user who is acting: the one who plays, when nothing more is needed. A user that needs a login (it has verified accounts) is acting only while somebody is signed in with one of them;
+   * else the person can only look. Everything that is the user's own (a heart, a round, a change) goes by this, not by `user`.
+   */
+  readonly acting = computed(() => {
+    const user = this.user();
+    return user && JigsawUsers.mayAct(user, this.auth.user()?.uid) ? user : null;
+  });
   private loaded: Promise<JigsawUserSpec | null> | null = null;
 
   private url(id: string): string {

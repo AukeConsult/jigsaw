@@ -79,7 +79,8 @@ export class AllRounds implements OnInit {
     const ticket = ++this.asked;
     this.loading.set(true);
     try {
-      const found = await this.plays.listRounds(page, this.pageSize(), this.view());
+      const view = this.view();
+      const found = await this.plays.listRounds(page, this.pageSize(), this.users.acting() ? view : { ...view, whose: 'all' }); // nobody who plays: whose rounds is not asked
       if (ticket !== this.asked) return;
       this.page = page;
       this.items.update((now) => (page === 1 ? found.items : [...now, ...found.items]));
@@ -108,7 +109,7 @@ export class AllRounds implements OnInit {
 
   /** The round is the person's own (the others' are looked at, not changed). */
   protected mine(round: ListedRound): boolean {
-    return round.play.userId === this.users.user()?.id;
+    return round.play.userId === this.users.acting()?.id;
   }
 
   protected pictureUrl(jigsaw: ImageOf): string {

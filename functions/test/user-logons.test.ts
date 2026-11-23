@@ -161,25 +161,47 @@ describe("the link code and what says which login it is", () => {
 describe("the gate: a user with verified accounts is used only by one of them", () => {
   it("lets a user with no verified account be used with no token, with a good one and with a bad one, as before", async () => {
     const { call } = setup();
-    for (const auth of [undefined, "a", "nonsense"]) expect((await call("get", "/jigsaw-rounds", auth, "u1")).status).toBe(200);
+    for (const auth of [undefined, "a", "nonsense"]) expect((await call("get", "/jigsaw-users/u1/plays", auth, "u1")).status).toBe(200);
   });
 
   it("answers 401 logon-required for a user that needs a login, with no token or a bad one", async () => {
     const { call, protect } = setup();
     await protect("u1", "fb-a", "fb-b");
     for (const auth of [undefined, "nonsense"]) {
-      const res = await call("get", "/jigsaw-rounds", auth, "u1");
+      const res = await call("get", "/jigsaw-users/u1/plays", auth, "u1");
       expect(res.status).toBe(401);
       expect(res.body.code).toBe("logon-required");
     }
   });
 
+  it("lets a user that needs a login LOOK without it: public reads are answered for nobody, what is the user's own and entering a round still need the login", async () => {
+    const { call, protect } = setup();
+    await protect("u1", "fb-a");
+    // looking: the list of jigsaws, the search, the rounds of a jigsaw (nobody is asked for)
+    for (const path of ["/jigsaw", "/jigsaw/j1/plays"]) {
+      const res = await call("get", path, undefined, "u1");
+      expect(res.status, path).not.toBe(401);
+      expect(res.status, path).not.toBe(403);
+    }
+    // the user's own, and opening a round, need the login
+    for (const path of ["/jigsaw-users/u1/plays", "/jigsaw-rounds", "/jigsaw/j1/plays/p1"]) {
+      const res = await call("get", path, undefined, "u1");
+      expect(res.status, path).toBe(401);
+      expect(res.body.code, path).toBe("logon-required");
+    }
+    // changing anything and starting a round need it too
+    expect((await call("post", "/jigsaw/j1/plays", undefined, "u1").send({ userId: "u1" })).status).toBe(401);
+    expect((await call("put", "/jigsaw/j1", undefined, "u1").send({})).status).toBe(401);
+    // the right login is let through as before
+    expect((await call("get", "/jigsaw-users/u1/plays", "a", "u1")).status).toBe(200);
+  });
+
   it("lets any one of the verified accounts through, and answers 403 wrong-logon for another good token", async () => {
     const { call, protect } = setup();
     await protect("u1", "fb-a", "fb-b");
-    expect((await call("get", "/jigsaw-rounds", "a", "u1")).status).toBe(200);
-    expect((await call("get", "/jigsaw-rounds", "b", "u1")).status).toBe(200);
-    const other = await call("get", "/jigsaw-rounds", "c", "u1");
+    expect((await call("get", "/jigsaw-users/u1/plays", "a", "u1")).status).toBe(200);
+    expect((await call("get", "/jigsaw-users/u1/plays", "b", "u1")).status).toBe(200);
+    const other = await call("get", "/jigsaw-users/u1/plays", "c", "u1");
     expect(other.status).toBe(403);
     expect(other.body.code).toBe("wrong-logon");
   });
@@ -220,7 +242,7 @@ describe("the gate: a user with verified accounts is used only by one of them", 
     const { call, protect, directory, logonsOf } = setup();
     await protect("u1", "fb-a");
     directory.failing = true;
-    expect((await call("get", "/jigsaw-rounds", undefined, "u1")).status).toBe(503);
+    expect((await call("get", "/jigsaw-users/u1/plays", undefined, "u1")).status).toBe(503);
     expect(await logonsOf("u1")).toEqual(["fb-a"]);
   });
 });
@@ -230,9 +252,9 @@ describe("the accounts that are gone", () => {
     const { call, protect, directory, logonsOf } = setup();
     await protect("u1", "fb-a", "fb-b");
     directory.dead.add("fb-a");
-    expect((await call("get", "/jigsaw-rounds", "b", "u1")).status).toBe(200); // a good token needs no question about the others
+    expect((await call("get", "/jigsaw-users/u1/plays", "b", "u1")).status).toBe(200); // a good token needs no question about the others
     expect(directory.asked).toBe(0);
-    expect((await call("get", "/jigsaw-rounds", undefined, "u1")).status).toBe(401); // found out here: the user is still protected
+    expect((await call("get", "/jigsaw-users/u1/plays", undefined, "u1")).status).toBe(401); // found out here: the user is still protected
     expect(await logonsOf("u1")).toEqual(["fb-b"]);
   });
 
@@ -240,7 +262,7 @@ describe("the accounts that are gone", () => {
     const { call, protect, directory, logonsOf, users } = setup();
     await protect("u1", "fb-a", "fb-b");
     directory.dead.add("fb-a").add("fb-b");
-    expect((await call("get", "/jigsaw-rounds", undefined, "u1")).status).toBe(200);
+    expect((await call("get", "/jigsaw-users/u1/plays", undefined, "u1")).status).toBe(200);
     expect(await logonsOf("u1")).toEqual([]);
     expect(await users.get("u1")).toMatchObject({ id: "u1", name: "U1", username: "u1" });
     expect((await call("get", "/jigsaw-users/u1")).body).not.toHaveProperty("protected");
@@ -249,10 +271,10 @@ describe("the accounts that are gone", () => {
   it("asks about the accounts of a user once a minute, not at every call", async () => {
     const { call, protect, directory, clock } = setup();
     await protect("u1", "fb-a");
-    for (let i = 0; i < 3; i++) expect((await call("get", "/jigsaw-rounds", undefined, "u1")).status).toBe(401);
+    for (let i = 0; i < 3; i++) expect((await call("get", "/jigsaw-users/u1/plays", undefined, "u1")).status).toBe(401);
     expect(directory.asked).toBe(1);
     clock.now += 61_000;
-    await call("get", "/jigsaw-rounds", undefined, "u1");
+    await call("get", "/jigsaw-users/u1/plays", undefined, "u1");
     expect(directory.asked).toBe(2);
   });
 
@@ -289,7 +311,7 @@ describe("verifying an account for a user (/jigsaw-users/:id/logons)", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ linked: true, count: 1 });
     expect(await logonsOf("u1")).toEqual(["fb-a"]);
-    expect((await call("get", "/jigsaw-rounds", undefined, "u1")).status).toBe(401);
+    expect((await call("get", "/jigsaw-users/u1/plays", undefined, "u1")).status).toBe(401);
     expect((await call("put", "/jigsaw-users/u1/logons", "a")).body.count).toBe(1); // the same account again is the same
     expect((await call("put", "/jigsaw-users/u1/logons", "b")).status).toBe(403); // another account cannot take a user that is protected
   });
@@ -329,12 +351,12 @@ describe("verifying an account for a user (/jigsaw-users/:id/logons)", () => {
     const { call, protect, logonsOf } = setup();
     await protect("u1", "fb-a");
     const { code } = (await call("post", "/jigsaw-users/u1/logons/codes", "a")).body;
-    expect((await call("get", "/jigsaw-rounds", "b", "u1")).status).toBe(403); // not yet
+    expect((await call("get", "/jigsaw-users/u1/plays", "b", "u1")).status).toBe(403); // not yet
     const res = await call("post", "/jigsaw-users/u1/logons/redeem", "b").send({ code: code.toLowerCase().replace("-", " ") });
     expect(res.status).toBe(200);
     expect(res.body.count).toBe(2);
     expect(await logonsOf("u1")).toEqual(["fb-a", "fb-b"]);
-    expect((await call("get", "/jigsaw-rounds", "b", "u1")).status).toBe(200);
+    expect((await call("get", "/jigsaw-users/u1/plays", "b", "u1")).status).toBe(200);
     expect((await call("post", "/jigsaw-users/u1/logons/redeem", "c").send({ code })).status).toBe(400); // used
   });
 
@@ -386,10 +408,10 @@ describe("verifying an account for a user (/jigsaw-users/:id/logons)", () => {
     expect((await call("delete", `/jigsaw-users/u1/logons/${items[1].ref}`, "c")).status).toBe(403); // an account that is not one of them cannot
     expect((await call("delete", `/jigsaw-users/u1/logons/${items[1].ref}`, "a")).body.count).toBe(1);
     expect(await logonsOf("u1")).toEqual(["fb-a"]);
-    expect((await call("get", "/jigsaw-rounds", "b", "u1")).status).toBe(403); // the one taken away is out
+    expect((await call("get", "/jigsaw-users/u1/plays", "b", "u1")).status).toBe(403); // the one taken away is out
     expect((await call("delete", `/jigsaw-users/u1/logons/${items[0].ref}`, "a")).body.count).toBe(0);
     expect(await logonsOf("u1")).toEqual([]);
-    expect((await call("get", "/jigsaw-rounds", undefined, "u1")).status).toBe(200); // free again
+    expect((await call("get", "/jigsaw-users/u1/plays", undefined, "u1")).status).toBe(200); // free again
   });
 
   it("makes a user that is verified for the account signed in, with the account from the token", async () => {

@@ -70,7 +70,8 @@ export class JigsawPage implements OnInit {
       const item = await this.jigsaws.get(this.id);
       if (!item) return this.status.set('missing');
       this.item.set(item);
-      const me = this.users.user();
+      await this.users.load(); // who plays is known first (nobody is a possible answer: the page is for everybody)
+      const me = this.users.acting();
       const all = await this.plays.list(this.id); // everyone's rounds: the ones of the user first, each newest first
       this.games.set([...all.filter((g) => g.userId === me?.id), ...all.filter((g) => g.userId !== me?.id)]);
       this.played.set(await this.plays.played(this.id));
@@ -90,13 +91,14 @@ export class JigsawPage implements OnInit {
 
   /** the user may edit and delete the jigsaw: it is theirs (or it is one from before owners, which has none) */
   readonly mayChange = computed(() => {
+    const me = this.users.acting();
     const owner = this.item()?.ownerUid;
-    return !owner || owner === this.users.user()?.id;
+    return !!me && (!owner || owner === me.id); // nobody who plays: nothing to change
   });
 
   /** The jigsaw is deleted for good (its pieces, picture and rounds go too), and the person goes to the list. */
   async deleteJigsaw(): Promise<void> {
-    const me = this.users.user();
+    const me = this.users.acting();
     if (!me || this.busy()) return;
     this.busy.set(true);
     try {
@@ -111,19 +113,26 @@ export class JigsawPage implements OnInit {
 
   /** the round is the user's own (the others can be looked at, not changed) */
   isMine(game: PlaySpec): boolean {
-    return game.userId === this.users.user()?.id;
+    return game.userId === this.users.acting()?.id;
   }
 
   /** Goes on with the user's newest round that is not solved, or starts a new one when there is none (the list has the user's own rounds first, each newest first). */
   /** the user who plays has solved this jigsaw: it is not played again (the solved round can be looked at, or deleted) */
   protected readonly solvedByMe = computed(() => {
-    const me = this.users.user();
+    const me = this.users.acting();
     return !!me && this.games().some((g) => g.userId === me.id && g.status === 'solved');
   });
 
   async play(): Promise<void> {
-    const me = this.users.user();
-    if (!me || this.busy()) return;
+    const me = this.users.acting();
+    if (!me) {
+      // a round needs somebody who is logged on: an account that needs a login is signed in to, else the person chooses or makes an account; they come back to this page
+      const next = `/jigsaw/${this.id}`;
+      if (this.users.user()) await this.router.navigate(['/login'], { queryParams: { notice: 'needlogin', next } });
+      else await this.router.navigate(['/jigsaw/user'], { queryParams: { next } });
+      return;
+    }
+    if (this.busy()) return;
     this.busy.set(true);
     this.error.set('');
     const unfinished = this.games().find((g) => g.userId === me.id && g.status !== 'solved');

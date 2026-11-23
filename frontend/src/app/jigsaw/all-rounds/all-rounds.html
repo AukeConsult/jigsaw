@@ -12,6 +12,8 @@
       }
     </div>
     <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 ms-auto">
+      @if (users.acting()) {
+        <!-- whose rounds (mine, the others') means something only for an account: with none, it is every round -->
       <div class="segmented" role="radiogroup" [attr.aria-label]="t('jigsawList.roundsWhose') || 'Whose rounds'">
         <input id="rounds-whose-all" type="radio" class="btn-check" name="rounds-whose" autocomplete="off" [checked]="view().whose === 'all'" (change)="choose({ whose: 'all' })">
         <label class="btn" for="rounds-whose-all" [title]="t('jigsawList.roundsWhoseAllTitle') || 'The rounds of everybody'">{{ t('jigsawList.roundsWhoseAll') || 'All' }}</label>
@@ -20,6 +22,7 @@
         <input id="rounds-whose-others" type="radio" class="btn-check" name="rounds-whose" autocomplete="off" [checked]="view().whose === 'others'" (change)="choose({ whose: 'others' })">
         <label class="btn" for="rounds-whose-others" [title]="t('jigsawList.roundsWhoseOthersTitle') || 'Only the rounds of the others'">{{ t('jigsawList.roundsWhoseOthers') || 'Others' }}</label>
       </div>
+      }
       <div class="segmented" role="radiogroup" [attr.aria-label]="t('jigsawList.roundsStatus') || 'Show'">
         <input id="rounds-status-all" type="radio" class="btn-check" name="rounds-status" autocomplete="off" [checked]="view().status === 'all'" (change)="choose({ status: 'all' })">
         <label class="btn" for="rounds-status-all">{{ t('jigsawList.roundsAll') || 'All' }}</label>

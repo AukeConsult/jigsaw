@@ -5,6 +5,7 @@ import { JigsawCategories } from '../../models/shared/category';
 import { JigsawFilter, JigsawFilters } from '../../models/shared/jigsaw-filter';
 import { FavoritesService } from '../favorites.service';
 import { SolvedService } from '../solved.service';
+import { JigsawUserService } from '../jigsaw-user.service';
 import { FRONT_FINDER_KEY, readFinderPreferences } from '../jigsaw-finder/finder-preferences';
 
 /** The quick filters: the categories that are one press away, as they are shown beside a heading (a press looks for the jigsaws in it, and again takes it away). */
@@ -24,6 +25,7 @@ const QUICK_CATEGORIES = ['recommended'] as const;
 export class QuickFilters {
   protected readonly favorites = inject(FavoritesService);
   protected readonly solved = inject(SolvedService);
+  private readonly users = inject(JigsawUserService);
   readonly filter = model<JigsawFilter>(JigsawFilters.empty());
   /** the page shows something else than the jigsaws (the list of rounds): none of the quick filters looks pressed, and pressing one is a change of what is looked for */
   readonly muted = input(false);
@@ -45,7 +47,7 @@ export class QuickFilters {
   });
 
   /** The button for the favorites is there when the user has some (and while it is on, so it can be taken off). */
-  protected readonly showFavorites = computed(() => this.favorites.ids().size > 0 || this.favoritesOn());
+  protected readonly showFavorites = computed(() => !!this.users.acting() && (this.favorites.ids().size > 0 || this.favoritesOn())); // favorites are the user's own: none to show with no account
 
   /** The filter is the solved jigsaws and nothing else. */
   protected readonly solvedOn = computed(() => {
@@ -54,7 +56,7 @@ export class QuickFilters {
   });
 
   /** The button for the solved jigsaws is there when the user has solved some (and while it is on, so it can be taken off). */
-  protected readonly showSolved = computed(() => this.solved.ids().size > 0 || this.solvedOn());
+  protected readonly showSolved = computed(() => !!this.users.acting() && (this.solved.ids().size > 0 || this.solvedOn()));
 
   /** Looks only at the jigsaws the user has solved, or, when that is on, back at the user's own search (all the jigsaws when there is none); for now, like the other quick filters. */
   protected toggleSolved(): void {

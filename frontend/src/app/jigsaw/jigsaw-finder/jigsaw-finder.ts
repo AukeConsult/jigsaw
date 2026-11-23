@@ -87,7 +87,9 @@ export class JigsawFinder implements OnInit {
     const ticket = ++this.asked;
     this.loading.set(true);
     try {
-      const found = await this.service.search(JigsawFilters.query(filter, page, limit) as JigsawSearchRequest);
+      // favorites and solved are the user's own: they mean nothing with no account, so they are left out of the question then
+      const asked = this.users.acting() ? filter : { ...filter, favorites: undefined, solved: undefined };
+      const found = await this.service.search(JigsawFilters.query(asked, page, limit) as JigsawSearchRequest);
       if (ticket !== this.asked) return;
       this.page = page;
       this.items.update((now) => (page === 1 ? found.items : [...now, ...found.items]));

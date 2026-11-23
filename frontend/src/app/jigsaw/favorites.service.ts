@@ -16,12 +16,12 @@ export class FavoritesService {
   /** the ids of the user's favorite jigsaws */
   readonly ids = signal<ReadonlySet<string>>(new Set());
   /** a user is chosen: a heart can be ticked */
-  readonly available = computed(() => !!this.users.user());
+  readonly available = computed(() => !!this.users.acting());
 
   constructor() {
     // the favorites are read again when another user plays
     effect(() => {
-      const id = this.users.user()?.id ?? null;
+      const id = this.users.acting()?.id ?? null;
       untracked(() => void this.read(id));
     });
   }
@@ -30,7 +30,7 @@ export class FavoritesService {
     if (!userId) return this.ids.set(new Set());
     try {
       const found = await firstValueFrom(this.http.get<{ ids: string[] }>(`${environment.jigsawApi}/jigsaw-favorites`));
-      if (this.users.user()?.id === userId) this.ids.set(new Set(found.ids)); // not for a user who has been left since
+      if (this.users.acting()?.id === userId) this.ids.set(new Set(found.ids)); // not for a user who has been left since
     } catch {
       /* no hearts ticked: they can be ticked, and are read again the next time */
     }

@@ -30,7 +30,7 @@ export class JigsawFront {
   /** the button "Rounds" is on: the rounds of the users are shown in place of the jigsaws (kept on the device, as the other choices of a page) */
   protected readonly roundsOn = signal(readPreference('jigsaw.roundsList', false, isBoolean));
   /** the list of rounds is shown: the button is on, and somebody plays (the API says who asks, so it needs a user) */
-  protected readonly roundsShown = computed(() => this.roundsOn() && !!this.users.user());
+  protected readonly roundsShown = computed(() => this.roundsOn() && !!this.users.acting());
 
   constructor() {
     this.solved.refresh(); // a round may have been solved since the list was last shown
