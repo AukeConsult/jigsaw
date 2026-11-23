@@ -1245,6 +1245,12 @@ app-jigsaw-shell > app-jigsaw-play:not(.app-navbar):not(.app-toolbar):not(router
   }
 }
 
+// the title in the sidebar of a round is a link to the page of the jigsaw: it shows that when it is pointed at
+.sidebar-title:hover,
+.sidebar-title:focus-visible {
+  text-decoration: underline !important;
+}
+
 // the round (the board) has the same pattern, more discreet: the page colour laid over it, so it does not draw the eye from the pieces
 app-jigsaw-shell > app-jigsaw-play {
   background-image: linear-gradient(rgba(var(--bs-body-bg-rgb), 0.65), rgba(var(--bs-body-bg-rgb), 0.65)), $soft-pattern;

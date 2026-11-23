@@ -13,5 +13,9 @@
   "details": "Detaljer",
   "language": "Sprog",
   "timePlayed": "Tid brugt",
-  "find": "Find"
+  "find": "Find",
+  "share": "Del",
+  "copyLink": "Kopiér linket",
+  "copied": "Linket er kopieret",
+  "shareEmail": "E-mail"
 }

@@ -13,5 +13,9 @@
   "details": "Details",
   "language": "Taal",
   "timePlayed": "Speeltijd",
-  "find": "Zoeken"
+  "find": "Zoeken",
+  "share": "Delen",
+  "copyLink": "Link kopiëren",
+  "copied": "Link gekopieerd",
+  "shareEmail": "E-mail"
 }

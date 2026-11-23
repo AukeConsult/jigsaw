@@ -55,6 +55,18 @@ export class JigsawUsers {
     return made.length >= USERNAME_MIN ? made : `${made}-user`.slice(0, USERNAME_MAX);
   }
 
+  /**
+   * Whether what a person typed in "What is your name?" is somebody who is already a user: it is looked for in both the name and the user name, ignoring capitals and accents, and it matches
+   * when it is the whole name, the whole user name, or a whole word of either (so "leif" finds "Leif Auke" and `leif-auke-5`, and "ann" does not find "Hanna" or "Anna"). Two letters at least.
+   */
+  static matches(user: { name: string; username: string }, typed: string): boolean {
+    const plain = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    const wanted = plain(typed);
+    if (wanted.length < 2) return false;
+    const words = (t: string) => plain(t).split(/[^a-z0-9]+/).filter(Boolean);
+    return plain(user.name) === wanted || plain(user.username) === wanted || words(user.name).includes(wanted) || words(user.username).includes(wanted) || plain(user.name).replace(/\s+/g, ' ') === wanted.replace(/\s+/g, ' ');
+  }
+
   /** The reason a user name is not allowed, or ''. */
   static usernameError(value: unknown): string {
     if (typeof value !== 'string') return 'Choose a user name.';

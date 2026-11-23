@@ -1,0 +1,23 @@
+<ng-container *transloco="let t">
+  @if (variant() === 'button') {
+    <button type="button" class="btn btn-heading btn-outline-secondary text-nowrap share-trigger" aria-haspopup="menu" [attr.aria-expanded]="open()" (click)="press($event)"><i class="bi bi-share" aria-hidden="true"></i>{{ t('jigsawShell.share') || 'Share' }}</button>
+  } @else {
+    <a id="share" class="nav-link text-nowrap share-trigger" href="#" role="button" aria-haspopup="menu" [attr.aria-expanded]="open()" [title]="t('jigsawShell.share') || 'Share'" (click)="$event.preventDefault(); press($event)">
+      <i class="bi bi-share me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.share') || 'Share' }}</span>
+    </a>
+  }
+  @if (open()) {
+    <ul class="dropdown-menu language-menu share-menu show" role="menu" [style.top.px]="listTop()" [style.bottom.px]="listBottom()" [attr.aria-label]="t('jigsawShell.share') || 'Share'">
+      <li role="none">
+        <button type="button" class="dropdown-item d-flex align-items-center gap-2" role="menuitem" (click)="copy()">
+          <i class="bi" [class.bi-link-45deg]="!copied()" [class.bi-check-lg]="copied()" aria-hidden="true"></i>{{ copied() ? (t('jigsawShell.copied') || 'Link copied') : (t('jigsawShell.copyLink') || 'Copy link') }}
+        </button>
+      </li>
+      @for (s of services; track s.key) {
+        <li role="none">
+          <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" [href]="s.href" target="_blank" rel="noopener noreferrer"><i class="bi" [class]="s.icon" aria-hidden="true"></i>{{ s.key === 'email' ? (t('jigsawShell.shareEmail') || 'E-mail') : s.name }}</a>
+        </li>
+      }
+    </ul>
+  }
+</ng-container>

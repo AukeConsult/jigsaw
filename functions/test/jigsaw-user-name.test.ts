@@ -22,3 +22,33 @@ describe('JigsawUsers.usernameFrom', () => {
     expect(JigsawUsers.usernameFrom('Karin', '')).toBe('karin');
   });
 });
+
+describe("JigsawUsers.matches: is what was typed somebody who is already a user", () => {
+  const users = [
+    { name: "Leif Auke", username: "leif-auke" },
+    { name: "Leif Auke 2", username: "leif-auke-5" },
+    { name: "Åse Hansen", username: "ase" },
+    { name: "Hanna", username: "hanna-1" },
+  ];
+  const found = (typed: string) => users.filter((u) => JigsawUsers.matches(u, typed)).map((u) => u.username);
+
+  it("finds by the whole name, the whole user name or a whole word of either, in any case", () => {
+    expect(found("Leif Auke")).toEqual(["leif-auke"]);
+    expect(found("leif")).toEqual(["leif-auke", "leif-auke-5"]);
+    expect(found("LEIF-AUKE-5")).toEqual(["leif-auke-5"]);
+    expect(found("auke")).toEqual(["leif-auke", "leif-auke-5"]);
+  });
+
+  it("ignores accents, and does not find a part of a word", () => {
+    expect(found("ase")).toEqual(["ase"]);
+    expect(found("Åse")).toEqual(["ase"]);
+    expect(found("ann")).toEqual([]); // not Hanna
+    expect(found("hann")).toEqual([]);
+  });
+
+  it("needs two letters, and finds nobody for nothing", () => {
+    expect(found("l")).toEqual([]);
+    expect(found("")).toEqual([]);
+    expect(found("   ")).toEqual([]);
+  });
+});

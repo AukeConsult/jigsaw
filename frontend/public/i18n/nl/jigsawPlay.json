@@ -31,5 +31,6 @@
   "notSaved": "Niet opgeslagen: de instellingen zijn niet toegestaan",
   "couldNotSave": "Opslaan lukt niet, we proberen het opnieuw",
   "couldNotDelete": "De ronde kon niet worden verwijderd: probeer het opnieuw.",
-  "couldNotStart": "De ronde kon niet worden gereset: probeer het opnieuw."
+  "couldNotStart": "De ronde kon niet worden gereset: probeer het opnieuw.",
+  "openJigsaw": "De pagina van de puzzel openen"
 }

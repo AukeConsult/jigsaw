@@ -31,5 +31,6 @@
   "notSaved": "Non enregistré : les réglages ne sont pas autorisés",
   "couldNotSave": "Impossible d'enregistrer, nouvel essai",
   "couldNotDelete": "Impossible de supprimer la partie : réessaie.",
-  "couldNotStart": "Impossible de réinitialiser la partie : réessaie."
+  "couldNotStart": "Impossible de réinitialiser la partie : réessaie.",
+  "openJigsaw": "Ouvrir la page du puzzle"
 }

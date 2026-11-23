@@ -58,15 +58,19 @@
                 @if (jigsaw().timed !== false) {<span class="ms-2"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawPage.timed') || 'Timed' }}</span>}
               </div>
             </div>
-            @if (solved()) {
-              <!-- solved by the user: it is not played twice -->
-              <div class="text-success fw-semibold mx-auto" role="status"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.youSolvedIt') || 'You have solved this jigsaw' }}</div>
-            } @else if (jigsaw().visibility === 'everyone' || !jigsaw().visibility || mayChange()) {
-              <!-- a jigsaw only its owner sees can get a new round from its owner only; the players who have a round on it go on with it below -->
-              <button type="button" class="btn btn-heading btn-outline-primary mx-auto" [disabled]="busy()" (click)="play.emit()">
-                <i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawPage.enterRound') || 'Enter a round, solve it' }}
-              </button>
-            }
+            <div class="d-flex flex-wrap align-items-center justify-content-center gap-2 mx-auto">
+              @if (solved()) {
+                <!-- solved by the user: it is not played twice -->
+                <div class="text-success fw-semibold" role="status"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.youSolvedIt') || 'You have solved this jigsaw' }}</div>
+              } @else if (jigsaw().visibility === 'everyone' || !jigsaw().visibility || mayChange()) {
+                <!-- a jigsaw only its owner sees can get a new round from its owner only; the players who have a round on it go on with it below -->
+                <button type="button" class="btn btn-heading btn-outline-primary" [disabled]="busy()" (click)="play.emit()">
+                  <i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawPage.enterRound') || 'Enter a round, solve it' }}
+                </button>
+              }
+              <!-- share this jigsaw: the page of the jigsaw is what is shared -->
+              <app-share-button variant="button" />
+            </div>
           </div>
           </div>
         </div>

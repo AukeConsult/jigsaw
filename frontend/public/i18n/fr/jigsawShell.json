@@ -13,5 +13,9 @@
   "details": "Détails",
   "language": "Langue",
   "timePlayed": "Temps de jeu",
-  "find": "Trouver"
+  "find": "Trouver",
+  "share": "Partager",
+  "copyLink": "Copier le lien",
+  "copied": "Lien copié",
+  "shareEmail": "E-mail"
 }

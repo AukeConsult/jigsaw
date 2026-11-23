@@ -31,5 +31,6 @@
   "notSaved": "No se guardó: los ajustes no están permitidos",
   "couldNotSave": "No se pudo guardar, reintentando",
   "couldNotDelete": "No se pudo eliminar la partida: inténtalo de nuevo.",
-  "couldNotStart": "No se pudo reiniciar la partida: inténtalo de nuevo."
+  "couldNotStart": "No se pudo reiniciar la partida: inténtalo de nuevo.",
+  "openJigsaw": "Abrir la página del puzle"
 }

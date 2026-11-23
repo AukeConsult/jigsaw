@@ -13,5 +13,9 @@
   "details": "Detaljer",
   "language": "Språk",
   "timePlayed": "Speltid",
-  "find": "Hitta"
+  "find": "Hitta",
+  "share": "Dela",
+  "copyLink": "Kopiera länken",
+  "copied": "Länken är kopierad",
+  "shareEmail": "E-post"
 }

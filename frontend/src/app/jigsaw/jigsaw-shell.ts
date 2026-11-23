@@ -5,11 +5,12 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../core/language.service';
 import { JigsawHelper } from './jigsaw-helper';
 import { JigsawUserService } from './jigsaw-user.service';
+import { ShareButton } from './share-button/share-button';
 
 /** The jigsaw module: its own header menu above whatever page of the module is open. */
 @Component({
   selector: 'app-jigsaw-shell',
-  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective],
+  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, ShareButton],
   providers: [provideTranslocoScope('jigsawShell')],
   template: `
     <ng-container *transloco="let t">
@@ -60,6 +61,7 @@ import { JigsawUserService } from './jigsaw-user.service';
         <!-- who plays and the language: always at the right end of the menu -->
         <div class="d-flex align-items-center gap-2 ms-auto order-1">
           <ul class="navbar-nav flex-shrink-0">
+            <li class="nav-item"><app-share-button /></li>
             <li class="nav-item">
             <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'Help'"><i class="bi bi-book me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.guide') || 'Help' }}</span></a>
             </li>

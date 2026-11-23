@@ -13,5 +13,9 @@
   "details": "Tiedot",
   "language": "Kieli",
   "timePlayed": "Peliaika",
-  "find": "Etsi"
+  "find": "Etsi",
+  "share": "Jaa",
+  "copyLink": "Kopioi linkki",
+  "copied": "Linkki kopioitu",
+  "shareEmail": "Sähköposti"
 }

@@ -20,8 +20,8 @@
       <div class="jigsaw-side">
         <!-- the sidebar, docked at the left edge on a wide screen: how far the round has come and what can be done in it; on a narrow screen it is folded away until the Sidebar switch in the top menu opens it over the board -->
         <aside id="jigsaw-sidebar" class="jigsaw-sidebar p-3" [class.is-open]="tools.sidebarOpen()" [style.height.px]="sidebarHeight()" [attr.aria-label]="t('jigsawPlay.sidebar') || 'The jigsaw'">
-        <!-- the title of the jigsaw (it is changed on the page of the jigsaw), with a way back to its rounds -->
-        <h1 class="page-title mb-2">{{ it.name }}</h1>
+        <!-- the title of the jigsaw (it is changed on the page of the jigsaw): a link to that page, with its rounds; the rest of the panel closes it when it is open over the board -->
+        <h1 class="page-title mb-2"><a class="d-block text-reset text-decoration-none sidebar-title" [routerLink]="['/jigsaw', jigsawId]" [title]="t('jigsawPlay.openJigsaw') || 'Open the page of the jigsaw'">{{ it.name }}</a></h1>
         @if (it.author) {
           <div class="small text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
         }

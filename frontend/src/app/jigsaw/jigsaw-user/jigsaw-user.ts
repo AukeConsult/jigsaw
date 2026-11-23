@@ -471,14 +471,14 @@ export class JigsawUser implements OnInit {
   readonly sameUsers = signal<JigsawUserSpec[]>([]);
 
   /**
-   * A new person has said their name: when somebody already has it (the name, or the user name it would make) the person is asked, "is that you?" (a list to choose from when several have it), and chooses between playing as one of them and
+   * A new person has said their name: when somebody already has it (what was typed is found in a name or a user name, or is the user name it would make) the person is asked, "is that you?" (a list to choose from when several have it), and chooses between playing as one of them and
    * making a new user (`force`, with digits to tell them apart). Otherwise the user is made from the name (see `JigsawUserService.createFromName`), so nobody has to think of a user name.
    */
   async startNow(force = false): Promise<void> {
     if (!force) {
-      const name = this.name().trim().toLowerCase();
+      // looked for in both the names and the user names (see `JigsawUsers.matches`), and the user name the typed name would make
       const username = JigsawUsers.usernameFrom(this.name(), '');
-      const same = (this.list() ?? []).filter((u) => u.name.trim().toLowerCase() === name || u.username === username);
+      const same = (this.list() ?? []).filter((u) => JigsawUsers.matches(u, this.name()) || u.username === username);
       if (same.length) return this.sameUsers.set(same);
     }
     this.busy.set(true);

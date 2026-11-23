@@ -13,5 +13,9 @@
   "details": "Detaljer",
   "language": "Språk",
   "timePlayed": "Tid brukt",
-  "find": "Finn"
+  "find": "Finn",
+  "share": "Del",
+  "copyLink": "Kopier lenken",
+  "copied": "Lenken er kopiert",
+  "shareEmail": "E-post"
 }
