@@ -9,7 +9,7 @@ import { isBoolean, readPreference, writePreference } from '../../core/preferenc
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
 import { bottomBarHeight, cssNumber, cssVar, onAnyScroll } from '../../core/theme';
 import { JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings } from '../../models/shared/jigsaw-settings';
-import { COLLECT_GAP, COLLECT_MARGIN, COLLECT_SCATTER, Puzzle } from '../../models/shared/puzzle';
+import { Puzzle } from '../../models/shared/puzzle';
 import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
 import { Box, Point } from '../../models/shared/geometry';
 import { PlacedObject } from '../../models/shared/placed';
@@ -152,24 +152,27 @@ export class JigsawBoard {
   });
 
   /**
-   * Collect pieces (a click on the empty store frame): the pieces that lie in the store frame are put together at the top of it, close to each other (see
-   * `Puzzle.collectPieces`), and the frame is scrolled to its top so they are seen. Saved like any move of pieces.
+   * Collect pieces (a click on the empty store frame): all the pieces that lie in the store (the whole scroll area, not only what is shown) are put together at the start of it, close to each other (see
+   * `Puzzle.collectPieces`: from the top down when the store scrolls up and down, from the left to the right when it scrolls sideways), and the frame is scrolled to its start so they are seen. Saved like any move of pieces.
    */
   collectPieces(): void {
     if (this.viewOnly()) return;
     const store = this.store();
     if (!store) return;
-    // beside the picture the frame can be wider than the store the pieces were spread over: the pieces are collected over all of the frame that shows (the
-    // store is made that wide, and the page keeps it); below the picture the strip has the width of the store
-    // (when the pieces would not all fit in the rows of that width, the store is made wider than the frame, which scrolls sideways)
-    const pitch = Math.round((1 + COLLECT_GAP + COLLECT_SCATTER) * this.gridSize());
-    const margin = Math.round(COLLECT_MARGIN * this.gridSize());
-    const rows = Math.max(1, Math.floor((store.height - 2 * margin) / Math.max(1, pitch)));
-    const needed = Math.ceil(Math.ceil((this.storePieceIds().length * 1.1) / rows) * pitch + 2 * margin); // a little to spare for groups of pieces
-    const width = this.stacked() ? store.width : Math.min(JIGSAW_MAX_SIDE - store.left, Math.max(STORE_MIN_HEIGHT_PX, this.storeFrameWidth() - STORE_SCROLLBAR_PX, needed));
-    const extent = JigsawSettings.extent(this.width(), this.height(), this.gridSize(), Math.max(width, store.width));
+    // below the picture the strip scrolls sideways: all the pieces of the store (every band, not only what is shown) are put from the left end, column by column, in the order they lie across it.
+    // Beside the picture the store is shown in slices as wide as the frame, one under the other: the pieces are put in rows inside the first slice, and when it is full in the next one, so no row
+    // is split over two slices (the store is made wide enough for as many slices as the pieces need, which the page keeps)
+    const stacked = this.stacked();
+    const slice = this.sliceWidth();
+    // the pieces are put with room to spare across (beside the picture), and then the store is made as wide as the slices they really took: no empty slice is left at the end
+    const roomWidth = stacked ? store.width : JIGSAW_MAX_SIDE - store.left;
+    const extent = JigsawSettings.extent(this.width(), this.height(), this.gridSize(), Math.max(roomWidth, store.width));
     const before = Puzzle.from(this.placed(), extent.width, extent.height);
-    const next = before.collectPieces(this.storePieceIds(), { left: store.left, top: 0, width }, Math.random);
+    const across = stacked ? { bandHeight: this.bandHeight(), stride: this.bandStride() } : undefined;
+    const down = stacked ? undefined : { sliceWidth: slice, sliceHeight: this.sliceStride() }; // a slice is packed down to where the next one begins, so the two do not lie over each other
+    const next = before.collectPieces(this.storePieceIds(), { left: store.left, top: 0, width: stacked ? store.width : slice }, Math.random, across, down);
+    const taken = stacked ? 0 : Math.max(0, ...this.storePieceIds().map((id) => (next.get(id)?.centerX ?? store.left) - store.left)); // how far across the pieces go
+    const width = stacked ? store.width : Math.max(store.width, Math.min(JIGSAW_MAX_SIDE - store.left, Math.ceil((taken + 1) / slice) * slice));
     if (width > store.width) this.storeWidthChange.emit(width);
     if (next !== before) this.placed.set(next.toData());
     const frame = this.storeInner()?.nativeElement.parentElement;
@@ -353,12 +356,22 @@ export class JigsawBoard {
     const store = this.store();
     return !store || this.stacked() ? 1 : Math.max(1, Math.ceil(store.width / this.sliceWidth()));
   });
+  /**
+   * Beside the picture the slices lie one under the other, each this far from the next: a slice is as high as the store minus one piece, because the middle of a piece is never nearer the top or
+   * the bottom of the store than half a piece. So a piece that is moved from one slice to the next is at the bottom of the one where the next begins: it follows the pointer all the way, and the
+   * scroller is one frame, with no jump at the seam (the same as the bands below the picture, `bandStride`).
+   */
+  private readonly sliceStride = computed(() => Math.max(1, (this.store()?.height ?? 0) - this.gridSize()));
+  /** the slice a place this far down the scroller (where the middle of a piece is) is in */
+  private sliceOfDown(down: number): number {
+    return Math.min(this.sliceCount() - 1, Math.max(0, Math.floor((down - this.gridSize() / 2) / this.sliceStride())));
+  }
   /** the size of the inside of the store frame: the store as it is, or the bands side by side (below the picture), or the slices one under the other (beside it) */
   readonly storeInnerSize = computed(() => {
     const store = this.store();
     if (!store) return { width: 0, height: 0 };
     if (this.stacked()) return { width: this.bandCount() * this.bandStride() + this.gridSize() / 2, height: this.bandHeight() };
-    return this.sliceCount() > 1 ? { width: this.sliceWidth(), height: this.sliceCount() * store.height } : { width: store.width, height: store.height };
+    return this.sliceCount() > 1 ? { width: this.sliceWidth(), height: (this.sliceCount() - 1) * this.sliceStride() + store.height } : { width: store.width, height: store.height };
   });
   /**
    * Below the picture the bands of the store lie side by side, each this far from the next: a band is as wide as the store minus half a piece, because the middle of a piece is never further across
@@ -415,7 +428,7 @@ export class JigsawBoard {
     const slices = this.sliceCount();
     const slice = slices > 1 ? Math.min(slices - 1, Math.max(0, Math.floor((v.left + size / 2 - store.left) / this.sliceWidth()))) : 0; // beside the picture: the slice it is in
     const inLeft = slices > 1 ? Math.min(Math.max(v.left - store.left - slice * this.sliceWidth(), 0), Math.max(0, this.sliceWidth() - size)) : v.left - store.left + band * this.bandStride();
-    const inTop = stacked ? Math.min(Math.max(v.top - band * this.bandHeight(), 0), Math.max(0, this.bandHeight() - size)) : v.top + slice * store.height;
+    const inTop = stacked ? Math.min(Math.max(v.top - band * this.bandHeight(), 0), Math.max(0, this.bandHeight() - size)) : v.top + slice * this.sliceStride();
     const top = inTop - scroll; // where the piece is in what the frame shows
     if (top + size + reach <= 0 || top - reach >= shown) return { shift: 0, shiftY: 0, clip: null, hidden: true };
     const cutTop = Math.max(0, -top);
@@ -655,10 +668,10 @@ export class JigsawBoard {
         if (!this.stacked()) {
           const slices = this.sliceCount();
           if (slices === 1) return { x: store.left + across, y: down };
-          const slice = Math.min(slices - 1, Math.max(0, Math.floor(down / store.height))); // beside the picture: the slice the pointer is over
+          const slice = this.sliceOfDown(down); // beside the picture: the slice the pointer is over
           // across stays inside the slice: the frame is a little wider than a slice (border, scroll bar), and further across a piece would be in the next slice, which is under this one
           const inSlice = Math.min(Math.max(across, 0), this.sliceWidth() - 1);
-          return { x: store.left + Math.min(inSlice + slice * this.sliceWidth(), store.width), y: Math.min(down - slice * store.height, store.height) };
+          return { x: store.left + Math.min(inSlice + slice * this.sliceWidth(), store.width), y: Math.min(Math.max(down - slice * this.sliceStride(), 0), store.height) };
         }
         const band = Math.min(this.bandCount() - 1, Math.max(0, Math.floor(across / this.bandStride()))); // below the picture: the band the pointer is over
         return { x: store.left + Math.min(across - band * this.bandStride(), store.width), y: Math.min(down + band * this.bandHeight(), store.height) };

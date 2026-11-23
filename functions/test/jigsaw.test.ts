@@ -711,6 +711,63 @@ describe("collecting the pieces in the store frame", () => {
     expect(top(c, "piece-3-0")).toBe(margin);
   });
 
+  it("across (a store that scrolls sideways, in bands side by side): the pieces are taken in the order they lie across all the bands and put from the left, column by column", () => {
+    const bandHeight = 200; // a band is 200 high; the store is 300 wide, so the next band is 300 - 25 further across
+    const stride = 275;
+    const bandFrame = { left: 450, top: 0, width: 300 };
+    // a piece in the second band (down 200-400) that lies at the far left of it is further across than one at the right end of the first band
+    const d = Puzzle.from([mk(0, 0, 700, 100), mk(1, 0, 470, 100), mk(2, 0, 475, 300), mk(3, 0, 600, 100), mk(4, 0, 480, 120)], 750, 1200);
+    const c = d.collectPieces(d.items.map((i) => i.id), bandFrame, undefined, { bandHeight, stride });
+    const margin = Math.round(0.35 * size);
+    const gap = Math.round(0.3 * size);
+    // across the strip: 1,0 (x 470, band 0), 4,0 (480), 3,0 (600), 0,0 (700), then 2,0 (band 1: 475 + 275)
+    expect(left(c, "piece-1-0")).toBe(bandFrame.left + margin);
+    expect(top(c, "piece-1-0")).toBe(margin);
+    expect(top(c, "piece-4-0")).toBe(margin + size + gap); // the same column, below it
+    expect(left(c, "piece-4-0")).toBe(left(c, "piece-1-0"));
+    // a band is 200 high: margin 18 + 50 + 15 + 50 = 133, a third piece would end at 133 + 15 + 50 = 198 > 200 - 18: the next column
+    expect(left(c, "piece-3-0")).toBe(bandFrame.left + margin + size + gap);
+    expect(top(c, "piece-3-0")).toBe(margin);
+    expect(top(c, "piece-0-0")).toBe(margin + size + gap);
+    // the fifth piece goes in the next band: the columns of the first band are at 468, 533, ...; a third column would end at 598 + 50, inside the band's right limit (732), so it is a third column, not the next band
+    expect(left(c, "piece-2-0")).toBe(bandFrame.left + margin + 2 * (size + gap));
+    expect(top(c, "piece-2-0")).toBe(margin);
+  });
+
+  it("across: when a band is full the next pieces go on in the next band, which is at the right of it in the strip", () => {
+    const bandHeight = 200;
+    const stride = 105;
+    const narrow = { left: 450, top: 0, width: 130 }; // a column at the margin only: a second column would end past the right limit
+    const d = Puzzle.from([mk(0, 0, 470, 100), mk(1, 0, 470, 150), mk(2, 0, 470, 160), mk(3, 0, 470, 170)], 750, 1200); // one column across, from the top down: 0, 1, 2, 3
+    const c = d.collectPieces(d.items.map((i) => i.id), narrow, undefined, { bandHeight, stride });
+    const margin = Math.round(0.35 * size);
+    expect(top(c, "piece-0-0")).toBe(margin);
+    expect(top(c, "piece-1-0")).toBe(margin + size + Math.round(0.3 * size));
+    // the third piece is in the next band (down by a band height), at the start of it
+    expect(top(c, "piece-2-0")).toBe(bandHeight + margin);
+    expect(left(c, "piece-2-0")).toBe(narrow.left + margin);
+    expect(Math.floor(c.get("piece-2-0")!.centerY / bandHeight)).toBe(1);
+    // and no piece is lost
+    expect(c.items.filter((i) => i.data.piece).length).toBe(4);
+  });
+
+  it("down (a store that scrolls up and down, in slices under each other): no row is split over two slices, and a full slice goes on in the next one", () => {
+    const slice = { left: 450, top: 0, width: 140 }; // a slice is 140 wide and 200 high
+    const down = { sliceWidth: 140, sliceHeight: 200 };
+    // 2 pieces fit in a row (18 + 50 + 15 + 50 = 133 < 140 - 18 = 122? no: the second would end at 133 > 122), so one piece in a row
+    const d = Puzzle.from([mk(0, 0, 470, 100), mk(1, 0, 470, 150), mk(2, 0, 470, 200), mk(3, 0, 470, 250), mk(4, 0, 470, 300)], 900, 1200);
+    const c = d.collectPieces(d.items.map((i) => i.id), slice, undefined, undefined, down);
+    const margin = Math.round(0.35 * size);
+    const gap = Math.round(0.3 * size);
+    // every piece in the first slice is across inside it: no centre is further across than the slice's width
+    for (const id of ["piece-0-0", "piece-1-0"]) expect(c.get(id)!.centerX - slice.left).toBeLessThan(down.sliceWidth);
+    expect(top(c, "piece-1-0")).toBe(margin + size + gap); // the second row of the first slice
+    // 18 + 50 + 15 + 50 + 15 + 50 = 198 > 200 - 18: the third piece is in the next slice, from its top
+    expect(left(c, "piece-2-0")).toBe(slice.left + down.sliceWidth + margin);
+    expect(top(c, "piece-2-0")).toBe(margin);
+    expect(c.items.filter((i) => i.data.piece).length).toBe(5);
+  });
+
   it("with a random, the pieces lie more by chance: the places and the distances differ, and every piece is still inside the frame", () => {
     const pieces = Array.from({ length: 12 }, (_, i) => mk(i, 0, 470 + (i % 5) * 50, 100 + i * 80));
     const d = world(...pieces);

@@ -88,8 +88,14 @@ export class Puzzle {
    * are placed in), in rows from the top left, close to each other (`COLLECT_GAP`), the way they were lying: from the top down, and in a row from left
    * to right. The pieces that stick together (see `stuckGroup`) stay as they are in relation to each other and are put as one piece; a group that has a
    * piece that is not in `ids` is not collected (it is not all in the frame). Pieces keep their layers. The same puzzle when nothing moves. With `random` (numbers from 0 up to 1) the pieces are put a little more by chance (`COLLECT_SCATTER`), not in tidy rows.
+   * With `across` the store is a strip that scrolls sideways, cut into bands as high as the strip (`bandHeight`) and laid side by side (each `stride` further across: the band
+   * a piece is in is its place down divided by `bandHeight`): the pieces are taken in the order they lie across the whole strip (left to right, from the top down in a column) and put
+   * column by column from the left end, a column as high as a band, and when a band is full the next band goes on at the right of it. So the strip is filled in the direction it scrolls.
+   * With `down` the store scrolls up and down and is cut into slices as wide as the frame (`sliceWidth`, `frame.width` is one slice) laid one under the other in the view (each `sliceHeight`
+   * high; the slice a piece is in is its place across divided by `sliceWidth`): the pieces are taken slice by slice, from the top down, and put in rows inside the first slice, and when it
+   * is full the next slice goes on, so no row is split over two slices.
    */
-  collectPieces(ids: readonly string[], frame: { left: number; top: number; width: number }, random?: () => number): Puzzle {
+  collectPieces(ids: readonly string[], frame: { left: number; top: number; width: number }, random?: () => number, across?: { bandHeight: number; stride: number }, down?: { sliceWidth: number; sliceHeight: number }): Puzzle {
     const wanted = new Set(ids);
     const seen = new Set<string>();
     const blocks: { members: PlacedFigure[]; box: Box }[] = [];
@@ -111,25 +117,56 @@ export class Puzzle {
     const margin = Math.round(COLLECT_MARGIN * size);
     const gap = Math.round(COLLECT_GAP * size);
     const rowOf = (b: Box) => Math.round(b.top / size);
-    blocks.sort((a, b) => rowOf(a.box) - rowOf(b.box) || a.box.left - b.box.left);
+    const columnOf = (b: Box) => Math.round(((Math.floor((b.top + b.height / 2) / (across?.bandHeight ?? 1)) * (across?.stride ?? 0)) + (b.left - frame.left)) / size); // how far across the whole strip
+    if (across) blocks.sort((a, b) => columnOf(a.box) - columnOf(b.box) || a.box.top - b.box.top);
+    else if (down) {
+      const sliceOf = (b: Box) => Math.floor((b.left + b.width / 2 - frame.left) / down.sliceWidth);
+      blocks.sort((a, b) => sliceOf(a.box) - sliceOf(b.box) || rowOf(a.box) - rowOf(b.box) || a.box.left - b.box.left);
+    } else blocks.sort((a, b) => rowOf(a.box) - rowOf(b.box) || a.box.left - b.box.left);
 
     const moved = new Map<string, PlacedFigure>();
-    const right = frame.left + frame.width - margin;
+    let sliceLeft = frame.left; // down: where the slice the pieces are put in begins
+    let right = frame.left + frame.width - margin;
     let x = frame.left + margin;
     let y = frame.top + margin;
-    let rowHeight = 0;
+    let rowHeight = 0; // the height of the row (rows), or the width of the column (across)
+    let bandTop = frame.top; // across: where the band the pieces are put in begins
     for (const block of blocks) {
       const moreX = random ? Math.round(random() * COLLECT_SCATTER * size) : 0; // a little further along than the tidy place
       const moreY = random ? Math.round(random() * COLLECT_SCATTER * size) : 0; // and a little further down
-      if (x > frame.left + margin && x + moreX + block.box.width > right) {
+      if (across) {
+        if (y > bandTop + margin && y + moreY + block.box.height > bandTop + across.bandHeight - margin) {
+          // the column is full: the next one, at its right; when the band is full, the next band (below it in the store, at the right of it in the strip)
+          x += rowHeight + gap;
+          y = bandTop + margin;
+          rowHeight = 0;
+          if (x + moreX + block.box.width > right) {
+            bandTop += across.bandHeight;
+            x = frame.left + margin;
+            y = bandTop + margin;
+          }
+        }
+      } else if (x > sliceLeft + margin && x + moreX + block.box.width > right) {
         y += rowHeight + gap + (random ? Math.round(random() * COLLECT_SCATTER * size) : 0); // the row is full: the next one, a different distance away each time
-        x = frame.left + margin;
+        x = sliceLeft + margin;
         rowHeight = 0;
+        if (down && y + moreY + block.box.height > frame.top + down.sliceHeight - margin) {
+          // the slice is full: the next slice (its places are further across in the store, and it lies under this one in the view)
+          sliceLeft += down.sliceWidth;
+          right = sliceLeft + frame.width - margin;
+          x = sliceLeft + margin;
+          y = frame.top + margin;
+        }
       }
       const dx = x + moreX - block.box.left;
       const dy = y + moreY - block.box.top;
-      x += moreX + block.box.width + gap;
-      rowHeight = Math.max(rowHeight, block.box.height + moreY);
+      if (across) {
+        y += moreY + block.box.height + gap;
+        rowHeight = Math.max(rowHeight, moreX + block.box.width);
+      } else {
+        x += moreX + block.box.width + gap;
+        rowHeight = Math.max(rowHeight, block.box.height + moreY);
+      }
       const placed = block.members.map((m) => m.at(m.centerX + Math.round(dx * 2) / 2, m.centerY + Math.round(dy * 2) / 2));
       if (!placed.every((m) => m.fits(this.width, this.height))) continue; // no room in the area for it: it stays
       for (const m of placed) moved.set(m.id, m);
