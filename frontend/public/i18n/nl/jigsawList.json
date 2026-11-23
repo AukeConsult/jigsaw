@@ -71,5 +71,7 @@
   "roundsWhoseAllTitle": "De rondes van iedereen",
   "roundsWhoseMineTitle": "Alleen mijn rondes",
   "roundsWhoseOthersTitle": "Alleen de rondes van anderen",
-  "resetAll": "Alles resetten"
+  "resetAll": "Alles resetten",
+  "detailsIn": "Details tonen in de puzzelweergave",
+  "viewHelp": "Deze keuzes bepalen hoe de lijsten met puzzels worden getoond. Kaarten toont elke puzzel als een beeldkaart, Lijst toont één puzzel per rij. Details voegt auteur, categorieën en datum toe aan elke kaart of rij."
 }

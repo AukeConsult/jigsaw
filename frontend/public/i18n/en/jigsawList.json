@@ -71,5 +71,7 @@
   "roundsWhoseAllTitle": "The rounds of everybody",
   "roundsWhoseMineTitle": "Only my rounds",
   "roundsWhoseOthersTitle": "Only the rounds of the others",
-  "resetAll": "Reset all"
+  "resetAll": "Reset all",
+  "detailsIn": "Show details in the jigsaw view",
+  "viewHelp": "These choices set how the lists of jigsaws are shown. Cards show each jigsaw as a picture card, List shows one jigsaw on each row. Details adds the author, the categories and the date to every card or row."
 }

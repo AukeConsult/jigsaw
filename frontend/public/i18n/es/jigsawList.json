@@ -71,5 +71,7 @@
   "roundsWhoseAllTitle": "Las partidas de todos",
   "roundsWhoseMineTitle": "Solo mis partidas",
   "roundsWhoseOthersTitle": "Solo las partidas de otros",
-  "resetAll": "Restablecer todo"
+  "resetAll": "Restablecer todo",
+  "detailsIn": "Mostrar detalles en la vista de puzzles",
+  "viewHelp": "Estas opciones definen cómo se muestran las listas de puzzles. Tarjetas muestra cada puzzle como una tarjeta con imagen, Lista muestra un puzzle por fila. Detalles añade el autor, las categorías y la fecha a cada tarjeta o fila."
 }

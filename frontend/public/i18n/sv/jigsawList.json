@@ -71,5 +71,7 @@
   "roundsWhoseAllTitle": "Allas omgångar",
   "roundsWhoseMineTitle": "Bara mina omgångar",
   "roundsWhoseOthersTitle": "Bara de andras omgångar",
-  "resetAll": "Nollställ allt"
+  "resetAll": "Nollställ allt",
+  "detailsIn": "Visa detaljer i pusselvyn",
+  "viewHelp": "Dessa val bestämmer hur listorna med pussel visas. Kort visar varje pussel som ett bildkort, Lista visar ett pussel på varje rad. Detaljer lägger till författare, kategorier och datum på varje kort eller rad."
 }

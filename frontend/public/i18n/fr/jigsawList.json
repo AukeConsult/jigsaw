@@ -71,5 +71,7 @@
   "roundsWhoseAllTitle": "Les parties de tous",
   "roundsWhoseMineTitle": "Seulement mes parties",
   "roundsWhoseOthersTitle": "Seulement les parties des autres",
-  "resetAll": "Tout réinitialiser"
+  "resetAll": "Tout réinitialiser",
+  "detailsIn": "Afficher les détails dans la vue des puzzles",
+  "viewHelp": "Ces choix déterminent comment les listes de puzzles sont affichées. Cartes montre chaque puzzle comme une carte illustrée, Liste montre un puzzle par ligne. Détails ajoute l'auteur, les catégories et la date à chaque carte ou ligne."
 }

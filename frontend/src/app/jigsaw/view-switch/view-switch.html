@@ -7,6 +7,8 @@
       <label class="btn" [for]="idPrefix() + '-list'"><i class="bi bi-list-ul" aria-hidden="true"></i>{{ t('jigsawList.list') || 'List' }}</label>
     </div>
     <!-- the details of the jigsaws on and off: the author, the categories, the pieces, the difficulty and the date -->
-    <button type="button" class="link-action" [attr.aria-pressed]="details.on()" (click)="details.on.set(!details.on())"><i class="bi" [class.bi-toggle-on]="details.on()" [class.bi-toggle-off]="!details.on()" aria-hidden="true"></i>{{ t('jigsawList.details') || 'Details' }}</button>
+    <button type="button" class="link-action" [attr.aria-pressed]="details.on()" (click)="details.on.set(!details.on())"><i class="bi" [class.bi-toggle-on]="details.on()" [class.bi-toggle-off]="!details.on()" aria-hidden="true"></i>{{ t('jigsawList.detailsIn') || 'Show details in the jigsaw view' }}</button>
   </div>
+  <!-- what the three choices are for: how the lists of jigsaws are shown -->
+  <p class="form-text mt-2 mb-4">{{ t('jigsawList.viewHelp') || 'These choices set how the lists of jigsaws are shown. Cards show each jigsaw as a picture card, List shows one jigsaw on each row. Details adds the author, the categories and the date to every card or row.' }}</p>
 </ng-container>

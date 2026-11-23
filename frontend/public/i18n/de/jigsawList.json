@@ -71,5 +71,7 @@
   "roundsWhoseAllTitle": "Die Runden aller",
   "roundsWhoseMineTitle": "Nur meine Runden",
   "roundsWhoseOthersTitle": "Nur die Runden der anderen",
-  "resetAll": "Alles zurücksetzen"
+  "resetAll": "Alles zurücksetzen",
+  "detailsIn": "Details in der Puzzleansicht anzeigen",
+  "viewHelp": "Diese Auswahl bestimmt, wie die Listen der Puzzles angezeigt werden. Karten zeigen jedes Puzzle als Bildkarte, Liste zeigt ein Puzzle pro Zeile. Details fügt jeder Karte oder Zeile Autor, Kategorien und Datum hinzu."
 }

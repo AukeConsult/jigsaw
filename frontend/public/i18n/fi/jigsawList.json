@@ -71,5 +71,7 @@
   "roundsWhoseAllTitle": "Kaikkien kierrokset",
   "roundsWhoseMineTitle": "Vain omat kierrokseni",
   "roundsWhoseOthersTitle": "Vain muiden kierrokset",
-  "resetAll": "Nollaa kaikki"
+  "resetAll": "Nollaa kaikki",
+  "detailsIn": "Näytä tiedot palapelinäkymässä",
+  "viewHelp": "Nämä valinnat määrittävät, miten palapeliluettelot näytetään. Kortit näyttää jokaisen palapelin kuvakorttina, Luettelo yhden palapelin kullakin rivillä. Tiedot lisää tekijän, luokat ja päivämäärän jokaiseen korttiin tai riviin."
 }

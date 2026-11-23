@@ -71,5 +71,7 @@
   "roundsWhoseAllTitle": "Alles runder",
   "roundsWhoseMineTitle": "Bare mine runder",
   "roundsWhoseOthersTitle": "Bare de andres runder",
-  "resetAll": "Nullstill alt"
+  "resetAll": "Nullstill alt",
+  "detailsIn": "Vis detaljer i puslespillvisningen",
+  "viewHelp": "Disse valgene bestemmer hvordan listene med puslespill vises. Kort viser hvert puslespill som et bildekort, Liste viser ett puslespill på hver rad. Detaljer legger til forfatter, kategorier og dato på hvert kort eller hver rad."
 }
