@@ -3,13 +3,14 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawCategories } from '../../models/shared/category';
 import { JIGSAW_FILTER_FIELDS, JigsawFilter, JigsawFilterField, JigsawFilters } from '../../models/shared/jigsaw-filter';
 import { JIGSAW_LANGUAGES } from '../../models/shared/language';
+import { MOTIVES } from '../../models/shared/motive';
 import { DIFFICULTIES, JigsawFacets, NO_OWNER, SEARCH_MAX_OWNERS, SEARCH_MAX_TEXT, SIZE_CLASSES } from '../../models/shared/jigsaw-search';
 
 /** How long the typing of the text waits before it is used: so a question is not asked at every letter. */
 const TEXT_PAUSE_MS = 300;
 
 /** The lists a filter has to tick from. */
-type TickedField = Exclude<JigsawFilterField, 'text' | 'favorites'>;
+type TickedField = Exclude<JigsawFilterField, 'text' | 'favorites' | 'solved'>;
 
 /**
  * The choices of what jigsaws to look for, all shown, to tick: words in the name or the author, the categories (and, under each ticked one, its sub-categories, which can be left
@@ -36,6 +37,7 @@ export class JigsawFilterBar implements OnDestroy {
   protected readonly categories = JigsawCategories.all();
   protected readonly sizes = SIZE_CLASSES;
   protected readonly difficulties = DIFFICULTIES;
+  protected readonly motives = MOTIVES;
   protected readonly owners = computed(() => this.facets()?.owners ?? []);
   /** the languages to tick from: only those that jigsaws have (and one that is ticked), all of them until they are counted */
   protected readonly languages = computed(() => {

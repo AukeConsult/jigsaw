@@ -38,7 +38,6 @@
   "saving": "Lagrer…",
   "making": "Lager puslespillet…",
   "saveChanges": "Lagre endringer",
-  "saveStart": "Lagre og start",
   "couldNotReadUsers": "Kunne ikke lese brukerne: last siden på nytt.",
   "couldNotOpen": "Kunne ikke åpne puslespillet for endring: gå tilbake og prøv igjen.",
   "couldNotSave": "Kunne ikke lagre endringene: kanskje noen har begynt å spille det i mellomtiden. Sjekk bildet og prøv igjen.",
@@ -73,5 +72,13 @@
   "classifyHelp": "Bildet sendes til OpenAI for å bli sett på. Navnet, beskrivelsen og kategoriene blir byttet ut.",
   "classifyFailed": "AI klarte det ikke: prøv igjen.",
   "sectionLook": "Utseende",
-  "languageAi": "Når du bytter, lar AI dem skrive på nytt på det nye språket."
+  "languageAi": "Når du bytter, lar AI dem skrive på nytt på det nye språket.",
+  "motive": "Motivets vanskelighet",
+  "motiveHelp": "Hvor vanskelig selve bildet er å legge: jo færre tydelige detaljer, jo vanskeligere. KI setter den også.",
+  "motiveNone": "Ikke oppgitt",
+  "saveNew": "Lagre",
+  "saveAnalyse": "Lagre og analyser med KI",
+  "saveAnalyseHelp": "Bildet sendes til OpenAI for å sette kategorier, motivets vanskelighet, navn og beskrivelse.",
+  "moreOptions": "Flere valg",
+  "sectionPlayOnly": "Spill"
 }

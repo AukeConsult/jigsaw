@@ -6,6 +6,7 @@ describe("the categories", () => {
     const all = JigsawCategories.all();
     expect(all).toHaveLength(13);
     expect(all.map((c) => c.key)).toEqual(["recommended", "family", "travel", "nature", "animals", "flowers", "food", "art", "buildings", "seasons", "transport", "kids", "other"]);
+    expect(JigsawCategories.of("motive")).toBeUndefined(); // the motive difficulty is a property of a jigsaw, not a category
     expect(new Set(all.map((c) => c.key)).size).toBe(all.length);
     for (const c of all) {
       expect(c.name.length).toBeGreaterThan(1);
@@ -108,4 +109,4 @@ describe("the categories", () => {
     expect(JigsawCategories.canChoose(six.slice(0, 5), "art", 6)).toBe(true);
     expect(JigsawCategories.canChoose(six.slice(0, 5), "art")).toBe(false); // a jigsaw takes three
   });
-});
+});

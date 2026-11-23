@@ -2,18 +2,17 @@ Gör ett pussel av vilken bild som helst och lägg det på skärmen. Allt sparas
 
 ## Vem spelar
 
-* Första gången får du frågan vem som spelar. Tryck på ditt namn i listan, eller tryck **Skapa en användare**: välj ett **Användarnamn** (3 till 30 bokstäver a-z, siffror, _ eller -) och ditt namn. **E-post** är valfri och visas aldrig.
+* Första gången får du frågan **Vad heter du?** Skriv ditt namn och tryck **Börja spela**. Har du spelat förut, tryck **Jag har spelat förut** och sedan ditt namn i listan.
 * Det finns inget lösenord just nu, så vem som helst kan välja vilken användare som helst.
 * Tryck på ditt namn i menyn för att se **Dina omgångar**, för att trycka **Ändra**, eller för att trycka **Välj en annan användare**.
 
 ## Gör ett pussel
 
-1. Tryck **Nytt pussel** (på startsidan och överst i listan).
+1. Tryck **Gör ett pussel** i välkomsten på startsidan, eller tryck på ditt namn i menyn och sedan på knappen för ett nytt pussel.
 2. Skriv ett **Namn** och välj en **Bild**. Ett fönster öppnas: dra bilden för att hitta den del du vill ha, zooma och tryck **Använd det här urklippet**.
 3. Välj **Storlek** och antal **Bitar** (upp till 1000). Storleken justeras lite så att bitarna passar exakt.
-4. Välj **Svårighetsgrad**, om det ska vara **Tidtagning**, och **Linje**, **Färg** och **Bakgrund** för bildytan.
-5. Välj **Gjort av** och **Vem ser det**.
-6. Tryck **Spara och starta**.
+4. Välj **Svårighetsgrad** och om det ska vara **Tidtagning**. Under **Fler val** kan du också ändra språk, kategorier, utseende, vem som har gjort det och vem som ser det.
+5. Tryck **Spara** (eller **Spara och analysera med AI**, som också låter AI sätta kategorier, namn och beskrivning). Sidan för det nya pusslet öppnas: starta en runda därifrån.
 
 ## Spela
 
@@ -33,7 +32,7 @@ Gör ett pussel av vilken bild som helst och lägg det på skärmen. Allt sparas
 ## Omgångar
 
 * Ett spel av ett pussel är en **omgång**. Pusslets sida visar allas omgångar; dina är märkta **Din** och kommer först.
-* Tryck **Fortsätt** för att gå vidare med en av dina, **Gå in i en omgång, lös den** för att starta en till, eller **Ta bort** för att ta bort en av dina (du får frågan först).
+* Tryck **Fortsätt** för att gå vidare med en av dina, **Börja spela** för att starta en till, eller **Ta bort** för att ta bort en av dina (du får frågan först).
 * Tryck **Titta** för att se en annan spelares omgång. Du kan aldrig ändra den, men du kan starta din egen.
 * En omgång räknas först när du har flyttat en bit i den. Öppnar du bara ett pussel och går tillbaka, syns ingen omgång i listan.
 * **Utmana en vän:** gör pusslet **Tidtagning** och be din vän spela en omgång av det också. Tiden för varje omgång står i listan, så du kan se vem som är snabbast.

@@ -2,18 +2,17 @@ Lag et puslespill av et hvilket som helst bilde og legg det sammen på skjermen.
 
 ## Hvem spiller
 
-* Første gang blir du spurt om hvem som spiller. Trykk på navnet ditt i listen, eller trykk **Lag en bruker**: velg et **Brukernavn** (3 til 30 bokstaver a-z, tall, _ eller -) og navnet ditt. **E-post** er valgfritt og vises aldri.
+* Første gang blir du spurt **Hva heter du?** Skriv navnet ditt og trykk **Begynn å spille**. Har du spilt før, trykk **Jeg har spilt før** og så navnet ditt i listen.
 * Det er ikke noe passord foreløpig, så hvem som helst kan velge hvilken som helst bruker.
 * Trykk på navnet ditt i menyen for å se **Rundene dine**, for å trykke **Endre**, eller for å trykke **Velg en annen bruker**.
 
 ## Lag et puslespill
 
-1. Trykk **Nytt puslespill** (på forsiden og øverst i listen).
+1. Trykk **Lag et puslespill** i velkomsten på forsiden, eller trykk på navnet ditt i menyen og så knappen for et nytt puslespill.
 2. Skriv et **Navn** og velg et **Bilde**. Et vindu åpnes: dra bildet for å finne den delen du vil ha, zoom, og trykk **Bruk dette utsnittet**.
 3. Velg **Størrelse** og antall **Brikker** (opptil 1000). Størrelsen justeres litt så brikkene passer nøyaktig.
-4. Velg **Vanskelighetsgrad**, om det skal være **Tidtaking**, og **Strek**, **Farge** og **Bakgrunn** for bildeflaten.
-5. Velg **Laget av** og **Hvem ser det**.
-6. Trykk **Lagre og start**.
+4. Velg **Vanskelighetsgrad** og om det skal ha **Tidtaking**. Under **Flere valg** kan du også endre språk, kategorier, utseende, hvem som har laget det og hvem som ser det.
+5. Trykk **Lagre** (eller **Lagre og analyser med KI**, som også lar KI sette kategorier, navn og beskrivelse). Siden til det nye puslespillet åpnes: start en runde derfra.
 
 ## Spill
 
@@ -33,7 +32,7 @@ Lag et puslespill av et hvilket som helst bilde og legg det sammen på skjermen.
 ## Runder
 
 * Ett spill av et puslespill er en **runde**. Siden til et puslespill viser rundene til alle; dine er merket **Din** og står først.
-* Trykk **Fortsett** for å gå videre med en av dine, **Gå inn i en runde, løs den** for å starte en til, eller **Slett** for å fjerne en av dine (du blir spurt først).
+* Trykk **Fortsett** for å gå videre med en av dine, **Begynn å spille** for å starte en til, eller **Slett** for å fjerne en av dine (du blir spurt først).
 * Trykk **Se** for å se en annen spillers runde. Du kan aldri endre den, men du kan starte din egen.
 * En runde teller først når du har flyttet en brikke i den. Åpner du bare et puslespill og går tilbake, står det ingen runde i listen.
 * **Utfordre en venn:** gjør puslespillet **Tidtaking** og be vennen din spille en runde av det også. Tiden for hver runde står i listen, så du kan se hvem som er raskest.

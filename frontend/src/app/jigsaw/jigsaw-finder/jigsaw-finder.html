@@ -1,8 +1,11 @@
 <ng-container *transloco="let t">
-  <!-- while the jigsaws are fetched: a message with a wait icon (not a count of nothing); when they are there, how many -->
+  <!-- while more jigsaws are fetched: a message with a wait icon (not a count of nothing); when they are there, how many -->
   <div class="toolbar-note" role="status">
-    @if (loading()) {
+    @if (loading() && items().length) {
       <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawList.loading') || 'Fetching the jigsaws…' }}
+    } @else if (loading()) {
+      <!-- nothing to show yet: the wait is told once, in the middle of the page (below), not here as well -->
+      &nbsp;
     } @else {
       {{ (total() === 1 ? t('jigsawList.countOne', { count: total() }) : t('jigsawList.countMany', { count: total() })) || total() + ' ' + (total() === 1 ? 'jigsaw' : 'jigsaws') }}
     }
@@ -27,7 +30,7 @@
     </div>
   } @else {
     <!-- at least three cards in a row, on any width: the text in a card wraps -->
-    <div class="row row-cols-3 row-cols-lg-4 g-2 g-sm-3">
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
       @for (item of items(); track item.id) {
         <div class="col"><app-jigsaw-card [jigsaw]="item" /></div>
       }

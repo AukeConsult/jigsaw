@@ -45,5 +45,8 @@
   "removeFavorite": "Poista suosikeista",
   "favorites": "Suosikit",
   "hiddenNote": "Piilotettu: vain omien palapelien listalla",
-  "details": "Tiedot"
+  "details": "Tiedot",
+  "motive": "Kuvan vaikeus",
+  "solvedByYou": "Olet ratkaissut tämän",
+  "solved": "Ratkaistut"
 }

@@ -26,5 +26,9 @@
   "jigsaws": "Pussel",
   "imageAlt": "En kvinna med ett färgglatt parasoll på en fästningsterrass, med gröna kullar och en stad bakom sig",
   "noRoundsYet": "Du har inga rundor igång ännu. Välj ett pussel nedan för att starta en.",
-  "welcomeIntro": "Njut av mina pussel, spela dem och ha kul, eller använd din egen bild och gör ditt eget."
+  "welcomeIntro": "Njut av mina pussel, spela dem och ha kul, eller använd din egen bild och gör ditt eget.",
+  "step1": "Välj ett pussel nedan och tryck på det.",
+  "step2": "Dra bitarna dit de hör hemma.",
+  "step3": "Vill du ha ett eget? Gör ett av en bild:",
+  "makeOwn": "Gör ett pussel"
 }

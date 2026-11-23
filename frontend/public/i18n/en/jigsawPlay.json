@@ -19,17 +19,17 @@
   "colourTitle": "The colour of the line round each piece and round the picture area",
   "back": "Background",
   "backTitle": "The background colour of the picture area, inside the frame",
-  "startNewAsk": "Start a new round? The pieces are scattered again in a new round; this round stays in your list.",
-  "yesNew": "Yes, new round",
+  "startNewAsk": "Reset this round? The pieces are scattered again and the time starts from zero.",
+  "yesNew": "Yes, reset",
   "cancel": "Cancel",
   "deleteAsk": "Delete this round for good? Its pieces and progress are lost. The jigsaw stays.",
   "yesDelete": "Yes, delete",
-  "newRound": "New round",
+  "newRound": "Reset round",
   "deleteRound": "Delete round",
   "cheat": "Cheat",
   "cheatHelp": "(help find pieces)",
   "notSaved": "Not saved: the settings are not allowed",
   "couldNotSave": "Could not save, trying again",
   "couldNotDelete": "Could not delete the round: try again.",
-  "couldNotStart": "Could not start a new round: try again."
+  "couldNotStart": "Could not reset the round: try again."
 }

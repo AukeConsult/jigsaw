@@ -2,6 +2,7 @@ import { Puzzle } from './puzzle';
 import { PlacedFigure, PlacedObject } from './placed';
 import { JigsawCategories } from './category';
 import { JigsawLanguages } from './language';
+import { JigsawMotives, MotiveLevel } from './motive';
 
 // A saved jigsaw: its settings, and the check of what comes from outside.
 
@@ -61,6 +62,8 @@ export interface JigsawSpec {
   language?: string;
   /** a jigsaw: the keys of the categories it is in (see `JigsawCategories`; none when it says nothing, at most `CATEGORIES_MAX_PER_JIGSAW`) */
   categories?: string[];
+  /** a jigsaw: the motive difficulty, how hard the picture itself is to put together (see `JigsawMotives`; none when nobody has said it): a property of the jigsaw, not a category */
+  motive?: MotiveLevel;
   /** horizontal size in pixels */
   width: number;
   /** vertical size in pixels */
@@ -88,11 +91,11 @@ export interface JigsawSpec {
 }
 
 /** What the page sends to make a jigsaw. */
-export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'categories' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** A jigsaw as it comes from outside (the page, the API): it checks itself. */
 export class JigsawSettings {
-  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; categories?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a jigsaw whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -106,11 +109,16 @@ export class JigsawSettings {
   }
 
   /**
-   * The store frame of a jigsaw (where its pieces wait): beside the picture area, one grid step from its right edge (so the grid points go on across), as high
+   * The store frame of a jigsaw (where its pieces wait): beside the picture area, `storeGap` from its right edge, as high
    * as `STORE_HEIGHT_FACTOR` times the height of the picture area and `storeWidth` wide; null when there is no store.
    */
   static storeFrame(width: number, height: number, grid: number, storeWidth: number | undefined): { left: number; width: number; height: number } | null {
-    return storeWidth && storeWidth > 0 ? { left: width + Math.max(0, grid), width: storeWidth, height: STORE_HEIGHT_FACTOR * height } : null;
+    return storeWidth && storeWidth > 0 ? { left: width + JigsawSettings.storeGap(grid), width: storeWidth, height: STORE_HEIGHT_FACTOR * height } : null;
+  }
+
+  /** The room between the picture area and its store frame: an eighth of a grid step (a tiny gap, so the frame is close to the picture). */
+  static storeGap(grid: number): number {
+    return Math.round(Math.max(0, grid) / 8);
   }
 
   /** Everything the objects can be on: the picture area, and its store frame when it has one (one box, so an object is checked against it). */
@@ -175,6 +183,7 @@ export class JigsawSettings {
       ...(typeof i.pictureName === 'string' && i.pictureName.trim() ? { pictureName: i.pictureName.trim() } : {}),
       ...(typeof i.description === 'string' && i.description.trim() ? { description: i.description.trim() } : {}),
       ...(JigsawCategories.stored(i.categories).length ? { categories: JigsawCategories.stored(i.categories) } : {}),
+      ...(JigsawMotives.is(i.motive) ? { motive: i.motive } : {}),
       ...(JigsawLanguages.is(i.language) ? { language: i.language } : {}),
       width: i.width as number,
       height: i.height as number,
@@ -202,6 +211,7 @@ export class JigsawSettings {
       ...(doc.pictureName ? { pictureName: doc.pictureName } : {}),
       ...(doc.description ? { description: doc.description } : {}),
       ...(JigsawCategories.stored(doc.categories).length ? { categories: JigsawCategories.stored(doc.categories) } : {}),
+      ...(JigsawMotives.of(doc) ? { motive: JigsawMotives.of(doc) } : {}), // a motive difficulty that an older version kept among the categories is the property now
       ...(JigsawLanguages.is(doc.language) ? { language: doc.language } : {}),
       width: doc.width ?? 800,
       height: doc.height ?? 600,
@@ -239,6 +249,8 @@ export class JigsawSettings {
       const bad = JigsawCategories.error(input.categories);
       if (bad) return bad;
     }
+    const motive = JigsawMotives.error(input.motive);
+    if (motive) return motive;
     const language = JigsawLanguages.error(input.language);
     if (language) return language;
     for (const [label, value] of [['Width', input.width], ['Height', input.height]] as const) {

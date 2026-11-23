@@ -38,7 +38,6 @@
   "saving": "Enregistrement…",
   "making": "Création du puzzle…",
   "saveChanges": "Enregistrer les modifications",
-  "saveStart": "Enregistrer et commencer",
   "couldNotReadUsers": "Impossible de lire les utilisateurs : recharge la page.",
   "couldNotOpen": "Impossible d'ouvrir le puzzle pour le modifier : reviens en arrière et réessaie.",
   "couldNotSave": "Impossible d'enregistrer les modifications : quelqu'un a peut-être commencé à y jouer entre-temps. Vérifie l'image et réessaie.",
@@ -73,5 +72,13 @@
   "classifyHelp": "L'image est envoyée à OpenAI pour être regardée. Le nom, la description et les catégories sont remplacés.",
   "classifyFailed": "L'IA n'a pas pu le faire : réessayez.",
   "sectionLook": "Apparence",
-  "languageAi": "Si vous la changez, l’IA les réécrit dans la nouvelle langue."
+  "languageAi": "Si vous la changez, l’IA les réécrit dans la nouvelle langue.",
+  "motive": "Difficulté du motif",
+  "motiveHelp": "Difficulté de l’image elle-même : moins il y a de détails distincts, plus c’est difficile. L’IA la met aussi.",
+  "motiveNone": "Non indiquée",
+  "saveNew": "Enregistrer",
+  "saveAnalyse": "Enregistrer et analyser avec l’IA",
+  "saveAnalyseHelp": "L’image est envoyée à OpenAI pour fixer les catégories, la difficulté du motif, le nom et la description.",
+  "moreOptions": "Plus d'options",
+  "sectionPlayOnly": "Jouer"
 }

@@ -7,7 +7,8 @@
   "piecesArea": "Bereich der Puzzleteile",
   "pictureArea": "Bildfläche",
   "piecesStore": "Ablage der Puzzleteile",
-  "clickToGet": "Klicken, um Teile zu holen",
+  "clickToGet": "Hier tippen, um die Teile zu sammeln",
   "scrollLeft": "Die Teile nach links scrollen",
-  "scrollRight": "Die Teile nach rechts scrollen"
+  "scrollRight": "Die Teile nach rechts scrollen",
+  "dragHint": "Ziehe ein Teil zum Bild"
 }

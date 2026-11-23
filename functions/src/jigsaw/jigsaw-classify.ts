@@ -17,8 +17,8 @@ export interface ClassifyDeps {
 }
 
 /**
- * The classification of one jigsaw by its picture, `POST /jigsaw/:id/classify` (mounted at `/jigsaw/:id/classify`): the AI says the categories, the name and the description the picture
- * suggests (the texts in the language of the jigsaw), and the answer is given back. With `?apply=true` they are also put on the jigsaw: the categories (when it said some), the name
+ * The classification of one jigsaw by its picture, `POST /jigsaw/:id/classify` (mounted at `/jigsaw/:id/classify`): the AI says the categories, the motive difficulty, the name and the description the picture
+ * suggests (the texts in the language of the jigsaw), and the answer is given back. With `?apply=true` they are also put on the jigsaw: the categories (when it said some), the motive difficulty, the name
  * and the description (when it said one); nothing else of the jigsaw changes. `?language=sv` asks for the texts in that language instead of the language of the jigsaw (and with `apply` the jigsaw gets that language). Only its owner may (a jigsaw from before owners is anybody's; the header `X-Jigsaw-User` is the UID of who asks).
  */
 export function jigsawClassifyRouter(deps: ClassifyDeps): express.Router {
@@ -62,6 +62,7 @@ export function jigsawClassifyRouter(deps: ClassifyDeps): express.Router {
       ...jigsaw,
       ...(asked ? { language } : {}),
       ...(answer.categories.length ? { categories: answer.categories } : {}),
+      ...(answer.motive ? { motive: answer.motive } : {}),
       ...(answer.name ? { name: answer.name } : {}),
       ...(answer.description ? { description: answer.description } : {}),
     });

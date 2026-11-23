@@ -7,7 +7,8 @@
   "piecesArea": "Område för pusselbitar",
   "pictureArea": "Bildyta",
   "piecesStore": "Förråd med pusselbitar",
-  "clickToGet": "Klicka för att hämta bitar",
+  "clickToGet": "Tryck här för att samla bitarna",
   "scrollLeft": "Rulla bitarna åt vänster",
-  "scrollRight": "Rulla bitarna åt höger"
+  "scrollRight": "Rulla bitarna åt höger",
+  "dragHint": "Dra en bit till bilden"
 }

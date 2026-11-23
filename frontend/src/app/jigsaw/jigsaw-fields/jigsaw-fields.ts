@@ -1,18 +1,23 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, input, model, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
+import { isBoolean, readPreference, writePreference } from '../../core/preferences';
 import { LANGUAGES } from '../../core/language.service';
 import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME } from '../../models/shared/jigsaw-settings';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
+import { MOTIVES } from '../../models/shared/motive';
 import { CategoryPicker } from '../category-picker/category-picker';
 import { JigsawService } from '../jigsaw.service';
 import { LINE_LEVELS, lineLevelOf } from '../line-level';
 
+/** Where the choice to have "More options" open is kept on the device. */
+const MORE_OPTIONS_KEY = 'jigsaw.formMore';
+
 /**
  * The fields every form of a jigsaw has, in one place (the form of a new jigsaw and of an edit, and the panel of a jigsaw that has been played): the name and the AI that sets it, the
- * description, the language and the categories; the look (the line and the colours); and the owner and who sees it. The form that holds it owns the values (they are `model`s, bound
+ * description, the language, the categories and the motive difficulty; the look (the line and the colours); and the owner and who sees it. The form that holds it owns the values (they are `model`s, bound
  * two ways) and decides what is saved and when; this only shows them and changes them. What only some forms have goes in through the slots: the picture and the size (between the
  * basics and the look: the default slot) and the difficulty and the clock (at the top of the look: `play-settings`).
  */
@@ -29,6 +34,8 @@ export class JigsawFields {
   readonly description = model.required<string>();
   readonly language = model.required<string>();
   readonly categories = model.required<string[]>();
+  /** the motive difficulty: a level, or '' when nobody has said it */
+  readonly motive = model.required<string>();
   readonly lineWidth = model.required<number>();
   readonly lineColor = model.required<string>();
   readonly backColor = model.required<string>();
@@ -43,10 +50,23 @@ export class JigsawFields {
   readonly hasPlaySettings = input(false);
   /** the author must be chosen (a new jigsaw needs its owner) */
   readonly authorRequired = input(false);
+  /** the form has its picture in the slot at the top: the basics are not the first section then */
+  readonly pictureFirst = input(false);
   /** the forms are waiting for the jigsaw to be read */
   readonly busy = input(false);
 
+  /** "More options" is open (kept on the device, so a person who uses them finds them open again) */
+  protected readonly moreOpen = signal(readPreference(MORE_OPTIONS_KEY, false, isBoolean));
+
+  constructor() {
+    effect(() => writePreference(MORE_OPTIONS_KEY, this.moreOpen()));
+  }
+
+  /** open by choice, or because the author still has to be chosen (that choice is not kept) */
+  protected readonly moreIsOpen = computed(() => this.moreOpen() || (this.authorRequired() && !this.ownerUid()));
+
   protected readonly languages = LANGUAGES;
+  protected readonly motives = MOTIVES;
   protected readonly lineLevels = LINE_LEVELS;
   protected readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
   protected readonly maxName = JIGSAW_MAX_NAME;
@@ -66,7 +86,7 @@ export class JigsawFields {
   protected readonly classifyError = signal('');
 
   /**
-   * The AI looks at the saved picture and sets the categories, the name and the description (in the language of the jigsaw): the server puts them on the jigsaw, and they are put in
+   * The AI looks at the saved picture and sets the categories, the motive difficulty, the name and the description (in the language of the jigsaw): the server puts them on the jigsaw, and they are put in
    * the form too, so what the form saves next is the same. Only the owner can.
    */
   protected async classify(language?: string): Promise<void> {
@@ -79,6 +99,7 @@ export class JigsawFields {
       if (found.name) this.name.set(found.name);
       if (found.description) this.description.set(found.description);
       if (found.categories.length) this.categories.set(found.categories);
+      if (found.motive) this.motive.set(found.motive);
     } catch (err) {
       const why = err instanceof HttpErrorResponse ? ((err.error as { error?: string } | null)?.error ?? '') : '';
       this.classifyError.set(why || tr('jigsawNew.classifyFailed', 'The AI could not do it: try again.'));

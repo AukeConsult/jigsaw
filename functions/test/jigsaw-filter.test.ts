@@ -6,13 +6,13 @@ const on = (over: Partial<JigsawFilter>): JigsawFilter => ({ ...JigsawFilters.em
 
 describe("a filter of jigsaws", () => {
   it("asks for everything when it is empty, and is on when any choice is made", () => {
-    expect(JigsawFilters.empty()).toEqual({ text: "", categories: [], sizes: [], difficulties: [], languages: [], owners: [] });
+    expect(JigsawFilters.empty()).toEqual({ text: "", categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [] });
     expect(JigsawFilters.isOn(JigsawFilters.empty())).toBe(false);
     expect(JigsawFilters.isOn(on({ text: "  " }))).toBe(false); // no words
     expect(JigsawFilters.isOn(on({ text: "harbour" }))).toBe(true);
     expect("favorites" in JigsawFilters.empty()).toBe(false);
     expect(JigsawFilters.isOn(on({ favorites: true }))).toBe(true); // only the favorites is a choice too
-    for (const over of [{ categories: ["art"] }, { sizes: ["small"] }, { difficulties: ["hard"] }, { languages: ["nb"] }, { owners: ["u1"] }] as Partial<JigsawFilter>[]) expect(JigsawFilters.isOn(on(over))).toBe(true);
+    for (const over of [{ categories: ["art"] }, { sizes: ["small"] }, { difficulties: ["hard"] }, { motives: ["expert"] }, { languages: ["nb"] }, { owners: ["u1"] }] as Partial<JigsawFilter>[]) expect(JigsawFilters.isOn(on(over))).toBe(true);
   });
 
   it("is never changed: a choice gives a new filter", () => {

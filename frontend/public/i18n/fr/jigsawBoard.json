@@ -7,7 +7,8 @@
   "piecesArea": "Zone des pièces du puzzle",
   "pictureArea": "Zone de l'image",
   "piecesStore": "Réserve de pièces du puzzle",
-  "clickToGet": "Clique pour récupérer des pièces",
+  "clickToGet": "Appuie ici pour rassembler les pièces",
   "scrollLeft": "Faire défiler les pièces vers la gauche",
-  "scrollRight": "Faire défiler les pièces vers la droite"
+  "scrollRight": "Faire défiler les pièces vers la droite",
+  "dragHint": "Glisse une pièce vers l'image"
 }

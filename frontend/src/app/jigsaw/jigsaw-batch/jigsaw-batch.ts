@@ -165,7 +165,7 @@ export class JigsawBatch implements OnDestroy {
           this.change(item, {
             state: 'done',
             classified: true,
-            jigsaw: { ...jigsaw, ...(found.name ? { name: found.name } : {}), ...(found.description ? { description: found.description } : {}), ...(found.categories.length ? { categories: found.categories } : {}) },
+            jigsaw: { ...jigsaw, ...(found.name ? { name: found.name } : {}), ...(found.description ? { description: found.description } : {}), ...(found.categories.length ? { categories: found.categories } : {}), ...(found.motive ? { motive: found.motive } : {}) },
           });
         } catch (err) {
           this.change(item, { state: 'done', problem: reasonOf(err) }); // the jigsaw is made: only the AI did not

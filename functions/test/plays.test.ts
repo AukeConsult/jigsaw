@@ -855,3 +855,61 @@ describe("the popular jigsaws", () => {
     expect(await popular()).toEqual(["Open"]);
   });
 });
+
+describe("a bond between pieces is never broken", () => {
+  const pieces = [piece(0, 0), piece(1, 0), piece(2, 0)];
+  // 0,0 and 1,0 lie exactly beside each other (50 px pieces): bound; 2,0 lies somewhere else
+  const before = { "piece-0-0": [300, 300, 3], "piece-1-0": [350, 300, 4], "piece-2-0": [600, 100, 5] } as Record<string, [number, number, number]>;
+  const with_ = (over: Record<string, [number, number, number]>) => ({ ...before, ...over });
+
+  it("lets the whole group move, and pieces that are not bound move on their own", () => {
+    expect(Plays.bondsError(pieces, before, with_({ "piece-0-0": [400, 350, 6], "piece-1-0": [450, 350, 7] }))).toBe("");
+    expect(Plays.bondsError(pieces, before, with_({ "piece-2-0": [10, 10, 9] }))).toBe("");
+  });
+
+  it("refuses a move that pulls a bound piece away from the one it sticks to, however little", () => {
+    expect(Plays.bondsError(pieces, before, with_({ "piece-1-0": [352, 300, 4] }))).toMatch(/can not be pulled apart/);
+    expect(Plays.bondsError(pieces, before, with_({ "piece-0-0": [300, 300.5, 3] }))).toMatch(/can not be pulled apart/);
+    expect(Plays.bondsError(pieces, before, with_({ "piece-1-0": [900, 500, 4] }))).toMatch(/can not be pulled apart/);
+  });
+});
+
+
+describe("starting a round over", () => {
+  it("scatters the pieces anew and puts the time back, in the same round, and only for its player", async () => {
+    const { app, made } = await setup();
+    const url = `/jigsaw/api/jigsaw/${made.id}/plays`;
+    const play = await started(app, made.id, { userId: "anna" });
+    await anna(app).patch(`${url}/${play.id}/positions`).send({ moves: [], elapsedMs: 12_000 });
+    expect((await request(app).post(`${url}/${play.id}/restart`).set("X-Jigsaw-User", "bo")).status).toBe(403);
+    expect((await anna(app).post(`${url}/${play.id}/restart`)).status).toBe(200);
+    const after = (await request(app).get(`${url}/${play.id}`)).body.play as PlaySpec;
+    expect(after.id).toBe(play.id); // the same round, not another
+    expect(after.userId).toBe("anna");
+    expect(after.elapsedMs).toBeUndefined();
+    expect((await request(app).get(url)).body).toHaveLength(0); // nobody has moved a piece in it again: it is a fresh round
+    expect((await anna(app).post(`${url}/nope/restart`)).status).toBe(404);
+  });
+});
+
+describe("a jigsaw that is solved is not played twice", () => {
+  it("refuses a new round of a jigsaw the user has solved, and a reset of a solved round, but not for other users", async () => {
+    const { app, made } = await setup();
+    const url = `/jigsaw/api/jigsaw/${made.id}/plays`;
+    const play = await started(app, made.id, { userId: "anna" });
+    // put every piece on its own place: the round is solved
+    const detail = (await request(app).get(`${url}/${play.id}`)).body as { pieces: { id: string; col: number; row: number; size: number }[] };
+    const moves = detail.pieces.map((p, i) => ({ id: p.id, centerX: p.col * p.size + p.size / 2, centerY: p.row * p.size + p.size / 2, layer: 2 + i }));
+    expect((await anna(app).patch(`${url}/${play.id}/positions`).send({ moves })).status).toBe(200);
+    expect(((await request(app).get(`${url}/${play.id}`)).body.play as PlaySpec).status).toBe("solved");
+    const again = await anna(app).post(url).send({ userId: "anna" });
+    expect(again.status).toBe(409);
+    expect(again.body.error).toMatch(/solved/);
+    expect((await anna(app).post(`${url}/${play.id}/restart`)).status).toBe(409); // a solved round is not played over
+    expect(((await request(app).get(`${url}/${play.id}`)).body.play as PlaySpec).status).toBe("solved"); // and is still solved
+    expect((await request(app).post(url).send({ userId: "bo" })).status).toBe(201); // somebody else may play it
+    // deleting the solved round is the way to play it again
+    expect((await anna(app).delete(`${url}/${play.id}`)).status).toBeLessThan(300);
+    expect((await anna(app).post(url).send({ userId: "anna" })).status).toBe(201);
+  });
+});

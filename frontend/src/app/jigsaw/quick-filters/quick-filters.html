@@ -1,5 +1,5 @@
 <ng-container *transloco="let t">
-  <div class="d-flex flex-wrap gap-2" role="group" [attr.aria-label]="t('jigsawList.quickFilters') || 'Quick filters'">
+  <div class="quick-filters d-flex flex-wrap gap-2" role="group" [attr.aria-label]="t('jigsawList.quickFilters') || 'Quick filters'">
     <button type="button" class="btn btn-sm rounded-pill" [class.btn-primary]="all()" [class.btn-outline-secondary]="!all()" [attr.aria-pressed]="all()" (click)="showAll()">{{ t('jigsawList.all') || 'All' }}</button>
     @if (showFavorites()) {
       <!-- only when the user has favorites: the jigsaws ticked with a heart -->
@@ -15,5 +15,11 @@
     }
     <!-- always there, only the icon: the way to the choices of the search (the Find page); its words are for a screen reader and the tooltip -->
     <a class="btn btn-sm btn-outline-secondary rounded-pill" routerLink="/jigsaw/find" [attr.aria-label]="t('jigsawList.changeSearch') || 'Change the search'" [title]="t('jigsawList.changeSearch') || 'Change the search'"><i class="bi bi-search" aria-hidden="true"></i></a>
+    @if (showSolved()) {
+      <!-- only when the user has solved some: the jigsaws with the green check -->
+      <button type="button" class="btn btn-sm rounded-pill" [class.btn-primary]="solvedOn()" [class.btn-outline-secondary]="!solvedOn()" [attr.aria-pressed]="solvedOn()" (click)="toggleSolved()">
+        <i class="bi" [class]="solvedOn() ? 'bi-check-circle-fill' : 'bi-check-circle'" aria-hidden="true"></i>{{ t('jigsawList.solved') || 'Solved' }}
+      </button>
+    }
   </div>
 </ng-container>

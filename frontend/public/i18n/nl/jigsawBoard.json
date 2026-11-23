@@ -7,7 +7,8 @@
   "piecesArea": "Gebied met puzzelstukjes",
   "pictureArea": "Afbeeldingsgebied",
   "piecesStore": "Voorraad puzzelstukjes",
-  "clickToGet": "Klik om stukjes te halen",
+  "clickToGet": "Tik hier om de stukjes te verzamelen",
   "scrollLeft": "Scroll de stukjes naar links",
-  "scrollRight": "Scroll de stukjes naar rechts"
+  "scrollRight": "Scroll de stukjes naar rechts",
+  "dragHint": "Sleep een stukje naar de afbeelding"
 }

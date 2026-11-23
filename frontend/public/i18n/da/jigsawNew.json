@@ -38,7 +38,6 @@
   "saving": "Gemmer…",
   "making": "Laver puslespillet…",
   "saveChanges": "Gem ændringer",
-  "saveStart": "Gem og start",
   "couldNotReadUsers": "Kunne ikke læse brugerne: genindlæs siden.",
   "couldNotOpen": "Kunne ikke åbne puslespillet til redigering: gå tilbage og prøv igen.",
   "couldNotSave": "Kunne ikke gemme ændringerne: måske er nogen begyndt at spille det i mellemtiden. Tjek billedet og prøv igen.",
@@ -73,5 +72,13 @@
   "classifyHelp": "Billedet sendes til OpenAI for at blive set på. Navnet, beskrivelsen og kategorierne erstattes.",
   "classifyFailed": "AI kunne ikke: prøv igen.",
   "sectionLook": "Udseende",
-  "languageAi": "Når du skifter, lader AI dem skrive igen på det nye sprog."
+  "languageAi": "Når du skifter, lader AI dem skrive igen på det nye sprog.",
+  "motive": "Motivets sværhedsgrad",
+  "motiveHelp": "Hvor svært selve billedet er at lægge: jo færre tydelige detaljer, jo sværere. AI sætter den også.",
+  "motiveNone": "Ikke angivet",
+  "saveNew": "Gem",
+  "saveAnalyse": "Gem og analysér med AI",
+  "saveAnalyseHelp": "Billedet sendes til OpenAI for at sætte kategorier, motivets sværhedsgrad, navn og beskrivelse.",
+  "moreOptions": "Flere valg",
+  "sectionPlayOnly": "Spil"
 }

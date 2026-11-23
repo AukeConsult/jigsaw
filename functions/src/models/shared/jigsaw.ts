@@ -162,7 +162,7 @@ export class JigsawCut {
   static scatterPieces(pieces: PlacedObject[], width: number, height: number, grid: number, random: () => number): { placed: PlacedObject[]; storeWidth: number } {
     const count = pieces.length;
     const { spots, storeWidth } = JigsawCut.scatter(count, grid, STORE_HEIGHT_FACTOR * height, random);
-    const left = width + grid;
+    const left = width + JigsawSettings.storeGap(grid); // where the store frame starts
     const order = Array.from({ length: count }, (_, i) => i);
     for (let i = count - 1; i > 0; i--) {
       const j = Math.floor(random() * (i + 1));
@@ -281,10 +281,13 @@ export class JigsawPieces {
 
   /**
    * Whether a piece is a corner or an edge piece: it lies on the border of the picture, so it has a flat side (a corner has two). The pieces from the inside
-   * of the picture have a tab or a blank on all four sides.
+   * of the picture have a tab or a blank on all four sides. When the number of columns and rows is known (`grid`), a piece is also a border piece when its cell is on the border
+   * of the picture, whatever its edges say: a border piece is never taken for one from the inside (and so never hidden by "only corner and edge pieces").
    */
-  static isBorder(piece: Pick<JigsawPiece, 'top' | 'right' | 'bottom' | 'left'>): boolean {
-    return piece.top === 0 || piece.right === 0 || piece.bottom === 0 || piece.left === 0;
+  static isBorder(piece: Pick<JigsawPiece, 'top' | 'right' | 'bottom' | 'left'> & Partial<Pick<JigsawPiece, 'col' | 'row'>>, grid?: { columns: number; rows: number }): boolean {
+    const flat = piece.top === 0 || piece.right === 0 || piece.bottom === 0 || piece.left === 0;
+    const onBorder = !!grid && typeof piece.col === 'number' && typeof piece.row === 'number' && (piece.col <= 0 || piece.row <= 0 || piece.col >= grid.columns - 1 || piece.row >= grid.rows - 1);
+    return flat || onBorder;
   }
 
   /** whether a piece lies on its own place: the centre of its cell of the picture */

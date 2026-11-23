@@ -42,6 +42,19 @@ export class JigsawUsers {
     return username.trim().toLowerCase();
   }
 
+  /**
+   * A user name made from a person's name, for somebody who only said their name: accents taken off, small letters and digits only, words joined with "-", and the `suffix` (digits, to
+   * tell two people with the same name apart) put last. Always a name that `usernameError` allows.
+   */
+  static usernameFrom(name: string, suffix: string): string {
+    const plain = name.toLowerCase().replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/ß/g, 'ss').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const tail = suffix.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const room = USERNAME_MAX - (tail ? tail.length + 1 : 0);
+    const base = (plain.slice(0, room).replace(/-+$/, '') || 'player');
+    const made = tail ? `${base}-${tail}` : base;
+    return made.length >= USERNAME_MIN ? made : `${made}-user`.slice(0, USERNAME_MAX);
+  }
+
   /** The reason a user name is not allowed, or ''. */
   static usernameError(value: unknown): string {
     if (typeof value !== 'string') return 'Choose a user name.';

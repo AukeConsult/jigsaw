@@ -38,7 +38,6 @@
   "saving": "Tallennetaan…",
   "making": "Tehdään palapeliä…",
   "saveChanges": "Tallenna muutokset",
-  "saveStart": "Tallenna ja aloita",
   "couldNotReadUsers": "Käyttäjiä ei voitu lukea: lataa sivu uudelleen.",
   "couldNotOpen": "Palapeliä ei voitu avata muokattavaksi: palaa takaisin ja yritä uudelleen.",
   "couldNotSave": "Muutoksia ei voitu tallentaa: kukaan ei ehkä ole ehtinyt aloittaa sen pelaamista. Tarkista kuva ja yritä uudelleen.",
@@ -73,5 +72,13 @@
   "classifyHelp": "Kuva lähetetään OpenAI:lle katsottavaksi. Nimi, kuvaus ja luokat korvataan.",
   "classifyFailed": "Tekoäly ei onnistunut: yritä uudelleen.",
   "sectionLook": "Ulkoasu",
-  "languageAi": "Kielen vaihtaminen antaa tekoälyn kirjoittaa ne uudelleen uudella kielellä."
+  "languageAi": "Kielen vaihtaminen antaa tekoälyn kirjoittaa ne uudelleen uudella kielellä.",
+  "motive": "Kuvan vaikeus",
+  "motiveHelp": "Kuinka vaikea itse kuva on koota: mitä vähemmän selviä yksityiskohtia, sitä vaikeampi. Tekoäly asettaa sen myös.",
+  "motiveNone": "Ei annettu",
+  "saveNew": "Tallenna",
+  "saveAnalyse": "Tallenna ja analysoi tekoälyllä",
+  "saveAnalyseHelp": "Kuva lähetetään OpenAI:lle luokkien, kuvan vaikeuden, nimen ja kuvauksen asettamiseksi.",
+  "moreOptions": "Lisää valintoja",
+  "sectionPlayOnly": "Pelaa"
 }

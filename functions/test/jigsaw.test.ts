@@ -29,7 +29,7 @@ describe("cutting a picture into jigsaw pieces", () => {
   it("scatters the pieces in the store frame beside the picture area, all inside it", () => {
     const { placed, storeWidth } = cut(200, 150, 50); // 12 pieces; the frame is 3 × 150 = 450 high
     const frame = JigsawSettings.storeFrame(200, 150, 50, storeWidth)!;
-    expect(frame).toEqual({ left: 250, width: storeWidth, height: 450 });
+    expect(frame).toEqual({ left: 206, width: storeWidth, height: 450 }); // an eighth of a grid step (6) from the picture
     expect(storeWidth).toBeGreaterThan(0);
     for (const p of placed) {
       expect(p.centerX - 25).toBeGreaterThanOrEqual(frame.left); // the whole piece is in the frame, none on the picture area
@@ -154,8 +154,8 @@ describe("a piece that is dropped close to its own place", () => {
     expect(near.dropPieces(["p"], 0)).toBe(near);
     expect(near.dropPieces(["p"], -5)).toBe(near);
     expect(near.dropPieces(["p"], Number.NaN)).toBe(near);
-    const there = Puzzle.from([put(125, 75)], 800, 600);
-    expect(there.dropPieces(["p"], 25)).toBe(there); // already exactly there
+    const there = Puzzle.from([{ ...put(125, 75), layer: 1 }], 800, 600); // already exactly there, and on the bottom layer where a fixed piece is
+    expect(there.dropPieces(["p"], 25)).toBe(there);
     expect(there.dropPieces(["nobody"], 25)).toBe(there);
   });
 
@@ -647,7 +647,7 @@ describe("pieces that stick together", () => {
       const d = world(mk(2, 1, 125, 75), mk(3, 1, 200, 100)); // piece 3,1 belongs at 175, 75, and its neighbour is at home too: fitting the neighbour is the same place
       expect(at(d.dropPieces(["piece-3-1"], 40), "piece-3-1")).toEqual([175, 75]);
       const farOff = world(mk(2, 1, 125, 75), mk(3, 1, 330, 200)); // about 199 px from its place: out of a range of 150
-      expect(farOff.dropPieces(["piece-3-1"], 150)).toBe(farOff);
+      expect(at(farOff.dropPieces(["piece-3-1"], 150), "piece-3-1")).toEqual([330, 200]); // stays where it was dropped
       const alone = world(mk(3, 1, 180, 82));
       expect(at(alone.dropPieces(["piece-3-1"], 25), "piece-3-1")).toEqual([175, 75]); // no neighbours: its own place
     });
@@ -655,9 +655,9 @@ describe("pieces that stick together", () => {
     it("clicks exactly or not at all: when the area has no room for the step, the group stays where it was dropped", () => {
       const room = Puzzle.from([mk(0, 0, 25, 25), mk(1, 0, 90, 25)], 200, 100); // piece 1,0 is 15 px from fitting, to the right: there is room
       expect(at(room.dropPieces(["piece-1-0"], 25), "piece-1-0")).toEqual([75, 25]);
-      const edge = Puzzle.from([mk(6, 5, 30, 100), mk(5, 5, 12, 100)], 200, 300); // piece 5,5 would have to go to x = 30 - 50 = -20, outside the area
+      const edge = Puzzle.from([mk(6, 5, 60, 100), mk(5, 5, 40, 100)], 200, 300); // piece 5,5 would have to go to x = 60 - 50 = 10: its box would be outside the area
       expect(edge.dropPieces(["piece-5-5"], 40)).toBe(edge); // not moved a little towards it
-      const group = Puzzle.from([mk(6, 5, 30, 100), mk(5, 5, 12, 100), mk(5, 6, 12, 150)], 200, 300); // the group of 5,5 and 5,6 has no room either
+      const group = Puzzle.from([mk(6, 5, 60, 100), mk(5, 5, 40, 100), mk(5, 6, 40, 150)], 200, 300); // the group of 5,5 and 5,6 has no room either
       expect(group.dropPieces(["piece-5-5"], 40)).toBe(group);
     });
 
@@ -872,7 +872,7 @@ describe("starting a cut jigsaw over (reset)", () => {
     expect(again.placed.map((p) => p.layer)).not.toEqual(first.placed.map((p) => p.layer));
     const input = { name: "Puzzle", width: 400, height: 300, gridSize: 50, gridVisible: true, placed: again.placed, storeWidth: again.storeWidth };
     expect(new JigsawSettings(input).error()).toBe(""); // inside the frame
-    const left = 450;
+    const left = 406; // the store frame starts an eighth of a grid step (6) from the picture
     for (const p of again.placed) expect(p.centerX - 25).toBeGreaterThanOrEqual(left);
   });
 
@@ -933,3 +933,142 @@ describe("a grid whose points are half a step in from the edge", () => {
     expect([plain.items[0].centerX, plain.items[0].centerY]).toEqual([50, 50]);
   });
 });
+
+describe("a free piece is never below a fixed one", () => {
+  // two neighbours: p belongs at 125, 75 and q (the next one to the right) at 175, 75
+  const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const p = (x: number, y: number, layer?: number) => ({ id: "p", centerX: x, centerY: y, object: size, piece: { col: 2, row: 1, top: 1, right: 0, bottom: -1, left: 1 } as const, ...(layer ? { layer } : {}) });
+  const q = (x: number, y: number, layer?: number) => ({ id: "q", centerX: x, centerY: y, object: size, piece: { col: 3, row: 1, top: 1, right: 0, bottom: -1, left: 1 } as const, ...(layer ? { layer } : {}) });
+  const layerOf = (d: Puzzle, id: string) => d.get(id)!.layer;
+
+  it("puts a piece that is fixed on the bottom layer, and every free piece above it, whatever layers they had", () => {
+    const d = Puzzle.from([p(125, 75, 40), q(500, 300, 1)], 800, 600).settled();
+    expect(layerOf(d, "p")).toBe(1); // on its place: fixed, at the bottom
+    expect(layerOf(d, "q")).toBe(2); // free, was on the bottom layer too: now above
+    const free = Puzzle.from([p(400, 300, 1), q(500, 300, 7)], 800, 600).settled();
+    expect([layerOf(free, "p"), layerOf(free, "q")]).toEqual([2, 7]); // no fixed piece: free ones keep their order, none on the bottom
+  });
+
+  it("puts the pieces that stick to a fixed one on the bottom too, and leaves everything else alone", () => {
+    const stuck = Puzzle.from([p(125, 75, 30), q(175, 75, 31), { ...q(500, 300, 5), id: "r", piece: { col: 5, row: 4, top: 0, right: 0, bottom: 0, left: 0 } }], 800, 600).settled();
+    expect([layerOf(stuck, "p"), layerOf(stuck, "q"), layerOf(stuck, "r")]).toEqual([1, 1, 5]);
+    const plain = { id: "s", centerX: 300, centerY: 300, layer: 9, object: size }; // not a piece: its layer is its own
+    expect(layerOf(Puzzle.from([p(125, 75, 3), plain], 800, 600).settled(), "s")).toBe(9);
+  });
+
+  it("changes nothing (the same puzzle) when the layers are right already", () => {
+    const right = Puzzle.from([p(125, 75, 1), q(500, 300, 2)], 800, 600);
+    expect(right.settled()).toBe(right);
+  });
+
+  it("sends a piece that has just clicked into place to the bottom, below the free pieces", () => {
+    const d = Puzzle.from([p(140, 90, 50), q(500, 300, 3)], 800, 600).dropPieces(["p"], 25);
+    expect(d.get("p")!.centerX).toBe(125); // clicked
+    expect(layerOf(d, "p")).toBe(1);
+    expect(layerOf(d, "q")).toBeGreaterThan(layerOf(d, "p"));
+  });
+
+  it("puts a piece that is picked up above all, and above the fixed ones (also when it was the only free one)", () => {
+    const d = Puzzle.from([p(125, 75, 1), q(500, 300, 2)], 800, 600).bringToFront("q");
+    expect(layerOf(d, "q")).toBeGreaterThan(layerOf(d, "p"));
+  });
+});
+
+describe("a piece can never be lost", () => {
+  const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const piece = (id: string, x: number, y: number, col = 2, row = 1) => ({ id, centerX: x, centerY: y, object: size, piece: { col, row, top: 1, right: 1, bottom: -1, left: 1 } as const });
+
+  it("pulls a free piece that lies outside the area back in, as little as it takes, and leaves the others alone", () => {
+    const d = Puzzle.from([piece("a", -40, 300), piece("b", 790, 620, 3, 2), piece("c", 400, 300, 4, 3)], 800, 600).settled();
+    expect([d.get("a")!.centerX, d.get("a")!.centerY]).toEqual([25, 300]); // the box was out at the left
+    expect([d.get("b")!.centerX, d.get("b")!.centerY]).toEqual([775, 575]); // out at the right and below
+    expect([d.get("c")!.centerX, d.get("c")!.centerY]).toEqual([400, 300]);
+  });
+
+  it("is a border piece when its cell is on the border of the picture, also when its edges do not say so", () => {
+    const grid = { columns: 8, rows: 6 };
+    const inner = { top: 1, right: -1, bottom: 1, left: -1 };
+    expect(JigsawPieces.isBorder({ ...inner, col: 0, row: 3 }, grid)).toBe(true); // left edge
+    expect(JigsawPieces.isBorder({ ...inner, col: 7, row: 3 }, grid)).toBe(true); // right edge
+    expect(JigsawPieces.isBorder({ ...inner, col: 4, row: 0 }, grid)).toBe(true);
+    expect(JigsawPieces.isBorder({ ...inner, col: 4, row: 5 }, grid)).toBe(true);
+    expect(JigsawPieces.isBorder({ ...inner, col: 4, row: 3 }, grid)).toBe(false); // from the inside
+    expect(JigsawPieces.isBorder({ ...inner, col: 0, row: 3 })).toBe(false); // without a grid only the flat sides say it
+    expect(JigsawPieces.isBorder({ top: 0, right: 1, bottom: -1, left: 1, col: 4, row: 3 }, grid)).toBe(true); // a flat side says it too
+  });
+
+  it("finds every piece of a cut as a border piece or an inner one by its cell, the same as by its flat sides", () => {
+    for (const [columns, rows] of [[2, 2], [3, 2], [5, 4], [8, 6], [16, 12]]) {
+      const cut = JigsawCut.cut(columns * 50, rows * 50, 50) as { placed: PlacedObject[] };
+      for (const p of cut.placed) {
+        const cell = p.piece!.col === 0 || p.piece!.row === 0 || p.piece!.col === columns - 1 || p.piece!.row === rows - 1;
+        expect(JigsawPieces.isBorder(p.piece!, { columns, rows })).toBe(cell);
+        expect(JigsawPieces.isBorder(p.piece!)).toBe(cell);
+      }
+    }
+  });
+});
+
+describe("a place on the board that shows less of the model", () => {
+  const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const piece = (id: string, x: number, y: number, col = 2, row = 1) => ({ id, centerX: x, centerY: y, object: size, piece: { col, row, top: 1, right: 1, bottom: -1, left: 1 } as const });
+  const region = { left: 0, top: 350, width: 800, height: 700 }; // below the picture
+  const into = { left: 0, top: 400, width: 300, height: 200 }; // the free space beside it, as the board shows it
+
+  it("pulls the free pieces of the region into the box, as little as it takes, and leaves what is outside the region and what is fixed", () => {
+    const d = Puzzle.from([piece("a", 500, 900), piece("b", 100, 450, 3, 2), piece("c", 100, 100, 4, 3), piece("home", 125, 75, 2, 1)], 1200, 1500).confine(region, into);
+    expect([d.get("a")!.centerX, d.get("a")!.centerY]).toEqual([275, 575]); // too far right and too far down: the whole piece is inside the box
+    expect([d.get("b")!.centerX, d.get("b")!.centerY]).toEqual([100, 450]); // already inside
+    expect([d.get("c")!.centerX, d.get("c")!.centerY]).toEqual([100, 100]); // on the picture: not in the region
+    expect([d.get("home")!.centerX, d.get("home")!.centerY]).toEqual([125, 75]); // fixed
+  });
+
+  it("gives back the same puzzle when no piece has to move", () => {
+    const d = Puzzle.from([piece("a", 100, 450)], 1200, 1500);
+    expect(d.confine(region, into)).toBe(d);
+  });
+});
+
+describe("a group of pieces that stick together is one piece for what is drawn", () => {
+  const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const mk = (col: number, row: number, x: number, y: number) => ({ id: `p-${col}-${row}`, centerX: x, centerY: y, object: size, piece: { col, row, top: 1, right: 1, bottom: -1, left: 1 } as const });
+
+  it("gives every piece of a group the same anchor: the one that is held when it is in the group, else the lowest id", () => {
+    // 2,1 and 3,1 lie exactly beside each other (they stick); 5,4 is alone
+    const d = Puzzle.from([mk(3, 1, 650, 400), mk(2, 1, 600, 400), mk(5, 4, 100, 100)], 2000, 1000);
+    expect(d.groupAnchors()).toEqual(new Map([["p-3-1", "p-2-1"], ["p-2-1", "p-2-1"], ["p-5-4", "p-5-4"]]));
+    expect(d.groupAnchors(["p-3-1"]).get("p-2-1")).toBe("p-3-1"); // the held piece stands for its group
+    expect(d.groupAnchors(["p-5-4"]).get("p-2-1")).toBe("p-2-1"); // a piece that is not in the group is not asked
+  });
+
+  it("does not join pieces that only lie near each other, and an object that is not a piece is its own anchor", () => {
+    const near = { id: "o", centerX: 10, centerY: 10, object: size };
+    const d = Puzzle.from([mk(2, 1, 600, 400), mk(3, 1, 655, 400), near], 2000, 1000);
+    expect(d.groupAnchors().get("p-3-1")).toBe("p-3-1");
+    expect(d.groupAnchors().get("o")).toBe("o");
+  });
+});
+
+describe("a group that is outside the area comes back whole", () => {
+  const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const mk = (col: number, row: number, x: number, y: number) => ({ id: `p-${col}-${row}`, centerX: x, centerY: y, object: size, piece: { col, row, top: 1, right: 1, bottom: -1, left: 1 } as const });
+  // 2,1 and 3,1 are exactly beside each other: a group of two, whose right piece is outside an area 800 wide
+  const group = () => [mk(2, 1, 780, 300), mk(3, 1, 830, 300)];
+  const apart = (d: Puzzle) => [d.get("p-3-1")!.centerX - d.get("p-2-1")!.centerX, d.get("p-3-1")!.centerY - d.get("p-2-1")!.centerY];
+
+  it("moves every piece of the group by the same amount when it is outside the area, so it stays one group", () => {
+    const d = Puzzle.from(group(), 800, 600).settled();
+    expect(apart(d)).toEqual([50, 0]); // still exactly beside each other
+    expect(d.get("p-3-1")!.centerX).toBe(775); // the whole group is inside: the right piece is against the edge
+    expect(d.get("p-2-1")!.centerX).toBe(725);
+    expect(d.stuckGroup(["p-2-1"])).toHaveLength(2);
+  });
+
+  it("moves a group that is pulled into a box (the free space) whole too", () => {
+    const d = Puzzle.from([mk(2, 1, 180, 500), mk(3, 1, 230, 500)], 800, 900).confine({ left: 0, top: 400, width: 800, height: 500 }, { left: 0, top: 400, width: 200, height: 100 });
+    expect(apart(d)).toEqual([50, 0]);
+    expect(d.get("p-3-1")!.centerX).toBe(175); // the right piece is against the right edge of the box
+    expect(d.get("p-3-1")!.centerY).toBe(475); // and both are inside it
+  });
+});
+

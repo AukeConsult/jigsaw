@@ -7,7 +7,8 @@
   "piecesArea": "Område for puslespillbrikker",
   "pictureArea": "Bildeflate",
   "piecesStore": "Lager med puslespillbrikker",
-  "clickToGet": "Klikk for å hente brikker",
+  "clickToGet": "Trykk her for å samle brikkene",
   "scrollLeft": "Rull brikkene til venstre",
-  "scrollRight": "Rull brikkene til høyre"
+  "scrollRight": "Rull brikkene til høyre",
+  "dragHint": "Dra en brikke til bildet"
 }

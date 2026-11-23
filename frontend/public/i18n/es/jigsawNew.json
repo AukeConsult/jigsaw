@@ -38,7 +38,6 @@
   "saving": "Guardando…",
   "making": "Creando el puzle…",
   "saveChanges": "Guardar cambios",
-  "saveStart": "Guardar y empezar",
   "couldNotReadUsers": "No se pudieron leer los usuarios: recarga la página.",
   "couldNotOpen": "No se pudo abrir el puzle para editarlo: vuelve atrás e inténtalo de nuevo.",
   "couldNotSave": "No se pudieron guardar los cambios: puede que mientras tanto alguien haya empezado a jugarlo. Revisa la imagen e inténtalo de nuevo.",
@@ -73,5 +72,13 @@
   "classifyHelp": "La imagen se envía a OpenAI para que la mire. Se reemplazan el nombre, la descripción y las categorías.",
   "classifyFailed": "La IA no pudo hacerlo: inténtalo de nuevo.",
   "sectionLook": "Aspecto",
-  "languageAi": "Al cambiarlo, la IA los vuelve a escribir en el nuevo idioma."
+  "languageAi": "Al cambiarlo, la IA los vuelve a escribir en el nuevo idioma.",
+  "motive": "Dificultad del motivo",
+  "motiveHelp": "Lo difícil que es la imagen en sí: cuantos menos detalles distintos, más difícil. La IA también lo pone.",
+  "motiveNone": "Sin indicar",
+  "saveNew": "Guardar",
+  "saveAnalyse": "Guardar y analizar con IA",
+  "saveAnalyseHelp": "La imagen se envía a OpenAI para poner las categorías, la dificultad del motivo, el nombre y la descripción.",
+  "moreOptions": "Más opciones",
+  "sectionPlayOnly": "Jugar"
 }

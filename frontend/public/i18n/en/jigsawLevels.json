@@ -10,5 +10,12 @@
     "hard": "Hard",
     "medium": "Medium",
     "easy": "Easy"
+  },
+  "motive": {
+    "easy": "Easy",
+    "mediumeasy": "Medium easy",
+    "normal": "Normal",
+    "hard": "Hard",
+    "expert": "Expert"
   }
 }

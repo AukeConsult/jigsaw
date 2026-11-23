@@ -7,7 +7,8 @@
   "piecesArea": "Jigsaw pieces area",
   "pictureArea": "Picture area",
   "piecesStore": "Jigsaw pieces store",
-  "clickToGet": "Click to get pieces",
+  "clickToGet": "Tap here to gather the pieces",
   "scrollLeft": "Scroll the pieces to the left",
-  "scrollRight": "Scroll the pieces to the right"
+  "scrollRight": "Scroll the pieces to the right",
+  "dragHint": "Drag a piece to the picture"
 }

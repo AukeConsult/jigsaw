@@ -2,18 +2,17 @@ Make a jigsaw puzzle from any picture and put it together on the screen. Everyth
 
 ## Who plays
 
-* The first time, you are asked who plays. Press your name in the list, or press **Make a user**: choose a **User name** (3 to 30 letters a-z, digits, _ or -) and your name. The **E-mail** is optional and is never shown.
+* The first time, you are asked **What is your name?** Type your name and press **Start playing**. If you have played before, press **I have played before**, then your name in the list.
 * There is no password for now, so anyone can pick any user.
 * Press your name in the menu to see **Your rounds**, to press **Edit**, or to press **Choose another user**.
 
 ## Make a jigsaw
 
-1. Press **New jigsaw** (on the front page and at the top of the list).
+1. Press **Make a jigsaw** in the welcome on the front page, or press your name in the menu and then the button for a new jigsaw.
 2. Type a **Name** and choose a **Picture**. A window opens: drag the picture to find the part you want, zoom, then press **Use this cut**.
 3. Choose the **Size** and the number of **Pieces** (up to 1000). The size is adjusted a little so the pieces fit exactly.
-4. Choose the **Difficulty**, whether it is **Timed**, and the **Line**, **Colour** and **Background** of the picture area.
-5. Choose the **Author** and **Who sees it**.
-6. Press **Save and start**.
+4. Choose the **Difficulty** and whether it is **Timed**. Under **More options** you can also change the language, the categories, the look, the author and who sees it.
+5. Press **Save** (or **Save and analyse with AI**, which also has the AI set the categories, the name and the description, and never leaves the page, so you can look at it and change it). Save opens the page of the new jigsaw: start a round from there.
 
 ## Play
 
@@ -33,7 +32,7 @@ Make a jigsaw puzzle from any picture and put it together on the screen. Everyth
 ## Rounds
 
 * One game of a jigsaw is a **round**. The page of a jigsaw lists the rounds of everybody; yours are marked **Yours** and come first.
-* Press **Continue** to go on with one of yours, **Enter a round, solve it** to start another, or **Delete** to remove one of yours (you are asked first).
+* Press **Continue** to go on with one of yours, **Start playing** to start another, or **Delete** to remove one of yours (you are asked first).
 * Press **Look** to see another player's round. You can never change it, but you can start your own.
 * A round counts once you have moved a piece in it. If you only open a jigsaw and go back, no round is listed.
 * **Challenge a friend:** make the jigsaw **Timed** and ask your friend to play a round of it too. The time of every round is in the list, so you can see who is fastest.

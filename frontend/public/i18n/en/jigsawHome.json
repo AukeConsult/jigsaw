@@ -26,5 +26,9 @@
   "jigsaws": "Jigsaws",
   "imageAlt": "A woman with a colourful parasol on a fort terrace, green hills and a town behind her",
   "noRoundsYet": "You have no rounds going yet. Pick a jigsaw below to start one.",
-  "welcomeIntro": "Enjoy my jigsaws, play them and have fun, or use your own picture to make your own."
+  "welcomeIntro": "Enjoy my jigsaws, play them and have fun, or use your own picture to make your own.",
+  "step1": "Pick a jigsaw below and press it.",
+  "step2": "Drag the pieces to where they belong.",
+  "step3": "Want your own? Make one from a picture:",
+  "makeOwn": "Make a jigsaw"
 }

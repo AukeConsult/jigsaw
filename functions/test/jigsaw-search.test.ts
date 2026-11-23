@@ -182,7 +182,7 @@ describe("the counts of a filter", () => {
     expect(f.total).toBe(2);
     expect(f.owners).toEqual([{ id: "u1", name: "Karin", count: 2 }]);
     expect("family" in f.categories).toBe(false);
-    expect(JigsawSearch.facets([], query())).toEqual({ total: 0, categories: {}, sizes: {}, difficulties: {}, languages: {}, owners: [] });
+    expect(JigsawSearch.facets([], query())).toEqual({ total: 0, categories: {}, sizes: {}, difficulties: {}, motives: {}, languages: {}, owners: [] });
   });
 });
 
@@ -420,6 +420,22 @@ describe("the route", () => {
     expect([facets.total, facets.sizes]).toEqual([2, { large: 2 }]); // the counts are over the favorites
   });
 
+  it("looks only at the jigsaws the user who asks has solved, in the search and in the counts, and at none for nobody", async () => {
+    const plays = memoryPlays();
+    const round = (userId: string, status: "solved" | "active") => ({ jigsawId: "x", userId, userName: userId, status, startedAt: 1, matched: 0, total: 1, overrides: {} }) as never;
+    await plays.create("forest", round("u1", "solved"), {});
+    await plays.create("family", round("u1", "active"), {}); // not solved yet
+    await plays.create("forest", round("u2", "active"), {});
+    const app = createJigsawApp({ jigsawSearch: fakeSearch(all), plays, users: memoryUsers("u1", "u2") });
+    const found = async (qs: string, me?: string) => ids((await get(app, qs, me)).body.items);
+    expect(await found("?solved=true", "u1")).toEqual(["forest"]);
+    expect(await found("?solved=true&categories=family", "u1")).toEqual([]); // with the rest of the filter
+    expect(await found("?solved=true", "u2")).toEqual([]); // u2 has solved none
+    expect(await found("?solved=true")).toEqual([]); // nobody: none
+    expect((await get(app, "/facets?solved=true", "u1")).body.total).toBe(1);
+    expect((await get(app, "?solved=maybe", "u1")).status).toBe(400);
+  });
+
   it("makes the search forget what it read when a jigsaw is made, changed or deleted", async () => {
     const forgot: number[] = [];
     const users = memoryUsers("u1");
@@ -429,5 +445,79 @@ describe("the route", () => {
     await request(app).put("/jigsaw/api/jigsaw/n").send(body);
     await request(app).delete("/jigsaw/api/jigsaw/n");
     expect(forgot.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("the jigsaws of one user, a page at a time", () => {
+  const mine = [
+    summary(jigsaw("a", { createdAt: 1, name: "Harbour", ownerUid: "u1" })),
+    summary(jigsaw("b", { createdAt: 2, name: "Forest path", ownerUid: "u1", visibility: "owner" })),
+    summary(jigsaw("c", { createdAt: 3, name: "Harbour at night", ownerUid: "u1", visibility: "hidden", width: 200, height: 150 })),
+    summary(jigsaw("d", { createdAt: 4, name: "Apple", ownerUid: "u1" })),
+  ];
+  const q = (over: Record<string, unknown> = {}) => ({ text: undefined, sort: "new" as const, limit: 2, page: 1, ...over });
+
+  it("gives a page of them, with how many there are in all, and counts of who sees them", () => {
+    const first = JigsawSearch.mine(mine, q());
+    expect(ids(first.items)).toEqual(["d", "c"]);
+    expect([first.total, first.hasMore]).toEqual([4, true]);
+    expect(first.counts).toEqual({ all: 4, everyone: 2, owner: 1, hidden: 1 }); // the hidden and the private ones are in it: they are the user's own
+    expect(ids(JigsawSearch.mine(mine, q({ page: 2 })).items)).toEqual(["b", "a"]);
+    expect(JigsawSearch.mine(mine, q({ page: 2 })).hasMore).toBe(false);
+  });
+
+  it("looks for words, and the counts follow the words but not the choice of who sees them", () => {
+    const found = JigsawSearch.mine(mine, q({ text: "harbour", limit: 10 }));
+    expect(ids(found.items)).toEqual(["c", "a"]);
+    expect(found.counts).toEqual({ all: 2, everyone: 1, owner: 0, hidden: 1 });
+    const hiddenOnly = JigsawSearch.mine(mine, q({ text: "harbour", limit: 10 }), "hidden");
+    expect(ids(hiddenOnly.items)).toEqual(["c"]);
+    expect(hiddenOnly.counts).toEqual(found.counts); // so the buttons still say what the other choices would give
+    expect(ids(JigsawSearch.mine(mine, q({ limit: 10 }), "everyone").items)).toEqual(["d", "a"]);
+  });
+
+  it("puts them in the order asked for: newest, oldest, name, fewest pieces, most pieces", () => {
+    const order = (sort: string) => ids(JigsawSearch.mine(mine, q({ sort, limit: 10 })).items);
+    expect(order("new")).toEqual(["d", "c", "b", "a"]);
+    expect(order("old")).toEqual(["a", "b", "c", "d"]);
+    expect(order("name")).toEqual(["d", "b", "a", "c"]); // Apple, Forest path, Harbour, Harbour at night
+    expect(order("pieces")[0]).toBe("c"); // the small one first
+    expect(order("most")[3]).toBe("c");
+  });
+});
+
+describe("the route of one user's jigsaws", () => {
+  function store(list: JigsawSpec[]): JigsawSearchStore {
+    return { async load() { return list.map(summary); }, forget() {} };
+  }
+  const owned = [
+    jigsaw("a", { createdAt: 1, ownerUid: "u1" }),
+    jigsaw("b", { createdAt: 2, ownerUid: "u1", visibility: "hidden" }),
+    jigsaw("c", { createdAt: 3, ownerUid: "u2" }),
+    jigsaw("d", { createdAt: 4, ownerUid: "u1", visibility: "owner" }),
+  ];
+  const app = () => createJigsawApp({ jigsawSearch: store(owned), plays: memoryPlays(), users: memoryUsers("u1", "u2") });
+  const mineOf = (qs: string, me?: string) => {
+    const r = request(app()).get(`/jigsaw/api/jigsaw-search/mine${qs}`);
+    return me ? r.set("X-Jigsaw-User", me) : r;
+  };
+
+  it("gives only the jigsaws of the user who asks, the private and the hidden ones too, never another user's; 401 without a user", async () => {
+    const res = await mineOf("", "u1");
+    expect(res.status).toBe(200);
+    expect(ids(res.body.items)).toEqual(["d", "b", "a"]);
+    expect(res.body.counts).toEqual({ all: 3, everyone: 1, owner: 1, hidden: 1 });
+    expect(ids((await mineOf("", "u2")).body.items)).toEqual(["c"]);
+    expect((await mineOf("")).status).toBe(401);
+  });
+
+  it("pages, sorts, looks for words and chooses who sees them; refuses what is not allowed", async () => {
+    expect(ids((await mineOf("?visibility=hidden", "u1")).body.items)).toEqual(["b"]);
+    const page = (await mineOf("?limit=2&page=2&sort=old", "u1")).body;
+    expect(ids(page.items)).toEqual(["d"]);
+    expect(page.hasMore).toBe(false);
+    expect((await mineOf("?visibility=secret", "u1")).status).toBe(400);
+    expect((await mineOf("?sort=random", "u1")).status).toBe(400);
+    expect((await mineOf("?limit=500", "u1")).status).toBe(400);
   });
 });

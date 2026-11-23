@@ -23,6 +23,8 @@ export class JigsawHeader {
   readonly editing = input(false);
   /** something is being done: the main button waits */
   readonly busy = input(false);
+  /** the user has solved this jigsaw: there is no button to play it again */
+  readonly solved = input(false);
   /** Delete was pressed and waits for "Yes" (the page keeps it, since it closes it when the delete fails) */
   readonly confirmingDelete = model(false);
 

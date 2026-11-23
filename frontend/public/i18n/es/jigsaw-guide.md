@@ -2,18 +2,17 @@ Haz un puzle con cualquier imagen y arma el puzle en la pantalla. Todo se guarda
 
 ## Quién juega
 
-* La primera vez se te pregunta quién juega. Pulsa tu nombre en la lista, o pulsa **Crear un usuario**: elige un **Nombre de usuario** (de 3 a 30 letras a-z, dígitos, _ o -) y tu nombre. El **Correo electrónico** es opcional y nunca se muestra.
+* La primera vez se te pregunta **¿Cómo te llamas?** Escribe tu nombre y pulsa **Empezar a jugar**. Si ya has jugado antes, pulsa **Ya he jugado antes** y luego tu nombre en la lista.
 * Por ahora no hay contraseña, así que cualquiera puede elegir cualquier usuario.
 * Pulsa tu nombre en el menú para ver **Tus partidas**, pulsar **Editar** o pulsar **Elegir otro usuario**.
 
 ## Hacer un puzle
 
-1. Pulsa **Nuevo puzle** (en la página de inicio y arriba en la lista).
+1. Pulsa **Hacer un puzle** en la bienvenida de la página de inicio, o pulsa tu nombre en el menú y luego el botón de un puzle nuevo.
 2. Escribe un **Nombre** y elige una **Imagen**. Se abre una ventana: arrastra la imagen para encontrar la parte que quieres, haz zoom y pulsa **Usar este recorte**.
 3. Elige el **Tamaño** y el número de **Piezas** (hasta 1000). El tamaño se ajusta un poco para que las piezas encajen exactamente.
-4. Elige la **Dificultad**, si es **Cronometrado**, y la **Línea**, el **Color** y el **Fondo** del área de la imagen.
-5. Elige el **Autor** y **Quién lo ve**.
-6. Pulsa **Guardar y empezar**.
+4. Elige la **Dificultad** y si es **Cronometrado**. En **Más opciones** también puedes cambiar el idioma, las categorías, el aspecto, el autor y quién lo ve.
+5. Pulsa **Guardar** (o **Guardar y analizar con IA**, que también hace que la IA ponga las categorías, el nombre y la descripción). Se abre la página del nuevo puzle: empieza una ronda desde allí.
 
 ## Jugar
 
@@ -33,7 +32,7 @@ Haz un puzle con cualquier imagen y arma el puzle en la pantalla. Todo se guarda
 ## Partidas
 
 * Un juego de un puzle es una **partida**. La página de un puzle lista las partidas de todos; las tuyas están marcadas **Tuya** y van primero.
-* Pulsa **Continuar** para seguir con una tuya, **Entra en una partida, resuélvelo** para empezar otra, o **Eliminar** para quitar una tuya (se te pregunta antes).
+* Pulsa **Continuar** para seguir con una tuya, **Empezar a jugar** para empezar otra, o **Eliminar** para quitar una tuya (se te pregunta antes).
 * Pulsa **Ver** para ver la partida de otro jugador. Nunca puedes cambiarla, pero puedes empezar la tuya.
 * Una partida cuenta cuando has movido una pieza en ella. Si solo abres un puzle y vuelves, no aparece ninguna partida en la lista.
 * **Reta a un amigo:** haz el puzle **Cronometrado** y pide a tu amigo que juegue también una partida. El tiempo de cada partida está en la lista, para ver quién es más rápido.

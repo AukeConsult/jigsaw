@@ -9,6 +9,7 @@ export * from './placed';
 export * from './play';
 export * from './popularity';
 export * from './category';
+export * from './motive';
 export * from './language';
 export * from './favorite';
 export * from './jigsaw-search';

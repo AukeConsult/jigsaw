@@ -19,17 +19,17 @@
   "colourTitle": "De kleur van de lijn om elk stukje en om het afbeeldingsgebied",
   "back": "Achtergrond",
   "backTitle": "De achtergrondkleur van het afbeeldingsgebied, binnen het kader",
-  "startNewAsk": "Een nieuwe ronde beginnen? In een nieuwe ronde liggen de stukjes weer door elkaar; deze ronde blijft in je lijst staan.",
-  "yesNew": "Ja, nieuwe ronde",
+  "startNewAsk": "Deze ronde opnieuw beginnen? De stukjes liggen weer door elkaar en de tijd begint bij nul.",
+  "yesNew": "Ja, resetten",
   "cancel": "Annuleren",
   "deleteAsk": "Deze ronde definitief verwijderen? De stukjes en de voortgang gaan verloren. De puzzel blijft bestaan.",
   "yesDelete": "Ja, verwijderen",
-  "newRound": "Nieuwe ronde",
+  "newRound": "Ronde resetten",
   "deleteRound": "Ronde verwijderen",
   "cheat": "Valsspelen",
   "cheatHelp": "(help stukjes vinden)",
   "notSaved": "Niet opgeslagen: de instellingen zijn niet toegestaan",
   "couldNotSave": "Opslaan lukt niet, we proberen het opnieuw",
   "couldNotDelete": "De ronde kon niet worden verwijderd: probeer het opnieuw.",
-  "couldNotStart": "Er kon geen nieuwe ronde worden gestart: probeer het opnieuw."
+  "couldNotStart": "De ronde kon niet worden gereset: probeer het opnieuw."
 }

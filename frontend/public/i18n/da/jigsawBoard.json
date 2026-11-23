@@ -7,7 +7,8 @@
   "piecesArea": "Område til puslespilsbrikker",
   "pictureArea": "Billedflade",
   "piecesStore": "Lager med puslespilsbrikker",
-  "clickToGet": "Klik for at hente brikker",
+  "clickToGet": "Tryk her for at samle brikkerne",
   "scrollLeft": "Rul brikkerne til venstre",
-  "scrollRight": "Rul brikkerne til højre"
+  "scrollRight": "Rul brikkerne til højre",
+  "dragHint": "Træk en brik hen til billedet"
 }

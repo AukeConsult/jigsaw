@@ -6,6 +6,7 @@ import { JigsawSummary } from '../../models/shared/jigsaw-search';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { CategoryTags } from '../category-tags/category-tags';
 import { FavoritesService } from '../favorites.service';
+import { SolvedService } from '../solved.service';
 import { CardDetails } from '../card-details';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { snapLevelOfJigsaw } from '../snap-level';
@@ -21,6 +22,7 @@ import { snapLevelOfJigsaw } from '../snap-level';
 export class JigsawCard {
   private readonly images = inject(JigsawImageService);
   protected readonly favorites = inject(FavoritesService);
+  private readonly solved = inject(SolvedService);
   protected readonly details = inject(CardDetails);
 
   readonly jigsaw = input.required<JigsawSummary>();
@@ -38,6 +40,8 @@ export class JigsawCard {
     const grid = pieceGrid(j.width, j.height, j.gridSize);
     return grid.columns * grid.rows;
   });
+  /** the user has solved this jigsaw: a small mark in the corner of the picture says so */
+  protected readonly isSolved = computed(() => this.solved.isSolved(this.jigsaw().id));
   protected readonly favorite = computed(() => this.favorites.isFavorite(this.jigsaw().id));
 
   /** The heart is pressed: the jigsaw is a favorite, or not any more. It does not open the jigsaw. */

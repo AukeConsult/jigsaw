@@ -2,6 +2,14 @@ import { Injectable, effect, signal } from '@angular/core';
 import { isBoolean, readPreference, writePreference } from '../core/preferences';
 import { readSession, writeSession } from '../core/session-storage';
 
+const HELPER_KEY = 'jigsaw.helperByJigsaw';
+interface HelperState {
+  helper: boolean;
+  edgesOnly: boolean;
+}
+const isStateMap = (v: unknown): v is Record<string, HelperState> =>
+  typeof v === 'object' && v !== null && Object.values(v).every((s) => typeof s === 'object' && s !== null && isBoolean((s as HelperState).helper) && isBoolean((s as HelperState).edgesOnly));
+
 /**
  * The helper of the jigsaw: the switches in the top menu (the helper picture, only corner and edge pieces) and the button that opens the sidebar. The menu is in the
  * jigsaw shell and the pieces are on the board, so what they share is here: the switches (kept for the session, so they are as the person left them when the
@@ -27,9 +35,28 @@ export class JigsawHelper {
   /** how many pieces there are and how many of them are shown */
   readonly counts = signal({ shown: 0, total: 0 });
 
+  /** the jigsaw whose switches these are now (null: none open) */
+  private jigsawId: string | null = null;
+
+  /** Opens a jigsaw: its switches are as the person left them the last time it was open; a jigsaw never opened keeps the switches as they are (the last choice). */
+  open(id: string): void {
+    this.jigsawId = id || null;
+    const saved = this.jigsawId ? readPreference<Record<string, HelperState>>(HELPER_KEY, {}, isStateMap)[this.jigsawId] : undefined;
+    if (!saved) return;
+    this.helper.set(saved.helper);
+    this.edgesOnly.set(saved.edgesOnly);
+  }
+
   constructor() {
     effect(() => writePreference('jigsaw.helper', this.helper()));
     effect(() => writePreference('jigsaw.edgesOnly', this.edgesOnly()));
+    effect(() => {
+      const state = { helper: this.helper(), edgesOnly: this.edgesOnly() };
+      const id = this.jigsawId;
+      if (!id) return;
+      const all = readPreference<Record<string, HelperState>>(HELPER_KEY, {}, isStateMap);
+      writePreference(HELPER_KEY, { ...all, [id]: state });
+    });
     effect(() => writeSession('jigsaw.sidebarOpen', this.sidebarOpen()));
   }
 }

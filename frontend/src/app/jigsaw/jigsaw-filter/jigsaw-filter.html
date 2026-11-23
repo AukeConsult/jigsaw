@@ -79,6 +79,20 @@
         </fieldset>
       </div>
     }
+    @if (shows('motives')) {
+      <!-- the motive difficulty: how hard the picture itself is, a property of the jigsaw like its difficulty -->
+      <div class="col">
+        <fieldset>
+          <legend class="form-label">{{ t('jigsawList.motive') || 'Motive difficulty' }}</legend>
+          @for (m of motives; track m.key) {
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" [id]="idPrefix() + '-motive-' + m.key" [checked]="chosen('motives', m.key)" (change)="toggle('motives', m.key)">
+              <label class="form-check-label" [for]="idPrefix() + '-motive-' + m.key">{{ t('jigsawLevels.motive.' + m.key) || m.name }} <span class="text-body-secondary">{{ count('motives', m.key) }}</span></label>
+            </div>
+          }
+        </fieldset>
+      </div>
+    }
     @if (shows('owners')) {
       <div class="col">
         <fieldset>

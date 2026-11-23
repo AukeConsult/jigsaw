@@ -26,5 +26,9 @@
   "jigsaws": "Puzles",
   "imageAlt": "Una mujer con una sombrilla de colores en la terraza de un fuerte, con colinas verdes y una ciudad detrás",
   "noRoundsYet": "Aún no tienes ninguna ronda en marcha. Elige un puzle de abajo para empezar una.",
-  "welcomeIntro": "Disfruta de mis puzles, juega y diviértete, o usa tu propia imagen para hacer el tuyo."
+  "welcomeIntro": "Disfruta de mis puzles, juega y diviértete, o usa tu propia imagen para hacer el tuyo.",
+  "step1": "Elige un puzle abajo y púlsalo.",
+  "step2": "Arrastra las piezas a su sitio.",
+  "step3": "¿Quieres uno propio? Haz uno a partir de una imagen:",
+  "makeOwn": "Hacer un puzle"
 }

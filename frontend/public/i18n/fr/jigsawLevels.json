@@ -10,5 +10,12 @@
     "hard": "Difficile",
     "medium": "Moyen",
     "easy": "Facile"
+  },
+  "motive": {
+    "easy": "Facile",
+    "mediumeasy": "Assez facile",
+    "normal": "Normal",
+    "hard": "Difficile",
+    "expert": "Expert"
   }
 }

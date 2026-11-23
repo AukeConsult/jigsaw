@@ -26,5 +26,9 @@
   "jigsaws": "Puzzles",
   "imageAlt": "Eine Frau mit einem bunten Sonnenschirm auf einer Festungsterrasse, dahinter grüne Hügel und eine Stadt",
   "noRoundsYet": "Du hast noch keine Runde laufen. Wähle unten ein Puzzle, um eine zu starten.",
-  "welcomeIntro": "Genieße meine Puzzles, spiele sie und hab Spaß, oder nimm dein eigenes Bild und mach dein eigenes."
+  "welcomeIntro": "Genieße meine Puzzles, spiele sie und hab Spaß, oder nimm dein eigenes Bild und mach dein eigenes.",
+  "step1": "Wähle unten ein Puzzle und tippe darauf.",
+  "step2": "Ziehe die Teile an ihren Platz.",
+  "step3": "Du willst ein eigenes? Mach eins aus einem Bild:",
+  "makeOwn": "Puzzle erstellen"
 }

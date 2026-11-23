@@ -19,7 +19,7 @@
 <div #root class="border rounded bg-body-tertiary" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
      (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()">
 <div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
-<div class="scale-content position-relative d-flex align-items-start p-2" [class.flex-column]="stacked()" [style.gap.px]="gridSize()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
+<div class="scale-content position-relative d-flex align-items-start p-2" [class.flex-column]="stacked()" [style.gap.px]="stacked() ? gridSize() : gutter()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
   <div class="picture-surface position-relative shadow-sm flex-shrink-0" [class.bg-white]="!backColor()" [style.background-color]="backColor()" [class.picture-frame]="(lineWidth() ?? 0) > 0" [style.width.px]="width()" [style.height.px]="height()" [style.outline-width.px]="lineWidth() === null ? null : lineWidth()! / scale()" [style.outline-color]="lineColor()"
        [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null"
        (pointerdown)="startMarquee($event)">
@@ -38,7 +38,7 @@
   <!-- the store frame of a jigsaw, beside the picture area (below it on a narrow screen, see `stacked`): the pieces wait here, spread out; it scrolls up and down -->
   @if (store(); as s) {
     <div class="position-relative flex-shrink-0">
-    <div #storeFrame class="border rounded bg-body-secondary" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" [attr.aria-label]="t('jigsawBoard.piecesStore') || 'Jigsaw pieces store'"
+    <div #storeFrame class="border border-transparent rounded" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" [attr.aria-label]="t('jigsawBoard.piecesStore') || 'Jigsaw pieces store'"
          [style.width.px]="storeFrameWidth()" [style.height.px]="storeViewHeight()" (scroll)="onStoreScroll($event)">
       <div #storeInner class="position-relative" [style.width.px]="storeInnerSize().width" [style.height.px]="storeInnerSize().height" (pointerdown)="startMarquee($event)">
         <!-- the rectangle that is being dragged to pick pieces, in the store frame -->
@@ -50,7 +50,12 @@
     </div>
     <!-- a tiny hint, on top of the pieces: a click on an empty place of the store collects the pieces -->
     @if (storePieceIds().length) {
-      <span class="store-hint text-body-secondary" aria-hidden="true">{{ t('jigsawBoard.clickToGet') || 'Click to get pieces' }}</span>
+      @if (!hasMoved() && !viewOnly()) {
+        <!-- the first time: what to do, big enough to read -->
+        <span class="store-hint store-hint-first text-primary fw-semibold">{{ t('jigsawBoard.dragHint') || 'Drag a piece to the picture' }}</span>
+      } @else {
+        <span class="store-hint text-body-secondary" aria-hidden="true">{{ t('jigsawBoard.clickToGet') || 'Click to get pieces' }}</span>
+      }
     }
     <!-- below the picture the store scrolls sideways: two buttons over its edges scroll it a step to the left or right (only where there is more to see) -->
     @if (canScrollLeft()) {

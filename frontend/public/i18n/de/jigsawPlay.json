@@ -19,17 +19,17 @@
   "colourTitle": "Die Farbe der Linie um jedes Teil und um den Bildbereich",
   "back": "Hintergrund",
   "backTitle": "Die Hintergrundfarbe des Bildbereichs, innerhalb des Rahmens",
-  "startNewAsk": "Eine neue Runde starten? Die Teile werden in einer neuen Runde wieder verstreut; diese Runde bleibt in deiner Liste.",
-  "yesNew": "Ja, neue Runde",
+  "startNewAsk": "Diese Runde neu beginnen? Die Teile werden wieder verstreut und die Zeit beginnt bei null.",
+  "yesNew": "Ja, zurücksetzen",
   "cancel": "Abbrechen",
   "deleteAsk": "Diese Runde endgültig löschen? Ihre Teile und ihr Fortschritt gehen verloren. Das Puzzle bleibt.",
   "yesDelete": "Ja, löschen",
-  "newRound": "Neue Runde",
+  "newRound": "Runde zurücksetzen",
   "deleteRound": "Runde löschen",
   "cheat": "Schummeln",
   "cheatHelp": "(hilft beim Finden der Teile)",
   "notSaved": "Nicht gespeichert: Die Einstellungen sind nicht erlaubt",
   "couldNotSave": "Speichern nicht möglich, neuer Versuch",
   "couldNotDelete": "Die Runde konnte nicht gelöscht werden: Versuch es noch einmal.",
-  "couldNotStart": "Eine neue Runde konnte nicht gestartet werden: Versuch es noch einmal."
+  "couldNotStart": "Die Runde konnte nicht zurückgesetzt werden: versuche es noch einmal."
 }

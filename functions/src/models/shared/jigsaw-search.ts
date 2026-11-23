@@ -1,5 +1,6 @@
 import { JigsawCategories } from './category';
 import { JigsawLanguages, JIGSAW_LANGUAGES } from './language';
+import { JigsawMotives, MotiveLevel } from './motive';
 import { pieceGrid } from './jigsaw';
 import { JigsawSettings, JigsawSpec } from './jigsaw-settings';
 
@@ -42,16 +43,18 @@ export interface JigsawIndexFields {
   /** the categories and the categories of the sub-categories it is in (`nature` and `nature/forest`); none when it is in none */
   tags?: string[];
   level: Difficulty;
+  /** the motive difficulty of the jigsaw (none when nobody has said it) */
+  motive?: MotiveLevel;
   sizeClass: SizeClass;
   /** the language of the jigsaw (English when it says nothing) */
   language: string;
 }
 
 /** The part of a jigsaw a list needs: everything but the pieces and the picture's details. It is all a search reads (`SUMMARY_FIELDS`). */
-export type JigsawSummary = Pick<JigsawSpec, 'id' | 'name' | 'author' | 'description' | 'language' | 'ownerUid' | 'visibility' | 'timed' | 'categories' | 'width' | 'height' | 'gridSize' | 'snapPercent' | 'createdAt'>;
+export type JigsawSummary = Pick<JigsawSpec, 'id' | 'name' | 'author' | 'description' | 'language' | 'ownerUid' | 'visibility' | 'timed' | 'categories' | 'motive' | 'width' | 'height' | 'gridSize' | 'snapPercent' | 'createdAt'>;
 
 /** The fields of a document a search reads (not `placed`, the biggest). */
-export const SUMMARY_FIELDS = ['name', 'author', 'description', 'language', 'ownerUid', 'visibility', 'timed', 'categories', 'width', 'height', 'gridSize', 'snapPercent', 'createdAt'] as const;
+export const SUMMARY_FIELDS = ['name', 'author', 'description', 'language', 'ownerUid', 'visibility', 'timed', 'categories', 'motive', 'width', 'height', 'gridSize', 'snapPercent', 'createdAt'] as const;
 
 /** What is worked out from a jigsaw to match it by. */
 export class JigsawIndex {
@@ -84,9 +87,9 @@ export class JigsawIndex {
   }
 
   /** What a jigsaw is matched by. */
-  static of(jigsaw: Pick<JigsawSpec, 'width' | 'height' | 'gridSize' | 'snapPercent' | 'categories' | 'language'>): JigsawIndexFields {
+  static of(jigsaw: Pick<JigsawSpec, 'width' | 'height' | 'gridSize' | 'snapPercent' | 'categories' | 'language'> & { motive?: MotiveLevel }): JigsawIndexFields {
     const tags = JigsawIndex.tagsOf(jigsaw.categories);
-    return { ...(tags.length ? { tags } : {}), level: JigsawIndex.levelOf(jigsaw.snapPercent), sizeClass: JigsawIndex.sizeClassOf(JigsawIndex.piecesOf(jigsaw)), language: JigsawLanguages.of(jigsaw) };
+    return { ...(tags.length ? { tags } : {}), level: JigsawIndex.levelOf(jigsaw.snapPercent), ...(jigsaw.motive ? { motive: jigsaw.motive } : {}), sizeClass: JigsawIndex.sizeClassOf(JigsawIndex.piecesOf(jigsaw)), language: JigsawLanguages.of(jigsaw) };
   }
 
   /** A summary of a stored document (only the fields a search reads are in it; a document an older version saved gets what it lacked). */
@@ -96,7 +99,15 @@ export class JigsawIndex {
   }
 }
 
-export type SearchSort = 'new' | 'name' | 'pieces';
+export type SearchSort = 'new' | 'old' | 'name' | 'pieces' | 'most';
+
+/** The page of the jigsaws of one user (see `JigsawSearch.mine`): the page, and how many jigsaws there are for each choice of who sees them (with the words kept). */
+export interface MineAnswer {
+  items: JigsawSummary[];
+  total: number;
+  hasMore: boolean;
+  counts: { all: number; everyone: number; owner: number; hidden: number };
+}
 
 /** How many jigsaws there are for each choice a filter has, the way the person would see it with the other choices made: what to tick, and how many each tick would give. */
 export interface JigsawFacets {
@@ -106,6 +117,8 @@ export interface JigsawFacets {
   categories: Record<string, number>;
   sizes: Record<string, number>;
   difficulties: Record<string, number>;
+  /** by level of the motive difficulty (only the levels that jigsaws have are there) */
+  motives: Record<string, number>;
   /** by language code (only the languages that jigsaws have are there) */
   languages: Record<string, number>;
   /** the users who made the jigsaws, by name, each with how many; the jigsaws from before owners are one more, with `NO_OWNER` as the id and no name, last */
@@ -121,6 +134,8 @@ export interface JigsawQuery {
   categories?: string[];
   sizes?: SizeClass[];
   difficulties?: Difficulty[];
+  /** levels of the motive difficulty (a jigsaw that has none is never found by it) */
+  motives?: MotiveLevel[];
   /** language codes (a jigsaw without a language is English) */
   languages?: string[];
   /** the users (UIDs) whose jigsaws are looked for (at most `SEARCH_MAX_OWNERS`) */
@@ -129,6 +144,8 @@ export interface JigsawQuery {
   text?: string;
   /** only the jigsaws the user who asks has ticked as favorites (the route knows them; a jigsaw is a favorite of a user, not a property of itself) */
   favorites?: true;
+  /** only the jigsaws the user who asks has solved (a round of theirs is solved; the route finds them) */
+  solved?: true;
   sort: SearchSort;
   limit: number;
   /** from 1 */
@@ -144,7 +161,7 @@ export class JigsawSearch {
       if (v === undefined || v === '') return undefined;
       return typeof v === 'string' ? v : { error: `${name} must be text.` };
     };
-    const names = ['categories', 'sizes', 'difficulties', 'languages', 'owners', 'text', 'favorites', 'sort', 'limit', 'page'] as const;
+    const names = ['categories', 'sizes', 'difficulties', 'motives', 'languages', 'owners', 'text', 'favorites', 'solved', 'sort', 'limit', 'page'] as const;
     const fields = Object.fromEntries(names.map((n) => [n, text(n)])) as Record<string, string | undefined | { error: string }>;
     for (const v of Object.values(fields)) if (v && typeof v === 'object') return v;
     const f = fields as Partial<Record<(typeof names)[number], string>>;
@@ -162,6 +179,8 @@ export class JigsawSearch {
     if (!Array.isArray(sizes)) return sizes;
     const difficulties = list(f.difficulties, 'difficulties', (x) => DIFFICULTIES.some((d) => d.key === x), DIFFICULTIES.length);
     if (!Array.isArray(difficulties)) return difficulties;
+    const motives = list(f.motives, 'motives', (x) => JigsawMotives.is(x), JigsawMotives.keys().length);
+    if (!Array.isArray(motives)) return motives;
     const languages = list(f.languages, 'languages', (x) => JigsawLanguages.is(x), JIGSAW_LANGUAGES.length);
     if (!Array.isArray(languages)) return languages;
     const owners = list(f.owners, 'owners', (x) => x === NO_OWNER || (x.length > 0 && x.length <= 60 && !/[/\s~]/.test(x)), SEARCH_MAX_OWNERS);
@@ -169,7 +188,8 @@ export class JigsawSearch {
     const words = (f.text ?? '').trim().replace(/\s+/g, ' ');
     if (words.length > SEARCH_MAX_TEXT) return { error: `The text can be at most ${SEARCH_MAX_TEXT} characters.` };
     if (f.favorites !== undefined && f.favorites !== 'true' && f.favorites !== '1') return { error: 'The favorites must be true.' };
-    if (f.sort !== undefined && !['new', 'name', 'pieces'].includes(f.sort)) return { error: 'The sort must be new, name or pieces.' };
+    if (f.solved !== undefined && f.solved !== 'true' && f.solved !== '1') return { error: 'The solved must be true.' };
+    if (f.sort !== undefined && !['new', 'old', 'name', 'pieces', 'most'].includes(f.sort)) return { error: 'The sort must be new, old, name, pieces or most.' };
     const whole = (v: string | undefined, name: string, min: number, max: number): number | { error: string } => {
       if (v === undefined) return -1;
       const n = Number(v);
@@ -184,10 +204,12 @@ export class JigsawSearch {
         ...(categories.length ? { categories } : {}),
         ...(sizes.length ? { sizes: sizes as SizeClass[] } : {}),
         ...(difficulties.length ? { difficulties: difficulties as Difficulty[] } : {}),
+        ...(motives.length ? { motives: motives as MotiveLevel[] } : {}),
         ...(languages.length ? { languages } : {}),
         ...(owners.length ? { owners } : {}),
         ...(words ? { text: words } : {}),
         ...(f.favorites !== undefined ? { favorites: true as const } : {}),
+        ...(f.solved !== undefined ? { solved: true as const } : {}),
         sort: (f.sort as SearchSort | undefined) ?? 'new',
         limit: limit === -1 ? SEARCH_PAGE : limit,
         page: page === -1 ? 1 : page,
@@ -202,6 +224,7 @@ export class JigsawSearch {
       (!query.categories?.length || query.categories.some((key) => (index.tags ?? []).includes(key))) &&
       (!query.sizes?.length || query.sizes.includes(index.sizeClass)) &&
       (!query.difficulties?.length || query.difficulties.includes(index.level)) &&
+      (!query.motives?.length || (!!index.motive && query.motives.includes(index.motive))) &&
       (!query.languages?.length || query.languages.includes(index.language)) &&
       (!query.owners?.length || query.owners.includes(jigsaw.ownerUid ?? NO_OWNER)) &&
       JigsawSearch.hasWords(jigsaw, query.text)
@@ -220,7 +243,7 @@ export class JigsawSearch {
    * (so ticking one more in the list is what the number says), and in all how many match everything. A choice that no jigsaw has is not there; the owners are by name.
    */
   static facets(items: readonly JigsawSummary[], query: JigsawQuery): JigsawFacets {
-    const without = (list: 'categories' | 'sizes' | 'difficulties' | 'languages' | 'owners') => items.filter((j) => JigsawSearch.matches(j, { ...query, [list]: undefined }));
+    const without = (list: 'categories' | 'sizes' | 'difficulties' | 'motives' | 'languages' | 'owners') => items.filter((j) => JigsawSearch.matches(j, { ...query, [list]: undefined }));
     const count = (found: readonly JigsawSummary[], keysOf: (j: JigsawSummary) => string[]): Record<string, number> => {
       const counts: Record<string, number> = {};
       for (const j of found) for (const key of keysOf(j)) counts[key] = (counts[key] ?? 0) + 1;
@@ -238,17 +261,34 @@ export class JigsawSearch {
       categories: count(without('categories'), (j) => JigsawIndex.tagsOf(j.categories)),
       sizes: count(without('sizes'), (j) => [JigsawIndex.of(j).sizeClass]),
       difficulties: count(without('difficulties'), (j) => [JigsawIndex.of(j).level]),
+      motives: count(without('motives'), (j) => (j.motive ? [j.motive] : [])),
       languages: count(without('languages'), (j) => [JigsawLanguages.of(j)]),
       owners: [...owners.values()].sort((a, b) => (a.id === NO_OWNER ? 1 : 0) - (b.id === NO_OWNER ? 1 : 0) || a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })), // no owner last
     };
   }
 
-  /** The jigsaws in the order asked for (the newest first, by name, or the fewest pieces first; the newer first when they are the same), and the page of them. */
+  /**
+   * The jigsaws of one user, for the page where the user looks after them (these are all of that user's, also the private and the hidden ones): those with the words of the query in
+   * the name, the author or the description, and, when `visibility` is said, only those that this one sees; in the order asked for, and a page of them. The counts say how many there
+   * are for each choice of who sees them, with the words kept (so they add up to what the list would show with no choice made).
+   */
+  static mine(items: readonly JigsawSummary[], query: Pick<JigsawQuery, 'text' | 'sort' | 'limit' | 'page'>, visibility?: 'everyone' | 'owner' | 'hidden'): MineAnswer {
+    const withWords = items.filter((j) => JigsawSearch.hasWords(j, query.text));
+    const counts = { all: withWords.length, everyone: 0, owner: 0, hidden: 0 };
+    for (const j of withWords) counts[j.visibility ?? 'everyone']++;
+    const shown = visibility ? withWords.filter((j) => (j.visibility ?? 'everyone') === visibility) : withWords;
+    const page = JigsawSearch.page(shown, query as JigsawQuery);
+    return { ...page, counts };
+  }
+
+  /** The jigsaws in the order asked for (the newest first, the oldest first, by name, or the fewest or the most pieces first; the newer first when they are the same), and the page of them. */
   static page(items: readonly JigsawSummary[], query: JigsawQuery): { items: JigsawSummary[]; total: number; hasMore: boolean } {
     const order: Record<SearchSort, (a: JigsawSummary, b: JigsawSummary) => number> = {
       new: (a, b) => b.createdAt - a.createdAt,
+      old: (a, b) => a.createdAt - b.createdAt,
       name: (a, b) => a.name.localeCompare(b.name),
       pieces: (a, b) => JigsawIndex.piecesOf(a) - JigsawIndex.piecesOf(b),
+      most: (a, b) => JigsawIndex.piecesOf(b) - JigsawIndex.piecesOf(a),
     };
     const sorted = [...items].sort((a, b) => order[query.sort](a, b) || b.createdAt - a.createdAt);
     const from = (query.page - 1) * query.limit;

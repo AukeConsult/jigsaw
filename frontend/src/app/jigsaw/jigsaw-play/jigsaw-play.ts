@@ -172,6 +172,7 @@ export class JigsawPlay implements OnDestroy {
       this.saveTimeNow(); // and so does the time
       this.jigsawId = params.get('id') ?? '';
       this.playId = params.get('playId') ?? '';
+      this.tools.open(this.jigsawId); // the switches of the helper are as they were left on this jigsaw
       void this.load();
     });
   }
@@ -266,6 +267,7 @@ export class JigsawPlay implements OnDestroy {
   ngOnDestroy(): void {
     clearInterval(this.clockTimer);
     this.tools.clock.set(null);
+    this.tools.open(''); // no jigsaw: the switches are not saved for the next one
     this.saveTimeNow();
     this.autosave.destroy();
     this.pieceSync.destroy();
@@ -299,9 +301,8 @@ export class JigsawPlay implements OnDestroy {
     await this.router.navigate(['/jigsaw', this.jigsawId]);
   }
 
-  /** New game: another game of this jigsaw is started, with the pieces scattered again; this game stays in the list of games. Asked for first. */
-  async startOver(): Promise<void> {
-    this.confirmingStartOver.set(false);
+  /** Looking at another player's round: start the user's own round of this jigsaw (and go to it). */
+  async startOwn(): Promise<void> {
     const me = this.users.user();
     if (!me) return;
     this.pieceSync.leaving();
@@ -309,7 +310,22 @@ export class JigsawPlay implements OnDestroy {
       const game = await this.plays.start(this.jigsawId, me.id);
       await this.router.navigate(['/jigsaw', this.jigsawId, 'play', game.id]);
     } catch {
-      this.tell(tr('jigsawPlay.couldNotStart', 'Could not start a new round: try again.'));
+      this.tell(tr('jigsawPage.couldNotStart', 'Could not start a round: try again.'));
     }
+  }
+
+  /** New round: this round starts over (the same round, not another): the pieces are scattered again and the time is nothing again. Asked for first. */
+  async startOver(): Promise<void> {
+    this.confirmingStartOver.set(false);
+    if (this.viewOnly()) return;
+    // what waited to be saved belongs to the round as it was: it is dropped, as is the time not yet saved
+    this.pieceSync.markSaved([]);
+    this.timeSaved = this.elapsedMs();
+    try {
+      await this.plays.restart(this.jigsawId, this.playId);
+    } catch {
+      return this.tell(tr('jigsawPlay.couldNotStart', 'Could not reset the round: try again.'));
+    }
+    await this.load();
   }
 }

@@ -19,17 +19,17 @@
   "colourTitle": "Färgen på linjen runt varje bit och runt bildytan",
   "back": "Bakgrund",
   "backTitle": "Bakgrundsfärgen på bildytan, innanför ramen",
-  "startNewAsk": "Starta en ny omgång? Bitarna sprids ut igen i en ny omgång; den här omgången finns kvar i din lista.",
-  "yesNew": "Ja, ny omgång",
+  "startNewAsk": "Starta den här omgången om? Bitarna sprids ut igen och tiden börjar om från noll.",
+  "yesNew": "Ja, nollställ",
   "cancel": "Avbryt",
   "deleteAsk": "Ta bort den här omgången för gott? Bitarna och framstegen försvinner. Pusslet finns kvar.",
   "yesDelete": "Ja, ta bort",
-  "newRound": "Ny omgång",
+  "newRound": "Nollställ omgången",
   "deleteRound": "Ta bort omgången",
   "cheat": "Fusk",
   "cheatHelp": "(hjälp att hitta bitar)",
   "notSaved": "Inte sparat: inställningarna är inte tillåtna",
   "couldNotSave": "Kunde inte spara, försöker igen",
   "couldNotDelete": "Kunde inte ta bort omgången: försök igen.",
-  "couldNotStart": "Kunde inte starta en ny omgång: försök igen."
+  "couldNotStart": "Kunde inte nollställa omgången: försök igen."
 }

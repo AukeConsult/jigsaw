@@ -12,6 +12,11 @@ $bp-sm: 576px;
 $bp-md: 768px;
 $bp-lg: 992px;
 $bp-xl: 1200px;
+// the soft colour pattern behind the pages: little puzzle pieces in the colours of the logo on a quiet wash (the frames of lists and of work, the cards and the forms, keep their own plain background)
+$soft-pattern: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><g fill-opacity='.11'><path transform='translate(10 14) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%230d6efd'/><path transform='translate(96 22) rotate(28) scale(.42)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%2320c997'/><path transform='translate(40 96) rotate(-18) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%23198754'/><path transform='translate(112 100) rotate(75) scale(.4)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%23fd7e14'/></g></svg>"), linear-gradient(120deg, rgba(13, 110, 253, 0.07), rgba(32, 201, 151, 0.08) 55%, rgba(253, 126, 20, 0.07));
+$soft-pattern-size: 150px 150px, auto;
+// the same little pieces, in white (for a band with a tinted wash under it)
+$white-pieces: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><g fill-opacity='.85'><path transform='translate(10 14) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(96 22) rotate(28) scale(.42)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(40 96) rotate(-18) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(112 100) rotate(75) scale(.4)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/></g></svg>");
 // the front page puts the text beside the photo from this width (Bootstrap has no breakpoint here, so the page has its own classes below)
 $bp-front: 500px;
 
@@ -50,6 +55,9 @@ $fluid-to: 87.5; // 1400px in rem
 // ---- tokens ----------------------------------------------------------------------------------------------------------------------------------------
 :root {
   color-scheme: light;
+
+  // a solved round (a light green, the green of the "Solved" badge)
+  --app-solved-bg: #e3f4e8;
 
   // fonts
   --app-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif;
@@ -282,6 +290,24 @@ small,
   --bs-btn-padding-x: var(--app-btn-sm-pad-x);
 }
 
+.solved-mark {
+  // a small green round mark with a check, in the top right corner of a card's picture (right: 0.25rem from the edge, or left of the heart)
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75em;
+  height: 1.75em;
+  border-radius: 50%;
+  background: var(--bs-success);
+  color: var(--bs-white);
+  box-shadow: var(--bs-box-shadow-sm);
+
+  &.with-heart {
+    right: 2.25rem; // the heart is there: this one sits beside it
+  }
+}
+
 .btn-overlay.is-favorite .bi {
   color: var(--bs-danger); // a heart that is ticked is red, also on the shade of the button
 }
@@ -365,8 +391,20 @@ small,
 
 .toolbar-note {
   margin: 0.25rem 0 0.5rem;
-  font-size: var(--app-fs-tiny);
-  color: var(--bs-secondary-color);
+  font-size: var(--app-fs-small); // not the tiniest: it is read on the soft pattern of the page
+  font-weight: 500;
+  color: var(--bs-body-color);
+}
+
+// the quick filters sit on the soft pattern of the page: the ones that are not on have a plain background and the colour of the text, so they can be read
+.quick-filters .btn-outline-secondary {
+  --bs-btn-color: var(--bs-body-color);
+  --bs-btn-bg: var(--bs-body-bg);
+  --bs-btn-border-color: var(--bs-secondary-color);
+  --bs-btn-hover-color: var(--bs-body-color);
+  --bs-btn-hover-bg: var(--bs-tertiary-bg);
+  --bs-btn-hover-border-color: var(--bs-secondary-color);
+  font-weight: 500;
 }
 
 // a text that does something, in the toolbar: an icon and words, no box (`danger` for one that deletes)
@@ -437,6 +475,28 @@ small,
 .segmented {
   display: inline-flex;
   gap: 1rem;
+
+  // the tabs of a page (not a small switch): each a button with a frame, the one that is open filled with the colour of the page, so it is plain which one it is; the words one step bigger
+  &.tabs {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    > .btn {
+      --bs-btn-font-size: var(--app-fs-text);
+      --bs-btn-padding-x: 1rem;
+      --bs-btn-padding-y: 0.5rem;
+      --bs-btn-hover-bg: var(--bs-tertiary-bg);
+      border: var(--bs-border-width) solid var(--bs-border-color);
+      border-radius: var(--bs-border-radius);
+      background: var(--bs-body-bg);
+    }
+
+    > .btn-check:checked + .btn {
+      background: var(--app-primary);
+      border-color: var(--app-primary);
+      color: var(--bs-white);
+    }
+  }
 
   > .btn {
     --bs-btn-padding-x: 0;
@@ -652,11 +712,35 @@ app-my-rounds {
 /* a band stuck to the top of the page (under the menu on a wide screen, where the menu is at the top) with cards in one row that scrolls sideways */
 .my-rounds {
   position: sticky;
-  top: -2px; // two pixels above the page: the menu above has a height that is not a whole pixel, and a thin line of what scrolls under the band showed in the seam
+  top: 0.5rem; // a little below the top of the page, so the pattern shows above it
   z-index: calc(var(--app-z-bar) - 1);
-  padding: calc(0.875rem + 2px) 0 0.5rem; // a little more room above the heading than below the cards
+  margin: 0.5rem 0.75rem 0; // room round it, so the soft pattern of the page shows (it is a frame of its own, like the lists)
+  padding: 0.875rem 0 0.5rem; // a little more room above the heading than below the cards
+  border-radius: var(--bs-border-radius-lg);
+  box-shadow: var(--bs-box-shadow-sm);
 }
 
+/* every page starts where the band's own content does (`container-fluid page-margin`): its side margin (0.75rem) and its padding (1rem) */
+.page-margin {
+  padding-inline: 1.75rem;
+}
+
+/* the band of the rounds going: a border in the blue, green and yellow of the background pattern (the fill is painted inside the padding box, the gradient shows only in the border) */
+.my-rounds.ongoing {
+  border: 1px solid transparent;
+  // inside: white pieces over a light tint of the border's colours (a solid wash, so the band is not see-through when it is stuck over the list); the full gradient is only seen in the border
+  background-image: $white-pieces, linear-gradient(120deg, #dbe9ff, #d9f5ec 55%, #fff1cc), linear-gradient(120deg, #0d6efd, #20c997 50%, #ffc107);
+  background-size: 150px 150px, auto, auto;
+  background-origin: border-box;
+  background-clip: padding-box, padding-box, border-box;
+}
+
+/* the welcome (no round going) is big: it is not stuck, it scrolls up and away with the list under it */
+.my-rounds.welcome-band {
+  position: static;
+  background-image: $soft-pattern;
+  background-size: $soft-pattern-size;
+}
 /* a touch screen (phone, tablet): the page is fixed sideways, it only moves up and down (pinch to zoom stays). The cards of the band are moved with its two buttons.
    Only `html` is set, so the page scrolls as the window does and the sticky bands keep working. */
 @media (pointer: coarse) {
@@ -680,6 +764,45 @@ app-my-rounds {
   }
 }
 
+/* "More options" of a form: a line that opens what most people leave as it is */
+.more-options > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.25rem 0;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.more-options-icon {
+  transition: transform 0.15s;
+}
+
+.more-options[open] .more-options-icon {
+  transform: rotate(90deg);
+}
+
+/* the words of the menu: beside the icon on a wide screen, under it on a phone or a tablet (an icon alone is guessed wrong) */
+.nav-label {
+  display: block;
+  font-size: var(--app-fs-tiny);
+  line-height: 1.1;
+
+  @include from($bp-md) {
+    display: inline;
+    font-size: inherit;
+  }
+}
+
+.app-navbar .nav-link {
+  text-align: center;
+
+  @include below($bp-md) {
+    padding: 0.15rem 0.5rem;
+  }
+}
+
 /* a round button over the middle of the side of a row of cards that scrolls */
 .card-row-button {
   position: absolute;
@@ -697,7 +820,7 @@ app-my-rounds {
 
   > * {
     flex: 0 0 auto;
-    width: clamp(5.5rem, calc((100vw - 3rem) / 3.3), 15rem); // follows the width of the page so that three cards are always in view (and a bit of the fourth): small on a phone, bigger on a wide screen
+    width: clamp(2.75rem, calc((100vw - 3rem) / 6.6), 7.5rem); // follows the width of the page, half as big as before: at least six cards are in view (and a bit of the next): small on a phone, bigger on a wide screen
   }
 }
 
@@ -755,6 +878,24 @@ app-my-rounds {
     height: 2rem;
   }
 
+  // the logo takes you home: a tiny house on its corner says so
+  .brand-mark {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .brand-home {
+    position: absolute;
+    right: -0.3rem;
+    bottom: -0.25rem;
+    padding: 0.1rem;
+    border-radius: 50%;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-primary);
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+
   .brand-text {
     display: flex;
     flex-direction: column;
@@ -798,6 +939,11 @@ app-my-rounds {
 // is one) wraps in its own part, and the actions (plain links) sit at its right when there is room, else under the text.
 .round-row {
   container-type: inline-size;
+
+  // a solved round is painted a light green
+  &.round-solved {
+    background-color: var(--app-solved-bg);
+  }
 }
 
 .round-body {
@@ -834,7 +980,7 @@ app-my-rounds {
 }
 
 .list-group-item.row-selected {
-  box-shadow: inset 0.3rem 0 0 var(--app-primary); // a ticked row keeps the colour of who sees it, and gets a bar at its left edge
+  box-shadow: inset 0.1875rem 0 0 var(--app-primary); // a ticked row keeps the colour of who sees it, and gets a tiny bar at its left edge (3 px)
 }
 
 .round-thumb {
@@ -846,6 +992,12 @@ app-my-rounds {
   flex: 1 1 8rem;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+// who sees a jigsaw (the radio buttons of a row of the user's jigsaws): on a line of their own under the picture and the text, the three choices side by side
+.round-visibility {
+  flex: 1 1 100%;
+  order: 5;
 }
 
 .round-actions {
@@ -860,6 +1012,16 @@ app-my-rounds {
 @container (min-width: 22rem) {
   .round-actions {
     flex: 0 0 auto; // beside the text when there is room
+  }
+}
+
+// "are you sure": the question has the whole width of its own line, and the answers are under it, each on one line (the words of a button never break)
+.round-actions.confirming {
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+
+  .link-action {
+    white-space: nowrap;
   }
 }
 
@@ -879,6 +1041,62 @@ app-my-rounds {
   .round-body:has(.round-actions:not(.confirming)) .round-info {
     padding-right: 3.5rem; // room for the icons
   }
+
+  // a row of the user's own jigsaws has three icons and the choice of who sees it: the icons are not in the corner (they would cover the name) but at the right end of the line of the radio buttons, or under it
+  .admin-row .round-actions:not(.confirming) {
+    position: relative;
+    top: auto;
+    right: auto;
+    order: 6;
+    margin-left: auto;
+  }
+
+  .admin-row .round-body:has(.round-actions:not(.confirming)) .round-info {
+    padding-right: 0;
+  }
+
+}
+
+// a row of the user's own jigsaws, at every width: the tick box in the upper left corner (a small area, not a strip), then the picture, and the name beside it, all from the same top edge
+.admin-row .round-body {
+  align-items: flex-start;
+}
+
+.admin-row .select-area {
+  // the box is in the very corner of the row (the row is `position: relative`); the strip down the left side of the row, as high as the row, ticks it too (a press anywhere in it)
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-width: 0;
+  width: 2.5rem;
+  height: auto;
+  margin: 0;
+  padding: 0.3rem 0 0 0.35rem;
+}
+
+.admin-row .round-open {
+  // the picture and the name with what it is: the one area that opens the page of the jigsaw (its `stretched-link` covers this and nothing else of the row)
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin-left: 1.75rem; // room for the box in the corner
+  cursor: pointer;
+}
+
+.admin-row .round-open .round-info {
+  flex: 1 1 0;
+}
+
+.admin-row .round-info > a:first-child {
+  display: block;
+  line-height: 1.2;
+  margin-top: -0.1em; // the top of the letters is at the top of the picture
 }
 
 .icon-md {
@@ -963,6 +1181,7 @@ app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet) {
   flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable; // the room of the scrollbar is kept: the width of the page does not change when the scrollbar comes and goes (a board that measures itself would jump)
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
@@ -992,6 +1211,12 @@ app-jigsaw-shell > .app-toolbar {
     border-bottom: 0 !important;
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); // lifted off the edge of the screen, so nothing of it is cut off
   }
+}
+
+// the pages have the soft pattern behind their frames; the round (the board) is a working frame and has none
+app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet):not(app-jigsaw-play) {
+  background-image: $soft-pattern;
+  background-size: $soft-pattern-size;
 }
 
 // ---- the jigsaw board ------------------------------------------------------------------------------------------------------------------------------
@@ -1097,6 +1322,11 @@ app-jigsaw-shell > .app-toolbar {
   line-height: 1;
   pointer-events: none;
   user-select: none;
+}
+
+// the first-move hint: the small size, not the tiny one (it is shown until a piece has been moved once)
+.store-hint-first {
+  font-size: calc(var(--app-fs-small) / var(--app-scale, 1));
 }
 
 .store-scroll-left {

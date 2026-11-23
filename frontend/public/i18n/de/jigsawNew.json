@@ -38,7 +38,6 @@
   "saving": "Wird gespeichert…",
   "making": "Das Puzzle wird erstellt…",
   "saveChanges": "Änderungen speichern",
-  "saveStart": "Speichern und starten",
   "couldNotReadUsers": "Die Benutzer konnten nicht gelesen werden: Lade die Seite neu.",
   "couldNotOpen": "Das Puzzle konnte nicht zum Bearbeiten geöffnet werden: Geh zurück und versuch es noch einmal.",
   "couldNotSave": "Die Änderungen konnten nicht gespeichert werden: Vielleicht hat inzwischen jemand angefangen, es zu spielen. Prüf das Bild und versuch es noch einmal.",
@@ -73,5 +72,13 @@
   "classifyHelp": "Das Bild wird zur Ansicht an OpenAI geschickt. Name, Beschreibung und Kategorien werden ersetzt.",
   "classifyFailed": "Die KI hat es nicht geschafft: versuche es noch einmal.",
   "sectionLook": "Aussehen",
-  "languageAi": "Beim Wechseln lässt die KI sie in der neuen Sprache neu schreiben."
+  "languageAi": "Beim Wechseln lässt die KI sie in der neuen Sprache neu schreiben.",
+  "motive": "Motiv-Schwierigkeit",
+  "motiveHelp": "Wie schwer das Bild selbst zu legen ist: je weniger deutliche Details, desto schwerer. Die KI setzt sie auch.",
+  "motiveNone": "Nicht angegeben",
+  "saveNew": "Speichern",
+  "saveAnalyse": "Speichern und mit KI analysieren",
+  "saveAnalyseHelp": "Das Bild wird an OpenAI geschickt, um Kategorien, Motiv-Schwierigkeit, Namen und Beschreibung zu setzen.",
+  "moreOptions": "Weitere Optionen",
+  "sectionPlayOnly": "Spielen"
 }

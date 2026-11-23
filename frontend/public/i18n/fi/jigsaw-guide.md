@@ -2,18 +2,17 @@ Tee palapeli mistä tahansa kuvasta ja kokoa se ruudulla. Kaikki tallentuu itses
 
 ## Kuka pelaa
 
-* Ensimmäisellä kerralla sinulta kysytään, kuka pelaa. Paina nimeäsi luettelossa tai paina **Luo käyttäjä**: valitse **Käyttäjätunnus** (3–30 kirjainta a-z, numeroita, _ tai -) ja nimesi. **Sähköposti** on valinnainen, eikä sitä näytetä koskaan.
+* Ensimmäisellä kerralla sinulta kysytään **Mikä sinun nimesi on?** Kirjoita nimesi ja paina **Aloita pelaaminen**. Jos olet pelannut ennen, paina **Olen pelannut ennen** ja sitten nimeäsi luettelossa.
 * Salasanaa ei toistaiseksi ole, joten kuka tahansa voi valita minkä tahansa käyttäjän.
 * Paina nimeäsi valikossa nähdäksesi **Kierroksesi**, painaaksesi **Muokkaa** tai painaaksesi **Valitse toinen käyttäjä**.
 
 ## Tee palapeli
 
-1. Paina **Uusi palapeli** (etusivulla ja luettelon yläreunassa).
+1. Paina **Tee palapeli** etusivun tervehdyksessä tai paina nimeäsi valikossa ja sitten uuden palapelin painiketta.
 2. Kirjoita **Nimi** ja valitse **Kuva**. Ikkuna aukeaa: vedä kuvaa löytääksesi haluamasi osan, zoomaa ja paina **Käytä tätä rajausta**.
 3. Valitse **Koko** ja **Palat** (enintään 1000). Kokoa säädetään hieman, jotta palat sopivat täsmälleen.
-4. Valitse **Vaikeustaso**, onko se **Ajastettu**, sekä kuva-alueen **Viiva**, **Väri** ja **Tausta**.
-5. Valitse **Tekijä** ja **Kuka näkee**.
-6. Paina **Tallenna ja aloita**.
+4. Valitse **Vaikeustaso** ja onko se **Ajastettu**. Kohdassa **Lisää valintoja** voit muuttaa myös kielen, luokat, ulkonäön, tekijän ja sen, kuka näkee sen.
+5. Paina **Tallenna** (tai **Tallenna ja analysoi tekoälyllä**, joka antaa tekoälyn asettaa myös luokat, nimen ja kuvauksen). Uuden palapelin sivu aukeaa: aloita kierros sieltä.
 
 ## Pelaa
 
@@ -33,7 +32,7 @@ Tee palapeli mistä tahansa kuvasta ja kokoa se ruudulla. Kaikki tallentuu itses
 ## Kierrokset
 
 * Yksi palapelin peli on **kierros**. Palapelin sivu luettelee kaikkien kierrokset; omasi on merkitty **Omasi** ja ne ovat ensin.
-* Paina **Jatka** jatkaaksesi yhtä omistasi, **Siirry kierrokselle, ratkaise se** aloittaaksesi uuden tai **Poista** poistaaksesi yhden omistasi (sinulta kysytään ensin).
+* Paina **Jatka** jatkaaksesi yhtä omistasi, **Aloita pelaaminen** aloittaaksesi uuden tai **Poista** poistaaksesi yhden omistasi (sinulta kysytään ensin).
 * Paina **Katso** nähdäksesi toisen pelaajan kierroksen. Et voi koskaan muuttaa sitä, mutta voit aloittaa oman.
 * Kierros lasketaan vasta, kun olet siirtänyt siinä palaa. Jos vain avaat palapelin ja palaat takaisin, luettelossa ei näy kierrosta.
 * **Haasta ystävä:** tee palapelistä **Ajastettu** ja pyydä ystävääsi pelaamaan siitä myös kierros. Jokaisen kierroksen aika näkyy luettelossa, joten näet kuka on nopein.

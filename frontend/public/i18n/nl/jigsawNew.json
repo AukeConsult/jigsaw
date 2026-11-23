@@ -38,7 +38,6 @@
   "saving": "Opslaan…",
   "making": "De puzzel wordt gemaakt…",
   "saveChanges": "Wijzigingen opslaan",
-  "saveStart": "Opslaan en beginnen",
   "couldNotReadUsers": "De gebruikers konden niet worden gelezen: laad de pagina opnieuw.",
   "couldNotOpen": "De puzzel kon niet worden geopend om te bewerken: ga terug en probeer het opnieuw.",
   "couldNotSave": "De wijzigingen konden niet worden opgeslagen: misschien is iemand er intussen mee begonnen. Controleer de afbeelding en probeer het opnieuw.",
@@ -73,5 +72,13 @@
   "classifyHelp": "De afbeelding wordt naar OpenAI gestuurd om bekeken te worden. De naam, de beschrijving en de categorieën worden vervangen.",
   "classifyFailed": "De AI kon het niet: probeer het opnieuw.",
   "sectionLook": "Uiterlijk",
-  "languageAi": "Als je het wijzigt, laat de AI ze opnieuw schrijven in de nieuwe taal."
+  "languageAi": "Als je het wijzigt, laat de AI ze opnieuw schrijven in de nieuwe taal.",
+  "motive": "Moeilijkheid van het motief",
+  "motiveHelp": "Hoe moeilijk het beeld zelf te leggen is: hoe minder duidelijke details, hoe moeilijker. De AI zet het ook.",
+  "motiveNone": "Niet opgegeven",
+  "saveNew": "Opslaan",
+  "saveAnalyse": "Opslaan en analyseren met AI",
+  "saveAnalyseHelp": "De foto wordt naar OpenAI gestuurd om de categorieën, de moeilijkheid van het motief, de naam en de beschrijving te zetten.",
+  "moreOptions": "Meer opties",
+  "sectionPlayOnly": "Spelen"
 }

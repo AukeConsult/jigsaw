@@ -85,6 +85,38 @@ export class JigsawUserService {
     }
   }
 
+  /**
+   * Makes a user from only a name, and plays as them: the user name is the name itself (`JigsawUsers.usernameFrom`). When the server says it is taken (409) nothing is made and
+   * `takenUsername` says which user name it was, so the page can show who has it and let the person choose between that user and a new one; digits are added only when that
+   * choice is made (`withDigits`: four digits to tell the two apart, tried again with other digits when those are taken). Any other trouble is given back at once.
+   */
+  async createFromName(name: string, language?: string, withDigits = false): Promise<{ error: string; takenUsername: string }> {
+    let reason = '';
+    for (let attempt = 0; attempt < (withDigits ? 5 : 1); attempt++) {
+      const username = JigsawUsers.usernameFrom(name, withDigits ? String(Math.floor(1000 + Math.random() * 9000)) : '');
+      const error = JigsawUsers.error({ username, name, language });
+      if (error) return { error, takenUsername: '' };
+      try {
+        this.choose(await firstValueFrom(this.http.post<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users`, { username, name, ...(language ? { language } : {}) })));
+        return { error: '', takenUsername: '' };
+      } catch (err) {
+        if (!(err instanceof HttpErrorResponse && err.status === 409)) return { error: reasonOf(err), takenUsername: '' };
+        if (!withDigits) return { error: reasonOf(err), takenUsername: username };
+        reason = reasonOf(err);
+      }
+    }
+    return { error: reason, takenUsername: '' };
+  }
+
+  /** The user who has this user name (without the e-mail), or null when there is none or it could not be read. Does not change who plays. */
+  async lookup(username: string): Promise<JigsawUserSpec | null> {
+    try {
+      return await firstValueFrom(this.http.get<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users/by-username/${encodeURIComponent(JigsawUsers.normalised(username))}`));
+    } catch {
+      return null;
+    }
+  }
+
   /** The users to choose from (without their e-mail addresses), by name. */
   list(): Promise<JigsawUserSpec[]> {
     return firstValueFrom(this.http.get<JigsawUserSpec[]>(`${environment.jigsawApi}/jigsaw-users`));

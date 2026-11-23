@@ -1,5 +1,6 @@
 import { JigsawSettings, JigsawSpec } from './jigsaw-settings';
 import { JigsawCut, JigsawPiece, JigsawPieces, PieceMove, JIGSAW_MAX_PIECES } from './jigsaw';
+import { STICK_TOLERANCE_PX } from './puzzle';
 
 // A play: one game of a jigsaw, by one user. The jigsaw is what is fixed (its picture, size, grid and the cut into pieces, and the defaults of difficulty and look);
 // a play holds what a person changes while playing: where the pieces are, how far the game has come, and the few settings a player may choose for themselves.
@@ -149,6 +150,22 @@ export class Plays {
   }
 
   /**
+   * Starts a round over: the same round (its player, its choices of look) with all the pieces scattered anew, no time played and the start time now. What the round chose is kept;
+   * everything that came from playing it (the places, the time, being solved) is not.
+   */
+  static restart(
+    play: PlaySpec,
+    jigsaw: Pick<JigsawSpec, 'id' | 'width' | 'height' | 'gridSize'>,
+    pieces: readonly JigsawPiece[],
+    now: number,
+    random: () => number = Math.random,
+  ): { play: PlaySpec; positions: PlayPositions } | { error: string } {
+    const started = Plays.start(jigsaw, { id: play.userId, name: play.userName }, pieces, now, random);
+    if ('error' in started) return started;
+    return { play: { ...started.play, id: play.id, overrides: play.overrides ?? {} }, positions: started.positions };
+  }
+
+  /**
    * Saves where pieces were put: the positions with these moves made (a move of a piece that is not one of the jigsaw's is left out), and the play as it is then: how
    * many pieces are in place and whether it is solved (`solvedAt` is when it first was, and stays).
    */
@@ -164,6 +181,29 @@ export class Plays {
       play: { ...rest, ...(touched ? { updatedAt: now } : play.updatedAt !== undefined ? { updatedAt: play.updatedAt } : {}), ...(play.fresh && !touched ? { fresh: true } : {}), matched, total, status: solved ? 'solved' : 'active', ...(solved ? { solvedAt: play.solvedAt ?? now } : {}) },
       positions: next,
     };
+  }
+
+  /**
+   * The reason these moves would pull apart pieces that stick together, or '': two pieces that are next to each other in the picture and lie exactly where they belong in relation to each
+   * other are bound, and a bond is never broken. Only pieces that are not bound to each other move on their own, so the places after the moves must keep every pair of neighbours that was bound
+   * before, exactly (places are whole or half pixels).
+   */
+  static bondsError(pieces: readonly JigsawPiece[], before: PlayPositions, after: PlayPositions): string {
+    const was = Plays.piecesOf(pieces, before);
+    const now = new Map(Plays.piecesOf(pieces, after).map((p) => [p.id, p]));
+    const at = new Map(was.map((p) => [`${p.col},${p.row}`, p]));
+    const bound = (a: JigsawPiece, b: JigsawPiece, dc: number, dr: number) =>
+      Math.abs(b.centerX - a.centerX - dc * a.size) <= STICK_TOLERANCE_PX && Math.abs(b.centerY - a.centerY - dr * a.size) <= STICK_TOLERANCE_PX;
+    for (const a of was) {
+      for (const [dc, dr] of [[1, 0], [0, 1]] as const) {
+        const b = at.get(`${a.col + dc},${a.row + dr}`);
+        if (!b || b.size !== a.size || !bound(a, b, dc, dr)) continue;
+        const a2 = now.get(a.id);
+        const b2 = now.get(b.id);
+        if (a2 && b2 && !bound(a2, b2, dc, dr)) return 'Pieces that stick together can not be pulled apart: they move as one.';
+      }
+    }
+    return '';
   }
 
   /** The pieces of the jigsaw as this play has them: where each is, on which layer, and whether it is in place. */

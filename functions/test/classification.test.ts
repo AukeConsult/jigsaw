@@ -11,11 +11,12 @@ describe("what the AI is asked and allowed to say about a picture", () => {
     expect(keys).toHaveLength(JigsawCategories.all().length + JigsawCategories.all().reduce((n, c) => n + c.subs.length, 0));
   });
 
-  it("is a strict schema: categories (only the keys), a name and a description, and nothing more", () => {
-    const schema = Classifications.schema() as { type: string; required: string[]; additionalProperties: boolean; properties: Record<string, { type: string; items?: { enum: string[] } }> };
+  it("is a strict schema: categories (only the keys), the motive difficulty (one of its levels), a name and a description, and nothing more", () => {
+    const schema = Classifications.schema() as { type: string; required: string[]; additionalProperties: boolean; properties: Record<string, { type: string; enum?: string[]; items?: { enum: string[] } }> };
     expect(schema.type).toBe("object");
     expect(schema.additionalProperties).toBe(false);
-    expect(schema.required).toEqual(["categories", "name", "description"]);
+    expect(schema.required).toEqual(["categories", "motive", "name", "description"]);
+    expect(schema.properties.motive.enum).toEqual(["easy", "mediumeasy", "normal", "hard", "expert"]);
     expect(schema.properties.categories.items?.enum).toEqual(Classifications.keys());
     expect(schema.properties.name.type).toBe("string");
     expect(schema.properties.description.type).toBe("string");
@@ -60,5 +61,24 @@ describe("what the AI is asked and allowed to say about a picture", () => {
 
   it("is refused when it is not an object", () => {
     for (const bad of [null, undefined, "text", 5]) expect(Classifications.read(bad)).toEqual({ error: "The answer is not an object." });
+  });
+});
+
+describe("the motive difficulty the AI gives", () => {
+  it("is asked for in the prompt, with what each level means", () => {
+    const prompt = Classifications.prompt("en");
+    expect(prompt).toContain("mediumeasy");
+    expect(prompt).toContain("expert");
+    expect(prompt).toMatch(/fewer distinct details/); // few details is harder, many different details is easier
+    expect(prompt.indexOf("easy = many clear")).toBeGreaterThan(-1);
+    expect(prompt.indexOf("expert = hardly anything")).toBeGreaterThan(prompt.indexOf("hard = large plain"));
+  });
+
+  it("is kept apart from the categories: a property when it is one of the levels, left out when it is not", () => {
+    const given = { categories: ["nature", "nature/forest"], motive: "hard", name: "A", description: "B" };
+    expect(Classifications.read(given)).toMatchObject({ categories: ["nature/forest"], motive: "hard" });
+    expect(Classifications.read({ ...given, motive: "impossible" })).not.toHaveProperty("motive");
+    expect(Classifications.read({ ...given, motive: undefined })).not.toHaveProperty("motive");
+    expect(Classifications.read({ ...given, categories: ["motive/easy", "food"] })).toMatchObject({ categories: ["food"] }); // a level is not a category
   });
 });

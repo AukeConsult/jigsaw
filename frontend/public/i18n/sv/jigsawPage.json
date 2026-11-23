@@ -39,7 +39,7 @@
   "sectionBasics": "Grundläggande",
   "sectionOwner": "Ägare och delning",
   "piecesShort": "{{ count }} bitar",
-  "enterRound": "Gå in i en omgång, lös den",
+  "enterRound": "Börja spela",
   "description": "Beskrivning",
   "optional": "(valfritt)",
   "sectionLook": "Utseende",
@@ -59,5 +59,7 @@
   "resetRounds": "Ta bort alla rundor för att ändra dem",
   "resetAsk": "Ta bort alla rundor av det här pusslet för gott, också andra spelares? Då kan bilden, storleken och svårighetsgraden ändras.",
   "yesReset": "Ja, ta bort rundorna",
-  "couldNotResetRounds": "Kunde inte ta bort rundorna: bara ägaren kan."
+  "couldNotResetRounds": "Kunde inte ta bort rundorna: bara ägaren kan.",
+  "motive": "Motivets svårighet",
+  "youSolvedIt": "Du har löst det här pusslet"
 }

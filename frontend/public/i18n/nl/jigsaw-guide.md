@@ -2,18 +2,17 @@ Maak een puzzel van elke afbeelding en leg hem op het scherm. Alles wordt vanzel
 
 ## Wie speelt
 
-* De eerste keer word je gevraagd wie er speelt. Tik op je naam in de lijst, of tik op **Een gebruiker maken**: kies een **Gebruikersnaam** (3 tot 30 letters a-z, cijfers, _ of -) en je naam. **E-mail** is optioneel en wordt nooit getoond.
+* De eerste keer word je gevraagd **Hoe heet je?** Typ je naam en tik op **Begin met spelen**. Heb je al eerder gespeeld, tik dan op **Ik heb al eerder gespeeld** en daarna op je naam in de lijst.
 * Er is voorlopig geen wachtwoord, dus iedereen kan elke gebruiker kiezen.
 * Tik in het menu op je naam om **Je rondes** te zien, op **Bewerken** te tikken of op **Een andere gebruiker kiezen** te tikken.
 
 ## Een puzzel maken
 
-1. Tik op **Nieuwe puzzel** (op de voorpagina en bovenaan de lijst).
+1. Tik op **Puzzel maken** in de welkomsttekst op de voorpagina, of tik in het menu op je naam en dan op de knop voor een nieuwe puzzel.
 2. Typ een **Naam** en kies een **Afbeelding**. Een venster opent: sleep de afbeelding om het gewenste deel te vinden, zoom en tik op **Deze uitsnede gebruiken**.
 3. Kies het **Formaat** en het aantal **Stukjes** (tot 1000). Het formaat wordt een beetje aangepast zodat de stukjes precies passen.
-4. Kies de **Moeilijkheid**, of het **Met tijdmeting** is, en de **Lijn**, **Kleur** en **Achtergrond** van het afbeeldingsvlak.
-5. Kies de **Maker** en **Wie ziet hem**.
-6. Tik op **Opslaan en beginnen**.
+4. Kies de **Moeilijkheid** en of het **Met tijdmeting** is. Onder **Meer opties** kun je ook de taal, de categorieën, het uiterlijk, de maker en wie het ziet wijzigen.
+5. Tik op **Opslaan** (of **Opslaan en analyseren met AI**, waarbij de AI ook de categorieën, de naam en de beschrijving zet). De pagina van de nieuwe puzzel gaat open: begin daar een ronde.
 
 ## Spelen
 
@@ -33,7 +32,7 @@ Maak een puzzel van elke afbeelding en leg hem op het scherm. Alles wordt vanzel
 ## Rondes
 
 * Eén spel van een puzzel is een **ronde**. De pagina van een puzzel toont de rondes van iedereen; die van jou zijn gemarkeerd als **Van jou** en staan bovenaan.
-* Tik op **Verder** om met een van jouw rondes door te gaan, op **Ga een ronde in, los hem op** om een andere te beginnen, of op **Verwijderen** om een van jouw rondes te verwijderen (je wordt eerst gevraagd).
+* Tik op **Verder** om met een van jouw rondes door te gaan, op **Begin met spelen** om een andere te beginnen, of op **Verwijderen** om een van jouw rondes te verwijderen (je wordt eerst gevraagd).
 * Tik op **Kijken** om de ronde van een andere speler te zien. Je kunt hem nooit wijzigen, maar je kunt je eigen ronde beginnen.
 * Een ronde telt pas als je er een stukje in hebt verplaatst. Als je een puzzel alleen opent en teruggaat, staat er geen ronde in de lijst.
 * **Daag een vriend uit:** zet de puzzel op **Met tijdmeting** en vraag je vriend ook een ronde te spelen. De tijd van elke ronde staat in de lijst, zodat je ziet wie het snelst is.

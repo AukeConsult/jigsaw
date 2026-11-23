@@ -39,7 +39,7 @@
   "sectionBasics": "Grundlagen",
   "sectionOwner": "Besitzer und Freigabe",
   "piecesShort": "{{ count }} Teile",
-  "enterRound": "Betritt eine Runde, löse es",
+  "enterRound": "Spielen",
   "description": "Beschreibung",
   "optional": "(freiwillig)",
   "sectionLook": "Aussehen",
@@ -59,5 +59,7 @@
   "resetRounds": "Alle Runden löschen, um sie zu ändern",
   "resetAsk": "Alle Runden dieses Puzzles für immer löschen, auch die anderer Spieler? Dann können Bild, Größe und Schwierigkeit geändert werden.",
   "yesReset": "Ja, Runden löschen",
-  "couldNotResetRounds": "Die Runden konnten nicht gelöscht werden: nur der Besitzer kann das."
+  "couldNotResetRounds": "Die Runden konnten nicht gelöscht werden: nur der Besitzer kann das.",
+  "motive": "Motiv-Schwierigkeit",
+  "youSolvedIt": "Du hast dieses Puzzle gelöst"
 }

@@ -39,6 +39,9 @@
       <!-- difficulty, timed, pieces, size and date: under the picture, a line as wide as the row; it only breaks between the parts -->
       <span class="d-flex flex-wrap align-items-center gap-1 column-gap-2 mt-2">
         <span class="badge text-bg-light border fw-normal text-nowrap" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
+        @if (item.motive) {
+          <span class="badge text-bg-light border fw-normal text-nowrap" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</span>
+        }
         @if (item.timed !== false) {
           <span class="badge text-bg-light border fw-normal text-nowrap"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawList.timed') || 'Timed' }}</span>
         }

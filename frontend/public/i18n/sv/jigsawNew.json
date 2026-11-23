@@ -38,7 +38,6 @@
   "saving": "Sparar…",
   "making": "Gör pusslet…",
   "saveChanges": "Spara ändringar",
-  "saveStart": "Spara och starta",
   "couldNotReadUsers": "Kunde inte läsa användarna: ladda om sidan.",
   "couldNotOpen": "Kunde inte öppna pusslet för ändring: gå tillbaka och försök igen.",
   "couldNotSave": "Kunde inte spara ändringarna: kanske har någon börjat spela det under tiden. Kontrollera bilden och försök igen.",
@@ -73,5 +72,13 @@
   "classifyHelp": "Bilden skickas till OpenAI för att granskas. Namnet, beskrivningen och kategorierna ersätts.",
   "classifyFailed": "AI klarade det inte: försök igen.",
   "sectionLook": "Utseende",
-  "languageAi": "När du byter låter AI skriva dem igen på det nya språket."
+  "languageAi": "När du byter låter AI skriva dem igen på det nya språket.",
+  "motive": "Motivets svårighet",
+  "motiveHelp": "Hur svår själva bilden är att lägga: ju färre tydliga detaljer, desto svårare. AI sätter den också.",
+  "motiveNone": "Inte angiven",
+  "saveNew": "Spara",
+  "saveAnalyse": "Spara och analysera med AI",
+  "saveAnalyseHelp": "Bilden skickas till OpenAI för att sätta kategorier, motivets svårighet, namn och beskrivning.",
+  "moreOptions": "Fler val",
+  "sectionPlayOnly": "Spela"
 }

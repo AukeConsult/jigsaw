@@ -45,5 +45,8 @@
   "removeFavorite": "Remove from favorites",
   "favorites": "Favorites",
   "hiddenNote": "Hidden: only in your list of jigsaws",
-  "details": "Details"
+  "details": "Details",
+  "motive": "Motive difficulty",
+  "solvedByYou": "You have solved this",
+  "solved": "Solved"
 }

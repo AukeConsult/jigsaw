@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, computed, effect, inject, output, signal, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { Plays } from '../../models/shared/play';
@@ -13,7 +14,7 @@ import { WELCOME_ART } from '../welcome-art';
 /** A band stuck to the top of the page with the user's rounds that are not solved: the picture of each (press it to go straight on with the round), and under it, in tiny text, when it was started and the time played. Scrolls sideways; shows nothing when there are no rounds. */
 @Component({
   selector: 'app-my-rounds',
-  imports: [DatePipe, TranslocoDirective, JigsawCard],
+  imports: [DatePipe, RouterLink, TranslocoDirective, JigsawCard],
   providers: [provideTranslocoScope('jigsawHome')],
   templateUrl: './my-rounds.html',
   host: { '(window:resize)': 'update()' },

@@ -2,18 +2,17 @@ Mach aus jedem Bild ein Puzzle und setze es am Bildschirm zusammen. Alles wird v
 
 ## Wer spielt
 
-* Beim ersten Mal wirst du gefragt, wer spielt. Drücke auf deinen Namen in der Liste oder auf **Benutzer erstellen**: Wähle einen **Benutzername** (3 bis 30 Buchstaben a-z, Ziffern, _ oder -) und deinen Namen. Die **E-Mail** ist freiwillig und wird nie angezeigt.
+* Beim ersten Mal wirst du gefragt **Wie heißt du?** Schreibe deinen Namen und drücke **Spielen**. Hast du schon gespielt, drücke **Ich habe schon gespielt** und dann auf deinen Namen in der Liste.
 * Es gibt vorerst kein Passwort, jeder kann also jeden Benutzer wählen.
 * Drücke im Menü auf deinen Namen, um **Deine Runden** zu sehen, **Bearbeiten** zu drücken oder **Anderen Benutzer wählen** zu drücken.
 
 ## Ein Puzzle machen
 
-1. Drücke **Neues Puzzle** (auf der Startseite und oben in der Liste).
+1. Drücke **Puzzle erstellen** im Willkommensbereich der Startseite, oder drücke im Menü auf deinen Namen und dann auf die Schaltfläche für ein neues Puzzle.
 2. Gib einen **Name** ein und wähle ein **Bild**. Ein Fenster öffnet sich: Ziehe das Bild, um den gewünschten Teil zu finden, zoome und drücke **Diesen Ausschnitt verwenden**.
 3. Wähle die **Größe** und die Anzahl der **Teile** (bis zu 1000). Die Größe wird etwas angepasst, damit die Teile genau passen.
-4. Wähle die **Schwierigkeit**, ob es **Mit Zeitmessung** sein soll, und **Linie**, **Farbe** und **Hintergrund** der Bildfläche.
-5. Wähle den **Autor** und **Wer es sieht**.
-6. Drücke **Speichern und starten**.
+4. Wähle die **Schwierigkeit** und ob es **Mit Zeitmessung** sein soll. Unter **Weitere Optionen** kannst du außerdem Sprache, Kategorien, Aussehen, Autor und Sichtbarkeit ändern.
+5. Drücke **Speichern** (oder **Speichern und mit KI analysieren**, wobei die KI auch Kategorien, Namen und Beschreibung setzt). Die Seite des neuen Puzzles öffnet sich: starte dort eine Runde.
 
 ## Spielen
 
@@ -33,7 +32,7 @@ Mach aus jedem Bild ein Puzzle und setze es am Bildschirm zusammen. Alles wird v
 ## Runden
 
 * Ein Spiel eines Puzzles ist eine **Runde**. Die Seite eines Puzzles listet die Runden aller auf; deine sind mit **Deine** markiert und stehen zuerst.
-* Drücke **Fortsetzen**, um mit einer deiner Runden weiterzumachen, **Betritt eine Runde, löse es**, um eine weitere zu beginnen, oder **Löschen**, um eine deiner Runden zu entfernen (du wirst vorher gefragt).
+* Drücke **Fortsetzen**, um mit einer deiner Runden weiterzumachen, **Spielen**, um eine weitere zu beginnen, oder **Löschen**, um eine deiner Runden zu entfernen (du wirst vorher gefragt).
 * Drücke **Ansehen**, um die Runde eines anderen Spielers zu sehen. Du kannst sie nie ändern, aber du kannst deine eigene beginnen.
 * Eine Runde zählt erst, wenn du darin ein Teil bewegt hast. Wenn du ein Puzzle nur öffnest und zurückgehst, steht keine Runde in der Liste.
 * **Fordere einen Freund heraus:** Stelle das Puzzle auf **Mit Zeitmessung** und bitte deinen Freund, auch eine Runde zu spielen. Die Zeit jeder Runde steht in der Liste, so siehst du, wer am schnellsten ist.

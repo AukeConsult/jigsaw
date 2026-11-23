@@ -1,9 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { JigsawInput, JigsawSpec } from '../models/shared/jigsaw-settings';
-import { Difficulty, JigsawFacets, JigsawSummary, SearchSort, SizeClass } from '../models/shared/jigsaw-search';
+import { MotiveLevel } from '../models/shared/motive';
+import { Difficulty, JigsawFacets, JigsawSearch, JigsawSummary, MineAnswer, SearchSort, SizeClass } from '../models/shared/jigsaw-search';
 import { ApiCollection } from '../core/api-collection';
 
 /** What is looked for: a field that is null or left out does not narrow the search. */
@@ -11,9 +12,11 @@ export interface JigsawSearchRequest {
   categories?: string[] | null;
   sizes?: SizeClass[] | null;
   difficulties?: Difficulty[] | null;
+  motives?: MotiveLevel[] | null;
   languages?: string[] | null;
   owners?: string[] | null;
   favorites?: true | null;
+  solved?: true | null;
   text?: string | null;
   sort?: SearchSort;
   limit?: number;
@@ -41,6 +44,21 @@ export class JigsawService extends ApiCollection<JigsawInput, JigsawSpec> {
     return firstValueFrom(this.client.get<JigsawSearchAnswer>(`${environment.jigsawApi}/jigsaw-search`, { params: this.params(request) }));
   }
 
+  /**
+   * A page of the jigsaws of one user, also the private and the hidden ones, for the page where the user looks after them: with words, who sees them, an order and the page asked for;
+   * with how many there are for each choice of who sees them. Only the user can ask for their own (the header says who asks).
+   */
+  async mineSearch(userId: string, query: { text?: string; sort: SearchSort; visibility?: 'everyone' | 'owner' | 'hidden'; limit: number; page: number }): Promise<MineAnswer> {
+    try {
+      return await firstValueFrom(this.client.get<MineAnswer>(`${environment.jigsawApi}/jigsaw-search/mine`, { params: this.params(query as JigsawSearchRequest), headers: { 'X-Jigsaw-User': userId } }));
+    } catch (err) {
+      if (!(err instanceof HttpErrorResponse) || err.status !== 404) throw err;
+      // a server that is older than this page (the page is new, the function is not yet) does not have the route: the newest jigsaws it lists are looked at here, with the same rules, so the person still has a list
+      const own = (await this.list()).filter((j) => j.ownerUid === userId).map(({ placed: _placed, ...summary }) => summary);
+      return JigsawSearch.mine(own, { text: query.text, sort: query.sort, limit: query.limit, page: query.page }, query.visibility);
+    }
+  }
+
   /** The question as the parameters of an address: a list is written with commas, and what is null or left out is not there. */
   private params(request: JigsawSearchRequest): HttpParams {
     let params = new HttpParams();
@@ -57,11 +75,11 @@ export class JigsawService extends ApiCollection<JigsawInput, JigsawSpec> {
    * The AI looks at the picture of the jigsaw and says its categories, a name and a description (the texts in the language of the jigsaw). With `apply` they are also put on the
    * jigsaw. Only the owner may. Throws when the AI cannot be asked or fails (the error says why).
    */
-  classify(id: string, apply = false, language?: string): Promise<{ categories: string[]; name: string; description: string; applied: boolean }> {
+  classify(id: string, apply = false, language?: string): Promise<{ categories: string[]; motive?: MotiveLevel; name: string; description: string; applied: boolean }> {
     let params = new HttpParams();
     if (apply) params = params.set('apply', 'true');
     if (language) params = params.set('language', language); // the texts in this language (and with apply the jigsaw gets it), not the language the jigsaw has
-    return firstValueFrom(this.client.post<{ categories: string[]; name: string; description: string; applied: boolean }>(`${environment.jigsawApi}/jigsaw/${encodeURIComponent(id)}/classify`, null, { params }));
+    return firstValueFrom(this.client.post<{ categories: string[]; motive?: MotiveLevel; name: string; description: string; applied: boolean }>(`${environment.jigsawApi}/jigsaw/${encodeURIComponent(id)}/classify`, null, { params }));
   }
 
   /** The most popular jigsaws the person may see (at most ten), the best first: by the rounds played and by being new. The server ranks them (`Popularity`). */

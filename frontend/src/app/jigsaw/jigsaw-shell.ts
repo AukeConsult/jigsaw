@@ -34,8 +34,8 @@ import { JigsawUserService } from './jigsaw-user.service';
       <span class="small text-body-secondary text-nowrap d-none d-lg-inline" role="status">{{ t('jigsawShell.showing', { shown: tools.counts().shown, total: tools.counts().total }) || 'Showing ' + tools.counts().shown + ' of ' + tools.counts().total + ' pieces' }}</span>
     }
     <!-- on a narrow screen the sidebar is folded away: this shows the details; a click anywhere else closes them again (on a wide screen they are always there) -->
-    <button type="button" class="sidebar-open btn btn-sm btn-outline-secondary text-nowrap d-xl-none" [title]="t('jigsawShell.details') || 'Details'" aria-controls="jigsaw-sidebar" [attr.aria-expanded]="tools.sidebarOpen()"
-            (click)="tools.sidebarOpen.set(true)"><i class="bi bi-layout-sidebar me-1" aria-hidden="true"></i>{{ t('jigsawShell.details') || 'Details' }}</button>
+    <button type="button" class="sidebar-open btn btn-sm btn-outline-secondary text-nowrap d-xl-none" [title]="t('jigsawShell.details') || 'Details'" aria-controls="jigsaw-sidebar" [attr.aria-expanded]="tools.sidebarOpen()" [class.active]="tools.sidebarOpen()"
+            (click)="tools.sidebarOpen.set(!tools.sidebarOpen())"><i class="bi bi-layout-sidebar me-1" aria-hidden="true"></i>{{ t('jigsawShell.details') || 'Details' }}</button>
   </div>
     </ng-template>
     @if (tools.active()) {
@@ -45,12 +45,12 @@ import { JigsawUserService } from './jigsaw-user.service';
     <nav class="app-navbar navbar navbar-expand bg-body-tertiary border-bottom" [attr.aria-label]="t('jigsawShell.menu') || 'Karins jigsaw menu'">
       <div class="container-fluid flex-wrap gap-1">
         <a class="navbar-brand brand-lockup d-flex align-items-center gap-2" routerLink="/" aria-label="Karins jigsaw">
-          <img class="brand-logo" src="logo.svg" alt="" width="32" height="32">
+          <span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32"><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span>
           <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
         </a>
         <ul class="navbar-nav flex-shrink-0">
           <li class="nav-item">
-            <a class="nav-link" routerLink="/jigsaw/find" routerLinkActive="active" [title]="t('jigsawShell.find') || 'Find a jigsaw'"><i class="bi bi-search me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.find') || 'Find' }}</span></a>
+            <a class="nav-link" routerLink="/jigsaw/find" routerLinkActive="active" [title]="t('jigsawShell.find') || 'Find a jigsaw'"><i class="bi bi-search me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.find') || 'Find' }}</span></a>
           </li>
         </ul>
         @if (tools.active()) {
@@ -61,12 +61,12 @@ import { JigsawUserService } from './jigsaw-user.service';
         <div class="d-flex align-items-center gap-2 ms-auto order-1">
           <ul class="navbar-nav flex-shrink-0">
             <li class="nav-item">
-            <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'Help'"><i class="bi bi-book me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ t('jigsawShell.guide') || 'Help' }}</span></a>
+            <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'Help'"><i class="bi bi-book me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.guide') || 'Help' }}</span></a>
             </li>
             <li class="nav-item">
             <!-- who plays: the name of the user, and a way to choose another -->
             <a class="nav-link text-nowrap" routerLink="/jigsaw/user" routerLinkActive="active" [title]="users.user() ? (t('jigsawShell.whoPlaysTitle', { name: users.user()!.username }) || 'Who plays: ' + users.user()!.username) : (t('jigsawShell.choosePlayer') || 'Choose who plays')">
-              <i class="bi bi-person-circle me-1" aria-hidden="true"></i><span class="d-none d-md-inline">{{ users.user()?.name ?? (t('jigsawShell.whoPlays') || 'Who plays?') }}</span>
+              <i class="bi bi-person-circle me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ users.user()?.name ?? (t('jigsawShell.whoPlays') || 'Who plays?') }}</span>
             </a>
             </li>
           </ul>

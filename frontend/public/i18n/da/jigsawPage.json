@@ -39,7 +39,7 @@
   "sectionBasics": "Grundlæggende",
   "sectionOwner": "Ejer og deling",
   "piecesShort": "{{ count }} brikker",
-  "enterRound": "Gå ind i en runde, løs den",
+  "enterRound": "Begynd at spille",
   "description": "Beskrivelse",
   "optional": "(valgfri)",
   "sectionLook": "Udseende",
@@ -59,5 +59,7 @@
   "resetRounds": "Slet alle runder for at ændre dem",
   "resetAsk": "Slet alle runder af dette puslespil for altid, også andre spilleres? Så kan billedet, størrelsen og sværhedsgraden ændres.",
   "yesReset": "Ja, slet runderne",
-  "couldNotResetRounds": "Kunne ikke slette runderne: kun ejeren kan."
+  "couldNotResetRounds": "Kunne ikke slette runderne: kun ejeren kan.",
+  "motive": "Motivets sværhedsgrad",
+  "youSolvedIt": "Du har løst dette puslespil"
 }

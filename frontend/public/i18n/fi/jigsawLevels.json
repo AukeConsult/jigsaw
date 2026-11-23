@@ -10,5 +10,12 @@
     "hard": "Vaikea",
     "medium": "Keskitaso",
     "easy": "Helppo"
+  },
+  "motive": {
+    "easy": "Helppo",
+    "mediumeasy": "Melko helppo",
+    "normal": "Normaali",
+    "hard": "Vaikea",
+    "expert": "Asiantuntija"
   }
 }

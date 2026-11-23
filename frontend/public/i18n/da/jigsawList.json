@@ -45,5 +45,8 @@
   "removeFavorite": "Fjern fra favoritter",
   "favorites": "Favoritter",
   "hiddenNote": "Skjult: kun i listen over dine puslespil",
-  "details": "Detaljer"
+  "details": "Detaljer",
+  "motive": "Motivets sværhedsgrad",
+  "solvedByYou": "Du har løst denne",
+  "solved": "Løste"
 }

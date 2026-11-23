@@ -2,18 +2,17 @@ Lav et puslespil af et hvilket som helst billede og læg det sammen på skærmen
 
 ## Hvem spiller
 
-* Første gang bliver du spurgt, hvem der spiller. Tryk på dit navn i listen, eller tryk **Opret en bruger**: vælg et **Brugernavn** (3 til 30 bogstaver a-z, tal, _ eller -) og dit navn. **E-mail** er valgfri og vises aldrig.
+* Første gang bliver du spurgt **Hvad hedder du?** Skriv dit navn og tryk **Begynd at spille**. Har du spillet før, så tryk **Jeg har spillet før** og derefter dit navn i listen.
 * Der er ingen adgangskode for øjeblikket, så hvem som helst kan vælge en hvilken som helst bruger.
 * Tryk på dit navn i menuen for at se **Dine runder**, for at trykke **Ret**, eller for at trykke **Vælg en anden bruger**.
 
 ## Lav et puslespil
 
-1. Tryk **Nyt puslespil** (på forsiden og øverst i listen).
+1. Tryk **Lav et puslespil** i velkomsten på forsiden, eller tryk på dit navn i menuen og derefter på knappen for et nyt puslespil.
 2. Skriv et **Navn** og vælg et **Billede**. Et vindue åbnes: træk billedet for at finde den del, du vil have, zoom, og tryk **Brug dette udsnit**.
 3. Vælg **Størrelse** og antal **Brikker** (op til 1000). Størrelsen justeres lidt, så brikkerne passer nøjagtigt.
-4. Vælg **Sværhedsgrad**, om det skal have **Tidtagning**, og **Streg**, **Farve** og **Baggrund** for billedfladen.
-5. Vælg **Lavet af** og **Hvem ser det**.
-6. Tryk **Gem og start**.
+4. Vælg **Sværhedsgrad** og om det skal have **Tidtagning**. Under **Flere valg** kan du også ændre sprog, kategorier, udseende, hvem der har lavet det og hvem der ser det.
+5. Tryk **Gem** (eller **Gem og analysér med AI**, som også lader AI sætte kategorier, navn og beskrivelse). Siden til det nye puslespil åbnes: start en runde derfra.
 
 ## Spil
 
@@ -33,7 +32,7 @@ Lav et puslespil af et hvilket som helst billede og læg det sammen på skærmen
 ## Runder
 
 * Ét spil af et puslespil er en **runde**. Puslespillets side viser alles runder; dine er markeret **Din** og står først.
-* Tryk **Fortsæt** for at gå videre med en af dine, **Gå ind i en runde, løs den** for at starte en til, eller **Slet** for at fjerne en af dine (du bliver spurgt først).
+* Tryk **Fortsæt** for at gå videre med en af dine, **Begynd at spille** for at starte en til, eller **Slet** for at fjerne en af dine (du bliver spurgt først).
 * Tryk **Se** for at se en anden spillers runde. Du kan aldrig ændre den, men du kan starte din egen.
 * En runde tæller først, når du har flyttet en brik i den. Åbner du bare et puslespil og går tilbage, står der ingen runde i listen.
 * **Udfordr en ven:** gør puslespillet **Tidtagning** og bed din ven spille en runde af det også. Tiden for hver runde står i listen, så du kan se, hvem der er hurtigst.

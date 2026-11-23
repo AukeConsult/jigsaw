@@ -7,7 +7,8 @@
   "piecesArea": "Palapelin palojen alue",
   "pictureArea": "Kuva-alue",
   "piecesStore": "Palapelin palojen varasto",
-  "clickToGet": "Napsauta hakeaksesi palat",
+  "clickToGet": "Napauta tästä kerätäksesi palat",
   "scrollLeft": "Vieritä paloja vasemmalle",
-  "scrollRight": "Vieritä paloja oikealle"
+  "scrollRight": "Vieritä paloja oikealle",
+  "dragHint": "Vedä pala kuvaan"
 }

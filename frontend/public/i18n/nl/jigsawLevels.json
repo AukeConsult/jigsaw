@@ -10,5 +10,12 @@
     "hard": "Moeilijk",
     "medium": "Middel",
     "easy": "Makkelijk"
+  },
+  "motive": {
+    "easy": "Makkelijk",
+    "mediumeasy": "Redelijk makkelijk",
+    "normal": "Normaal",
+    "hard": "Moeilijk",
+    "expert": "Expert"
   }
 }

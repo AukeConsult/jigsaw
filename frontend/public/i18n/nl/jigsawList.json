@@ -45,5 +45,8 @@
   "removeFavorite": "Uit favorieten verwijderen",
   "favorites": "Favorieten",
   "hiddenNote": "Verborgen: alleen in je lijst met puzzels",
-  "details": "Details"
+  "details": "Details",
+  "motive": "Moeilijkheid van het motief",
+  "solvedByYou": "Je hebt deze opgelost",
+  "solved": "Opgelost"
 }

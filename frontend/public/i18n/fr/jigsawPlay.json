@@ -19,17 +19,17 @@
   "colourTitle": "La couleur du trait autour de chaque pièce et autour de la zone de l'image",
   "back": "Fond",
   "backTitle": "La couleur de fond de la zone de l'image, à l'intérieur du cadre",
-  "startNewAsk": "Commencer une nouvelle partie ? Les pièces sont à nouveau éparpillées dans une nouvelle partie ; cette partie reste dans ta liste.",
-  "yesNew": "Oui, nouvelle partie",
+  "startNewAsk": "Recommencer cette partie ? Les pièces sont à nouveau éparpillées et le temps repart de zéro.",
+  "yesNew": "Oui, réinitialiser",
   "cancel": "Annuler",
   "deleteAsk": "Supprimer cette partie définitivement ? Ses pièces et sa progression sont perdues. Le puzzle reste.",
   "yesDelete": "Oui, supprimer",
-  "newRound": "Nouvelle partie",
+  "newRound": "Réinitialiser la partie",
   "deleteRound": "Supprimer la partie",
   "cheat": "Tricher",
   "cheatHelp": "(aide à trouver les pièces)",
   "notSaved": "Non enregistré : les réglages ne sont pas autorisés",
   "couldNotSave": "Impossible d'enregistrer, nouvel essai",
   "couldNotDelete": "Impossible de supprimer la partie : réessaie.",
-  "couldNotStart": "Impossible de commencer une nouvelle partie : réessaie."
+  "couldNotStart": "Impossible de réinitialiser la partie : réessaie."
 }

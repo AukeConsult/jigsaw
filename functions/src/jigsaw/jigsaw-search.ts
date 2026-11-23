@@ -73,25 +73,41 @@ export function jigsawSearchRouter(
   canSee: (jigsaw: JigsawSummary, me: string | undefined) => Promise<boolean>,
   owners: () => Promise<string[]>,
   favorites: (userId: string) => Promise<string[]>,
+  solvedOf: (userId: string, among: readonly JigsawSummary[]) => Promise<string[]>,
 ): express.Router {
   const router = express.Router();
-  /** The jigsaws the person may see, the newest first; with `onlyFavorites`, those the person has ticked (none for nobody). */
-  const visible = async (me: string | undefined, onlyFavorites = false): Promise<JigsawSummary[]> => {
-    const [all, mine] = await Promise.all([store.load(await owners(), SEARCH_MAX_READ), onlyFavorites && me ? favorites(me) : Promise.resolve([] as string[])]);
-    const seen = await Promise.all(all.map((j) => (!JigsawVisibilities.listed(j.visibility) ? false : j.visibility !== "owner" ? true : me ? canSee(j, me) : false))); // a hidden one is never found; the private ones are asked about at the same time
+  /** The jigsaws the person may see, the newest first; with `only.favorites`, those the person has ticked, with `only.solved`, those the person has solved (none for nobody). */
+  const visible = async (me: string | undefined, only: { favorites?: boolean; solved?: boolean } = {}): Promise<JigsawSummary[]> => {
+    const [all, mine] = await Promise.all([store.load(await owners(), SEARCH_MAX_READ), only.favorites && me ? favorites(me) : Promise.resolve([] as string[])]);
+    const seen = await Promise.all(all.map((j, i) => (!JigsawVisibilities.listed(j.visibility) ? false : j.visibility !== "owner" ? true : me ? canSee(j, me) : false))); // a hidden one is never found; the private ones are asked about at the same time
+    const seeable = all.filter((j, i) => seen[i]);
     const favored = new Set(mine);
-    return all.filter((j, i) => seen[i] && (!onlyFavorites || favored.has(j.id)));
+    const solved = new Set(only.solved && me ? await solvedOf(me, seeable) : []);
+    return seeable.filter((j) => (!only.favorites || favored.has(j.id)) && (!only.solved || (!!me && solved.has(j.id))));
   };
+  // the jigsaws of the user who asks (`X-Jigsaw-User`), all of them also the private and the hidden ones, with words, a choice of who sees them, an order and a page: the page where a
+  // user looks after their jigsaws (up to `SEARCH_MAX_READ` of them are read); 401 without the header
+  router.get("/mine", async (req, res) => {
+    const me = req.get("X-Jigsaw-User");
+    if (!me) return void res.status(401).json({ error: "Say who you are." });
+    const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
+    if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
+    const visibility = req.query.visibility;
+    if (visibility !== undefined && visibility !== "" && visibility !== "everyone" && visibility !== "owner" && visibility !== "hidden") return void res.status(400).json({ error: "The visibility must be everyone, owner or hidden." });
+    const own = (await store.load([me], SEARCH_MAX_READ)).filter((j) => j.ownerUid === me);
+    const answer = JigsawSearch.mine(own, parsed.query, visibility === "everyone" || visibility === "owner" || visibility === "hidden" ? visibility : undefined);
+    res.json({ ...answer, items: answer.items.map(({ description: _description, ...summary }) => summary) });
+  });
   // how many jigsaws there are for each choice of the filter, with the rest of it kept (what the Find page shows beside each tick)
   router.get("/facets", async (req, res) => {
     const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
     if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
-    res.json(JigsawSearch.facets(await visible(req.get("X-Jigsaw-User"), parsed.query.favorites), parsed.query));
+    res.json(JigsawSearch.facets(await visible(req.get("X-Jigsaw-User"), { favorites: parsed.query.favorites, solved: parsed.query.solved }), parsed.query));
   });
   router.get("/", async (req, res) => {
     const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
     if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
-    const found = (await visible(req.get("X-Jigsaw-User"), parsed.query.favorites)).filter((j) => JigsawSearch.matches(j, parsed.query));
+    const found = (await visible(req.get("X-Jigsaw-User"), { favorites: parsed.query.favorites, solved: parsed.query.solved })).filter((j) => JigsawSearch.matches(j, parsed.query));
     const page = JigsawSearch.page(found, parsed.query);
     res.json({ ...page, items: page.items.map(({ description: _description, ...summary }) => summary) }); // the description was read to look for words in it: a list does not show it
   });

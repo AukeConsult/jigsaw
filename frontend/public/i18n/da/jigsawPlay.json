@@ -19,17 +19,17 @@
   "colourTitle": "Farven på linjen om hver brik og om billedområdet",
   "back": "Baggrund",
   "backTitle": "Baggrundsfarven i billedområdet, inden for rammen",
-  "startNewAsk": "Start en ny runde? Brikkerne spredes igen i en ny runde; denne runde bliver i din liste.",
-  "yesNew": "Ja, ny runde",
+  "startNewAsk": "Start denne runde forfra? Brikkerne spredes igen, og tiden starter fra nul.",
+  "yesNew": "Ja, nulstil",
   "cancel": "Annuller",
   "deleteAsk": "Slet denne runde for altid? Brikkerne og fremskridtet går tabt. Puslespillet bliver.",
   "yesDelete": "Ja, slet",
-  "newRound": "Ny runde",
+  "newRound": "Nulstil runden",
   "deleteRound": "Slet runden",
   "cheat": "Snyd",
   "cheatHelp": "(hjælp til at finde brikker)",
   "notSaved": "Ikke gemt: indstillingerne er ikke tilladt",
   "couldNotSave": "Kunne ikke gemme, prøver igen",
   "couldNotDelete": "Kunne ikke slette runden: prøv igen.",
-  "couldNotStart": "Kunne ikke starte en ny runde: prøv igen."
+  "couldNotStart": "Kunne ikke nulstille runden: prøv igen."
 }

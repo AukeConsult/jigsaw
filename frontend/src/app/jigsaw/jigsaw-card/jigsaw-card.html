@@ -1,7 +1,7 @@
 <ng-container *transloco="let t">
   @let item = jigsaw();
   <div class="card h-100">
-    <!-- the picture, with Play over its bottom right corner -->
+    <!-- the picture, with Play over its bottom right corner (a card of only the picture, as in the band of the rounds, has neither the heart nor Play: the picture itself is the link) -->
     <div class="position-relative">
       <a [routerLink]="link()" [title]="pictureOnly() ? item.name : ''" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
         <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
@@ -10,7 +10,11 @@
           }
         </div>
       </a>
-      @if (favorites.available()) {
+      @if (isSolved() && !pictureOnly()) {
+        <!-- solved by the user: a small green check in the top right corner of the picture (left of the heart when there is one) -->
+        <span class="solved-mark position-absolute top-0 m-1" [class.with-heart]="favorites.available()" [title]="t('jigsawList.solvedByYou') || 'You have solved this'" role="img" [attr.aria-label]="t('jigsawList.solvedByYou') || 'You have solved this'"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+      }
+      @if (favorites.available() && !pictureOnly()) {
         <!-- a small heart over the top right corner of the picture: tick it to have the jigsaw as a favorite -->
         <button type="button" class="btn btn-overlay position-absolute top-0 end-0 m-1" [class.is-favorite]="favorite()" [attr.aria-pressed]="favorite()"
                 [title]="favorite() ? (t('jigsawList.removeFavorite') || 'Remove from favorites') : (t('jigsawList.addFavorite') || 'Add to favorites')"
@@ -18,7 +22,9 @@
           <i class="bi" [class.bi-heart]="!favorite()" [class.bi-heart-fill]="favorite()" aria-hidden="true"></i>
         </button>
       }
-      <a class="btn btn-overlay position-absolute bottom-0 end-0 m-1" [routerLink]="link()" [title]="t('jigsawList.play') || 'Show the jigsaw'" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
+      @if (!pictureOnly()) {
+        <a class="btn btn-overlay position-absolute bottom-0 end-0 m-1" [routerLink]="link()" [title]="t('jigsawList.play') || 'Show the jigsaw'" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
+      }
     </div>
     @if (pictureOnly()) {
     <!-- what the page puts under the picture (the tiny text of a round) -->
@@ -26,16 +32,20 @@
     } @else {
     <div class="card-body p-2 text-break">
       <a class="card-name fw-semibold text-decoration-none" [routerLink]="link()">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch tiny ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tiny ms-1 text-body-secondary" [title]="t('jigsawList.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tiny ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      <!-- what every card tells: how many pieces and how hard (the words are in the tooltips) -->
+      <div class="text-body-secondary tiny">
+        <span class="text-nowrap" [title]="t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}</span>
+        <span class="ms-2 text-nowrap" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
+      </div>
+      <!-- the rest only when the Details switch is on -->
       @if (details.on()) {
         @if (item.author) {
           <div class="text-body-secondary tiny">{{ t('jigsawList.by', { author: item.author }) || 'by ' + item.author }}</div>
         }
         <app-category-tags [keys]="item.categories" />
-        <!-- the pieces and the difficulty on one short line (icons say what they are; the full words are in the tooltips) -->
-        <div class="text-body-secondary tiny text-nowrap">
-          <span [title]="t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ pieces() }}</span>
-          <span class="ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
-        </div>
+        @if (item.motive) {
+          <div class="text-body-secondary tiny text-nowrap" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</div>
+        }
         @if (item.createdAt) {
           <div class="text-body-secondary tiny d-none d-sm-block"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ t('jigsawList.made', { date: (item.createdAt | date: 'mediumDate') }) || 'Made ' + (item.createdAt | date: 'mediumDate') }}</div>
         }

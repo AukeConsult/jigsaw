@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, OnDestroy, effect, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
@@ -19,6 +20,7 @@ import { JigsawLanguages } from '../../models/shared/language';
 import { PictureCropper } from '../picture-cropper/picture-cropper';
 import { renderPieceGraphics } from '../piece-graphics';
 import { JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { JigsawMotives, MotiveLevel } from '../../models/shared/motive';
 import { SourceRect } from '../../models/shared/geometry';
 import { JigsawCut, JigsawPieces, PieceLayout, pieceGrid } from '../../models/shared/jigsaw';
 
@@ -73,8 +75,12 @@ export class JigsawNew implements OnDestroy {
   private readonly router = inject(Router);
   private readonly plays = inject(PlaysService);
   private readonly users = inject(JigsawUserService);
-  /** the jigsaw that is edited (null: a new one is made) */
-  readonly editId = inject(ActivatedRoute).snapshot.paramMap.get('id');
+  private readonly location = inject(Location);
+  /** the jigsaw that is edited (null: a new one is made); a new one that was saved with "Save and analyse with AI" is the one that is edited from then on, in the same page */
+  private readonly editIdState = signal<string | null>(inject(ActivatedRoute).snapshot.paramMap.get('id'));
+  get editId(): string | null {
+    return this.editIdState();
+  }
   /** the jigsaw as it was when the edit began, and whether its picture was changed since (a new file, or another cut of it) */
   private original: JigsawSpec | null = null;
   protected readonly pictureChanged = signal(false);
@@ -106,6 +112,8 @@ export class JigsawNew implements OnDestroy {
   readonly language = signal(inject(LanguageService).lang());
   /** the keys of the categories the jigsaw is in */
   readonly categories = signal<string[]>([]);
+  /** the motive difficulty ('' when nobody has said it) */
+  readonly motive = signal('');
   /** who made the jigsaw: a user chosen from the users (the UID is kept on the jigsaw as its owner, and the user's name is its author) */
   readonly owners = signal<JigsawUserSpec[]>([]);
   readonly ownerUid = signal('');
@@ -227,6 +235,7 @@ export class JigsawNew implements OnDestroy {
       ...(this.description().trim() ? { description: this.description().trim() } : {}),
       language: this.language(),
       ...(this.categories().length ? { categories: this.categories() } : {}),
+      ...(JigsawMotives.is(this.motive()) ? { motive: this.motive() as MotiveLevel } : {}),
       width: this.width(),
       height: this.height(),
       gridSize: this.gridSize(),
@@ -361,6 +370,31 @@ export class JigsawNew implements OnDestroy {
     this.setPreview(null);
   }
 
+  /** Fills the form with a jigsaw (not its picture). */
+  private fill(item: JigsawSpec): void {
+    this.name.set(item.name);
+    this.ownerUid.set(item.ownerUid ?? '');
+    this.description.set(item.description ?? '');
+    this.language.set(JigsawLanguages.of(item));
+    this.categories.set(item.categories ?? []);
+    this.motive.set(item.motive ?? '');
+    this.visibility.set(item.visibility ?? 'everyone');
+    this.timed.set(item.timed !== false);
+    this.asked.set({ width: item.width, height: item.height });
+    this.width.set(item.width);
+    this.height.set(item.height);
+    this.gridSize.set(item.gridSize);
+    const grid = pieceGrid(item.width, item.height, item.gridSize);
+    this.pieceCount.set(grid.columns * grid.rows);
+    this.sizeChoice.set(this.sizePresets.find((p) => p.width === item.width && p.height === item.height)?.key ?? 'custom');
+    const key = `${grid.columns}x${grid.rows}`;
+    this.pieceChoice.set(this.pieceOptions().some((o) => o.key === key) ? key : 'custom');
+    this.snapPercent.set(item.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT);
+    this.lineWidth.set(item.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH);
+    this.lineColor.set(item.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR);
+    this.backColor.set(item.backColor ?? JigsawSettings.DEFAULT_BACK_COLOR);
+  }
+
   /** Fills the form with the jigsaw that is edited, and its picture (the picture is the cut one, so the example and the cut are as they were). */
   private async loadForEdit(id: string): Promise<void> {
     try {
@@ -369,26 +403,7 @@ export class JigsawNew implements OnDestroy {
       if (item.ownerUid && item.ownerUid !== this.users.user()?.id) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // only its owner edits a jigsaw, also by its address
       if (await this.plays.played(id)) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // it has been played: only the name and the defaults can change, on its page
       this.original = item;
-      this.name.set(item.name);
-      this.ownerUid.set(item.ownerUid ?? '');
-      this.description.set(item.description ?? '');
-      this.language.set(JigsawLanguages.of(item));
-      this.categories.set(item.categories ?? []);
-      this.visibility.set(item.visibility ?? 'everyone');
-      this.timed.set(item.timed !== false);
-      this.asked.set({ width: item.width, height: item.height });
-      this.width.set(item.width);
-      this.height.set(item.height);
-      this.gridSize.set(item.gridSize);
-      const grid = pieceGrid(item.width, item.height, item.gridSize);
-      this.pieceCount.set(grid.columns * grid.rows);
-      this.sizeChoice.set(this.sizePresets.find((p) => p.width === item.width && p.height === item.height)?.key ?? 'custom');
-      const key = `${grid.columns}x${grid.rows}`;
-      this.pieceChoice.set(this.pieceOptions().some((o) => o.key === key) ? key : 'custom');
-      this.snapPercent.set(item.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT);
-      this.lineWidth.set(item.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH);
-      this.lineColor.set(item.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR);
-      this.backColor.set(item.backColor ?? JigsawSettings.DEFAULT_BACK_COLOR);
+      this.fill(item);
       const response = await fetch(this.images.url(id, 1));
       if (response.ok) {
         const blob = await response.blob();
@@ -438,8 +453,11 @@ export class JigsawNew implements OnDestroy {
     }
   }
 
-  /** Save: the jigsaw is made, its picture and pieces are kept, and it is opened to play. */
-  async save(): Promise<void> {
+  /** the AI is looking at the picture of the jigsaw that was just made */
+  readonly analysing = signal(false);
+
+  /** Save: the jigsaw is made, its picture and pieces are kept, and its page is opened. With `analyse` the AI looks at the picture first and sets the categories, the motive difficulty, the name and the description, and the person stays in the form (now the edit form of the new jigsaw, with what the AI said in it) instead of going to its page. */
+  async save(analyse = false): Promise<void> {
     const file = this.file();
     const cut = this.cut();
     if (!this.canSave()) return;
@@ -468,10 +486,22 @@ export class JigsawNew implements OnDestroy {
         URL.revokeObjectURL(address);
       }
       await this.pieceApi.replace(made.id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
-      // the first game of the new jigsaw is started for the user, and opened
-      const me = this.users.user();
-      const game = me ? await this.plays.start(made.id, me.id).catch(() => null) : null;
-      await this.router.navigate(game ? ['/jigsaw', made.id, 'play', game.id] : ['/jigsaw', made.id], { replaceUrl: true }); // the form is left out of the history
+      // the new jigsaw is only saved: no round is started, the person goes on to its page and starts one when they like
+      if (analyse) {
+        this.analysing.set(true);
+        await this.service.classify(made.id, true).catch(() => null); // the jigsaw is made: when the AI cannot, the person can ask again with the AI link of the form
+        // the person stays in the page: it is the edit form of the jigsaw that is made now, in place, with what the AI said in it, to look at and change (the address is changed to the one of the edit form without leaving)
+        const fresh = (await this.service.get(made.id).catch(() => null)) ?? made;
+        this.original = fresh;
+        this.fill(fresh);
+        this.pictureChanged.set(false);
+        this.editIdState.set(made.id);
+        this.location.replaceState(`/jigsaw/${made.id}/edit`);
+        this.analysing.set(false);
+        this.saving.set(false);
+        return;
+      }
+      await this.router.navigate(['/jigsaw', made.id], { replaceUrl: true }); // the form is left out of the history
     } catch {
       if (madeId) await this.service.remove(madeId).catch(() => undefined); // nothing half made is left
       this.error.set(tr('jigsawNew.couldNotMake', 'Could not make the jigsaw. Nothing was saved: check the picture and try again.'));

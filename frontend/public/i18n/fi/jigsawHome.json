@@ -26,5 +26,9 @@
   "jigsaws": "Palapelit",
   "imageAlt": "Nainen värikkään päivänvarjon kanssa linnoituksen terassilla, takanaan vihreitä kukkuloita ja kaupunki",
   "noRoundsYet": "Sinulla ei ole vielä yhtään kierrosta kesken. Valitse alta palapeli aloittaaksesi.",
-  "welcomeIntro": "Nauti palapeleistäni, pelaa niitä ja pidä hauskaa, tai käytä omaa kuvaasi ja tee omasi."
+  "welcomeIntro": "Nauti palapeleistäni, pelaa niitä ja pidä hauskaa, tai käytä omaa kuvaasi ja tee omasi.",
+  "step1": "Valitse palapeli alta ja paina sitä.",
+  "step2": "Vedä palat paikoilleen.",
+  "step3": "Haluatko oman? Tee sellainen kuvasta:",
+  "makeOwn": "Tee palapeli"
 }

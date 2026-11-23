@@ -45,5 +45,8 @@
   "removeFavorite": "Ta bort från favoriter",
   "favorites": "Favoriter",
   "hiddenNote": "Dold: bara i listan över dina pussel",
-  "details": "Detaljer"
+  "details": "Detaljer",
+  "motive": "Motivets svårighet",
+  "solvedByYou": "Du har löst den här",
+  "solved": "Lösta"
 }

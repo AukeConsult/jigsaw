@@ -10,5 +10,12 @@
     "hard": "Vanskelig",
     "medium": "Middels",
     "easy": "Lett"
+  },
+  "motive": {
+    "easy": "Lett",
+    "mediumeasy": "Middels lett",
+    "normal": "Normal",
+    "hard": "Vanskelig",
+    "expert": "Ekspert"
   }
 }

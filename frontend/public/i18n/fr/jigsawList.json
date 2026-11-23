@@ -45,5 +45,8 @@
   "removeFavorite": "Retirer des favoris",
   "favorites": "Favoris",
   "hiddenNote": "Masqué : seulement dans votre liste de puzzles",
-  "details": "Détails"
+  "details": "Détails",
+  "motive": "Difficulté du motif",
+  "solvedByYou": "Tu as résolu celui-ci",
+  "solved": "Résolus"
 }

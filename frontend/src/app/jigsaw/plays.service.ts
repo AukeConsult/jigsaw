@@ -58,6 +58,11 @@ export class PlaysService {
     return firstValueFrom(this.http.post<PlaySpec>(this.base(jigsawId), { userId }));
   }
 
+  /** starts this round over: the pieces are scattered anew and the time played is nothing again */
+  restart(jigsawId: string, playId: string): Promise<unknown> {
+    return firstValueFrom(this.http.post(`${this.one(jigsawId, playId)}/restart`, {}, { headers: this.whoAsks() }));
+  }
+
   get(jigsawId: string, playId: string): Promise<PlayDetail> {
     return firstValueFrom(this.http.get<PlayDetail>(this.one(jigsawId, playId)));
   }

@@ -12,6 +12,7 @@ import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { PlaysService } from '../plays.service';
 import { JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { JigsawMotives, MotiveLevel } from '../../models/shared/motive';
 import { PlaySpec } from '../../models/shared/play';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
 
@@ -54,6 +55,8 @@ export class JigsawPage implements OnInit {
   readonly language = signal('en');
   /** the categories in the edit form */
   readonly categories = signal<string[]>([]);
+  /** the motive difficulty in the edit form ('' when nobody has said it) */
+  readonly motive = signal('');
   readonly visibility = signal<'everyone' | 'owner' | 'hidden'>('everyone');
   readonly lineWidth = signal<number>(JigsawSettings.DEFAULT_LINE_WIDTH);
   readonly lineColor = signal<string>(JigsawSettings.DEFAULT_LINE_COLOR);
@@ -112,6 +115,12 @@ export class JigsawPage implements OnInit {
   }
 
   /** Goes on with the user's newest round that is not solved, or starts a new one when there is none (the list has the user's own rounds first, each newest first). */
+  /** the user who plays has solved this jigsaw: it is not played again (the solved round can be looked at, or deleted) */
+  protected readonly solvedByMe = computed(() => {
+    const me = this.users.user();
+    return !!me && this.games().some((g) => g.userId === me.id && g.status === 'solved');
+  });
+
   async play(): Promise<void> {
     const me = this.users.user();
     if (!me || this.busy()) return;
@@ -157,6 +166,7 @@ export class JigsawPage implements OnInit {
       ...(this.description().trim() ? { description: this.description().trim() } : {}),
       language: this.language(),
       ...(this.categories().length ? { categories: this.categories() } : {}),
+      ...(JigsawMotives.is(this.motive()) ? { motive: this.motive() as MotiveLevel } : {}),
       width: item.width,
       height: item.height,
       gridSize: item.gridSize,
@@ -230,6 +240,7 @@ export class JigsawPage implements OnInit {
     this.description.set(item.description ?? '');
     this.language.set(JigsawLanguages.of(item));
     this.categories.set(item.categories ?? []);
+    this.motive.set(item.motive ?? '');
     this.ownerUid.set(item.ownerUid ?? '');
     this.visibility.set(item.visibility ?? 'everyone');
     this.lineWidth.set(item.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH);

@@ -107,6 +107,9 @@ export interface UserGame {
  * The games of one user over all the jigsaws, `/jigsaw-users/:id/plays`: GET: the rounds worked on last first. Each jigsaw is asked for the user's games (one equality on the plays of that
  * jigsaw, so no index is needed); a jigsaw the user has not played adds nothing. At most `LIST_LIMIT` games.
  */
+/** Moves that would pull apart pieces that stick together (see `Plays.bondsError`): they are refused, 409. */
+class BondBroken extends Error {}
+
 export function userPlaysRouter(plays: PlayStore, deps: { jigsaws: () => Promise<JigsawSpec[]>; userOf: (userId: string) => Promise<{ id: string } | null> }): express.Router {
   const router = express.Router({ mergeParams: true });
   router.get("/", async (req, res) => {
@@ -184,8 +187,11 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (error) return bad(res, error);
     const user = await deps.userOf(userId as string);
     if (!user) return bad(res, "No such user: choose a user first.", 404);
+    // a jigsaw that the user has solved is not played again by them (it can be looked at, or the solved round deleted)
+    const theirs = await plays.list(jigsaw.id, user.id);
+    if (theirs.some((p) => p.status === "solved")) return bad(res, "You have solved this jigsaw: it cannot be played again.", 409);
     // opening a jigsaw again does not make another round: the player's round with no piece moved in it is the one to go on with
-    const waiting = (await plays.list(jigsaw.id, user.id)).find((p) => p.fresh);
+    const waiting = theirs.find((p) => p.fresh);
     if (waiting) return void res.status(200).json(waiting);
     const started = Plays.start(jigsaw, { id: user.id, name: user.name }, await deps.pieces.list(jigsaw.id), now());
     if ("error" in started) return bad(res, started.error, 409);
@@ -204,6 +210,31 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (!record) return bad(res, "No such play.", 404);
     const pieces = await deps.pieces.list(jigsaw.id);
     res.json({ play: record.play, settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, record.positions) });
+  });
+
+  // starts this round over: the pieces are scattered anew and the time is back to nothing (the same round, not another one)
+  router.post("/:playId/restart", ownRound, async (req, res) => {
+    const jigsaw = await jigsawOf(req, res);
+    if (!jigsaw) return;
+    const pieces = await deps.pieces.list(jigsaw.id);
+    let failed = "";
+    let solved = false;
+    const saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {
+      if (cur.play.status === "solved") {
+        solved = true; // a solved round stays solved: it is not played over
+        return cur;
+      }
+      const again = Plays.restart(cur.play, jigsaw, pieces, now());
+      if ("error" in again) {
+        failed = again.error;
+        return cur;
+      }
+      return again;
+    });
+    if (solved) return bad(res, "This round is solved: it cannot be played over.", 409);
+    if (failed) return bad(res, failed, 409);
+    if (!saved) return bad(res, "No such play.", 404);
+    res.json({ matched: saved.play.matched, total: saved.play.total, status: saved.play.status });
   });
 
   router.patch("/:playId/settings", ownRound, async (req, res) => {
@@ -231,11 +262,19 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
       return bad(res, `The store must be a whole number of pixels from 0 to ${JIGSAW_MAX_SIDE} wide.`);
     }
     const pieces = await deps.pieces.list(jigsaw.id);
-    const saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {
+    let saved;
+    try {
+      saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {
       const next = Plays.moved(cur.play, pieces, cur.positions, moves as PieceMove[], now());
+      const broken = Plays.bondsError(pieces, cur.positions, next.positions); // a bond between pieces is never broken
+      if (broken) throw new BondBroken(broken);
       const grown = typeof storeWidth === "number" ? { ...next, play: { ...next.play, storeWidth } } : next; // the store of this game grew (pieces were collected over the whole frame)
       return typeof elapsedMs === "number" ? { ...grown, play: Plays.withElapsed(grown.play, elapsedMs) } : grown; // the time played so far
-    });
+      });
+    } catch (err) {
+      if (err instanceof BondBroken) return bad(res, err.message, 409);
+      throw err;
+    }
     if (!saved) return bad(res, "No such play.", 404);
     res.json({ moved: (moves as PieceMove[]).length, matched: saved.play.matched, total: saved.play.total, status: saved.play.status });
   });

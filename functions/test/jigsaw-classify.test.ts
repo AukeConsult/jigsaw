@@ -110,6 +110,19 @@ describe("classifying one jigsaw", () => {
     expect(a.asked).toHaveLength(2); // the AI was not asked
   });
 
+  it("puts the motive difficulty on the jigsaw as its own property (not among the categories), and keeps the one that is there when the AI said none", async () => {
+    const said = setup({ classify: async () => ({ categories: ["nature"], motive: "expert", name: "N", description: "D" }) });
+    const res = await classify(said, "u1", "?apply=true");
+    expect(res.body).toMatchObject({ motive: "expert", categories: ["nature"], applied: true });
+    expect(said.updates[0].input).toMatchObject({ motive: "expert", categories: ["nature"] });
+    const silent = setup({ jigsaw: jigsaw({ motive: "easy" }), classify: async () => ({ categories: ["nature"], name: "N", description: "D" }) });
+    await classify(silent, "u1", "?apply=true");
+    expect(silent.updates[0].input).toMatchObject({ motive: "easy" }); // the AI said none: what was there stays
+    const dry = await classify(said, "u1");
+    expect(dry.body).toMatchObject({ motive: "expert", applied: false });
+    expect(said.updates).toHaveLength(1); // and nothing is saved without apply
+  });
+
   it("keeps the categories, the name and the description that are there when the AI said none", async () => {
     const a = setup({ classify: async () => ({ categories: [], name: "", description: "" }) });
     const res = await classify(a, "u1", "?apply=true");

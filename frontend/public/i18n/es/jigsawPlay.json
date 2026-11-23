@@ -19,17 +19,17 @@
   "colourTitle": "El color de la línea alrededor de cada pieza y del área de la imagen",
   "back": "Fondo",
   "backTitle": "El color de fondo del área de la imagen, dentro del marco",
-  "startNewAsk": "¿Empezar una partida nueva? En una partida nueva las piezas se dispersan otra vez; esta partida se queda en tu lista.",
-  "yesNew": "Sí, nueva partida",
+  "startNewAsk": "¿Empezar de nuevo esta partida? Las piezas se dispersan otra vez y el tiempo vuelve a cero.",
+  "yesNew": "Sí, reiniciar",
   "cancel": "Cancelar",
   "deleteAsk": "¿Eliminar esta partida para siempre? Se pierden sus piezas y su progreso. El puzle se queda.",
   "yesDelete": "Sí, eliminar",
-  "newRound": "Nueva partida",
+  "newRound": "Reiniciar partida",
   "deleteRound": "Eliminar partida",
   "cheat": "Truco",
   "cheatHelp": "(ayuda para encontrar piezas)",
   "notSaved": "No se guardó: los ajustes no están permitidos",
   "couldNotSave": "No se pudo guardar, reintentando",
   "couldNotDelete": "No se pudo eliminar la partida: inténtalo de nuevo.",
-  "couldNotStart": "No se pudo empezar una partida nueva: inténtalo de nuevo."
+  "couldNotStart": "No se pudo reiniciar la partida: inténtalo de nuevo."
 }

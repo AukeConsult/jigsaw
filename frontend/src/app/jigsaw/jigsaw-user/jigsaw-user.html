@@ -1,22 +1,45 @@
-<main class="container py-4" *transloco="let t">
+<main class="container-fluid page-margin py-4" *transloco="let t">
   <div class="form-card wide card card-body mx-auto">
-    <h1 class="page-title mb-3"><i class="bi bi-person-circle text-primary me-2" aria-hidden="true"></i>{{ t('jigsawUser.title') || 'Who plays?' }}</h1>
+    <!-- with a user who plays, the title is that user (the question "Who plays?" is only for a person who has not chosen yet), with the badge that says it is the active one, and at the right end of the same line what can be done with it -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+      <h1 class="page-title mb-0 d-flex flex-wrap align-items-baseline gap-2">
+        <i class="bi bi-person-circle text-primary align-self-center" aria-hidden="true"></i>
+        @if (users.user(); as me) {
+          <span class="text-break">{{ me.name }}</span>
+          <!-- the user name too: several users can have the same name, and this tells which of them plays -->
+          <span class="text-body-secondary fw-normal align-self-center text-break">{{ me.username }}</span>
+          <span class="badge text-bg-success fw-normal align-self-center">{{ t('jigsawUser.activeBadge') || 'Active' }}</span>
+        } @else {
+          @if (mode() === 'start') { {{ t('jigsawUser.startTitle') || 'What is your name?' }} } @else { {{ t('jigsawUser.title') || 'Who plays?' }} }
+        }
+      </h1>
+      @if (users.user()) {
+        <span class="toolbar">
+          <!-- a switch: pressed it opens the form of the user, and pressed again it closes it without saving -->
+          <button type="button" class="link-action" [class.fw-semibold]="editing()" [attr.aria-pressed]="editing()" (click)="toggleEdit()"><i class="bi" [class.bi-pencil]="!editing()" [class.bi-pencil-fill]="editing()" aria-hidden="true"></i>{{ t('jigsawUser.edit') || 'Edit' }}</button>
+          <!-- a button, not a plain word: this is how another person gets to play on this device -->
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="leave()"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>{{ t('jigsawUser.chooseAnother') || 'Choose another user' }}</button>
+        </span>
+      }
+    </div>
+    @if (users.user()) {
+      <!-- what the two links do, in plain words -->
+      <p class="form-text mt-0 mb-3">{{ t('jigsawUser.userActionsHelp') || 'Edit changes your user name, your name and your language. Choose another user switches to somebody else: your rounds and jigsaws stay yours.' }}</p>
+    }
 
     @if (users.user(); as me) {
-      <div class="alert alert-success py-2 small d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
-        <span>{{ t('jigsawUser.youPlayAs') || 'You play as' }} <strong>{{ me.name }}</strong> ({{ me.username }}).</span>
-        <span class="toolbar">
-          <button type="button" class="link-action" [disabled]="editing()" (click)="edit()"><i class="bi bi-pencil" aria-hidden="true"></i>{{ t('jigsawUser.edit') || 'Edit' }}</button>
-          <button type="button" class="link-action" (click)="leave()">{{ t('jigsawUser.chooseAnother') || 'Choose another user' }}</button>
-        </span>
-      </div>
       @if (editing()) {
         <form (submit)="$event.preventDefault(); saveEdit()">
           <h2 class="form-section first"><i class="bi bi-person" aria-hidden="true"></i>{{ t('jigsawUser.sectionWho') || 'Who you are' }}</h2>
           <div class="mb-3">
             <label class="form-label" for="edit-username">{{ t('jigsawUser.usernameLabel') || 'User name' }}</label>
             <input id="edit-username" name="username" class="form-control" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
-                   [ngModel]="username()" (ngModelChange)="username.set($event)">
+                   [ngModel]="username()" (ngModelChange)="onUsernameTyped($event)">
+            @if (usernameCheck() === 'free') {
+              <div class="form-text text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('jigsawUser.usernameFree') || 'Free: nobody else has this user name.' }}</div>
+            } @else if (usernameCheck() === 'taken') {
+              <div class="form-text text-danger"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>{{ t('jigsawUser.usernameTaken') || 'Taken: somebody else has this user name.' }}</div>
+            }
             <div class="form-text">{{ t('jigsawUser.usernameHelpEdit', { min: usernameMin, max: usernameMax }) || usernameMin + ' to ' + usernameMax + ' letters (a-z), digits, _ or -. Your rounds stay yours when you change it.' }}</div>
           </div>
           <div class="mb-3">
@@ -48,14 +71,16 @@
           }
           <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-outline-secondary" (click)="editing.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
-            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim()"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.save') || 'Save' }}</button>
+            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim() || usernameCheck() === 'taken'"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.save') || 'Save' }}</button>
           </div>
         </form>
       }
 
+      <!-- the lists are not shown while the user is being edited -->
+      @if (!editing()) {
       <!-- the two lists of the user, as a switch: the rounds played and the jigsaws made -->
       <div class="toolbar mt-4 mb-2">
-        <div class="segmented" role="group" [attr.aria-label]="t('jigsawUser.lists') || 'Lists'">
+        <div class="segmented tabs" role="group" [attr.aria-label]="t('jigsawUser.lists') || 'Lists'">
           <input id="tab-rounds" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'rounds'" (change)="tab.set('rounds')">
           <label class="btn" for="tab-rounds"><i class="bi bi-play-circle" aria-hidden="true"></i>{{ t('jigsawUser.yourRounds') || 'Your rounds' }}</label>
           <input id="tab-jigsaws" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'jigsaws'" (change)="tab.set('jigsaws')">
@@ -70,11 +95,18 @@
       } @else if (gamesFailed()) {
         <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.roundsFailed') || 'Could not read your rounds: reload the page.' }}</div>
       } @else if (!games()!.length) {
-        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noRounds') || 'You have not played any jigsaw yet.' }} <a routerLink="/">{{ t('jigsawUser.findJigsaw') || 'Find a jigsaw' }}</a>.</p>
+        <!-- a new person: the two ways to begin, as buttons -->
+        <div class="text-center py-4">
+          <p class="text-body-secondary mb-3">{{ t('jigsawUser.noRounds') || 'You have not played any jigsaw yet.' }}</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+          <a class="btn btn-main btn-primary" routerLink="/"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawUser.startButton') || 'Start playing' }}</a>
+          <a class="btn btn-main btn-outline-primary" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawUser.findJigsaw') || 'Find a jigsaw' }}</a>
+        </div>
+        </div>
       } @else {
         <ul class="list-group">
           @for (game of games(); track game.play.id) {
-            <li class="list-group-item round-row">
+            <li class="list-group-item round-row" [class.round-solved]="game.play.status === 'solved'">
               <div class="round-body">
                 <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
                   @if (!noPicture().has(game.jigsaw.id)) {
@@ -117,7 +149,7 @@
       } @else if (aiFailed()) {
         <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.aiFailed') || 'Could not read the AI use: reload the page.' }}</div>
       } @else if (!aiUsage()!.items.length) {
-        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noAi') || 'The AI has not been used for you yet.' }}</p>
+        <p class="text-body-secondary text-center py-5 mb-0">{{ t('jigsawUser.noAi') || 'The AI has not been used for you yet.' }}</p>
       } @else {
         <div class="toolbar-note mb-2">{{ t('jigsawUser.aiTotals', { calls: aiUsage()!.totals.calls, input: aiUsage()!.totals.inputTokens, output: aiUsage()!.totals.outputTokens, total: aiUsage()!.totals.totalTokens, unbilled: aiUsage()!.totals.unbilledTokens }) || aiUsage()!.totals.calls + ' calls, ' + aiUsage()!.totals.inputTokens + ' tokens in, ' + aiUsage()!.totals.outputTokens + ' out, ' + aiUsage()!.totals.totalTokens + ' in all, ' + aiUsage()!.totals.unbilledTokens + ' not yet paid for' }}</div>
         <div class="table-responsive">
@@ -153,15 +185,43 @@
         </div>
       }
       } @else {
-      <div class="toolbar mb-2">
-        <a class="link-action" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.addJigsaw') || 'Add a new jigsaw' }}</a>
-        <a class="link-action" routerLink="/jigsaw/batch"><i class="bi bi-images" aria-hidden="true"></i>{{ t('jigsawUser.makeMany') || 'Make many jigsaws at once' }}</a>
+      <!-- the two ways to make a jigsaw: a button for each, with a line under it that says what it does -->
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6">
+          <a class="btn btn-outline-primary w-100" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.addJigsaw') || 'Add a new jigsaw' }}</a>
+          <p class="text-body-secondary small mt-1 mb-0">{{ t('jigsawUser.addJigsawHelp') || 'Choose a picture and the number of pieces, and make a jigsaw of it.' }}</p>
+        </div>
+        <div class="col-sm-6">
+          <a class="btn btn-outline-primary w-100" routerLink="/jigsaw/batch"><i class="bi bi-images" aria-hidden="true"></i>{{ t('jigsawUser.makeMany') || 'Make many jigsaws at once' }}</a>
+          <p class="text-body-secondary small mt-1 mb-0">{{ t('jigsawUser.makeManyHelp') || 'Choose many pictures at once and make a jigsaw of each. The AI can set the name, the description and the categories for you.' }}</p>
+        </div>
       </div>
       @if (mine() === null) {
         <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingJigsaws') || 'Looking for your jigsaws…' }}</div>
-      } @else if (!mine()!.length) {
-        <p class="text-body-secondary mb-0">{{ t('jigsawUser.noJigsaws') || 'You have not made a jigsaw yet.' }}</p>
+      } @else if (mineFailed()) {
+        <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.jigsawsFailed') || 'Could not read your jigsaws: reload the page.' }}</div>
+      } @else if (hasJigsaws() === false) {
+        <div class="text-center py-4">
+          <p class="text-body-secondary mb-3">{{ t('jigsawUser.noJigsaws') || 'You have not made a jigsaw yet.' }}</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+          <a class="btn btn-main btn-primary" routerLink="/"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawUser.startButton') || 'Start playing' }}</a>
+          <a class="btn btn-main btn-outline-primary" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawUser.findJigsaw') || 'Find a jigsaw' }}</a>
+        </div>
+        </div>
       } @else {
+        <!-- find and put in order: words in the name, and the order (kept on the device) -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <input type="search" class="form-control form-control-sm w-auto flex-grow-1" name="jigsaw-text" autocomplete="off" [attr.aria-label]="t('jigsawUser.searchJigsaws') || 'Search your jigsaws'" [attr.placeholder]="t('jigsawUser.searchJigsaws') || 'Search your jigsaws'"
+                 [ngModel]="jigsawText()" (ngModelChange)="jigsawText.set($event)">
+          <label class="d-flex align-items-center gap-2 mb-0">
+            <span class="form-label mb-0">{{ t('jigsawUser.sortBy') || 'Sort' }}</span>
+            <select class="form-select form-select-sm w-auto" name="jigsaw-sort" [ngModel]="sort()" (ngModelChange)="sort.set($event)">
+              @for (s of sorts; track s) {
+                <option [value]="s">{{ t('jigsawUser.sort.' + s) || s }}</option>
+              }
+            </select>
+          </label>
+        </div>
         <!-- a short filter: all, public, private or hidden -->
         <div class="toolbar mb-2">
           <div class="segmented" role="group" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Show'">
@@ -175,7 +235,7 @@
             <label class="btn" for="vis-hidden"><i class="bi bi-eye-slash" aria-hidden="true"></i>{{ t('jigsawUser.visibilityHidden') || 'Hidden' }} ({{ visibilityCounts().hidden }})</label>
           </div>
         </div>
-        <!-- tick jigsaws and delete the ticked ones all at once -->
+        <!-- tick jigsaws, and change who sees them or delete them all at once -->
         <div class="toolbar mb-2">
           <div class="form-check mb-0">
             <input id="select-all-jigsaws" class="form-check-input" type="checkbox" [checked]="allSelected()" [indeterminate]="someSelected()" [disabled]="deletingSelected()" (change)="toggleAllSelected()">
@@ -187,58 +247,71 @@
           } @else if (visibilityChanged()) {
             <span class="small text-success" role="status"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawUser.visibilityChanged', { count: visibilityChanged() }) || 'Changed ' + visibilityChanged() }}</span>
           }
-          @if (selected().size) {
-            <span class="text-body-secondary small" role="status">{{ t('jigsawUser.selectedCount', { count: selected().size }) || selected().size + ' selected' }}</span>
-            @if (!confirmingSelected() && !deletingSelected()) {
-              <!-- who sees the ticked jigsaws: public (everyone), private (its owner and players) or hidden (only in this list) -->
-              <select class="form-select form-select-sm w-auto" name="visibility-selected" [disabled]="changingVisibility()" [attr.aria-label]="t('jigsawUser.setVisibility') || 'Who sees it…'" (change)="setVisibilitySelected($any($event.target).value); $any($event.target).value = ''">
-                <option value="" selected>{{ t('jigsawUser.setVisibility') || 'Who sees it…' }}</option>
-                <option value="everyone">{{ t('jigsawUser.visibilityEveryone') || 'Public' }}</option>
-                <option value="owner">{{ t('jigsawUser.visibilityOwner') || 'Private' }}</option>
-                <option value="hidden">{{ t('jigsawUser.visibilityHidden') || 'Hidden' }}</option>
-              </select>
-            }
-            @if (deletingSelected()) {
-              <span class="small"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawUser.deleting') || 'Deleting…' }}</span>
-            } @else if (confirmingSelected()) {
-              <div class="w-100 small" role="alert">{{ t('jigsawUser.deleteSelectedAsk', { count: selected().size }) || 'Delete these ' + selected().size + ' jigsaws for good? Their pictures and all their rounds, also those of other players, go too.' }}</div>
-              <button type="button" class="link-action danger" (click)="removeSelected()">{{ t('jigsawUser.yesDeleteSelected', { count: selected().size }) || 'Yes, delete ' + selected().size }}</button>
-              <button type="button" class="link-action" (click)="confirmingSelected.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
-            } @else {
-              <button type="button" class="link-action danger" (click)="confirmingSelected.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.deleteSelected') || 'Delete the selected' }}</button>
-            }
-          }
         </div>
+        @if (selected().size) {
+          <!-- what can be done with the ticked jigsaws, in a panel that cannot be missed: how many, who sees them (one press on a choice), and delete -->
+          <div class="alert alert-primary py-2 mb-2" role="group" [attr.aria-label]="t('jigsawUser.selectedCount', { count: selected().size }) || selected().size + ' selected'">
+            <div class="fw-semibold mb-2"><i class="bi bi-check2-square me-1" aria-hidden="true"></i>{{ t('jigsawUser.selectedCount', { count: selected().size }) || selected().size + ' selected' }}</div>
+            @if (deletingSelected()) {
+              <span><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawUser.deleting') || 'Deleting…' }}</span>
+            } @else if (confirmingSelected()) {
+              <div class="mb-2" role="alert">{{ t('jigsawUser.deleteSelectedAsk', { count: selected().size }) || 'Delete these ' + selected().size + ' jigsaws for good? Their pictures and all their rounds, also those of other players, go too.' }}</div>
+              <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-danger" (click)="removeSelected()"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.yesDeleteSelected', { count: selected().size }) || 'Yes, delete ' + selected().size }}</button>
+                <button type="button" class="btn btn-outline-secondary" (click)="confirmingSelected.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+              </div>
+            } @else {
+              <div class="mb-1 small">{{ t('jigsawUser.whoSeesThem') || 'Who sees them? Press one:' }}</div>
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                @for (v of visibilityChoices; track v.value) {
+                  <button type="button" class="btn btn-outline-primary bg-body" [disabled]="changingVisibility()" (click)="setVisibilitySelected(v.value)"><i class="bi" [class]="v.icon" aria-hidden="true"></i>{{ t(v.label) || v.english }}</button>
+                }
+              </div>
+              <button type="button" class="btn btn-outline-danger bg-body" (click)="confirmingSelected.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.deleteSelected') || 'Delete the selected' }}</button>
+            }
+          </div>
+        }
+        @if (!shownJigsaws().length && !mineLoading()) {
+          <p class="text-body-secondary text-center py-4 mb-0">{{ t('jigsawUser.noMatchJigsaws') || 'No jigsaw matches. Change the words or the choice above.' }}</p>
+        }
         <ul class="list-group">
-          @for (item of shownJigsaws(); track item.id) {
-            <li class="list-group-item round-row" [class.row-selected]="selected().has(item.id)" [class.vis-hidden]="item.visibility === 'hidden'" [class.vis-private]="item.visibility === 'owner'" [class.vis-public]="!item.visibility || item.visibility === 'everyone'">
+          @for (item of shownJigsaws(); track item.id + ':' + visRev()) {
+            <li class="list-group-item round-row admin-row" [class.row-selected]="selected().has(item.id)" [class.vis-hidden]="item.visibility === 'hidden'" [class.vis-private]="item.visibility === 'owner'" [class.vis-public]="!item.visibility || item.visibility === 'everyone'">
               <div class="round-body">
                 <!-- over the link that covers the row, so it can be ticked -->
                 <!-- the whole padded area round the box ticks it, a big target for a finger -->
-                <label class="select-area position-relative z-2">
+                <label class="select-area z-2">
                   <input class="form-check-input m-0" type="checkbox" [id]="'select-' + item.id" [checked]="selected().has(item.id)" [disabled]="deletingSelected()" [attr.aria-label]="t('jigsawUser.select', { name: item.name }) || 'Select ' + item.name" (change)="toggleSelected(item.id)">
                 </label>
-                <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
-                  @if (!noPicture().has(item.id)) {
-                    <img class="object-fit-cover" [src]="pictureUrl(item.id)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
-                  }
-                </div>
-                <div class="round-info">
-                  <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>
-                  <!-- pieces, difficulty and the categories the picture is in -->
-                  <div class="tiny text-body-secondary">
-                    <span class="text-nowrap"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: piecesOf(item).count }) || piecesOf(item).count + ' pieces' }} ({{ piecesOf(item).columns }} × {{ piecesOf(item).rows }})</span>
-                    <span class="text-nowrap ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + levelOf(item)) || levelOf(item) }}</span>
+                <!-- the picture and the name with what it is: this is the area that opens the page of the jigsaw (the link of the name covers it, and nothing else of the row) -->
+                <div class="round-open">
+                  <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
+                    @if (!noPicture().has(item.id)) {
+                      <img class="object-fit-cover" [src]="pictureUrl(item.id)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
+                    }
                   </div>
-                  @if (item.categories?.length) {
-                    <app-category-tags [keys]="item.categories" />
-                  }
-                  @if (item.visibility === 'owner') {
-                    <div class="tiny text-body-secondary"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawUser.visibilityOwner') || 'Private' }}</div>
-                  } @else if (item.visibility === 'hidden') {
-                    <div class="tiny text-body-secondary"><i class="bi bi-eye-slash me-1" aria-hidden="true"></i>{{ t('jigsawUser.visibilityHidden') || 'Hidden' }}</div>
-                  } @else {
-                    <div class="tiny text-body-secondary"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('jigsawUser.visibilityEveryone') || 'Public' }}</div>
+                  <div class="round-info">
+                    <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>
+                    <!-- pieces, difficulty and the categories the picture is in -->
+                    <div class="tiny text-body-secondary">
+                      <span class="text-nowrap"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: piecesOf(item).count }) || piecesOf(item).count + ' pieces' }} ({{ piecesOf(item).columns }} × {{ piecesOf(item).rows }})</span>
+                      <span class="text-nowrap ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + levelOf(item)) || levelOf(item) }}</span>
+                      @if (item.motive) {
+                        <span class="text-nowrap ms-2" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</span>
+                      }
+                    </div>
+                    @if (item.categories?.length) {
+                      <app-category-tags [keys]="item.categories" />
+                    }
+                  </div>
+                </div>
+                <!-- who sees it, chosen here (it is saved at once); above the link of the row, so a press is not a press on the row -->
+                <div class="round-visibility d-flex flex-wrap column-gap-4 row-gap-1 position-relative z-2" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
+                  @for (v of visibilityChoices; track v.value) {
+                    <div class="form-check mb-0">
+                      <input class="form-check-input" type="radio" [id]="'vis-' + item.id + '-' + v.value" [name]="'vis-' + item.id" [checked]="(item.visibility ?? 'everyone') === v.value" [disabled]="changingVisibilityId() === item.id" (change)="setVisibility(item, v.value)">
+                      <label class="form-check-label" [for]="'vis-' + item.id + '-' + v.value"><i class="bi me-1" [class]="v.icon" aria-hidden="true"></i>{{ t(v.label) || v.english }}</label>
+                    </div>
                   }
                 </div>
                 <div class="round-actions" [class.confirming]="confirmingJigsawId() === item.id">
@@ -256,15 +329,67 @@
             </li>
           }
         </ul>
+        <!-- a page at a time: how many are shown of how many, and the next page -->
+        <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+          <span class="text-body-secondary small" role="status">{{ t('jigsawUser.showingJigsaws', { shown: shownJigsaws().length, total: mineTotal() }) || 'Showing ' + shownJigsaws().length + ' of ' + mineTotal() }}</span>
+          @if (mineLoading()) {
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          } @else if (mineHasMore()) {
+            <button type="button" class="btn btn-outline-secondary" (click)="moreMine()">{{ t('jigsawList.more') || 'Show more' }}</button>
+          }
+        </div>
+      }
       }
       }
     } @else {
-      @if (mode() === 'choose') {
-        <!-- choosing is done from the list: press a name. The one button here makes a new user. -->
-        <div class="toolbar mb-2">
-          <span class="text-body-secondary">{{ t('jigsawUser.pressName') || 'Press your name to play as you.' }}</span>
-          <button type="button" class="link-action toolbar-end" (click)="startMaking()"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.makeUser') || 'Make a user' }}</button>
+      @if (mode() === 'start') {
+        <!-- a person who is new only says their name: the user name is made from it. The list of the users is behind "I have played before", so nobody presses a name that is not theirs -->
+        <form (submit)="$event.preventDefault(); startNow()">
+          <p class="text-body-secondary">{{ t('jigsawUser.startHelp') || 'Type your name, then press the button, and you can play.' }}</p>
+          <label class="form-label" for="first-name">{{ t('jigsawUser.yourName') || 'Your name' }}</label>
+          <input id="first-name" name="name" class="form-control form-control-lg mb-3" type="text" autocomplete="name" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event); sameUsers.set([])">
+          @if (error() && !sameUsers().length) {
+            <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
+          }
+          @if (sameUsers().length) {
+            <!-- somebody already has this name: which of them is the person, or is it somebody else with the same name? -->
+            <div class="alert alert-info" role="alert">
+              @if (sameUsers().length === 1) {
+                <p class="mb-2">{{ t('jigsawUser.sameName', { name: sameUsers()[0].name }) || 'There is already someone called ' + sameUsers()[0].name + '. Is that you?' }}</p>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="pick(sameUsers()[0])">{{ t('jigsawUser.thatIsMe') || 'Yes, that is me' }}</button>
+                  <button type="button" class="btn btn-outline-primary" [disabled]="busy()" (click)="startNow(true)">{{ t('jigsawUser.makeNewUser') || 'No, make a new user' }}</button>
+                </div>
+              } @else {
+                <p class="mb-2">{{ t('jigsawUser.sameNames', { count: sameUsers().length, name: name().trim() }) || 'There are ' + sameUsers().length + ' people called ' + name().trim() + '. Which one is you?' }}</p>
+                <div class="list-group mb-2">
+                  @for (user of sameUsers(); track user.id) {
+                    <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2" [disabled]="busy()" (click)="pick(user)">
+                      <i class="bi bi-person-circle icon-md text-primary" aria-hidden="true"></i>
+                      <span class="flex-grow-1"><strong>{{ user.name }}</strong><span class="text-body-secondary small ms-2">{{ user.username }}</span></span>
+                      <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+                    </button>
+                  }
+                </div>
+                <button type="button" class="btn btn-outline-primary" [disabled]="busy()" (click)="startNow(true)">{{ t('jigsawUser.noneOfThem') || 'None of them, make a new user' }}</button>
+              }
+            </div>
+          } @else {
+          <button type="submit" class="btn btn-primary btn-main w-100" [disabled]="busy() || !name().trim()"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawUser.startButton') || 'Start playing' }}</button>
+          }
+        </form>
+        <!-- two different things, so they look different: somebody who has played before is a main way on (a button); a user name of one's own is rare (a small quiet link) -->
+        @if (list()?.length) {
+          <button type="button" class="btn btn-outline-primary w-100 mt-3" (click)="mode.set('choose'); error.set('')"><i class="bi bi-person-check" aria-hidden="true"></i>{{ t('jigsawUser.haveUser') || 'I have played before' }}</button>
+        }
+        <div class="toolbar justify-content-center mt-3">
+          <button type="button" class="link-action" (click)="startMaking()">{{ t('jigsawUser.ownUserName') || 'Choose my own user name' }}</button>
         </div>
+      } @else if (mode() === 'choose') {
+        <!-- choosing is done from the list: press a name. The one button here makes a new user. -->
+        <!-- new here: a clear button first (a person who is not in the list must not have to look for the way in), then the list for somebody who has played before -->
+        <button type="button" class="btn btn-primary w-100 mb-3" (click)="mode.set('start')"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.newHere') || 'I am new here' }}</button>
+        <p class="text-body-secondary mb-2">{{ t('jigsawUser.pressName') || 'Press your name to play as you.' }}</p>
         @if (list() === null) {
           <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingUsers') || 'Looking for the users…' }}</div>
         } @else {

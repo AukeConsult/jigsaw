@@ -5,7 +5,7 @@ import { TranslocoService, provideTranslocoScope } from '@jsverse/transloco';
 import { switchMap } from 'rxjs';
 import { tr } from '../../core/i18n';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
-import { readPreference, writePreference } from '../../core/preferences';
+import { isBoolean, readPreference, writePreference } from '../../core/preferences';
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
 import { bottomBarHeight, cssNumber, cssVar, onAnyScroll } from '../../core/theme';
 import { JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings } from '../../models/shared/jigsaw-settings';
@@ -32,6 +32,8 @@ const SCALE_MAX = 4;
 const BESIDE_PICTURE_SHARE = 2 / 3;
 /** With the store frame below the picture it is at least this many grid steps high (it goes on down to the bottom of the screen) and scrolls sideways only: the store is cut into bands as high as the strip, laid side by side. */
 const STACKED_STORE_ROWS = 4;
+/** The free space beside the picture (with the store below it) is a place for pieces when it is at least this many grid steps wide. */
+const ZONE_MIN_STEPS = 1;
 /** The helper picture is shown at this share of the size of the picture to begin with, and can be made as small as the first and as big as the second. */
 const HELPER_SCALE_START = 0.25;
 /** How long a piece blinks when it clicks into place, in milliseconds (the length of the animation). */
@@ -49,6 +51,9 @@ const AREA_PADDING_PX = 8;
 const FRAME_BORDER_PX = 1;
 /** How far the tabs of a piece reach out of its square, as a share of its side (with some to spare). */
 const TAB_REACH = 0.4;
+
+/** Where it is kept on the device that a piece has been moved (the first-move hint is then not shown any more). */
+const HAS_MOVED_KEY = 'jigsaw.hasMoved';
 
 /**
  * The jigsaw pieces area: the grid, the pieces placed on it, what is picked, and what the person does with them (move, pick with a rectangle,
@@ -91,6 +96,8 @@ export class JigsawBoard {
   readonly backColor = input<string | null>(null);
   /** the round is only looked at (it is another player's): nothing on the board can be moved, picked or collected */
   readonly viewOnly = input(false);
+  /** the person has moved a piece on this device before (kept): until then the store says what to do, in words that can be read */
+  protected readonly hasMoved = signal(readPreference(HAS_MOVED_KEY, false, isBoolean));
   /** a jigsaw: how close to its own grid point a piece has to be dropped to click into place, in pixels (0: never) */
   readonly snapRange = input(0);
   /** a banner above the jigsaw pieces area, with a switch that shows or hides the helper picture (the whole picture at a quarter of its width and height) */
@@ -132,7 +139,11 @@ export class JigsawBoard {
   /** the board has jigsaw pieces */
   readonly hasPieces = computed(() => this.placed().some((p) => p.piece));
   /** the pieces that are hidden because only corner and edge pieces are shown: the ones from the inside of the picture */
-  readonly hiddenIds = computed(() => (this.edgesOnly() ? new Set(this.placed().filter((p) => p.piece && !JigsawPieces.isBorder(p.piece)).map((p) => p.id)) : new Set<string>()));
+  readonly hiddenIds = computed(() => {
+    if (!this.edgesOnly()) return new Set<string>();
+    const grid = pieceGrid(this.width(), this.height(), this.gridSize()); // the border is also known from where the cell is, not only from the flat sides the piece has
+    return new Set(this.placed().filter((p) => p.piece && !JigsawPieces.isBorder(p.piece, grid)).map((p) => p.id));
+  });
   /** the pieces that lie in the store frame and are shown (not hidden by "only corner and edge pieces"): the ones that are collected */
   readonly storePieceIds = computed(() => {
     const store = this.store();
@@ -289,7 +300,7 @@ export class JigsawBoard {
       return { width: 2 * AREA_PADDING_PX + this.storeFrameWidth(), height: Math.max(shown, 2 * AREA_PADDING_PX + this.height() + this.gridSize() + this.storeViewHeight()) };
     }
     return {
-      width: 2 * AREA_PADDING_PX + this.width() + this.gridSize() + (store ? this.storeFrameWidth() : 0),
+      width: 2 * AREA_PADDING_PX + this.width() + this.gutter() + (store ? this.storeFrameWidth() : 0),
       height: 2 * AREA_PADDING_PX + Math.max(this.height(), this.storeViewHeight()),
     };
   });
@@ -304,6 +315,26 @@ export class JigsawBoard {
     if (this.stacked()) return Math.max(STORE_MIN_HEIGHT_PX, Math.floor(room.width / this.scale() - 2 * AREA_PADDING_PX));
     return Math.max(STORE_MIN_HEIGHT_PX, Math.floor(room.width / this.scale() - store.left - 2 * AREA_PADDING_PX));
   });
+  /**
+   * The free space beside the picture, as a place for pieces. With the store below the picture, the picture is often drawn smaller than the width of the screen (its height decides how
+   * big it is), and the room beside it is empty: pieces can be put there too, and never outside it. It stands for the model's free space under the picture (stored places with a centre
+   * further down than `base`, which are not in the store) so nothing new is stored: `left` is where it starts, across from the picture, `width` and `height` its size, all in stored pixels
+   * (`frameLeft` and `frameTop` are where it begins on the area, with the padding; it has no frame or colour of its own, and the store has none either: the pieces lie on the board). Nothing when the store is beside the picture, or the room is too narrow for it.
+   */
+  readonly zone = computed(() => {
+    const store = this.store();
+    if (!store || !this.stacked()) return null;
+    const grid = Math.max(this.gridSize(), 10);
+    const half = this.gridSize() / 2; // a piece is as big as a grid step: its middle is half a step from its edge
+    const left = this.width(); // where the picture area ends: the free space is next to it, with no gap and no padding between: a piece with its middle further across is in the free space
+    const origin = left - half; // the free space begins half a piece before that, so a piece whose middle is at `left` is at the left edge of what a piece can be (nothing jumps there)
+    const width = Math.min(this.storeFrameWidth() - origin, this.width()); // as wide as the room beside the picture, but not wider than the picture: the places it stands for are under the picture
+    if (width < ZONE_MIN_STEPS * grid) return null;
+    // `base`: the stored places from there down are the free space (the picture area goes on to there, so a piece goes on from the gutter above the store without a jump); `height`: down to where a piece with
+    // its middle on the top edge of the store would end, so a piece can be taken all the way from the free space to the store
+    return { left, origin, width, height: this.height() + 2 * this.gridSize(), base: this.height() + this.gridSize() + half, frameLeft: AREA_PADDING_PX + origin, frameTop: AREA_PADDING_PX };
+  });
+
   /** the picture stays where it is and the store frame has the rest of the area: the area does not scroll (only when the store is below and the area fills the screen) */
   readonly fixed = computed(() => this.stacked() && !!this.areaHeight());
   /** how far the store frame is scrolled sideways, in pixels (below the picture it scrolls only sideways) */
@@ -326,9 +357,14 @@ export class JigsawBoard {
   readonly storeInnerSize = computed(() => {
     const store = this.store();
     if (!store) return { width: 0, height: 0 };
-    if (this.stacked()) return { width: this.bandCount() * store.width, height: this.bandHeight() };
+    if (this.stacked()) return { width: this.bandCount() * this.bandStride() + this.gridSize() / 2, height: this.bandHeight() };
     return this.sliceCount() > 1 ? { width: this.sliceWidth(), height: this.sliceCount() * store.height } : { width: store.width, height: store.height };
   });
+  /**
+   * Below the picture the bands of the store lie side by side, each this far from the next: a band is as wide as the store minus half a piece, because the middle of a piece is never further across
+   * than that in the store (the piece is whole inside the area). So a piece that is moved from one band to the next is at the end of the one where the next begins: it follows the pointer all the way, with no jump.
+   */
+  private readonly bandStride = computed(() => Math.max(1, (this.store()?.width ?? 0) - this.gridSize() / 2));
   /** the band a place in the store (this far down) is in */
   private bandOf(y: number): number {
     return Math.min(this.bandCount() - 1, Math.max(0, Math.floor(y / this.bandHeight())));
@@ -355,10 +391,21 @@ export class JigsawBoard {
    * (`shift` across, `shiftY` down), what to cut off a piece of the store that is partly out of the frame at the top or the bottom (`clip`: only there, not at the
    * sides, so a piece can lie over the edge), and whether it is out of the frame altogether (`hidden`: a piece that has been scrolled out of sight).
    */
-  place(v: { inStore: boolean; left: number; top: number; object: { width: number } }): { shift: number; shiftY: number; clip: string | null; hidden: boolean } {
+  place(v: { anchor?: string; p?: { id: string }; inStore: boolean; left: number; top: number; object: { width: number } }): { shift: number; shiftY: number; clip: string | null; hidden: boolean } {
+    // a group of pieces that stick together is one piece: it is put where the piece that stands for it is, all the pieces by the same shift, so a group is never torn when it passes the edge
+    // of the picture, the free space or the store (the store cuts a piece at its edge: a piece of a group is not cut by itself)
+    const anchor = v.anchor && v.p && v.anchor !== v.p.id ? this.viewById().get(v.anchor) : undefined;
+    if (anchor) return { ...this.placeOwn(anchor), clip: null };
+    return this.placeOwn(v);
+  }
+
+  private placeOwn(v: { inStore: boolean; left: number; top: number; object: { width: number } }): { shift: number; shiftY: number; clip: string | null; hidden: boolean } {
     const store = this.store();
-    if (!store || !v.inStore) return { shift: -AREA_PADDING_PX, shiftY: -AREA_PADDING_PX, clip: null, hidden: false }; // on the picture area: the picture area is where the area's padding ends
     const size = v.object.width;
+    const zone = this.zone();
+    // a piece of the free space beside the picture: its place under the picture in the model is drawn beside the picture, where the free space is
+    if (zone && !v.inStore && v.top + size / 2 >= zone.base) return { shift: -zone.frameLeft, shiftY: zone.base - zone.frameTop, clip: null, hidden: false };
+    if (!store || !v.inStore) return { shift: -AREA_PADDING_PX, shiftY: -AREA_PADDING_PX, clip: null, hidden: false }; // on the picture area: the picture area is where the area's padding ends
     const reach = Math.ceil(size * TAB_REACH);
     const scroll = this.storeScroll();
     const shown = this.storeViewHeight() - 2 * FRAME_BORDER_PX; // the height of what the frame shows
@@ -367,7 +414,7 @@ export class JigsawBoard {
     const band = stacked ? this.bandOf(v.top + size / 2) : 0;
     const slices = this.sliceCount();
     const slice = slices > 1 ? Math.min(slices - 1, Math.max(0, Math.floor((v.left + size / 2 - store.left) / this.sliceWidth()))) : 0; // beside the picture: the slice it is in
-    const inLeft = slices > 1 ? Math.min(Math.max(v.left - store.left - slice * this.sliceWidth(), 0), Math.max(0, this.sliceWidth() - size)) : v.left - store.left + band * store.width;
+    const inLeft = slices > 1 ? Math.min(Math.max(v.left - store.left - slice * this.sliceWidth(), 0), Math.max(0, this.sliceWidth() - size)) : v.left - store.left + band * this.bandStride();
     const inTop = stacked ? Math.min(Math.max(v.top - band * this.bandHeight(), 0), Math.max(0, this.bandHeight() - size)) : v.top + slice * store.height;
     const top = inTop - scroll; // where the piece is in what the frame shows
     if (top + size + reach <= 0 || top - reach >= shown) return { shift: 0, shiftY: 0, clip: null, hidden: true };
@@ -383,7 +430,7 @@ export class JigsawBoard {
     const cutLeft = scrollX > 0 || stacked ? Math.max(0, -across) : 0;
     const cutRight = Math.max(0, across + size - shownAcross);
     const sideReach = reach + size;
-    const frameLeft = stacked ? AREA_PADDING_PX : AREA_PADDING_PX + this.width() + this.gridSize(); // the frame is beside the picture area, a grid step from it, or below it
+    const frameLeft = stacked ? AREA_PADDING_PX : AREA_PADDING_PX + this.width() + this.gutter(); // the frame is beside the picture area, a small gap from it, or below it
     const frameTop = stacked ? AREA_PADDING_PX + this.height() + this.gridSize() : AREA_PADDING_PX;
     return {
       shift: v.left - (frameLeft + FRAME_BORDER_PX + across),
@@ -402,15 +449,30 @@ export class JigsawBoard {
   readonly marquee = signal<Box | null>(null);
 
   /** the placed objects, as the classes that work on them */
+  /** the room between the picture area and the store frame beside it (`JigsawSettings.storeGap`) */
+  protected readonly gutter = computed(() => JigsawSettings.storeGap(this.gridSize()));
   /** the store frame beside the picture area, where the pieces of a jigsaw wait (null: none) */
   readonly store = computed(() => JigsawSettings.storeFrame(this.width(), this.height(), this.gridSize(), this.storeWidth()));
   private readonly puzzle = computed(() => {
     const extent = JigsawSettings.extent(this.width(), this.height(), this.gridSize(), this.storeWidth()); // the whole jigsaw pieces area
-    return Puzzle.from(this.placed(), extent.width, extent.height);
+    const settled = Puzzle.from(this.placed(), extent.width, extent.height).settled(); // no free piece below a fixed one, and none outside the area
+    const zone = this.zone();
+    const store = this.store();
+    if (!store) return settled;
+    // a piece in the free space beside the picture is always inside what is shown of it (the space shows less of the model than it stands for)
+    if (zone) return settled.confine({ left: 0, top: zone.base, width: store.left, height: extent.height }, { left: 0, top: zone.base, width: zone.width, height: zone.height });
+    // the store is below the picture and there is no room beside it (a narrow window, or the window was made smaller): a free piece lies on the picture or in the gutter above the store, never further down, where nothing of the area is shown
+    if (this.stacked()) return settled.confine({ left: 0, top: this.height(), width: store.left, height: extent.height }, { left: 0, top: 0, width: store.left, height: this.height() + 2 * this.gridSize() });
+    return settled;
   });
+  /** the pieces that were held, the last first: the one that is held, or was held last, stands for its group (see `Puzzle.groupAnchors`) */
+  private readonly anchorPrefs = signal<readonly string[]>([]);
+  /** for every object, the one that stands for its group: pieces that stick together are one piece, so where the group is shown is decided by one of them */
+  private readonly groupAnchors = computed(() => this.puzzle().groupAnchors(this.anchorPrefs()));
   /** the placed objects as they are drawn, with their box at their centre */
   readonly view = computed(() =>
     this.puzzle().items.map((item) => ({
+      anchor: this.groupAnchors().get(item.id) ?? item.id,
       p: item.data,
       layer: item.layer,
       object: item.object,
@@ -422,6 +484,9 @@ export class JigsawBoard {
       inStore: !!this.store() && item.centerX >= (this.store()?.left ?? Infinity),
     })),
   );
+
+  /** the drawn objects by id (a piece of a group looks up the piece that stands for the group) */
+  private readonly viewById = computed(() => new Map(this.view().map((v) => [v.p.id, v] as const)));
 
   /** how many pieces the picture is cut into across and down (a piece of the jigsaw shows its own part of the picture) */
   readonly pieceGrid = computed(() => pieceGrid(this.width(), this.height(), this.gridSize()));
@@ -458,6 +523,13 @@ export class JigsawBoard {
     effect(() => helper.hasPieces.set(this.hasPieces()));
     effect(() => helper.counts.set(this.pieceCounts()));
     this.destroyRef.onDestroy(() => helper.active.set(false));
+    // beside the picture the frame can be wider than the store the pieces were spread over (a wide screen): the store is made as wide as the frame, so a piece can go all the way across it (the page keeps it)
+    effect(() => {
+      const store = this.store();
+      if (!store || this.stacked() || this.viewOnly()) return;
+      const wanted = Math.min(JIGSAW_MAX_SIDE - store.left, this.storeFrameWidth() - STORE_SCROLLBAR_PX);
+      if (wanted > store.width) untracked(() => this.storeWidthChange.emit(wanted));
+    });
     effect(() => writePreference('jigsaw.helperFrame', this.helperFrame()));
     effect(() => writePreference('jigsaw.helperScale', this.helperScale()));
     // draw the grid again whenever the size or the grid changes (a new width or height clears the canvas)
@@ -538,18 +610,20 @@ export class JigsawBoard {
     const picked = this.selection();
     const inSelection = picked.length > 1 && picked.includes(item.id);
     if (!inSelection) this.selection.set([item.id]);
-    // the pieces that stick together move together: a piece takes the group it is stuck to with it (Shift takes the piece alone, which pulls it loose)
+    // the pieces that stick together move together: a piece takes the group it is stuck to with it, always: a bond is never broken (Shift does not take a piece alone any more)
     // a piece on its own place is fixed, and so is the whole group it sticks to: they are picked, but never moved (see `Puzzle.isFixed`)
     const free = item.piece ? this.puzzle().movable(inSelection ? [...picked] : [item.id]) : inSelection ? [...picked] : [item.id];
     if (!free.includes(item.id)) return;
     const wanted = free;
-    const ids = item.piece && !event.shiftKey ? this.puzzle().stuckGroup(wanted) : wanted;
+    const ids = item.piece ? this.puzzle().stuckGroup(wanted) : wanted;
     if (item.piece) {
       // a piece that is picked up goes in front of the others and stays there when it is dropped (a group keeps its order)
       let puzzle = this.puzzle();
       for (const id of [...ids].sort((a, b) => (puzzle.get(a)?.layer ?? 0) - (puzzle.get(b)?.layer ?? 0))) puzzle = puzzle.bringToFront(id);
       this.apply(puzzle);
     }
+    // the held piece stands for its group while it is held (and after: until another piece is held), so the group is drawn where the held piece is
+    this.anchorPrefs.update((now) => [item.id, ...now.filter((id) => id !== item.id)].slice(0, 40));
     // the distance from the pointer to what is moved, so it does not jump to the pointer
     const grabbed = { x: item.centerX, y: item.centerY };
     // a piece follows the pointer on the screen: how far the pointer is from the middle of the piece as it is drawn, so the piece does not jump when the pointer
@@ -565,31 +639,61 @@ export class JigsawBoard {
    * the frame is, beside the picture area; anywhere else it is on the part of the jigsaw pieces area that is left of the frame (the picture area and the blank space
    * under it), and not outside what the area shows.
    */
-  private areaPoint(event: { clientX: number; clientY: number }): Point {
+  private areaPoint(event: { clientX: number; clientY: number }, piece = false): Point {
     const store = this.store();
     const inner = this.storeInner()?.nativeElement;
     if (store && inner) {
       const frame = (inner.parentElement as HTMLElement).getBoundingClientRect();
-      if (event.clientX >= frame.left && event.clientX <= frame.right && event.clientY >= frame.top && event.clientY <= frame.bottom) {
+      // a piece (its middle) is in the store below the top edge of the frame by half a piece when the store is below the picture: a piece in the store is whole inside it, so higher up it is a free piece, and it follows the pointer all the way
+      const top = frame.top + (piece && this.stacked() ? (this.gridSize() / 2) * this.scale() : 0);
+      // beside the picture the frame has a scroll bar and a border at its right edge, and the board a little more: a pointer there is still at the right end of the store, not back at the picture
+      const clientX = !this.stacked() && event.clientX > frame.right ? frame.right : event.clientX;
+      if (clientX >= frame.left && clientX <= frame.right && event.clientY >= top && event.clientY <= frame.bottom) {
         const rect = inner.getBoundingClientRect(); // moves with the scrolling of the frame
-        const across = (event.clientX - rect.left) / this.scale();
+        const across = (clientX - rect.left) / this.scale();
         const down = (event.clientY - rect.top) / this.scale();
         if (!this.stacked()) {
           const slices = this.sliceCount();
           if (slices === 1) return { x: store.left + across, y: down };
           const slice = Math.min(slices - 1, Math.max(0, Math.floor(down / store.height))); // beside the picture: the slice the pointer is over
-          return { x: store.left + Math.min(across + slice * this.sliceWidth(), store.width), y: Math.min(down - slice * store.height, store.height) };
+          // across stays inside the slice: the frame is a little wider than a slice (border, scroll bar), and further across a piece would be in the next slice, which is under this one
+          const inSlice = Math.min(Math.max(across, 0), this.sliceWidth() - 1);
+          return { x: store.left + Math.min(inSlice + slice * this.sliceWidth(), store.width), y: Math.min(down - slice * store.height, store.height) };
         }
-        const band = Math.min(this.bandCount() - 1, Math.max(0, Math.floor(across / store.width))); // below the picture: the band the pointer is over
-        return { x: store.left + Math.min(across - band * store.width, store.width), y: Math.min(down + band * this.bandHeight(), store.height) };
+        const band = Math.min(this.bandCount() - 1, Math.max(0, Math.floor(across / this.bandStride()))); // below the picture: the band the pointer is over
+        return { x: store.left + Math.min(across - band * this.bandStride(), store.width), y: Math.min(down + band * this.bandHeight(), store.height) };
       }
     }
     // not over the store frame: anywhere on the area that is left of it, the picture and the blank space under it, as far as the area shows
     const rect = (this.canvas()?.nativeElement as HTMLElement).getBoundingClientRect();
+    const zone = this.zone();
+    if (zone && (event.clientX - rect.left) / this.scale() >= zone.left) {
+      // over the free space beside the picture: its own place, never outside it
+      // the middle of a piece is at least half a piece from the edges of the free space (the same as `confine` keeps it), so the place the pointer gives is where the piece stays: no pull back, no flicker
+      const half = this.gridSize() / 2;
+      return {
+        x: Math.min(Math.max((event.clientX - rect.left) / this.scale() - zone.origin, half), zone.width - half),
+        y: zone.base + Math.min(Math.max((event.clientY - rect.top) / this.scale(), half), zone.height - half),
+      };
+    }
     const area = this.root().nativeElement.getBoundingClientRect();
-    const reach = store && !this.stacked() ? store.left : this.width(); // below the picture the store strip is not beside it: the area is as wide as the picture
-    const lowest = Math.max(this.height(), (area.bottom - rect.top) / this.scale() - AREA_PADDING_PX); // a piece goes anywhere on the area, down to the bottom of the screen
+    // below the picture the store strip is not beside it: the area is as wide as the picture, and with the free space beside it as wide as to where that begins (so a piece goes on without a jump from the one to the other)
+    const reach = store && !this.stacked() ? store.left : zone ? zone.left : this.width();
+    // a piece goes anywhere on the area, down to the bottom of the screen; with the free space beside the picture, the places under the picture are that space (below), so the picture area ends at the picture
+    const lowest = zone ? zone.base - 1 : Math.max(this.height(), (area.bottom - rect.top) / this.scale() - AREA_PADDING_PX);
     return { x: Math.min(Math.max((event.clientX - rect.left) / this.scale(), 0), reach), y: Math.min(Math.max((event.clientY - rect.top) / this.scale(), 0), lowest) };
+  }
+
+  /**
+   * A place on the screen kept on the board while a piece is moved: not outside the pieces area, and, with the store below the picture, not below the store (a piece dragged further down
+   * stays at the bottom of the store: it is blocked there, it does not jump to another place). So a piece is never outside what is shown.
+   */
+  private onBoard(clientX: number, clientY: number): { clientX: number; clientY: number } {
+    const area = this.root().nativeElement.getBoundingClientRect();
+    const frame = this.storeInner()?.nativeElement.parentElement?.getBoundingClientRect();
+    const bottom = frame && this.stacked() ? Math.min(area.bottom, frame.bottom - 1) : area.bottom;
+    const half = (this.gridSize() / 2) * this.scale(); // the middle of a piece is kept half a piece in, so the whole piece is on the board
+    return { clientX: Math.min(Math.max(clientX, area.left + half), area.right - half), clientY: Math.min(Math.max(clientY, area.top + half), bottom - half) };
   }
 
   /** What is grabbed follows the pointer: the puzzle moves the piece, or the group of pieces (see `Puzzle`). */
@@ -600,7 +704,8 @@ export class JigsawBoard {
     const placed = puzzle.get(moving.id);
     if (!placed) return;
     const screen = moving.screen;
-    const point = screen ? this.areaPoint({ clientX: event.clientX - screen.dx, clientY: event.clientY - screen.dy }) : this.areaPoint(event); // a piece: where its middle is
+    const middle = screen ? this.onBoard(event.clientX - screen.dx, event.clientY - screen.dy) : null; // where the middle of the piece is, kept on the board
+    const point = middle ? this.areaPoint(middle, true) : this.areaPoint(event);
     const x = screen ? point.x : point.x - moving.dx;
     const y = screen ? point.y : point.y - moving.dy;
     if (moving.ids.length > 1) {
@@ -620,6 +725,10 @@ export class JigsawBoard {
     const moving = this.moving;
     this.moving = null;
     if (!moving) return;
+    if (!this.hasMoved() && !this.viewOnly()) {
+      this.hasMoved.set(true);
+      writePreference(HAS_MOVED_KEY, true);
+    }
     const ids = moving.ids;
     const before = this.puzzle();
     const dropped = before.dropPieces(ids, this.snapRange());
@@ -678,7 +787,12 @@ export class JigsawBoard {
   /** keeps the result of a move when the puzzle changed (the puzzle gives back itself when nothing changed) */
   private apply(next: Puzzle): void {
     if (this.viewOnly()) return; // another player's round is only looked at
-    if (next !== this.puzzle()) this.placed.set(next.toData());
+    if (next === this.puzzle()) return;
+    // a piece is never lost: a change that would leave out or add an object (it cannot happen by the rules of `Puzzle`, this is the last line of defence) is not taken
+    const now = this.placed();
+    const data = next.toData();
+    if (data.length !== now.length || data.some((p, i) => p.id !== now[i].id)) return;
+    this.placed.set(data);
   }
 
   /** keeps getting the pointer moves when the pointer leaves the element it was pressed on */

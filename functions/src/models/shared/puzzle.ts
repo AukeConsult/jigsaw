@@ -15,6 +15,8 @@ export const COLLECT_MARGIN = 0.35;
 export const COLLECT_GAP = 0.3;
 /** With a `random` for `collectPieces`, each piece is put up to this share of its size further along and further down than the tidy place: the pieces lie more as they would by hand. */
 export const COLLECT_SCATTER = 0.3;
+/** The layer the pieces that are fixed are on: the bottom one (the picture area is layer 0). Every piece that is free is above it. */
+export const FIXED_LAYER = PICTURE_LAYER + 1;
 /** The pieces beside a piece in the picture: left, right, above, below, as [columns, rows]. */
 const PIECE_NEIGHBOURS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
@@ -150,13 +152,18 @@ export class Puzzle {
    * An object that is not a piece sticks to nothing and is only itself.
    */
   stuckGroup(ids: readonly string[]): string[] {
-    const map = this.pieceMap();
-    const group = new Set<string>(ids);
-    const queue: PlacedFigure[] = [];
+    const seeds: PlacedFigure[] = [];
     for (const id of ids) {
       const item = this.get(id);
-      if (item?.data.piece) queue.push(item);
+      if (item?.data.piece) seeds.push(item);
     }
+    return [...this.grown(seeds, ids)];
+  }
+
+  /** The ids of what the pieces `seeds` stick to, with them and with `also` (see `stuckGroup`). */
+  private grown(seeds: readonly PlacedFigure[], also: readonly string[] = [], map = this.pieceMap()): Set<string> {
+    const group = new Set<string>([...also, ...seeds.map((s) => s.id)]);
+    const queue: PlacedFigure[] = [...seeds];
     while (queue.length) {
       const p = queue.pop() as PlacedFigure;
       const piece = p.data.piece as PiecePlace;
@@ -170,7 +177,7 @@ export class Puzzle {
         }
       }
     }
-    return [...group];
+    return group;
   }
 
   /**
@@ -179,6 +186,27 @@ export class Puzzle {
    */
   isFixed(ids: readonly string[]): boolean {
     return this.stuckGroup(ids).some((id) => this.get(id)?.inPlace());
+  }
+
+  /**
+   * For every object, the one that stands for its group: pieces that stick together are one piece, so what is drawn and decided for the group (where it is shown, in the picture area, the free
+   * space or the store) is decided by one of them, the anchor, and the others follow it. The anchor is the first of `prefer` that is in the group (the piece that is held, or was last), else the
+   * one with the lowest id; an object that is not a piece, or sticks to nothing, is its own anchor.
+   */
+  groupAnchors(prefer: readonly string[] = []): Map<string, string> {
+    const map = this.pieceMap();
+    const anchors = new Map<string, string>();
+    for (const item of this.items) {
+      if (anchors.has(item.id)) continue;
+      if (!item.data.piece) {
+        anchors.set(item.id, item.id);
+        continue;
+      }
+      const group = this.grown([item], [], map);
+      const anchor = prefer.find((id) => group.has(id)) ?? [...group].sort()[0];
+      for (const id of group) anchors.set(id, anchor);
+    }
+    return anchors;
   }
 
   /** Of these objects, the ones that can be moved: those that are not fixed (see `isFixed`), each with its group. */
@@ -203,7 +231,66 @@ export class Puzzle {
       for (const member of group) done.add(member);
       puzzle = puzzle.snapGroup(group, range);
     }
-    return puzzle;
+    return puzzle.settled(); // the pieces that are fixed now go to the bottom
+  }
+
+  /**
+   * The puzzle where no piece can be lost: no free piece is ever below a fixed one, and none is outside the area. Every piece that is fixed (it lies on its own place, or sticks to one
+   * that does, see `isFixed`) is on the bottom layer, and every piece that is free is above it (layer 2 and up), whatever layers they had (an older game, a piece that has just
+   * clicked into place). A piece that lies (partly) outside the area is pulled in, as little as it takes: it cannot be seen out there. A piece is never below the picture area
+   * either: the pieces are drawn in a layer of their own on top of it. Only pieces change, and only their layer and, to come back, their place; the same puzzle when all is right.
+   */
+  settled(): Puzzle {
+    const fixed = this.grown(this.items.filter((p) => p.data.piece && p.inPlace()));
+    const back = this.groupShifts({ left: 0, top: 0, width: this.width, height: this.height }, null, fixed); // a group that is outside the area comes back whole, never piece by piece
+    let changed = false;
+    const items = this.items.map((p) => {
+      if (!p.data.piece) return p;
+      const shift = back.get(p.id);
+      let next = shift ? p.at(p.centerX + shift.dx, p.centerY + shift.dy) : p;
+      const layer = Math.min(MAX_LAYER, fixed.has(p.id) ? FIXED_LAYER : Math.max(FIXED_LAYER + 1, next.layer));
+      if (layer !== next.layer) next = next.withLayer(layer);
+      if (next !== p) changed = true;
+      return next;
+    });
+    return changed ? this.with(items) : this;
+  }
+
+  /**
+   * How far each free group has to move to be inside the box `into` (the whole group: the box round all its pieces), as little as it takes, in half pixels, the same for every piece of the group, so
+   * the pieces keep their places in relation to each other and the group stays bound. With a `region`, only the groups that have a piece with its centre in it. Pieces that are fixed are left.
+   */
+  private groupShifts(into: Box, region: Box | null, fixed: ReadonlySet<string>): Map<string, { dx: number; dy: number }> {
+    const map = this.pieceMap();
+    const shifts = new Map<string, { dx: number; dy: number }>();
+    const seen = new Set<string>();
+    for (const p of this.items) {
+      if (!p.data.piece || fixed.has(p.id) || seen.has(p.id)) continue;
+      const group = [...this.grown([p], [], map)].map((id) => this.get(id)).filter((f): f is PlacedFigure => !!f);
+      for (const f of group) seen.add(f.id);
+      if (region && !group.some((f) => f.centerX >= region.left && f.centerX <= region.left + region.width && f.centerY >= region.top && f.centerY <= region.top + region.height)) continue;
+      const boxes = group.map((f) => f.box());
+      const left = Math.min(...boxes.map((b) => b.left));
+      const top = Math.min(...boxes.map((b) => b.top));
+      const right = Math.max(...boxes.map((b) => b.left + b.width));
+      const bottom = Math.max(...boxes.map((b) => b.top + b.height));
+      const dx = Math.round((Math.max(into.left - left, 0) + Math.min(into.left + into.width - right, 0)) * 2) / 2;
+      const dy = Math.round((Math.max(into.top - top, 0) + Math.min(into.top + into.height - bottom, 0)) * 2) / 2;
+      if (dx || dy) for (const f of group) shifts.set(f.id, { dx, dy });
+    }
+    return shifts;
+  }
+
+  /**
+   * The puzzle where the free pieces whose centre is in `region` are pulled into the box `into` (the whole piece inside it), as little as it takes: a place on the board that is shown
+   * smaller than the part of the model it stands for (the free space beside the picture, when the store is below it) can never hold a piece that cannot be seen. Fixed pieces and what
+   * is not a piece stay; the same puzzle when nothing has to move.
+   */
+  confine(region: Box, into: Box): Puzzle {
+    const fixed = this.grown(this.items.filter((p) => p.data.piece && p.inPlace()));
+    const shifts = this.groupShifts(into, region, fixed); // a group moves whole
+    if (!shifts.size) return this;
+    return this.with(this.items.map((p) => (shifts.has(p.id) ? p.at(p.centerX + shifts.get(p.id)!.dx, p.centerY + shifts.get(p.id)!.dy) : p)));
   }
 
   /** the group moved by the smallest step that puts a piece of it on its own place or exactly beside a neighbour, when that step is at most `range` */

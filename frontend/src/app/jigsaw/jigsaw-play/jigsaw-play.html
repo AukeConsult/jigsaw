@@ -1,15 +1,15 @@
 <ng-container *transloco="let t">
 @switch (status()) {
   @case ('loading') {
-    <main class="container py-4 text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
+    <main class="container-fluid page-margin py-4 text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
   }
   @case ('missing') {
-    <main class="container py-4">
+    <main class="container-fluid page-margin py-4">
       <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     </main>
   }
   @case ('failed') {
-    <main class="container py-4">
+    <main class="container-fluid page-margin py-4">
       <div class="alert alert-danger" role="alert">{{ t('jigsawPlay.couldNotOpen') || 'Could not open the jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     </main>
   }
@@ -31,7 +31,7 @@
           <!-- another player's round: it can be looked at, never changed -->
           <div class="alert alert-info py-2 small" role="status">
             <i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('jigsawPlay.lookingAt') || 'You are looking at' }} <strong>{{ play()?.userName || t('jigsawPlay.anotherPlayer') || 'another player' }}</strong>{{ t('jigsawPlay.roundSuffix') || "'s round. You can look, but not change it." }}
-            <div class="mt-2"><button type="button" class="btn btn-sm btn-primary" (click)="startOver()"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawPlay.startOwn') || 'Start my own round' }}</button></div>
+            <div class="mt-2"><button type="button" class="btn btn-sm btn-primary" (click)="startOwn()"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawPlay.startOwn') || 'Start my own round' }}</button></div>
           </div>
         }
 
@@ -75,15 +75,18 @@
         @if (!viewOnly()) {
           <div class="d-flex flex-wrap gap-1 mb-3">
             @if (confirmingStartOver()) {
-              <div class="w-100 small" role="alert">{{ t('jigsawPlay.startNewAsk') || 'Start a new round? The pieces are scattered again in a new round; this round stays in your list.' }}</div>
-              <button type="button" class="btn btn-sm btn-danger" (click)="startOver()">{{ t('jigsawPlay.yesNew') || 'Yes, new round' }}</button>
+              <div class="w-100 small" role="alert">{{ t('jigsawPlay.startNewAsk') || 'Reset this round? The pieces are scattered again and the time starts from zero.' }}</div>
+              <button type="button" class="btn btn-sm btn-danger" (click)="startOver()">{{ t('jigsawPlay.yesNew') || 'Yes, reset' }}</button>
               <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingStartOver.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
             } @else if (confirmingDelete()) {
               <div class="w-100 small" role="alert">{{ t('jigsawPlay.deleteAsk') || 'Delete this round for good? Its pieces and progress are lost. The jigsaw stays.' }}</div>
               <button type="button" class="btn btn-sm btn-danger" (click)="deleteGame()">{{ t('jigsawPlay.yesDelete') || 'Yes, delete' }}</button>
               <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingDelete.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
             } @else {
-              <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{{ t('jigsawPlay.newRound') || 'New round' }}</button>
+              @if (!(m.total > 0 && m.count === m.total)) {
+                <!-- a solved round is not played over -->
+              <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{{ t('jigsawPlay.newRound') || 'Reset round' }}</button>
+              }
               <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawPlay.deleteRound') || 'Delete round' }}</button>
             }
           </div>

@@ -106,7 +106,17 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
       now: stores.now ?? Date.now,
     }),
   );
-  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), async () => (await users.list()).map((u) => u.id), (userId) => favorites.list(userId)));
+  // the jigsaws among these that the user has solved (a round of theirs is solved): one question for each jigsaw, a few at a time, since a play belongs to a jigsaw
+  const solvedBy = async (userId: string, among: readonly { id: string }[]): Promise<string[]> => {
+    const found: string[] = [];
+    for (let i = 0; i < among.length; i += 25) {
+      const batch = among.slice(i, i + 25);
+      const rounds = await Promise.all(batch.map((j) => plays.list(j.id, userId).catch(() => [])));
+      batch.forEach((j, n) => rounds[n].some((p) => p.status === "solved") && found.push(j.id));
+    }
+    return found;
+  };
+  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), async () => (await users.list()).map((u) => u.id), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among)));
   // the AI classification of one jigsaw by its picture (categories, name and description); its settings are read when it is asked for (before the routes of one jigsaw)
   router.use(
     "/jigsaw/:id/classify",

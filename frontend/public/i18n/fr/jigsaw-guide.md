@@ -2,18 +2,17 @@ Fais un puzzle à partir de n’importe quelle image et assemble-le à l’écra
 
 ## Qui joue
 
-* La première fois, on te demande qui joue. Appuie sur ton nom dans la liste, ou sur **Créer un utilisateur** : choisis un **Nom d'utilisateur** (3 à 30 lettres a-z, chiffres, _ ou -) et ton nom. L’**E-mail** est facultatif et n’est jamais affiché.
+* La première fois, on te demande **Comment t'appelles-tu ?** Écris ton nom et appuie sur **Commencer à jouer**. Si tu as déjà joué, appuie sur **J'ai déjà joué**, puis sur ton nom dans la liste.
 * Il n’y a pas de mot de passe pour l’instant : n’importe qui peut choisir n’importe quel utilisateur.
 * Appuie sur ton nom dans le menu pour voir **Tes parties**, pour appuyer sur **Modifier** ou sur **Choisir un autre utilisateur**.
 
 ## Faire un puzzle
 
-1. Appuie sur **Nouveau puzzle** (sur la page d’accueil et en haut de la liste).
+1. Appuie sur **Faire un puzzle** dans l’accueil de la page d’accueil, ou appuie sur ton nom dans le menu puis sur le bouton d’un nouveau puzzle.
 2. Écris un **Nom** et choisis une **Image**. Une fenêtre s’ouvre : fais glisser l’image pour trouver la partie voulue, zoome, puis appuie sur **Utiliser ce découpage**.
 3. Choisis la **Taille** et le nombre de **Pièces** (jusqu’à 1000). La taille est un peu ajustée pour que les pièces tombent juste.
-4. Choisis la **Difficulté**, s’il est **Chronométré**, ainsi que le **Trait**, la **Couleur** et le **Fond** de la zone de l’image.
-5. Choisis l’**Auteur** et **Qui le voit**.
-6. Appuie sur **Enregistrer et commencer**.
+4. Choisis la **Difficulté** et s’il est **Chronométré**. Sous **Plus d'options**, tu peux aussi changer la langue, les catégories, l’apparence, l’auteur et qui le voit.
+5. Appuie sur **Enregistrer** (ou **Enregistrer et analyser avec l’IA**, qui fait aussi mettre à l’IA les catégories, le nom et la description). La page du nouveau puzzle s’ouvre : commence une manche à partir de là.
 
 ## Jouer
 
@@ -33,7 +32,7 @@ Fais un puzzle à partir de n’importe quelle image et assemble-le à l’écra
 ## Parties
 
 * Un jeu d’un puzzle est une **partie**. La page d’un puzzle liste les parties de tous ; les tiennes sont marquées **Les tiennes** et viennent en premier.
-* Appuie sur **Reprendre** pour continuer l’une des tiennes, **Entre dans une partie, résous-la** pour en commencer une autre, ou **Supprimer** pour en retirer une des tiennes (on te demande d’abord).
+* Appuie sur **Reprendre** pour continuer l’une des tiennes, **Commencer à jouer** pour en commencer une autre, ou **Supprimer** pour en retirer une des tiennes (on te demande d’abord).
 * Appuie sur **Regarder** pour voir la partie d’un autre joueur. Tu ne peux jamais la modifier, mais tu peux commencer la tienne.
 * Une partie ne compte qu’une fois que tu y as déplacé une pièce. Si tu ouvres seulement un puzzle et reviens en arrière, aucune partie n’apparaît dans la liste.
 * **Défie un ami :** rends le puzzle **Chronométré** et demande à ton ami d’y jouer une partie aussi. Le temps de chaque partie est dans la liste, pour voir qui est le plus rapide.

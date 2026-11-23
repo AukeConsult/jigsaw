@@ -1,20 +1,23 @@
 import { JigsawCategories } from './category';
 import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME } from './jigsaw-settings';
 import { JigsawLanguages } from './language';
+import { JigsawMotives, MotiveLevel } from './motive';
 
-// The classification of a jigsaw by what its picture shows: the categories it is in, a name and a description. The AI gives it as JSON; this is what is asked of it, and how what it
+// The classification of a jigsaw by what its picture shows: the categories it is in, how hard the motive is (the motive difficulty: a property of the jigsaw, not a category), a name and a description. The AI gives it as JSON; this is what is asked of it, and how what it
 // says is checked before anything is used (the AI can say what is not allowed: a category that is not there, a name that is too long).
 
 /** What the AI says about a picture. An empty name or description means it said none. */
 export interface Classification {
   /** the keys of the categories and sub-categories (at most `CATEGORIES_MAX_PER_JIGSAW`) */
   categories: string[];
+  /** the motive difficulty (a level of `JigsawMotives`), when the AI said one that exists */
+  motive?: MotiveLevel;
   name: string;
   description: string;
 }
 
 export class Classifications {
-  /** Every key the AI may answer with: the categories and the sub-categories. */
+  /** Every key the AI may answer with as a category: the categories and the sub-categories. */
   static keys(): string[] {
     return JigsawCategories.all().flatMap((c) => [c.key, ...c.subs.map((s) => s.key)]);
   }
@@ -25,10 +28,11 @@ export class Classifications {
       type: 'object',
       properties: {
         categories: { type: 'array', items: { type: 'string', enum: Classifications.keys() } },
+        motive: { type: 'string', enum: JigsawMotives.keys() },
         name: { type: 'string' },
         description: { type: 'string' },
       },
-      required: ['categories', 'name', 'description'],
+      required: ['categories', 'motive', 'name', 'description'],
       additionalProperties: false,
     };
   }
@@ -41,6 +45,13 @@ export class Classifications {
       'You classify the picture of a jigsaw puzzle.',
       'Answer with the categories the picture belongs to (at most 3, the best fit first; give a sub-category instead of its category when it clearly fits, not both; use "other" only when nothing else fits), a short name and a description.',
       `The categories, by key: ${names.join('; ')}.`,
+      'Also say the motive difficulty: how hard the motive itself is to put together, from how easy it is to tell the parts of the picture apart (not from how many pieces it will be cut into). ' +
+        'The fewer distinct details a picture has, the harder it is, because the pieces look alike: ' +
+        'easy = many clear, different details, shapes and colours everywhere, so every piece has something that tells where it belongs (a busy street, a market, a room full of things); ' +
+        'mediumeasy = mostly clear details, with a few plain areas; ' +
+        'normal = a normal photo with a mix of detailed and plain areas; ' +
+        'hard = large plain or alike areas with few details (a sky, a calm sea, a lawn, foliage) and only a few clear landmarks; ' +
+        'expert = hardly anything that tells the pieces apart: one colour, fog, or a pattern that repeats.',
       `The name has at most ${JIGSAW_MAX_NAME} characters and the description at most ${JIGSAW_MAX_DESCRIPTION}: one or two plain sentences about what the picture shows.`,
       `Write the name and the description in ${writeIn}.`,
       'Do not name real people, and do not guess private details such as addresses; say what can be seen.',
@@ -57,11 +68,11 @@ export class Classifications {
     return withoutParents.length > 1 ? withoutParents.filter((key) => key !== 'other') : withoutParents;
   }
 
-  /** What the AI said, checked: only the categories that exist (once each, at most three), and the texts tidied and cut to their limits. Or why it cannot be used. */
+  /** What the AI said, checked: only the categories that exist (once each, at most three) and the motive difficulty when it is a level, and the texts tidied and cut to their limits. Or why it cannot be used. */
   static read(raw: unknown): Classification | { error: string } {
     if (!raw || typeof raw !== 'object') return { error: 'The answer is not an object.' };
-    const r = raw as { categories?: unknown; name?: unknown; description?: unknown };
+    const r = raw as { categories?: unknown; motive?: unknown; name?: unknown; description?: unknown };
     const tidy = (value: unknown, most: number) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, most).trim() : '');
-    return { categories: Classifications.tidyCategories(r.categories), name: tidy(r.name, JIGSAW_MAX_NAME), description: tidy(r.description, JIGSAW_MAX_DESCRIPTION) };
+    return { categories: Classifications.tidyCategories(r.categories), ...(JigsawMotives.is(r.motive) ? { motive: r.motive } : {}), name: tidy(r.name, JIGSAW_MAX_NAME), description: tidy(r.description, JIGSAW_MAX_DESCRIPTION) };
   }
 }
