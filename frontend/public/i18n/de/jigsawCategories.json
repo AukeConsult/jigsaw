@@ -6,6 +6,7 @@
   "name": {
     "recommended": "Empfohlen",
     "family": "Familie",
+    "portraits": "Porträts",
     "travel": "Reisen",
     "nature": "Natur",
     "animals": "Tiere",
@@ -23,6 +24,9 @@
     "family/parties": "Feiern & Geburtstage",
     "family/friends": "Freunde",
     "family/reunions": "Familientreffen",
+    "portraits/faces": "Gesichter",
+    "portraits/groups": "Gruppenporträts",
+    "portraits/pets": "Haustierporträts",
     "travel/cities": "Städte",
     "travel/landmarks": "Sehenswürdigkeiten",
     "travel/beaches": "Strände & Inseln",

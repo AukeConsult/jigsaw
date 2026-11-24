@@ -13,11 +13,12 @@
   "details": "Details",
   "language": "Sprache",
   "timePlayed": "Spielzeit",
-  "find": "Suchen und anzeigen",
+  "find": "Bilder filtern",
   "share": "Teilen",
   "copyLink": "Link kopieren",
   "copied": "Link kopiert",
   "shareEmail": "E-Mail",
   "viewing": "Du siehst dir die Runde von {{ name }} an",
-  "toJigsaw": "Seite des Puzzles anzeigen"
+  "toJigsaw": "Seite des Puzzles anzeigen",
+  "home": "Startseite"
 }

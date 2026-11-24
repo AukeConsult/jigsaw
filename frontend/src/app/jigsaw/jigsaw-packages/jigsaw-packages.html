@@ -1,0 +1,7 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  <h1 class="page-title mb-2"><i class="bi bi-box-seam me-2" aria-hidden="true"></i>{{ t('jigsawPackages.title') || 'Select packages' }}</h1>
+  <p class="text-body-secondary">{{ t('jigsawPackages.intro') || 'Packages are collections of pictures to choose from, so you can play the ones you like.' }}</p>
+  <!-- a dummy for now: the page says so, and the way back is the only thing on it -->
+  <div class="alert alert-info" role="status"><i class="bi bi-hourglass-split me-2" aria-hidden="true"></i>{{ t('jigsawPackages.soon') || 'This page is not ready yet. The packages will be here soon.' }}</div>
+  <a class="btn btn-outline-primary" routerLink="/"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('jigsawPackages.back') || 'Back to the pictures' }}</a>
+</main>

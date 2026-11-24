@@ -28,7 +28,7 @@
             <div class="mt-2"><ng-content select="[draft-description]" /></div>
           } @else if (jigsaw().description) {
             <!-- what the picture is about, in the owner's words -->
-            <p class="description text-body-secondary mt-2 mb-0">{{ jigsaw().description }}</p>
+            <p class="description text-facts mt-2 mb-0">{{ jigsaw().description }}</p>
           } @else if (mayChange()) {
             <!-- no description yet: its owner is shown where it is added (the others see nothing) -->
             <div class="mt-2"><button type="button" class="link-action" (click)="addDescription.emit()"><i class="bi bi-card-text" aria-hidden="true"></i>{{ t('jigsawPage.addDescription') || 'Add a description' }}</button></div>
@@ -80,8 +80,9 @@
           }
           @if (!draft()) {
             <!-- what the picture is, shown as it is chosen in the form (the chosen ones only, not to press): its categories, the motive difficulty and who sees it -->
+            <div class="choice-float-row">
             @if (categoryItems().length) {
-              <div class="choice-block mb-2">
+              <div class="choice-block choice-float">
                 <div class="form-label">{{ t('jigsawCategories.label') || 'Categories' }}</div>
                 <div class="choice-group">
                   @for (c of categoryItems(); track c.key) {
@@ -91,13 +92,13 @@
               </div>
             }
             @if (jigsaw().motive) {
-              <div class="choice-block mb-2">
+              <div class="choice-block choice-float">
                 <div class="form-label">{{ t('jigsawNew.motive') || 'Motive difficulty' }}</div>
                 <div class="choice-group"><span class="btn btn-sm btn-primary pe-none">{{ t('jigsawLevels.motive.' + jigsaw().motive) || jigsaw().motive }}</span></div>
               </div>
             }
             @if (mayChange()) {
-              <div class="choice-block mb-2">
+              <div class="choice-block choice-float">
                 <div class="form-label">{{ t('jigsawNew.visibility') || 'Who sees it' }}</div>
                 <div class="choice-group">
                   <span class="btn btn-sm rounded-pill btn-primary pe-none">
@@ -110,6 +111,7 @@
                 </div>
               </div>
             }
+            </div>
           }
           @if (draft()) {
             <!-- a draft: what the form puts in the empty room of the card (who sees it) -->

@@ -6,6 +6,7 @@
   "name": {
     "recommended": "Rekommenderat",
     "family": "Familj",
+    "portraits": "Porträtt",
     "travel": "Resor",
     "nature": "Natur",
     "animals": "Djur",
@@ -23,6 +24,9 @@
     "family/parties": "Fester och födelsedagar",
     "family/friends": "Vänner",
     "family/reunions": "Släktträffar",
+    "portraits/faces": "Ansikten",
+    "portraits/groups": "Grupporträtt",
+    "portraits/pets": "Husdjursporträtt",
     "travel/cities": "Städer",
     "travel/landmarks": "Sevärdheter",
     "travel/beaches": "Stränder och öar",

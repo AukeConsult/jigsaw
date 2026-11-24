@@ -6,6 +6,7 @@
   "name": {
     "recommended": "Suositeltu",
     "family": "Perhe",
+    "portraits": "Muotokuvat",
     "travel": "Matkat",
     "nature": "Luonto",
     "animals": "Eläimet",
@@ -23,6 +24,9 @@
     "family/parties": "Juhlat ja syntymäpäivät",
     "family/friends": "Ystävät",
     "family/reunions": "Sukukokoukset",
+    "portraits/faces": "Kasvot",
+    "portraits/groups": "Ryhmämuotokuvat",
+    "portraits/pets": "Lemmikkimuotokuvat",
     "travel/cities": "Kaupungit",
     "travel/landmarks": "Nähtävyydet",
     "travel/beaches": "Rannat ja saaret",

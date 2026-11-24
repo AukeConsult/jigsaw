@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} pièces",
   "difficulty": "Difficulté",
   "privateForPlayers": "Privé : seuls son propriétaire et ses joueurs le voient",
-  "findAndView": "Chercher et afficher",
+  "findAndView": "Filtrer les images",
+  "selectPackages": "Choisir des paquets",
   "kind": "Ce que c'est",
   "kinds": {
     "jigsaw": "Puzzle prêt",
@@ -35,7 +36,7 @@
   "more": "Afficher plus",
   "noneMatch": "Aucune image ne correspond. Essayez d'autres choix.",
   "go": "Afficher",
-  "findTitle": "Trouver une image",
+  "findTitle": "Filtrer les images",
   "changeSearch": "Modifier la recherche",
   "noneToList": "Aucune image à afficher. Essayez d'autres choix.",
   "matchOne": "{{ count }} image correspond",

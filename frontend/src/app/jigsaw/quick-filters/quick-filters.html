@@ -14,7 +14,9 @@
       </button>
     }
     <!-- always there: the way to the choices of the search and to how the jigsaws are shown, cards or list (the Find page); it says so in words, except on a phone, where only the icon is shown (the words are for a screen reader and the tooltip) -->
-    <a class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap" routerLink="/jigsaw/find" [title]="t('jigsawList.changeSearch') || 'Change the search'" [attr.aria-label]="t('jigsawList.findAndView') || 'Find and view'"><i class="bi bi-search" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ t('jigsawList.findAndView') || 'Find and view' }}</span></a>
+    <a class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap" routerLink="/jigsaw/find" [title]="t('jigsawList.changeSearch') || 'Change the search'" [attr.aria-label]="t('jigsawList.findAndView') || 'Filter pictures'"><i class="bi bi-search" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ t('jigsawList.findAndView') || 'Filter pictures' }}</span></a>
+    <!-- the way to the packages of pictures to select from (a dummy page for now); like the search it says so in words except on a phone -->
+    <a class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap" routerLink="/jigsaw/packages" [title]="t('jigsawList.selectPackages') || 'Select packages'" [attr.aria-label]="t('jigsawList.selectPackages') || 'Select packages'"><i class="bi bi-box-seam" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ t('jigsawList.selectPackages') || 'Select packages' }}</span></a>
     @if (showSolved()) {
       <!-- only when the user has solved some: the jigsaws with the green check -->
       <button type="button" class="btn btn-sm rounded-pill" [class.btn-primary]="solvedOn()" [class.btn-outline-secondary]="!solvedOn()" [attr.aria-pressed]="solvedOn()" [attr.aria-label]="t('jigsawList.solved') || 'Solved'" [title]="t('jigsawList.solved') || 'Solved'" (click)="toggleSolved()">

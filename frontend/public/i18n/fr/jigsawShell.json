@@ -13,11 +13,12 @@
   "details": "Détails",
   "language": "Langue",
   "timePlayed": "Temps de jeu",
-  "find": "Chercher et afficher",
+  "find": "Filtrer les images",
   "share": "Partager",
   "copyLink": "Copier le lien",
   "copied": "Lien copié",
   "shareEmail": "E-mail",
   "viewing": "Tu regardes la partie jouée par {{ name }}",
-  "toJigsaw": "Afficher la page du puzzle"
+  "toJigsaw": "Afficher la page du puzzle",
+  "home": "Accueil"
 }

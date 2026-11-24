@@ -1,15 +1,24 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { DocumentStore, documentStore } from "./document-store";
-import { JigsawSettings, JigsawInput, JigsawSpec, JigsawVisibilities } from "../models";
+import { JIGSAW_HEAD_FIELDS, JigsawSettings, JigsawInput, JigsawSpec, JigsawVisibilities } from "../models";
 
 /** Where the jigsaws are kept (Firestore in the app, a memory store in the tests). */
 export type JigsawStore = DocumentStore<JigsawInput, JigsawSpec>;
 
 /** The jigsaws in a Firestore collection (`jigsaw`): the newest 100; a jigsaw that an older version saved is read as the model says (see `JigsawSettings.fromStored`). */
 export function firestoreJigsawStore(collection: string): JigsawStore {
-  return documentStore<JigsawInput, JigsawSpec>(() => getFirestore().collection(collection), 100, (id, doc) => JigsawSettings.fromStored(id, doc as Partial<JigsawSpec>));
+  return documentStore<JigsawInput, JigsawSpec>(() => getFirestore().collection(collection), 100, (id, doc) => JigsawSettings.fromStored(id, doc as Partial<JigsawSpec>), {
+    headFields: JIGSAW_HEAD_FIELDS, // everything but the objects placed on the board (`placed`), which can be most of a document
+    async peek(id, fields) {
+      const ref = getFirestore().collection(collection).doc(id);
+      return (await getFirestore().getAll(ref, { fieldMask: [...fields] }))[0];
+    },
+  });
 }
+
+/** The jigsaws newest first without what is placed on their boards (the list does not use it): what `heads()` of the store reads. */
+export const jigsawHeads = (store: JigsawStore): Promise<JigsawSpec[]> => (store.heads ? store.heads() : store.list());
 
 /** The checked jigsaw of a request body, as it is stored (only the known fields), or the reason it is not allowed. */
 function readInput(body: Record<string, unknown>): { input: JigsawInput } | { error: string } {
@@ -29,7 +38,7 @@ export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec
   // sign-in yet, so this keeps the lists honest, it is not a lock)
   router.get("/", async (req, res) => {
     const me = req.get("X-Jigsaw-User");
-    const all = await store.list();
+    const all = await jigsawHeads(store); // the page does not need what is placed on each board: the jigsaw itself is read by its id
     const seen = await Promise.all(all.map((j) => canSee(j, me)));
     res.json(await Promise.all(all.filter((_, i) => seen[i]).map(keyed)));
   });

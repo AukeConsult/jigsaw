@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} bitar",
   "difficulty": "Svårighetsgrad",
   "privateForPlayers": "Privat: bara ägaren och spelarna ser det",
-  "findAndView": "Sök och visa",
+  "findAndView": "Filtrera bilder",
+  "selectPackages": "Välj paket",
   "kind": "Vad det är",
   "kinds": {
     "jigsaw": "Färdigt pussel",
@@ -35,7 +36,7 @@
   "more": "Visa fler",
   "noneMatch": "Ingen bild passar. Prova andra val.",
   "go": "Visa",
-  "findTitle": "Hitta en bild",
+  "findTitle": "Filtrera bilder",
   "changeSearch": "Ändra sökningen",
   "noneToList": "Inga bilder att visa. Prova andra val.",
   "matchOne": "{{ count }} bild passar",

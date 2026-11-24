@@ -13,11 +13,12 @@
   "details": "Detaljer",
   "language": "Språk",
   "timePlayed": "Tid brukt",
-  "find": "Finn og vis",
+  "find": "Filtrer bilder",
   "share": "Del",
   "copyLink": "Kopier lenken",
   "copied": "Lenken er kopiert",
   "shareEmail": "E-post",
   "viewing": "Du ser på runden til {{ name }}",
-  "toJigsaw": "Vis siden til puslespillet"
+  "toJigsaw": "Vis siden til puslespillet",
+  "home": "Hjem"
 }

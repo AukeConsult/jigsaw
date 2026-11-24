@@ -12,8 +12,8 @@ export interface PlayDetail {
   play: PlaySpec;
   settings: PlaySettings;
   pieces: JigsawPiece[];
-  /** only a round that has a cut of its own (a round of a picture): the size of its picture area, its grid and how wide its store is; the other rounds have the jigsaw's */
-  layout?: { width: number; height: number; gridSize: number; storeWidth: number };
+  /** only a round that has a cut of its own (a round of a picture): the size of its picture area and its grid (the store is the round's own `storeWidth`); the other rounds have the jigsaw's */
+  layout?: { width: number; height: number; gridSize: number };
 }
 
 /** A game of a user with the jigsaw it is a game of. */

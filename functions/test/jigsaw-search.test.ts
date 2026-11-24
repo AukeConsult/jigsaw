@@ -32,9 +32,11 @@ describe("what a jigsaw is matched by", () => {
     expect(JigsawIndex.tagsOf(undefined)).toEqual([]);
   });
 
-  it("is worked out from the jigsaw: its difficulty, size, tags and language (nothing of it is kept in the document)", () => {
-    expect(JigsawIndex.of(jigsaw("a", { snapPercent: 40, categories: ["nature/forest"] }))).toEqual({ tags: ["nature", "nature/forest"], level: "easy", sizeClass: "large", language: "en" });
-    expect(JigsawIndex.of(jigsaw("b", { width: 200, height: 100 }))).toEqual({ level: "medium", sizeClass: "small", language: "en" }); // no tags when it is in no category
+  it("is worked out from the jigsaw: its tags and language, and the difficulty and size it is found by (nothing of it is kept in the document)", () => {
+    expect(JigsawIndex.of(jigsaw("a", { snapPercent: 40, categories: ["nature/forest"] }))).toEqual({ tags: ["nature", "nature/forest"], language: "en" });
+    expect([JigsawIndex.levelsOf(jigsaw("a", { snapPercent: 40 })), JigsawIndex.sizeClassesOf(jigsaw("a", { snapPercent: 40 }))]).toEqual([["easy"], ["large"]]);
+    expect(JigsawIndex.of(jigsaw("b", { width: 200, height: 100 }))).toEqual({ language: "en" }); // no tags when it is in no category
+    expect([JigsawIndex.levelsOf(jigsaw("b")), JigsawIndex.sizeClassesOf(jigsaw("b", { width: 200, height: 100 }))]).toEqual([["medium"], ["small"]]);
     expect(JigsawIndex.of(jigsaw("c", { language: "nb" })).language).toBe("nb");
   });
 

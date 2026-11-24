@@ -13,11 +13,12 @@
   "details": "Detaljer",
   "language": "Sprog",
   "timePlayed": "Tid brugt",
-  "find": "Find og vis",
+  "find": "Filtrer billeder",
   "share": "Del",
   "copyLink": "Kopiér linket",
   "copied": "Linket er kopieret",
   "shareEmail": "E-mail",
   "viewing": "Du kigger på {{ name }}s runde",
-  "toJigsaw": "Vis puslespillets side"
+  "toJigsaw": "Vis puslespillets side",
+  "home": "Hjem"
 }

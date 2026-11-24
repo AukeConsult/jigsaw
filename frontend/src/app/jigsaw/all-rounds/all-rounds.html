@@ -64,12 +64,12 @@
             </div>
             <div class="round-info">
               <!-- the stretched link makes the whole row (picture, text) open the round: the person's own goes on, another player's is looked at -->
-              <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', r.jigsaw.id, 'play', r.play.id]">{{ r.jigsaw.name }}</a>
+              <a class="text-name text-decoration-none stretched-link" [routerLink]="['/jigsaw', r.jigsaw.id, 'play', r.play.id]">{{ r.jigsaw.name }}</a>
               <div class="d-flex align-items-center gap-2 flex-wrap small">
                 @if (own) {
                   <span class="badge text-bg-dark"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.yours') || 'Yours' }}</span>
                 } @else {
-                  <span class="fw-semibold"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ r.play.userName || t('jigsawPage.someone') || 'Someone' }}</span>
+                  <span class="text-author"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ r.play.userName || t('jigsawPage.someone') || 'Someone' }}</span>
                 }
                 @if (r.play.status === 'solved') {
                   <span class="badge text-bg-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawPage.solved') || 'Solved' }}</span>

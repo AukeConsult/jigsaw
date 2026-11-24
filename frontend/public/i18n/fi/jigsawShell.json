@@ -13,11 +13,12 @@
   "details": "Tiedot",
   "language": "Kieli",
   "timePlayed": "Peliaika",
-  "find": "Hae ja näytä",
+  "find": "Suodata kuvia",
   "share": "Jaa",
   "copyLink": "Kopioi linkki",
   "copied": "Linkki kopioitu",
   "shareEmail": "Sähköposti",
   "viewing": "Katsot pelaajan {{ name }} kierrosta",
-  "toJigsaw": "Näytä palapelin sivu"
+  "toJigsaw": "Näytä palapelin sivu",
+  "home": "Etusivu"
 }

@@ -13,11 +13,12 @@
   "details": "Details",
   "language": "Language",
   "timePlayed": "Time played",
-  "find": "Find and view",
+  "find": "Filter pictures",
   "share": "Share",
   "copyLink": "Copy link",
   "copied": "Link copied",
   "shareEmail": "E-mail",
   "viewing": "You are looking at the round of {{ name }}",
-  "toJigsaw": "Show the page of the jigsaw"
+  "toJigsaw": "Show the page of the jigsaw",
+  "home": "Home"
 }

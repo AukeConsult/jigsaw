@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FREE_SPACE_COLUMNS_MAX, JIGSAW_MAX_PIECES, JigsawLanguages, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid } from "../src/models";
+import { FREE_SPACE_COLUMNS_MAX, JIGSAW_MAX_PIECES, JigsawLanguages, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid, AREA_MARGIN_PX } from "../src/models";
 
 /** a steady "random" so the tests give the same cut every time */
 function seeded(seed: number) {
@@ -439,7 +439,7 @@ describe("the background colour of the picture area", () => {
 
 describe("the standard numbers of pieces for a shape", () => {
   it("are whole columns and rows in the shape of the picture area, smallest first", () => {
-    expect(JigsawCut.pieceChoices(800, 600).map((c) => [c.columns, c.rows, c.count])).toEqual([[8, 6, 48], [12, 9, 108], [16, 12, 192], [20, 15, 300], [24, 18, 432], [32, 24, 768], [36, 27, 972]]);
+    expect(JigsawCut.pieceChoices(800, 600).map((c) => [c.columns, c.rows, c.count])).toEqual([[5, 4, 20], [8, 6, 48], [12, 9, 108], [16, 12, 192], [20, 15, 300], [24, 18, 432], [32, 24, 768], [36, 27, 972]]);
     for (const [w, h] of [[900, 600], [960, 540], [700, 700], [600, 800], [1200, 400]]) {
       const choices = JigsawCut.pieceChoices(w, h);
       expect(choices.length).toBeGreaterThan(0);
@@ -448,7 +448,8 @@ describe("the standard numbers of pieces for a shape", () => {
         expect(c.count).toBe(c.columns * c.rows);
         expect(c.count).toBeGreaterThan(before);
         expect(c.count).toBeLessThanOrEqual(1000);
-        expect(Math.abs(c.columns / c.rows - w / h) / (w / h)).toBeLessThanOrEqual(0.04);
+        // the small numbers may be looser in shape (their grid is coarse), the others are within 4 %
+        expect(Math.abs(c.columns / c.rows - w / h) / (w / h)).toBeLessThanOrEqual(c.count < 100 ? 0.15 : 0.04);
         before = c.count;
       }
     }
@@ -935,7 +936,7 @@ describe("moving several pieces at once", () => {
 
   it("goes only as far as all of them stay inside the area: the one that is nearest to an edge decides", () => {
     const left = group().moveGroup(["a", "b", "c"], -500, 0);
-    expect([at(left, "a")[0], at(left, "b")[0], at(left, "c")[0]]).toEqual([25, 85, 325]); // a is stopped by the left edge, the others went as far
+    expect([at(left, "a")[0], at(left, "b")[0], at(left, "c")[0]]).toEqual([17, 77, 317]); // a is stopped by the left edge (the margin, 8 px, is a place too), the others went as far
     const right = group().moveGroup(["a", "b", "c"], 500, 0);
     expect(at(right, "c")[0]).toBe(575); // c is stopped by the right edge (600 − 25)
     expect(at(right, "a")[0]).toBe(275);
@@ -952,8 +953,8 @@ describe("moving several pieces at once", () => {
     expect(d.moveGroup([], 10, 10)).toBe(d);
     expect(d.moveGroup(["nobody"], 10, 10)).toBe(d);
     expect(d.moveGroup(["a"], Number.NaN, 1)).toBe(d);
-    const edge = Puzzle.from([mk("a", 25, 100)], 600, 400);
-    expect(edge.moveGroup(["a"], -40, 0)).toBe(edge); // already at the left edge
+    const edge = Puzzle.from([mk("a", 17, 100)], 600, 400);
+    expect(edge.moveGroup(["a"], -40, 0)).toBe(edge); // already as far left as the margin goes
   });
 });
 
@@ -1070,13 +1071,47 @@ describe("a free piece is never below a fixed one", () => {
   });
 });
 
+describe("a piece clicks only on the picture area", () => {
+  const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const piece = (id: string, x: number, y: number, col: number, row: number) => ({ id, centerX: x, centerY: y, object: size, piece: { col, row, top: 1, right: 1, bottom: -1, left: 1 } as const });
+  const picture = { left: 0, top: 0, width: 400, height: 300 };
+
+  it("a piece dropped near its own place clicks there, and a piece dropped outside the picture area stays where it was dropped", () => {
+    const onIt = Puzzle.from([piece("a", 130, 80, 2, 1)], 800, 600).dropPieces(["a"], 25, picture);
+    expect([onIt.get("a")!.centerX, onIt.get("a")!.centerY]).toEqual([125, 75]);
+    const beside = Puzzle.from([piece("a", 500, 80, 2, 1), piece("b", 552, 83, 3, 1)], 800, 600).dropPieces(["b"], 25, picture); // would fit its neighbour a, but it is outside
+    expect([beside.get("b")!.centerX, beside.get("b")!.centerY]).toEqual([552, 83]);
+    const without = Puzzle.from([piece("a", 500, 80, 2, 1), piece("b", 552, 83, 3, 1)], 800, 600).dropPieces(["b"], 25); // without a place to click in, as before
+    expect([without.get("b")!.centerX, without.get("b")!.centerY]).toEqual([550, 80]);
+  });
+});
+
+describe("the margin round the picture area", () => {
+  const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
+  const piece = (id: string, x: number, y: number) => ({ id, centerX: x, centerY: y, object: size, piece: { col: 5, row: 5, top: 1, right: 1, bottom: -1, left: 1 } as const });
+
+  it("a piece may lie in the margin at the top and the left, and no further", () => {
+    expect(new PlacedFigure(piece("a", 25 - AREA_MARGIN_PX, 25 - AREA_MARGIN_PX)).fits(800, 600)).toBe(true);
+    expect(new PlacedFigure(piece("a", 25 - AREA_MARGIN_PX - 0.5, 300)).fits(800, 600)).toBe(false);
+    expect(new PlacedFigure(piece("a", 400, 25 - AREA_MARGIN_PX - 0.5)).fits(800, 600)).toBe(false);
+    expect(Puzzle.validate([piece("a", 17, 17)], 800, 600)).toBe(""); // the API accepts it too
+  });
+
+  it("a piece is moved into the margin, and a group as far as the margin", () => {
+    const d = Puzzle.from([piece("a", 100, 100), { ...piece("b", 150, 100), piece: { col: 6, row: 5, top: 1, right: 1, bottom: -1, left: 1 } }], 800, 600);
+    expect(Puzzle.from([piece("a", 100, 100)], 800, 600).moveFigure("a", -100, -100, 5).get("a")!.centerX).toBe(25 - AREA_MARGIN_PX);
+    const moved = d.moveGroup(["a", "b"], -500, 0);
+    expect([moved.get("a")!.centerX, moved.get("b")!.centerX]).toEqual([25 - AREA_MARGIN_PX, 75 - AREA_MARGIN_PX]);
+  });
+});
+
 describe("a piece can never be lost", () => {
   const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
   const piece = (id: string, x: number, y: number, col = 2, row = 1) => ({ id, centerX: x, centerY: y, object: size, piece: { col, row, top: 1, right: 1, bottom: -1, left: 1 } as const });
 
   it("pulls a free piece that lies outside the area back in, as little as it takes, and leaves the others alone", () => {
     const d = Puzzle.from([piece("a", -40, 300), piece("b", 790, 620, 3, 2), piece("c", 400, 300, 4, 3)], 800, 600).settled();
-    expect([d.get("a")!.centerX, d.get("a")!.centerY]).toEqual([25, 300]); // the box was out at the left
+    expect([d.get("a")!.centerX, d.get("a")!.centerY]).toEqual([25 - AREA_MARGIN_PX, 300]); // the box was out at the left: it comes back as far as the margin, which a piece may be in
     expect([d.get("b")!.centerX, d.get("b")!.centerY]).toEqual([775, 575]); // out at the right and below
     expect([d.get("c")!.centerX, d.get("c")!.centerY]).toEqual([400, 300]);
   });

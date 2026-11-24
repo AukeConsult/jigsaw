@@ -7,10 +7,12 @@ import { LogonsService } from './logons.service';
 /** Where the wish to verify the login for the user is kept between pressing "Sign in to protect this user" and being signed in (an e-mail link opens in another tab, so it is on the device, not in the tab); it runs out. */
 const INTENT_KEY = 'jigsaw.protectAfterLogin';
 const INTENT_MS = 30 * 60_000;
+/** The page of the user with the edit form open, at the list of the logins: where a login that was started from the edit form ends. */
+const EDIT_FORM = '/jigsaw/user?logins=1';
 
 /**
  * Where a person goes when a login is done. A person who signed in from "Sign in to protect this user" has this login verified for that user at once (they asked for it by pressing that), and goes to the
- * edit form of the user, where the list of the verified logins is. A person who plays as a user already goes on, and keeps that user (the server says at the first call whether this login may use it). A person who
+ * edit form of the user, where the list of the verified logins is (a login started from the edit form always ends there). A person who plays as a user already goes on, and keeps that user (the server says at the first call whether this login may use it). A person who
  * plays as nobody and whose login is verified for exactly one user plays as that user; with several, or none, they go to the page of the users to choose, or to make one with the login.
  */
 @Injectable({ providedIn: 'root' })
@@ -31,12 +33,12 @@ export class LogonLanding {
 
   /**
    * "Sign in with another login": the login that is signed in is signed out and the person goes to the login page. With a user id (a user that has no login yet) the next login is verified for that user, as
-   * when the person signs in from "Sign in to protect this user".
+   * when the person signs in from "Sign in to protect this user", and (it is the edit form that asked) whatever comes of the login the person is back at the edit form of the user, at the list of the logins.
    */
   async switchLogin(verifyForUserId?: string): Promise<void> {
     if (verifyForUserId) this.intend(verifyForUserId);
     await this.auth.logout();
-    await this.router.navigate(['/login'], { queryParams: { next: '/jigsaw/user' } });
+    await this.router.navigate(['/login'], { queryParams: { next: verifyForUserId ? EDIT_FORM : '/jigsaw/user' } });
   }
 
   /** The user the person wanted to protect, once (it is forgotten as it is read), or null when there is none or it has run out. */
@@ -53,8 +55,12 @@ export class LogonLanding {
 
   async go(next: string | null): Promise<void> {
     const active = await this.users.load();
-    // only for the user the person has chosen on this device (a link from outside cannot make a login verified for another user), and only when nothing protects it yet
-    if (active && this.takeIntent() === active.id && !active.protected && (await this.verify(active.id))) return void (await this.router.navigate(['/jigsaw/user'], { queryParams: { logins: 1 } }));
+    // a login that was started from the edit form (for the user the person has chosen on this device: a link from outside cannot make a login verified for another user): it is verified for the user when nothing
+    // protects it yet, and whatever comes of that (it is done, it could not be done, or the user is protected already) the person is back at the edit form
+    if (active && this.takeIntent() === active.id) {
+      if (!active.protected) await this.verify(active.id);
+      return void (await this.router.navigateByUrl(EDIT_FORM));
+    }
     const linked = this.auth.linked();
     if (!active && linked.length === 1 && !(await this.users.selectById(linked[0].id))) return void (await this.router.navigateByUrl(this.auth.landingPath(next)));
     if (!active && linked.length !== 1) {

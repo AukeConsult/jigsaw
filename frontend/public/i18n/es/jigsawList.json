@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} piezas",
   "difficulty": "Dificultad",
   "privateForPlayers": "Privado: solo lo ven su propietario y sus jugadores",
-  "findAndView": "Buscar y ver",
+  "findAndView": "Filtrar imágenes",
+  "selectPackages": "Elegir paquetes",
   "kind": "Qué es",
   "kinds": {
     "jigsaw": "Puzle hecho",
@@ -35,7 +36,7 @@
   "more": "Mostrar más",
   "noneMatch": "Ninguna imagen coincide. Prueba otras opciones.",
   "go": "Mostrar",
-  "findTitle": "Buscar una imagen",
+  "findTitle": "Filtrar imágenes",
   "changeSearch": "Cambiar la búsqueda",
   "noneToList": "No hay imágenes que mostrar. Prueba otras opciones.",
   "matchOne": "{{ count }} imagen coincide",

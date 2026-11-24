@@ -1,5 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
+import { documentExists } from "./jigsaw-image";
 import { PieceStore } from "./jigsaw-pieces";
 import { JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays } from "../models";
 
@@ -25,6 +26,8 @@ export interface PlayStore {
   roundPieces(jigsawId: string, playId: string): Promise<JigsawPiece[]>;
   /** the plays of a jigsaw, newest first; of one user when a user is given */
   list(jigsawId: string, userId?: string): Promise<PlaySpec[]>;
+  /** the rounds of one user on every jigsaw, each with the jigsaw it is on: one question, not one for each jigsaw */
+  listOfUser(userId: string): Promise<{ jigsawId: string; play: PlaySpec }[]>;
   get(jigsawId: string, playId: string): Promise<PlayRecord | null>;
   /** Changes a play as one step (nothing happens in between, so two saves do not lose each other): `change` gets the play as it is and returns it as it is to be; null when there is no such play. */
   update(jigsawId: string, playId: string, change: (current: PlayRecord) => PlayRecord): Promise<PlayRecord | null>;
@@ -47,15 +50,25 @@ export function firestorePlayStore(): PlayStore {
   const piecesRef = (jigsawId: string, playId: string) => plays(jigsawId).doc(playId).collection(PLAY_PIECES);
   const readPlay = (id: string, data: unknown): PlaySpec => ({ id, ...(Plays.stored(data as Omit<PlaySpec, "id">) as Omit<PlaySpec, "id">) });
 
-  return {
+  /** Counted by Firestore, not read: all the rounds minus those that are only opened (`fresh` is only stored when it is true, so the rest are the played ones). Nothing is sent but two numbers. */
+  const playedCount = async (jigsawId: string): Promise<number> => {
+    const [all, fresh] = await Promise.all([plays(jigsawId).count().get(), plays(jigsawId).where("fresh", "==", true).count().get()]);
+    return all.data().count - fresh.data().count;
+  };
+
+  const store: PlayStore = {
     async create(jigsawId, play, positions, pieces) {
       const ref = plays(jigsawId).doc();
       // the pieces of its own cut first (in batches: a batch holds 500 writes), then the round itself, so a round is never there without its pieces
-      for (let i = 0; i < (pieces?.length ?? 0); i += PIECES_BATCH) {
-        const chunk = db().batch();
-        for (const piece of pieces!.slice(i, i + PIECES_BATCH)) chunk.set(piecesRef(jigsawId, ref.id).doc(piece.id), JigsawPieces.stored(piece));
-        await chunk.commit();
-      }
+      const chunks: JigsawPiece[][] = [];
+      for (let i = 0; i < (pieces?.length ?? 0); i += PIECES_BATCH) chunks.push(pieces!.slice(i, i + PIECES_BATCH));
+      await Promise.all(
+        chunks.map((list) => {
+          const chunk = db().batch();
+          for (const piece of list) chunk.set(piecesRef(jigsawId, ref.id).doc(piece.id), JigsawPieces.stored(piece));
+          return chunk.commit();
+        }),
+      );
       const batch = db().batch();
       batch.set(ref, Plays.stored(play));
       batch.set(positionsRef(jigsawId, ref.id), { data: Plays.positionsToText(positions) });
@@ -68,6 +81,22 @@ export function firestorePlayStore(): PlayStore {
         .map((d) => readPlay(d.id, d.data()))
         .sort((a, b) => Plays.lastActive(b) - Plays.lastActive(a))
         .slice(0, LIST_LIMIT);
+    },
+    async listOfUser(userId) {
+      try {
+        // all the `plays` of the database with this user, in one question (it needs the index of `plays.userId` over the whole collection group, see `firestore.indexes.json`);
+        // the jigsaw is the document above the collection, and only the plays under a jigsaw are the ones wanted
+        const snap = await db().collectionGroup(PLAYS).where("userId", "==", userId).get();
+        return snap.docs.flatMap((d) => {
+          const jigsaw = d.ref.parent.parent;
+          return jigsaw?.parent.id === JIGSAW ? [{ jigsawId: jigsaw.id, play: readPlay(d.id, d.data()) }] : [];
+        });
+      } catch (err) {
+        if ((err as { code?: number }).code !== 9) throw err; // 9: the index is not deployed yet (`npm run sync:firestore`): ask each jigsaw instead, which needs none
+        const ids = (await db().collection(JIGSAW).select().get()).docs.map((d) => d.id);
+        const each = await Promise.all(ids.map(async (jigsawId) => (await store.list(jigsawId, userId)).map((play) => ({ jigsawId, play }))));
+        return each.flat();
+      }
     },
     async roundPieces(jigsawId, playId) {
       const snap = await piecesRef(jigsawId, playId).get();
@@ -92,24 +121,23 @@ export function firestorePlayStore(): PlayStore {
     },
     async remove(jigsawId, playId) {
       const ref = plays(jigsawId).doc(playId);
-      if (!(await ref.get()).exists) return false;
+      if (!(await documentExists(ref))) return false;
       await db().recursiveDelete(ref);
       return true;
     },
     async has(jigsawId) {
-      return (await plays(jigsawId).get()).docs.some((d) => !d.data().fresh);
+      return (await playedCount(jigsawId)) > 0;
     },
-    async count(jigsawId) {
-      return (await plays(jigsawId).get()).docs.filter((d) => !d.data().fresh).length;
-    },
+    count: playedCount,
     async removeFresh(jigsawId) {
-      const snap = await plays(jigsawId).where("fresh", "==", true).get(); // one equality: no index needed
+      const snap = await plays(jigsawId).where("fresh", "==", true).select().get(); // one equality: no index needed; only the references are wanted
       await Promise.all(snap.docs.map((d) => db().recursiveDelete(d.ref)));
     },
     async removeAll(jigsawId) {
       await db().recursiveDelete(plays(jigsawId));
     },
   };
+  return store;
 }
 
 /** A game of a user, with the jigsaw it is a game of (enough to show it in a list). */
@@ -120,8 +148,8 @@ export interface UserGame {
 }
 
 /**
- * The games of one user over all the jigsaws, `/jigsaw-users/:id/plays`: GET: the rounds worked on last first. Each jigsaw is asked for the user's games (one equality on the plays of that
- * jigsaw, so no index is needed); a jigsaw the user has not played adds nothing. At most `LIST_LIMIT` games.
+ * The games of one user over all the jigsaws, `/jigsaw-users/:id/plays`: GET: the rounds worked on last first, from one question over the plays of every jigsaw (`PlayStore.listOfUser`).
+ * A game on a jigsaw that is not among the newest (the ones that are named) is left out. At most `LIST_LIMIT` games.
  */
 /** Moves that would pull apart pieces that stick together (see `Plays.bondsError`): they are refused, 409. */
 class BondBroken extends Error {}
@@ -140,19 +168,21 @@ export function userPlaysRouter(
     const userId = String((req.params as { id?: string }).id);
     const error = Plays.userIdError(userId);
     if (error) return void res.status(400).json({ error });
-    if (!(await deps.userOf(userId))) return void res.status(404).json({ error: "No such account." });
-    const jigsaws = await deps.jigsaws();
+    // the account, the jigsaws (to name them) and the rounds of the user over all the jigsaws are asked for at the same time
+    const [user, jigsaws, rounds] = await Promise.all([deps.userOf(userId), deps.jigsaws(), plays.listOfUser(userId)]);
+    if (!user) return void res.status(404).json({ error: "No such account." });
     const me = req.get("X-Jigsaw-User");
-    const games = (await Promise.all(jigsaws.map(async (j) => {
-      const own = await plays.list(j.id, userId);
-      const imageKey = own.length && deps.imageKeyFor ? await deps.imageKeyFor(j, me) : undefined;
-      return own.map((play): UserGame => ({ play, jigsaw: { id: j.id, name: j.name, ...(imageKey ? { imageKey } : {}) } }));
-    })))
-      .flat()
-      .filter((g) => !g.play.fresh) // a round nobody has moved a piece in is not listed
+    const named = new Map(jigsaws.map((j) => [j.id, j]));
+    const shown = rounds
+      .filter((r) => !r.play.fresh && named.has(r.jigsawId)) // a round nobody has moved a piece in is not listed
       .sort((a, b) => Plays.lastActive(b.play) - Plays.lastActive(a.play))
-      .slice(0, LIST_LIMIT)
-      .map((g) => ({ ...g, play: Plays.publicOf(g.play) }));
+      .slice(0, LIST_LIMIT);
+    // the key of the pictures is asked once for each jigsaw that has a game to show, at the same time
+    const keys = new Map(await Promise.all([...new Set(shown.map((r) => r.jigsawId))].map(async (id) => [id, deps.imageKeyFor ? await deps.imageKeyFor(named.get(id)!, me) : undefined] as const)));
+    const games = shown.map((r): UserGame => {
+      const imageKey = keys.get(r.jigsawId);
+      return { play: Plays.publicOf(r.play), jigsaw: { id: r.jigsawId, name: named.get(r.jigsawId)!.name, ...(imageKey ? { imageKey } : {}) } };
+    });
     res.json(games);
   });
   return router;
@@ -269,7 +299,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     const pieces = await piecesOf(jigsaw, record.play);
     const layout = Plays.jigsawFor(jigsaw, record.play);
     // a round of a picture says the size of its picture area, its grid and its store (it has a cut of its own); another round is answered as it was
-    res.json({ play: Plays.publicOf(record.play), settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, record.positions), ...(record.play.cut ? { layout: { width: layout.width, height: layout.height, gridSize: layout.gridSize, storeWidth: layout.storeWidth } } : {}) });
+    res.json({ play: Plays.publicOf(record.play), settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, record.positions), ...(record.play.cut ? { layout: { width: layout.width, height: layout.height, gridSize: layout.gridSize } } : {}) });
   });
 
   // starts this round over: the pieces are scattered anew and the time is back to nothing (the same round, not another one)

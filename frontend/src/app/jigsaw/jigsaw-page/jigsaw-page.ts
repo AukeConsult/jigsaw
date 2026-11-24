@@ -116,7 +116,7 @@ export class JigsawPage implements OnInit {
   }
 
   /** Goes on with the round that is going, or starts one (a picture with what was chosen), and opens it. */
-  async begin(userId: string, unfinished?: PlaySpec, choice?: PlayChoice): Promise<void> {
+  private async begin(userId: string, unfinished?: PlaySpec, choice?: PlayChoice): Promise<void> {
     this.busy.set(true);
     try {
       if (unfinished) {

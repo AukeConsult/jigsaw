@@ -37,7 +37,7 @@
   @if (showBasics()) {
   <div class="mb-3">
       <label class="form-label" for="jigsaw-name">{{ t('jigsawNew.name') || 'Name' }} <span class="text-danger" aria-hidden="true">*</span></label>
-      <input id="jigsaw-name" name="name" class="form-control" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required [attr.placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'" aria-describedby="jigsaw-name-problem"
+      <input id="jigsaw-name" name="name" class="form-control text-input-name" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required [attr.placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'" aria-describedby="jigsaw-name-problem"
              [ngModel]="name()" (ngModelChange)="name.set($event)">
       @if (nameMissing()) {
         <div id="jigsaw-name-problem" class="invalid-feedback d-block">{{ t('jigsawNew.nameMissing') || 'Give the jigsaw a name.' }}</div>
@@ -45,7 +45,7 @@
     </div>
     <div class="mb-3">
       <label class="form-label" for="jigsaw-description">{{ t('jigsawNew.description') || 'Description' }} <span class="text-body-secondary">{{ t('jigsawNew.optional') || '(optional)' }}</span></label>
-      <textarea id="jigsaw-description" name="description" class="form-control" rows="3" [maxlength]="maxDescription" [attr.placeholder]="t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…'"
+      <textarea id="jigsaw-description" name="description" class="form-control text-input" rows="3" [maxlength]="maxDescription" [attr.placeholder]="t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…'"
                 [ngModel]="description()" (ngModelChange)="description.set($event)"></textarea>
     </div>
   }

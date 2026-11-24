@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} stukjes",
   "difficulty": "Moeilijkheid",
   "privateForPlayers": "Privé: alleen de eigenaar en de spelers zien het",
-  "findAndView": "Zoeken en weergeven",
+  "findAndView": "Afbeeldingen filteren",
+  "selectPackages": "Pakketten kiezen",
   "kind": "Wat het is",
   "kinds": {
     "jigsaw": "Kant-en-klare puzzel",
@@ -35,7 +36,7 @@
   "more": "Meer tonen",
   "noneMatch": "Geen afbeelding past. Probeer andere keuzes.",
   "go": "Toon",
-  "findTitle": "Een afbeelding vinden",
+  "findTitle": "Afbeeldingen filteren",
   "changeSearch": "Zoekopdracht wijzigen",
   "noneToList": "Geen afbeeldingen om te tonen. Probeer andere keuzes.",
   "matchOne": "{{ count }} afbeelding past",

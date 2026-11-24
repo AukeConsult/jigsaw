@@ -1,4 +1,4 @@
-<main class="container-fluid page-margin page-max py-3" *transloco="let t">
+<main class="container-fluid page-margin page-max" *transloco="let t">
   <h1 class="page-title mb-2"><i class="bi bi-images me-2" aria-hidden="true"></i>{{ t('jigsawBatch.title') || 'Make many jigsaws' }}</h1>
   <p class="text-body-secondary">{{ t('jigsawBatch.intro') || 'Choose how big and how hard, then pick pictures from your computer. Each picture becomes a jigsaw, and the AI sets its categories, name and description.' }}</p>
 
@@ -83,7 +83,7 @@
             <div class="flex-grow-1 min-w-0">
               <div class="fw-semibold text-break">{{ item.jigsaw?.name || item.file.name }}</div>
               @if (item.jigsaw?.description) {
-                <div class="tiny text-body-secondary text-break">{{ item.jigsaw?.description }}</div>
+                <div class="tiny text-facts text-break">{{ item.jigsaw?.description }}</div>
               }
               @if (item.jigsaw?.categories?.length) {
                 <app-category-tags [keys]="item.jigsaw?.categories" />

@@ -1,5 +1,4 @@
 import { Component, DestroyRef, ElementRef, HostListener, OnDestroy, afterNextRender, computed, effect, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr, translationsLoaded } from '../../core/i18n';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -28,7 +27,7 @@ import { PlayOverrides, PlaySpec } from '../../models/shared/play';
  */
 @Component({
   selector: 'app-jigsaw-play',
-  imports: [FormsModule, RouterLink, JigsawBoard, TranslocoDirective],
+  imports: [RouterLink, JigsawBoard, TranslocoDirective],
   providers: [provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './jigsaw-play.html',
 })

@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { getFirestore } from "firebase-admin/firestore";
+import { DocumentReference, getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import express from "express";
 import { JIGSAW } from "../models";
@@ -67,7 +67,10 @@ export function storageImageStore(root: string = JIGSAW_ROOT): ImageStore {
 }
 
 /** Whether a jigsaw document is there (a picture or a piece belongs to a jigsaw that exists). */
-export const firestoreJigsawExists = async (id: string): Promise<boolean> => (await getFirestore().collection(JIGSAW).doc(id).get()).exists;
+export const firestoreJigsawExists = async (id: string): Promise<boolean> => documentExists(getFirestore().collection(JIGSAW).doc(id));
+
+/** Whether a document is there, read with no fields: a jigsaw document can be big, and only its being there is wanted. */
+export const documentExists = async (ref: DocumentReference): Promise<boolean> => (await ref.firestore.getAll(ref, { fieldMask: [] }))[0].exists;
 
 /**
  * PUT /jigsaw-image/:id: the picture of a jigsaw (the request body is the file, replacing one that is there; 404 when there is no such jigsaw).

@@ -38,6 +38,8 @@ export interface PieceLayout {
 const PIECE_TARGETS = [24, 48, 100, 200, 300, 500, 750, 1000];
 /** How much the shape of the pieces' columns × rows may differ from the shape of the picture area, as a share of it, for the number to be offered. */
 const SHAPE_TOLERANCE = 0.04;
+/** The looser tolerance used when a number of pieces has no fit within `SHAPE_TOLERANCE` (the small numbers, where columns and rows are few). */
+const LOOSE_SHAPE_TOLERANCE = 0.15;
 /** How much the shape of columns × rows being off counts, against the number of pieces being off. */
 const SHAPE_WEIGHT = 10;
 /** How far (as a factor) an offered number of pieces may be from the number it stands for. */
@@ -67,13 +69,26 @@ export class JigsawCut {
     }
     // near the number, and as exactly in the shape of the picture area as it can be (the shape counts more than a few pieces more or less)
     const score = (fit: PieceChoice, target: number): number => Math.abs(Math.log(fit.count / target)) + (SHAPE_WEIGHT * Math.abs(fit.columns / fit.rows - shape)) / shape;
+    // a few pieces have so coarse a grid that no columns × rows has the shape of the picture area within the tolerance: for those, the nearest in shape within a looser one
+    // is offered (the picture is cut a little more to fit), so the small numbers are never missing from the list
+    const loose: PieceChoice[] = [];
+    for (let columns = 2; columns <= JIGSAW_MAX_PIECES; columns++) {
+      for (const rows of [Math.floor(columns / shape), Math.ceil(columns / shape)]) {
+        const count = columns * rows;
+        if (rows < 2 || count > JIGSAW_MAX_PIECES || Math.abs(columns / rows - shape) / shape > LOOSE_SHAPE_TOLERANCE) continue;
+        if (!loose.some((l) => l.columns === columns && l.rows === rows)) loose.push({ columns, rows, count });
+      }
+    }
     const chosen = new Map<number, PieceChoice>();
     for (const target of PIECE_TARGETS) {
       let best: PieceChoice | null = null;
-      for (const fit of fits) {
-        const away = Math.abs(Math.log(fit.count / target));
-        if (away > Math.log(TARGET_REACH) || chosen.has(fit.count)) continue;
-        if (!best || score(fit, target) < score(best, target)) best = fit;
+      for (const pool of [fits, loose]) {
+        for (const fit of pool) {
+          const away = Math.abs(Math.log(fit.count / target));
+          if (away > Math.log(TARGET_REACH) || chosen.has(fit.count)) continue;
+          if (!best || score(fit, target) < score(best, target)) best = fit;
+        }
+        if (best) break; // the fit within the tight tolerance is the one, when there is one
       }
       if (best) chosen.set(best.count, best);
     }

@@ -28,6 +28,7 @@ const category = (key: string, name: string, icon: string, subs: readonly (reado
 const CATEGORIES: readonly JigsawCategory[] = [
   category('recommended', 'Recommended', 'bi-star', []),
   category('family', 'Family', 'bi-people', [['grandparents', 'Parents & grandparents'], ['children', 'Children'], ['weddings', 'Weddings'], ['parties', 'Parties & birthdays'], ['friends', 'Friends'], ['reunions', 'Reunions']]),
+  category('portraits', 'Portraits', 'bi-person-bounding-box', [['faces', 'Faces'], ['groups', 'Group portraits'], ['pets', 'Pet portraits']]),
   category('travel', 'Travel', 'bi-airplane', [['cities', 'Cities'], ['landmarks', 'Landmarks'], ['beaches', 'Beaches & islands'], ['roadtrips', 'Road trips'], ['cruises', 'Cruises']]),
   category('nature', 'Nature', 'bi-tree', [['mountains', 'Mountains'], ['coast', 'Sea & coast'], ['water', 'Lakes, rivers & waterfalls'], ['forest', 'Forest'], ['sky', 'Sky & sunsets']]),
   category('animals', 'Animals', 'bi-bug', [['dogs', 'Dogs'], ['cats', 'Cats'], ['birds', 'Birds'], ['farm', 'Horses & farm animals'], ['wildlife', 'Wildlife'], ['sea', 'Sea life']]),

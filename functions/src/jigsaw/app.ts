@@ -1,6 +1,6 @@
 import cors from "cors";
 import express from "express";
-import { JigsawStore, jigsawListRouter, firestoreJigsawStore } from "../common/jigsaw-list";
+import { JigsawStore, jigsawHeads, jigsawListRouter, firestoreJigsawStore } from "../common/jigsaw-list";
 import { JigsawSearchStore, firestoreJigsawSearch, jigsawSearchRouter } from "./jigsaw-search";
 import { FavoriteStore, firestoreFavoriteStore, jigsawFavoritesRouter } from "./jigsaw-favorites";
 import { Classifier, configuredClassifier } from "./classifier";
@@ -39,6 +39,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   const jigsawExists = stores.jigsawExists ?? firestoreJigsawExists;
   const plays = stores.plays ?? firestorePlayStore();
   const images = stores.jigsawImages ?? storageImageStore();
+  // the newest jigsaws without what is placed on their boards: for lists that only name, count or rank them
+  const heads = () => jigsawHeads(jigsaw);
   // one jigsaw by its id: read by itself (the list is only the newest), so an old jigsaw is found too
   const jigsawById = async (id: string) => (jigsaw.get ? jigsaw.get(id) : ((await jigsaw.list()).find((c) => c.id === id) ?? null));
   // the plays of a jigsaw: one game each, by one user; a play chooses only the difficulty and the look, never the size, the picture or the pieces
@@ -48,7 +50,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   const logons = createLogons(users, { ...stores.logons, now: stores.now });
   router.use(logons.gate);
   // the games of a user over all the jigsaws (before the users, whose own routes would take the address first)
-  router.use("/jigsaw-users/:id/plays", userPlaysRouter(plays, { jigsaws: () => jigsaw.list(), userOf: async (userId) => (await users.get(userId)) ?? null, imageKeyFor: (c, me) => keyIfSeen(c, me) }));
+  router.use("/jigsaw-users/:id/plays", userPlaysRouter(plays, { jigsaws: () => heads(), userOf: async (userId) => (await users.get(userId)) ?? null, imageKeyFor: (c, me) => keyIfSeen(c, me) }));
   // what the AI has used for a user, kept under the user (written by the classification, read here)
   const tokenUsage = stores.tokenUsage ?? firestoreTokenUsageStore();
   router.use("/jigsaw-users/:id/token-usage", tokenUsageRouter(tokenUsage));
@@ -58,12 +60,11 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   router.use("/jigsaw-users", jigsawUsersRouter(users, stores.accountPictures ?? storageImageStore(`${JIGSAW_ROOT}/accounts`), {
     // what is attached to a user: the jigsaws it owns and the rounds it has played (a round nobody moved a piece in does not count)
     async count(userId) {
-      const jigsaws = (await search.load([userId], 1)).filter((j) => j.ownerUid === userId).length;
-      const rounds = (await Promise.all((await jigsaw.list()).map(async (j) => (await plays.list(j.id, userId)).filter((p) => !p.fresh).length))).reduce((a, b) => a + b, 0);
-      return { jigsaws, rounds };
+      const [owned, rounds] = await Promise.all([search.load([userId], 1), plays.listOfUser(userId)]); // asked at the same time
+      return { jigsaws: owned.filter((j) => j.ownerUid === userId).length, rounds: rounds.filter((r) => !r.play.fresh).length };
     },
     async clearFresh(userId) {
-      await Promise.all((await jigsaw.list()).map(async (j) => Promise.all((await plays.list(j.id, userId)).map((p) => plays.remove(j.id, p.id)))));
+      await Promise.all((await plays.listOfUser(userId)).map((r) => plays.remove(r.jigsawId, r.play.id)));
     },
   }, stores.now));
   // A jigsaw only its owner sees (`visibility: "owner"`) is seen by its owner and by the players who have a round on it (they keep what they started); nobody else sees it,
@@ -106,11 +107,11 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     next();
   };
   // the rounds that the users have played (the person's own too), on the jigsaws the person may see (the button "Rounds" on the front page); before the routes of one jigsaw
-  router.use("/jigsaw-rounds", roundsListRouter(plays, { jigsaws: () => jigsaw.list(), canSee: (c, me) => canSee(c, me), imageKeyFor: (c, me) => keyIfSeen(c, me), now: stores.now }));
+  router.use("/jigsaw-rounds", roundsListRouter(plays, { jigsaws: () => heads(), canSee: (c, me) => canSee(c, me), imageKeyFor: (c, me) => keyIfSeen(c, me), now: stores.now }));
   // the popular jigsaws, for the front page: the ones the person may see, ranked by the rounds played and by being new (`Popularity`); before the routes of one jigsaw
   router.get("/jigsaw-popular", async (req, res) => {
     const me = req.get("X-Jigsaw-User");
-    const all = await jigsaw.list();
+    const all = await heads();
     const seen = await Promise.all(all.map((j) => canSee(j, me)));
     const visible = all.filter((j, i) => seen[i] && JigsawVisibilities.listed(j.visibility)); // a hidden jigsaw is not among the popular
     const counted = await Promise.all(visible.map(async (j) => ({ jigsaw: j, rounds: await plays.count(j.id) })));
@@ -134,15 +135,10 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   );
   // the jigsaws among these that the user has solved (a round of theirs is solved): one question for each jigsaw, a few at a time, since a play belongs to a jigsaw
   const solvedBy = async (userId: string, among: readonly { id: string }[]): Promise<string[]> => {
-    const found: string[] = [];
-    for (let i = 0; i < among.length; i += 25) {
-      const batch = among.slice(i, i + 25);
-      const rounds = await Promise.all(batch.map((j) => plays.list(j.id, userId).catch(() => [])));
-      batch.forEach((j, n) => rounds[n].some((p) => p.status === "solved") && found.push(j.id));
-    }
-    return found;
+    const solved = new Set((await plays.listOfUser(userId)).filter((r) => r.play.status === "solved").map((r) => r.jigsawId));
+    return among.filter((j) => solved.has(j.id)).map((j) => j.id);
   };
-  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), async () => (await users.list()).map((u) => u.id), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed));
+  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), () => (users.ids ? users.ids() : users.list().then((all) => all.map((u) => u.id))), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed));
   // the AI classification of one jigsaw by its picture (categories, name and description); its settings are read when it is asked for (before the routes of one jigsaw)
   router.use(
     "/jigsaw/:id/classify",
@@ -204,14 +200,16 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
         add: async (input) => (search.forget(), imageAccess.forget(), jigsaw.add(input)),
         update: async (id, input) => {
           // a ready jigsaw that is made a picture (it can only be while nobody has played it) loses its pieces: a picture is cut in each round
-          const wasReady = JigsawKinds.isPicture(input) ? ((await jigsawById(id)) ?? undefined) : undefined;
+          const before = JigsawKinds.isPicture(input) ? ((await jigsawById(id)) ?? undefined) : undefined;
           search.forget();
           imageAccess.forget();
           const saved = await jigsaw.update(id, input);
-          if (saved && wasReady && !JigsawKinds.isPicture(wasReady)) await pieces.replaceAll(id, [], new Map());
+          if (saved && before && !JigsawKinds.isPicture(before)) await pieces.replaceAll(id, [], new Map());
           return saved;
         },
         list: () => jigsaw.list(),
+        heads: () => jigsawHeads(jigsaw),
+        get: jigsawById, // one jigsaw by its id (also an old one), not found in the list of all of them
         remove: async (id) => (search.forget(), imageAccess.forget(), (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id), favorites.removeAllOf(id)]).then(() => true, () => true))),
       },
       (c, me) => canSee(c, me),

@@ -13,11 +13,12 @@
   "details": "Detaljer",
   "language": "Språk",
   "timePlayed": "Speltid",
-  "find": "Sök och visa",
+  "find": "Filtrera bilder",
   "share": "Dela",
   "copyLink": "Kopiera länken",
   "copied": "Länken är kopierad",
   "shareEmail": "E-post",
   "viewing": "Du tittar på {{ name }}s omgång",
-  "toJigsaw": "Visa pusselsidan"
+  "toJigsaw": "Visa pusselsidan",
+  "home": "Hem"
 }

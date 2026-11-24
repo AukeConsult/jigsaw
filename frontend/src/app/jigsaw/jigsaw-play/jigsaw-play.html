@@ -1,31 +1,31 @@
 <ng-container *transloco="let t">
 @switch (status()) {
   @case ('loading') {
-    <main class="container-fluid page-margin py-4 text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
+    <main class="container-fluid page-margin text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
   }
   @case ('missing') {
-    <main class="container-fluid page-margin py-4">
+    <main class="container-fluid page-margin">
       <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     </main>
   }
   @case ('failed') {
-    <main class="container-fluid page-margin py-4">
+    <main class="container-fluid page-margin">
       <div class="alert alert-danger" role="alert">{{ t('jigsawPlay.couldNotOpen') || 'Could not open the jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     </main>
   }
   @case ('ready') {
     @let it = item()!;
     @let m = matched();
-    <div class="jigsaw-play">
+    <div class="jigsaw-play" [class.show-areas]="debug()">
       <div class="jigsaw-side">
         <!-- the sidebar, docked at the left edge on a wide screen: how far the round has come and what can be done in it; on a narrow screen it is folded away until the Sidebar switch in the top menu opens it over the board -->
         <aside id="jigsaw-sidebar" class="jigsaw-sidebar p-3" [class.is-open]="tools.sidebarOpen()" [style.height.px]="sidebarHeight()" [attr.aria-label]="t('jigsawPlay.sidebar') || 'The jigsaw'">
         <!-- the title of the jigsaw (it is changed on the page of the jigsaw): a link to that page, with its rounds; the rest of the panel closes it when it is open over the board -->
-        <h1 class="page-title mb-2"><a class="d-block text-reset text-decoration-none sidebar-title" [routerLink]="['/jigsaw', jigsawId]" [title]="t('jigsawPlay.openJigsaw') || 'Open the page of the jigsaw'">{{ it.name }}</a></h1>
+        <h1 class="page-title mb-2"><a class="d-block text-reset text-decoration-none text-name" [routerLink]="['/jigsaw', jigsawId]" [title]="t('jigsawPlay.openJigsaw') || 'Open the page of the jigsaw'">{{ it.name }}</a></h1>
         @if (it.author) {
-          <div class="small text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ it.author }}</div>
+          <div class="small text-author"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>{{ it.author }}</div>
         }
-        <div class="small text-body-secondary mb-3">{{ t('jigsawPlay.info', { total: m.total, columns: pieceInfo().columns, rows: pieceInfo().rows, width: it.width, height: it.height, grid: it.gridSize, level: levelLabel().toLowerCase() }) || m.total + ' pieces (' + pieceInfo().columns + ' × ' + pieceInfo().rows + '), ' + it.width + ' × ' + it.height + ' px, grid ' + it.gridSize + ' px, difficulty ' + levelLabel().toLowerCase() }}</div>
+        <div class="small text-facts mb-3">{{ t('jigsawPlay.info', { total: m.total, columns: pieceInfo().columns, rows: pieceInfo().rows, width: it.width, height: it.height, grid: it.gridSize, level: levelLabel().toLowerCase() }) || m.total + ' pieces (' + pieceInfo().columns + ' × ' + pieceInfo().rows + '), ' + it.width + ' × ' + it.height + ' px, grid ' + it.gridSize + ' px, difficulty ' + levelLabel().toLowerCase() }}</div>
 
         @if (viewOnly()) {
           <!-- another player's round: it can be looked at, never changed -->
@@ -35,36 +35,11 @@
           </div>
         }
 
-        <div class="small mb-3" role="status" aria-live="polite">
+        <div class="small text-count mb-3" role="status" aria-live="polite">
           {{ t('jigsawPlay.matched') || 'Matched:' }} <strong>{{ m.count }}</strong> {{ t('jigsawPlay.ofTotal', { total: m.total }) || 'of ' + m.total }}{{ m.total && m.count === m.total ? (t('jigsawPlay.solved') || ' – solved!') : '' }}
         </div>
         @if (pieceSync.state() === 'failed') {
           <div class="small text-danger mb-2" role="alert">{{ t('jigsawPlay.couldNotSavePieces') || 'Could not save the pieces, trying again' }}</div>
-        }
-
-        <!-- the settings of a round are for its player: another player's round shows none of them -->
-        @if (!viewOnly()) {
-          <div class="row g-2 mb-3">
-            <div class="col-6">
-              <label class="form-label mb-1" for="line-width">{{ t('jigsawPlay.line') || 'Line' }}</label>
-              <select id="line-width" name="lineWidth" class="form-select form-select-sm" [disabled]="viewOnly()" [title]="t('jigsawPlay.lineTitle') || 'How thick the line round each piece and round the picture area is'"
-                      (change)="chooseLine(+$any($event.target).value)">
-                @for (l of lineLevels; track l.width) {
-                  <option [value]="l.width" [selected]="lineLevel() === l.width">{{ t('jigsawLevels.line.' + l.key) || l.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="col-3">
-              <label class="form-label mb-1" for="line-color">{{ t('jigsawPlay.colour') || 'Colour' }}</label>
-              <input id="line-color" name="lineColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" [title]="t('jigsawPlay.colourTitle') || 'The colour of the line round each piece and round the picture area'"
-                     [ngModel]="lineColor()" (ngModelChange)="chooseLineColor($event)">
-            </div>
-            <div class="col-3">
-              <label class="form-label mb-1" for="back-color">{{ t('jigsawPlay.back') || 'Background' }}</label>
-              <input id="back-color" name="backColor" class="form-control form-control-sm form-control-color w-100" type="color" [disabled]="viewOnly()" [title]="t('jigsawPlay.backTitle') || 'The background colour of the picture area, inside the frame'"
-                     [ngModel]="backColor()" (ngModelChange)="chooseBackColor($event)">
-            </div>
-          </div>
         }
 
         @if (message(); as msg) {

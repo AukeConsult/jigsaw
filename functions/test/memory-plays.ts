@@ -2,7 +2,9 @@ import type { UserStore } from "../src/jigsaw/jigsaw-users";
 import { etagOf } from "../src/jigsaw/jigsaw-image";
 import type { ImageStore, Picture } from "../src/jigsaw/jigsaw-image";
 import type { PlayRecord, PlayStore } from "../src/jigsaw/plays";
-import { JigsawPiece, JigsawUserSpec, JigsawUsers, PlaySpec, Plays } from "../src/models";
+import type { JigsawStore } from "../src/common/jigsaw-list";
+import type { PieceStore } from "../src/jigsaw/jigsaw-pieces";
+import { JigsawPiece, JigsawSpec, JigsawUserSpec, JigsawUsers, PlaySpec, Plays } from "../src/models";
 
 /** the plays in memory: what the subcollection of a jigsaw is in the app */
 export function memoryPlays(): PlayStore & { all: Map<string, Map<string, PlayRecord>> } {
@@ -23,6 +25,9 @@ export function memoryPlays(): PlayStore & { all: Map<string, Map<string, PlayRe
     },
     async list(jigsawId, userId) {
       return [...of(jigsawId).values()].map((r) => r.play).filter((p) => !userId || p.userId === userId).sort((a, b) => b.startedAt - a.startedAt);
+    },
+    async listOfUser(userId) {
+      return [...all.entries()].flatMap(([jigsawId, rounds]) => [...rounds.values()].filter((r) => r.play.userId === userId).map((r) => ({ jigsawId, play: r.play })));
     },
     async get(jigsawId, playId) {
       return of(jigsawId).get(playId) ?? null;
@@ -122,3 +127,58 @@ export function memoryImages(): ImageStore & { files: Map<string, Picture> } {
 
 /** the secret of the keys of the pictures, in a test: the app asks Firestore for it when it is not given one */
 export const TEST_KEY_SECRET = async (): Promise<string> => "test-secret-test-secret-test-secret-1";
+
+/** the jigsaws in memory: what the collection `jigsaw` is in the app (ids are long enough for the routes of pictures and pieces) */
+export function memoryJigsaws(): JigsawStore {
+  const items: JigsawSpec[] = [];
+  return {
+    async list() {
+      return [...items].reverse();
+    },
+    async add(input) {
+      const saved = { id: `jigsaw-${items.length + 1}`, ...input, createdAt: items.length + 1 };
+      items.push(saved);
+      return saved;
+    },
+    async remove(id) {
+      const i = items.findIndex((x) => x.id === id);
+      if (i < 0) return false;
+      items.splice(i, 1);
+      return true;
+    },
+    async update(id, input) {
+      const i = items.findIndex((x) => x.id === id);
+      if (i < 0) return null;
+      items[i] = { ...input, id, createdAt: items[i].createdAt };
+      return items[i];
+    },
+  };
+}
+
+
+/** the pieces of the jigsaws in memory, with how many times they were read (a normal round reads them once) */
+export function memoryPieces(): PieceStore & { docs: Map<string, JigsawPiece[]>; reads: () => number } {
+  const docs = new Map<string, JigsawPiece[]>();
+  let reads = 0;
+  return {
+    docs,
+    reads: () => reads,
+    async list(id) {
+      reads++;
+      return [...(docs.get(id) ?? [])].sort((a, b) => a.number - b.number);
+    },
+    async replaceAll(id, pieces) {
+      docs.set(id, pieces);
+      return true;
+    },
+    async move() {
+      return true;
+    },
+    async graphic() {
+      return null;
+    },
+    async removeAll(id) {
+      docs.delete(id);
+    },
+  };
+}

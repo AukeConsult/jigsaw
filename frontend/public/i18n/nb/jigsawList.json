@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} brikker",
   "difficulty": "Vanskelighetsgrad",
   "privateForPlayers": "Privat: bare eieren og spillerne ser det",
-  "findAndView": "Finn og vis",
+  "findAndView": "Filtrer bilder",
+  "selectPackages": "Velg pakker",
   "kind": "Hva det er",
   "kinds": {
     "jigsaw": "Ferdig puslespill",
@@ -35,7 +36,7 @@
   "more": "Vis flere",
   "noneMatch": "Ingen bilder passer. Prøv andre valg.",
   "go": "Vis",
-  "findTitle": "Finn et bilde",
+  "findTitle": "Filtrer bilder",
   "changeSearch": "Endre søket",
   "noneToList": "Ingen bilder å vise. Prøv andre valg.",
   "matchOne": "{{ count }} bilde passer",

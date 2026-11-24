@@ -7,6 +7,7 @@ import { firestoreJigsawStore } from "../src/common/jigsaw-list";
 import { storageImageStore } from "../src/jigsaw/jigsaw-image";
 import { firestorePieceStore } from "../src/jigsaw/jigsaw-pieces";
 import { firestorePlayStore } from "../src/jigsaw/plays";
+import { firestoreUserStore } from "../src/jigsaw/jigsaw-users";
 import { firestoreJigsawSearch } from "../src/jigsaw/jigsaw-search";
 import { DEFAULT_OBJECT, JIGSAW, JIGSAW_PIECES, JigsawCut, JigsawPieces } from "../src/models";
 
@@ -82,6 +83,47 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect(await plays.count(made.id)).toBe(2);
     await plays.removeAll(made.id);
     await store.remove(made.id);
+  });
+
+  it("reads the heads of the jigsaws without what is placed on their boards, and changes one after looking at only its creation time", async () => {
+    const store = firestoreJigsawStore(JIGSAW);
+    const made = await store.add(jigsaw);
+    const head = (await store.heads!()).find((j) => j.id === made.id)!;
+    expect(head).toMatchObject({ name: "Real", width: 800, gridSize: 5, createdAt: made.createdAt });
+    expect(head.placed).toEqual([]); // the objects are not read
+    expect((await store.get!(made.id))!.placed).toHaveLength(2); // the one jigsaw has them
+    const changed = await store.update(made.id, { ...jigsaw, name: "Changed" });
+    expect(changed).toMatchObject({ name: "Changed", createdAt: made.createdAt });
+    expect((await raw(JIGSAW, made.id)).createdAt).toBe(made.createdAt);
+    await store.remove(made.id);
+  });
+
+  it("finds the rounds of a user on every jigsaw in one question, and counts the played ones without reading them", async () => {
+    const store = firestoreJigsawStore(JIGSAW);
+    const plays = firestorePlayStore();
+    const one = await store.add(jigsaw);
+    const two = await store.add(jigsaw);
+    const round = (userId: string) => ({ jigsawId: "-", userId, userName: userId, status: "active" as const, startedAt: 1, matched: 0, total: 4, storeWidth: 0, overrides: {} });
+    await plays.create(one.id, round("zed"), {});
+    await plays.create(two.id, round("zed"), {});
+    await plays.create(two.id, { ...round("zed"), fresh: true }, {});
+    await plays.create(two.id, round("other"), {});
+    const found = await plays.listOfUser("zed");
+    expect(found.map((r) => r.jigsawId).sort()).toEqual([one.id, two.id, two.id].sort());
+    expect(await plays.listOfUser("nobody-at-all")).toEqual([]);
+    expect([await plays.count(one.id), await plays.count(two.id)]).toEqual([1, 2]); // the opened one is not counted
+    expect([await plays.has(one.id), await plays.has("none")]).toEqual([true, false]);
+    for (const id of [one.id, two.id]) {
+      await plays.removeAll(id);
+      await store.remove(id);
+    }
+  });
+
+  it("lists the ids of the users with no field read", async () => {
+    const users = firestoreUserStore();
+    const made = await users.create({ username: "ids-test", name: "Ids", language: "en", createdAt: 1 });
+    expect(await users.ids!()).toContain(made!.id);
+    await users.remove(made!.id);
   });
 
   it("keeps the pieces of a round that has a cut of its own under the round, and takes them away with it", async () => {

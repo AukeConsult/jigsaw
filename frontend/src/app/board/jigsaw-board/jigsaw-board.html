@@ -16,10 +16,10 @@
   The jigsaw pieces area. The picture area is width × height in the stored pixels the objects are placed in; the whole content is drawn at `scale`, so the picture is always
   shown whole, in its own proportions, whatever the size of the screen (the sizer takes the room the scaled content takes).
 -->
-<div #root class="rounded" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
+<div #root class="board-root rounded p-1" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
      (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()">
 <div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
-<div class="scale-content position-relative d-flex align-items-start p-2" [class.flex-column]="stacked()" [style.gap.px]="stacked() ? gridSize() : gutter()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
+<div class="scale-content position-relative d-flex align-items-start p-2" [class.pe-0]="store() && !stacked()" [class.pb-0]="store() && stacked()" [class.flex-column]="stacked()" [style.gap.px]="stacked() ? gridSize() : gutter()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
   <div class="picture-surface position-relative shadow-sm flex-shrink-0" [class.bg-white]="!backColor()" [style.background-color]="backColor()" [class.picture-frame]="(lineWidth() ?? 0) > 0" [style.width.px]="width()" [style.height.px]="height()" [style.outline-width.px]="lineWidth() === null ? null : lineWidth()! / scale()" [style.outline-color]="lineColor()"
        [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null"
        (pointerdown)="startMarquee($event)">
@@ -37,8 +37,8 @@
   </div>
   <!-- the store frame of a jigsaw, beside the picture area (below it on a narrow screen, see `stacked`): the pieces wait here, spread out; it scrolls up and down -->
   @if (store(); as s) {
-    <div class="position-relative flex-shrink-0">
-    <div #storeFrame class="border border-transparent rounded" [class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" [attr.aria-label]="t('jigsawBoard.piecesStore') || 'Jigsaw pieces store'"
+    <div class="position-relative flex-shrink-0" [style.margin-left.px]="frameExtra()" [style.margin-top.px]="stripExtra()">
+    <div #storeFrame class="store-scroller"[class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" [attr.aria-label]="t('jigsawBoard.piecesStore') || 'Jigsaw pieces store'"
          [style.width.px]="storeFrameWidth()" [style.height.px]="storeViewHeight()" (scroll)="onStoreScroll($event)">
       <div #storeInner class="position-relative" [style.width.px]="storeInnerSize().width" [style.height.px]="storeInnerSize().height" (pointerdown)="startMarquee($event)">
         <!-- the rectangle that is being dragged to pick pieces, in the store frame -->
@@ -74,7 +74,7 @@
     -->
     <div class="pieces-layer" [style.width.px]="overlay().width" [style.height.px]="overlay().height">
       @for (v of view(); track v.p.id) {
-        @let pl = place(v);
+        @let pl = placements().get(v.p.id)!;
         @if (!pl.hidden) {
           <ng-container *ngTemplateOutlet="item; context: { $implicit: v, shift: pl.shift, shiftY: pl.shiftY, clip: pl.clip }" />
         }
@@ -87,7 +87,7 @@
 <ng-template #item let-v let-shift="shift" let-shiftY="shiftY" let-clip="clip">
 @if (!v.hidden) {
       @let p = v.p;
-      <div class="placed-object" role="button" tabindex="0" [attr.aria-label]="p.object.name" [style.left.px]="v.left - shift" [style.top.px]="v.top - shiftY" [style.clip-path]="clip" [style.z-index]="v.layer"
+      <div class="placed-object" role="button" tabindex="0" [attr.data-id]="p.id" [attr.aria-label]="p.object.name" [style.left.px]="v.left - shift" [style.top.px]="v.top - shiftY" [style.clip-path]="clip" [style.z-index]="v.layer"
            [class.is-picked]="selection().includes(p.id)"
            (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
            (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">

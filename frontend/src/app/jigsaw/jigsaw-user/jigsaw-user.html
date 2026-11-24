@@ -1,4 +1,4 @@
-<main class="container-fluid page-margin py-4" *transloco="let t">
+<main class="container-fluid page-margin" *transloco="let t">
   <div class="form-card wide card card-body mx-auto">
     <!-- with a user who plays, the title is that user (the question "Who plays?" is only for a person who has not chosen yet), with the badge that says it is the active one, and at the right end of the same line what can be done with it -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
@@ -49,11 +49,11 @@
 
     @if (users.user(); as me) {
       @if (editing()) {
-        <form (submit)="$event.preventDefault(); saveEdit()">
+        <form (submit)="$event.preventDefault()">
           <h2 class="form-section first"><i class="bi bi-person" aria-hidden="true"></i>{{ t('jigsawUser.sectionWho') || 'Who you are' }}</h2>
           <div class="mb-3">
             <label class="form-label" for="edit-username">{{ t('jigsawUser.usernameLabel') || 'Account alias' }}</label>
-            <input id="edit-username" name="username" class="form-control" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
+            <input id="edit-username" name="username" class="form-control text-input" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
                    [ngModel]="username()" (ngModelChange)="onUsernameTyped($event)">
             @if (usernameCheck() === 'free') {
               <div class="form-text text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('jigsawUser.usernameFree') || 'Free: nobody else has this alias.' }}</div>
@@ -64,20 +64,27 @@
           </div>
           <div class="mb-3">
             <label class="form-label" for="edit-name">{{ t('jigsawUser.accountName') || 'Account name' }}</label>
-            <input id="edit-name" name="name" class="form-control" type="text" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
+            <input id="edit-name" name="name" class="form-control text-input-name" type="text" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
           </div>
-          <div class="mb-3">
+          <!-- the picture and the language side by side (half of the width each, the text wrapping in its half; under each other on a phone) -->
+          <div class="row g-3 mb-3">
+          <div class="col-12 col-sm-6">
             <label class="form-label" for="edit-picture">{{ t('jigsawUser.pictureLabel') || 'Picture' }} <span class="text-body-secondary">{{ t('jigsawUser.optional') || '(optional)' }}</span></label>
             <div class="d-flex align-items-center gap-3">
-              <!-- what the account will have after Save: the new picture, none, or the one it has -->
-              @if (picture(); as chosen) {
-                <img class="rounded-circle object-fit-cover" [src]="chosen" width="48" height="48" alt="">
-              } @else if (picture() === undefined) {
-                <app-account-avatar [id]="me.id" [at]="me.pictureAt" size="lg" />
-              } @else {
-                <app-account-avatar [id]="me.id" size="lg" />
-              }
-              <input id="edit-picture" name="picture" class="form-control" type="file" accept="image/*" (change)="onPicture($event)">
+              <!-- what the account will have after Save: the new picture, none, or the one it has; pressing it chooses a file (the file field itself is never shown); the plus on it says so, and it is not there once there is a picture -->
+              <button type="button" class="avatar-upload" [title]="t('jigsawUser.pictureLabel') || 'Picture'" [attr.aria-label]="t('jigsawUser.pictureLabel') || 'Picture'" (click)="pictureFile.click()">
+                @if (picture(); as chosen) {
+                  <img class="rounded-circle object-fit-cover" [src]="chosen" width="48" height="48" alt="">
+                } @else if (picture() === undefined) {
+                  <app-account-avatar [id]="me.id" [at]="me.pictureAt" size="lg" />
+                } @else {
+                  <app-account-avatar [id]="me.id" size="lg" />
+                }
+                @if (!picture() && !(picture() === undefined && me.pictureAt)) {
+                  <span class="avatar-plus" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
+                }
+              </button>
+              <input #pictureFile id="edit-picture" name="picture" class="d-none" type="file" accept="image/*" (change)="onPicture($event)">
               @if (picture() || (picture() === undefined && me.pictureAt)) {
                 <button type="button" class="link-action text-nowrap" (click)="picture.set(null)"><i class="bi bi-x-lg" aria-hidden="true"></i>{{ t('jigsawUser.pictureRemove') || 'Remove' }}</button>
               }
@@ -88,7 +95,7 @@
               <div class="form-text">{{ t('jigsawUser.pictureHelp') || 'A small picture shown with your account. It is cut square and made small.' }}</div>
             }
           </div>
-          <div class="mb-3">
+          <div class="col-12 col-sm-6">
             <label class="form-label" for="edit-language">{{ t('jigsawUser.language') || 'Language' }}</label>
             <select id="edit-language" name="language" class="form-select" [ngModel]="language()" (ngModelChange)="language.set($event)">
               @for (l of languages; track l.code) {
@@ -97,14 +104,15 @@
             </select>
             <div class="form-text">{{ t('jigsawUser.languageHelp') || 'The language the app is shown in for you, and the default language for the names and descriptions of your jigsaws.' }}</div>
           </div>
+          </div>
           <!-- the Firebase logins that verify this user: the list of them, and what can be done with it (the folder of the logons) -->
           <app-user-logins />
           @if (error()) {
             <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
           }
+          <!-- there is no Save: every change is saved by itself a moment after the last one; Close saves what is waiting and closes the form -->
           <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-outline-secondary" (click)="editing.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
-            <button type="submit" class="btn btn-primary" [disabled]="busy() || !username().trim() || !name().trim() || usernameCheck() === 'taken'"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.save') || 'Save' }}</button>
+            <button type="button" class="btn btn-outline-secondary" [disabled]="busy()" (click)="closeEdit()">{{ t('jigsawUser.close') || 'Close' }}</button>
           </div>
         </form>
       }
@@ -133,7 +141,7 @@
           <p class="text-body-secondary mb-3">{{ t('jigsawUser.noRounds') || 'You have not played any jigsaw yet.' }}</p>
         <div class="d-flex flex-wrap justify-content-center gap-2">
           <a class="btn btn-main btn-primary" routerLink="/"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawUser.startButton') || 'Start playing' }}</a>
-          <a class="btn btn-main btn-outline-primary" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawUser.findJigsaw') || 'Find a jigsaw' }}</a>
+          <a class="btn btn-main btn-outline-primary" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawUser.findJigsaw') || 'Filter pictures' }}</a>
         </div>
         </div>
       } @else {
@@ -148,7 +156,7 @@
                 </div>
                 <div class="round-info">
                   <!-- the stretched link makes the whole row (picture, text) open the page of the jigsaw; the buttons sit above it -->
-                  <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', game.jigsaw.id, 'play', game.play.id]">{{ game.jigsaw.name }}</a>
+                  <a class="text-name text-decoration-none stretched-link" [routerLink]="['/jigsaw', game.jigsaw.id, 'play', game.play.id]">{{ game.jigsaw.name }}</a>
                   <div class="d-flex align-items-center gap-2 flex-wrap small">
                     @if (game.play.status === 'solved') {
                       <span class="badge text-bg-success"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.solved') || 'Solved' }}</span>
@@ -221,11 +229,11 @@
       <!-- the two ways to make a jigsaw: a button for each, with a line under it that says what it does -->
       <div class="row g-3 mb-3">
         <div class="col-sm-6">
-          <a class="btn btn-outline-primary w-100" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.addJigsaw') || 'Add a new jigsaw' }}</a>
+          <a class="btn btn-outline-primary w-100" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.addJigsaw') || 'Add a new picture' }}</a>
           <p class="text-body-secondary small mt-1 mb-0">{{ t('jigsawUser.addJigsawHelp') || 'Choose a picture and the number of pieces, and make a jigsaw of it.' }}</p>
         </div>
         <div class="col-sm-6">
-          <a class="btn btn-outline-primary w-100" routerLink="/jigsaw/batch"><i class="bi bi-images" aria-hidden="true"></i>{{ t('jigsawUser.makeMany') || 'Make many jigsaws at once' }}</a>
+          <a class="btn btn-outline-primary w-100" routerLink="/jigsaw/batch"><i class="bi bi-images" aria-hidden="true"></i>{{ t('jigsawUser.makeMany') || 'Add many pictures at once' }}</a>
           <p class="text-body-secondary small mt-1 mb-0">{{ t('jigsawUser.makeManyHelp') || 'Choose many pictures at once and make a jigsaw of each. The AI can set the name, the description and the categories for you.' }}</p>
         </div>
       </div>
@@ -238,7 +246,7 @@
           <p class="text-body-secondary mb-3">{{ t('jigsawUser.noJigsaws') || 'You have not made a jigsaw yet.' }}</p>
         <div class="d-flex flex-wrap justify-content-center gap-2">
           <a class="btn btn-main btn-primary" routerLink="/"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawUser.startButton') || 'Start playing' }}</a>
-          <a class="btn btn-main btn-outline-primary" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawUser.findJigsaw') || 'Find a jigsaw' }}</a>
+          <a class="btn btn-main btn-outline-primary" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawUser.findJigsaw') || 'Filter pictures' }}</a>
         </div>
         </div>
       } @else {
@@ -324,7 +332,7 @@
                     }
                   </div>
                   <div class="round-info">
-                    <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>
+                    <a class="text-name text-decoration-none stretched-link" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>
                     <!-- pieces, difficulty and the categories the picture is in -->
                     <div class="tiny text-body-secondary">
                       @if (isPicture(item)) {
@@ -404,7 +412,7 @@
           <form (submit)="$event.preventDefault(); startNow()">
             <p class="text-body-secondary">{{ t('jigsawUser.startHelp') || 'Type your name and press the button: you make a new account that is open to anyone. You can lock it later with a sign-in.' }}</p>
             <label class="form-label" for="first-name">{{ t('jigsawUser.yourName') || 'Your name' }}</label>
-            <input id="first-name" name="name" class="form-control form-control-lg mb-3" type="text" autocomplete="name" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event); sameUsers.set([])">
+            <input id="first-name" name="name" class="form-control form-control-lg text-input-name mb-3" type="text" autocomplete="name" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event); sameUsers.set([])">
             @if (error() && !sameUsers().length) {
               <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
             }

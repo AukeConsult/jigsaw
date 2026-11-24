@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} Teile",
   "difficulty": "Schwierigkeit",
   "privateForPlayers": "Privat: nur der Besitzer und die Spieler sehen es",
-  "findAndView": "Suchen und anzeigen",
+  "findAndView": "Bilder filtern",
+  "selectPackages": "Pakete auswählen",
   "kind": "Was es ist",
   "kinds": {
     "jigsaw": "Fertiges Puzzle",
@@ -35,7 +36,7 @@
   "more": "Mehr anzeigen",
   "noneMatch": "Kein Bild passt. Versuche andere Auswahlen.",
   "go": "Anzeigen",
-  "findTitle": "Ein Bild finden",
+  "findTitle": "Bilder filtern",
   "changeSearch": "Suche ändern",
   "noneToList": "Keine Bilder zum Anzeigen. Versuche andere Auswahlen.",
   "matchOne": "{{ count }} Bild passt",

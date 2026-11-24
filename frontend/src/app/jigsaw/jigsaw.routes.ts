@@ -3,6 +3,7 @@ import { JigsawBatch } from './jigsaw-batch/jigsaw-batch';
 import { JigsawFind } from './jigsaw-find/jigsaw-find';
 import { JigsawHome } from './jigsaw-home/jigsaw-home';
 import { JigsawNew } from './jigsaw-new/jigsaw-new';
+import { JigsawPackages } from './jigsaw-packages/jigsaw-packages';
 import { JigsawPage } from './jigsaw-page/jigsaw-page';
 import { JigsawPlay } from './jigsaw-play/jigsaw-play';
 import { JigsawUser } from './jigsaw-user/jigsaw-user';
@@ -14,6 +15,7 @@ import { JigsawShell } from './jigsaw-shell';
  * The jigsaw module, `/jigsaw`: the module the app opens with.
  *  - `/jigsaw`: the front page: what Karins jigsaw is, where to start, and the newest jigsaws.
  *  - `/jigsaw/find`: find a jigsaw: choose what to look for (category, size, difficulty, owner), press Go, and the jigsaws that match are shown.
+ *  - `/jigsaw/packages`: select packages: a dummy page for now.
  *  - `/jigsaw/list`: gone; the jigsaws are looked for on the front page (`/`), so an old address goes there.
  *  - `/jigsaw/new`: a new jigsaw: the settings are filled in in the main frame, then saved, and a game of it is started.
  *  - `/jigsaw/batch`: many jigsaws at once: how many pieces and how hard, many pictures chosen from the computer, each made into a jigsaw and classified by the AI.
@@ -30,7 +32,8 @@ export const JIGSAW_ROUTES: Routes = [
     component: JigsawShell,
     children: [
       { path: '', component: JigsawHome, title: 'Karins jigsaw' },
-      { path: 'find', component: JigsawFind, title: 'Find a jigsaw' }, // before ':id'
+      { path: 'find', component: JigsawFind, title: 'Filter pictures' }, // before ':id'
+      { path: 'packages', component: JigsawPackages, title: 'Select packages' }, // before ':id'
       { path: 'list', redirectTo: '/' }, // the list page is gone: what it did is done by the finder on the front page
       { path: 'new', component: JigsawNew, title: 'New jigsaw', canActivate: [userGuard] },
       { path: 'batch', component: JigsawBatch, title: 'Make many jigsaws', canActivate: [userGuard] }, // before ':id'

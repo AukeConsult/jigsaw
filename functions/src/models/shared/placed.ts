@@ -39,6 +39,8 @@ export interface PiecePlace {
 export const MAX_PIECE_INDEX = 1000;
 /** A piece this close (pixels) to its own place is in place: half a pixel is the finest a piece is put (the same as `JigsawPieces.MATCH_TOLERANCE_PX`). */
 export const PLACE_TOLERANCE_PX = 0.5;
+/** How far a piece may go past the top and the left edge of the picture area, in pixels (the margin the board draws round the picture, where a piece can be put too): its box may begin this far before 0. */
+export const AREA_MARGIN_PX = 8;
 
 /**
  * A placed figure (a jigsaw piece): a box, it knows its own place, its own box and its own home in the picture area.
@@ -110,7 +112,7 @@ export class PlacedFigure {
 
   /** whether it is inside a picture area of this size */
   fits(width: number, height: number): boolean {
-    return this.left >= 0 && this.top >= 0 && this.left + this.object.width <= width && this.top + this.object.height <= height;
+    return this.left >= -AREA_MARGIN_PX && this.top >= -AREA_MARGIN_PX && this.left + this.object.width <= width && this.top + this.object.height <= height;
   }
 
   /** the same object with its centre somewhere else */

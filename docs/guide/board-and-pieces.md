@@ -33,7 +33,9 @@ Everything goes through `Puzzle` (`functions/src/models/shared/puzzle.ts`), and 
 
 ## 4. Checks, in the order a piece meets them
 
-**On every move, on the page** (the `puzzle` computed, then `apply`):
+**While a piece is held it moves freely on the screen** (`FreeDrag` in `jigsaw-board.ts`): the held piece or group is drawn where the pointer is, above everything (`HELD_LAYER`), whatever lies under it, and nothing in the model is touched or checked at any step (the drawn elements get a `transform`; the whole of what is held is kept on the board). There are no jumps, since the areas (picture, free space, store, which map to the stored places in different ways) are not used while it is held. **When it is let go** (`endMove`) the place its middle is over is turned into a stored place once (`movedTo`, `areaPoint`), the drop step snaps it (`dropPieces`), the checks below run once over all the pieces and the result is kept in `placed` (and saved); the drawn piece stays where the pointer left it until the page has drawn it at its place. A group that lies over a seam when it is let go goes whole to the side the held piece is over. The same checks run when the window, the store or the free space change.
+
+**The checks, on the page** (the `puzzle` computed, `settledPuzzle`, then `apply`/`commit`):
 
 1. `Puzzle.settled()`: fixed pieces go on the bottom layer, free pieces above; a free piece outside the area is pulled back in, **a group whole**, by the same amount for every piece. Layers are 1 to 1000.
 2. `Puzzle.confine(...)`: with the store below the picture, a free piece is kept inside what is shown of the area: in the free space beside the picture, or, when there is no room beside it, on the picture and the gutter above the store, never further down. This is worked out for the whole round at each move, so **every piece that lay outside the view is put back in, and saved with that move**. (When the window is made smaller a piece is drawn inside the view at once; it is saved with the next move.)

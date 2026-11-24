@@ -69,6 +69,7 @@ $fluid-to: 87.5; // 1400px in rem
   --app-fs-text: #{fluid(1, 1.125)}; // the text, what is typed in the fields, and the main button (not under 1rem: a smaller field makes a phone zoom in)
   --app-fs-small: #{fluid(0.8125, 0.9375)}; // labels and the help under a field, notes, the text of every button
   --app-fs-compact: #{fluid(0.6875, 0.9375)}; // not one of the five: the name on a card, smaller than `small` on a phone (11 px) and the same as it on a wide screen (class `.card-name`)
+  --app-fs-band: #{fluid(0.8125, 1.125)}; // not one of the five: the heading badge of a band (Ongoing): from the size of `small` on a phone to 18 px on a wide screen, so it follows the screen
   --app-fs-tiny: #{fluid(0.5625, 0.58)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`)
   // the buttons: the text of every button is `--app-fs-small` (the main one `--app-fs-text`); what makes them three sizes is the room round the text, in em, so it
   // follows the text size and a button keeps its shape whatever size the text has
@@ -103,14 +104,29 @@ $fluid-to: 87.5; // 1400px in rem
   --app-nav-green: #198754;
   --app-nav-amber: #d9680a;
   --app-nav-purple: #6f42c1;
+  // the colours of the choices (`.choice-group`): each choice in a row has the next colour, a soft tint when it is not chosen and the full colour when it is. The one place to change them (a style sheet of the app will set them)
+  --app-choice-1: #0d6efd;
+  --app-choice-2: #198754;
+  --app-choice-3: #d9680a;
+  --app-choice-4: #6f42c1;
+  --app-choice-5: #d63384;
+  --app-choice-6: #0aa2c0;
   --app-picked: var(--app-primary); // what is picked: the outline, the frame dragged to pick
   --app-matched: var(--app-success); // the blink when a piece clicks into place
   --app-piece-outline: rgba(33, 37, 41, 0.55);
   --app-piece-blank: var(--app-blank); // a piece without a picture
-  --app-piece-shadow: rgba(0, 0, 0, 0.6);
-  --app-tilt-light: rgba(255, 255, 255, 0.32); // the tilt: light at the top left, dark at the bottom right
-  --app-tilt-mid: rgba(255, 255, 255, 0);
-  --app-tilt-dark: rgba(0, 0, 0, 0.4);
+  --app-text-name-from: var(--app-primary); // free text (classes `.text-name`, `.text-author`, `.text-facts`, `.text-count`): change the look of all of it here
+  --app-text-name-to: var(--app-success);
+  --app-text-name-weight: 700;
+  --app-text-name-spacing: -0.01em;
+  --app-text-button-weight: 600; // the text of every button
+  --app-text-button-spacing: 0.01em;
+  --app-text-author: var(--app-primary);
+  --app-text-author-weight: 600;
+  --app-text-facts: var(--app-ink-soft);
+  --app-text-facts-weight: 400; // free text (descriptions, facts) is never bold: only names are
+  --app-text-count: var(--app-success);
+  --app-text-count-bg: rgba(var(--app-success-rgb), 0.12);
   --app-piece-number: var(--app-white); // the number on a piece (debug), with the ink round it
   --app-grid-dot: #6c757d; // the points of the grid: drawn on a canvas, so a colour and not a reference
   --app-grid-number: #495057;
@@ -129,11 +145,18 @@ $fluid-to: 87.5; // 1400px in rem
   --app-tile-gap: 0.25rem;
   --app-navbar-height: 3.5rem; // the menu at the top of a wide screen: what a band stuck under it leaves room for
 
-  // layers, from the bottom: the pieces, the handles and frames of picking, the sidebar over a small screen, the helper picture, the dialog
-  --app-z-pieces: 1;
-  --app-z-controls: 1001;
-  --app-z-sidebar: 1020;
-  --app-z-bar: 1030;
+  // layers (z-index): the whole app uses these bands and nothing else (rule 13 in CLAUDE.md)
+  //   0 – 99      the page: its content (a card or a button may lift itself over its neighbours with Bootstrap's z-1 … z-3)
+  //   100 – 199   what is round the page: the sticky bands and the bars (the menu, the toolbar, the corner)
+  //   200 – 899   the play: the working area of a round and all that is in it. It is a stacking context of its own, so what is in it only orders itself (pieces, controls)
+  //   900 and up  the overlays, always over the play: the menus and popups that open, the sidebar opened over the board, the helper picture, the dialogs (Bootstrap's own: dropdown 1000 … toast 1090)
+  --app-z-band: 110;
+  --app-z-bar: 120;
+  --app-z-play: 200;
+  --app-z-pieces: 1; // in the play: the pieces
+  --app-z-controls: 2; // in the play: the handles and the hint, over the pieces
+  --app-z-overlay: 1000; // a menu or a popup that opens from a bar, over the play
+  --app-z-sidebar: 1010; // the sidebar a small screen opens over the board
   --app-z-helper: 1040;
   --app-z-dialog: 1060;
 
@@ -178,6 +201,20 @@ $fluid-to: 87.5; // 1400px in rem
   --bs-btn-active-border-color: color-mix(in srgb, var(--app-primary) 70%, black);
   --bs-btn-disabled-bg: var(--app-primary);
   --bs-btn-disabled-border-color: var(--app-primary);
+  // the filled button has the blue-to-green of the names (the standard look of text, see `.text-name`)
+  background-image: linear-gradient(120deg, var(--app-text-name-from), var(--app-text-name-to));
+
+  &:hover,
+  &:active,
+  &.active {
+    filter: brightness(0.9);
+  }
+}
+
+// every button: the text is firm, like a name (the weight is the token `--app-text-button-weight`)
+.btn {
+  font-weight: var(--app-text-button-weight);
+  letter-spacing: var(--app-text-button-spacing);
 }
 
 // The outline buttons (the ones in rows, lists and notices) have no border: a soft tint of their own colour makes them look like buttons, and they fill with the colour
@@ -372,6 +409,36 @@ small,
   }
 }
 
+// a block of choices with a floating label: the label sits on the top line of a thin box round the choices, and the boxes lie side by side and wrap when there is no room (what is shown of a jigsaw, in the card)
+.choice-float-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 0.5rem;
+  margin-top: 0.5rem; // room for the labels that sit on the top lines
+  margin-bottom: 0.5rem;
+}
+
+.choice-float {
+  position: relative;
+  padding: 0.75rem 0.5rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--app-primary) 28%, transparent);
+  border-radius: var(--bs-border-radius);
+
+  // the label is in the box (so the box is at least as wide as the label), pulled up over the top line, with the colour of the card behind its words so the line is cut there
+  .form-label {
+    display: block;
+    width: fit-content;
+    margin: -1.25rem 0 0.3rem -0.35rem;
+    padding: 0 0.35rem;
+    background: var(--bs-card-bg, var(--bs-body-bg));
+    color: var(--bs-secondary-color);
+    font-size: var(--app-fs-small);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+
 // a row of choices as small buttons, the chosen ones filled: the categories, the motive difficulty, and every choice of the filter. It is the one format of a choice, so it is
 // the same everywhere; the pieces of it are `btn btn-sm` (`btn-primary` chosen, `btn-outline-secondary` not) and `choice-count` for a number in a button
 .choice-group {
@@ -390,6 +457,42 @@ small,
     margin-inline-start: 0.25rem;
     opacity: 0.7;
   }
+
+  // colourful: every choice has a colour of its own (the next of the six in the row): a soft tint of it when not chosen, the full colour when chosen
+  .btn {
+    --choice: var(--app-choice-1);
+    --bs-btn-color: color-mix(in srgb, var(--choice) 78%, var(--bs-emphasis-color));
+    --bs-btn-bg: color-mix(in srgb, var(--choice) 13%, transparent);
+    --bs-btn-border-color: color-mix(in srgb, var(--choice) 28%, transparent);
+    --bs-btn-hover-color: color-mix(in srgb, var(--choice) 85%, var(--bs-emphasis-color));
+    --bs-btn-hover-bg: color-mix(in srgb, var(--choice) 24%, transparent);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--choice) 45%, transparent);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--choice);
+    --bs-btn-active-border-color: var(--choice);
+    --bs-btn-disabled-color: color-mix(in srgb, var(--choice) 45%, var(--bs-secondary-color));
+    --bs-btn-disabled-bg: color-mix(in srgb, var(--choice) 6%, transparent);
+    --bs-btn-disabled-border-color: transparent;
+
+    &.btn-primary {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: var(--choice);
+      --bs-btn-border-color: var(--choice);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: color-mix(in srgb, var(--choice) 85%, #000);
+      --bs-btn-hover-border-color: color-mix(in srgb, var(--choice) 85%, #000);
+      --bs-btn-active-bg: color-mix(in srgb, var(--choice) 78%, #000);
+      --bs-btn-active-border-color: color-mix(in srgb, var(--choice) 78%, #000);
+      --bs-btn-disabled-color: #fff;
+      --bs-btn-disabled-bg: color-mix(in srgb, var(--choice) 55%, transparent);
+    }
+
+    &:nth-child(6n + 2) { --choice: var(--app-choice-2); }
+    &:nth-child(6n + 3) { --choice: var(--app-choice-3); }
+    &:nth-child(6n + 4) { --choice: var(--app-choice-4); }
+    &:nth-child(6n + 5) { --choice: var(--app-choice-5); }
+    &:nth-child(6n + 6) { --choice: var(--app-choice-6); }
+  }
 }
 
 app-category-picker {
@@ -405,10 +508,22 @@ app-category-picker {
 
 .band-badge {
   cursor: pointer; // the heading is a button: it folds the band and opens it again
-  // the heading of a band (Ongoing) is a badge in the normal text size of the app (it grows with the screen, from 16 to 18 px), and its room is in `em`, so the whole badge follows the text
-  --bs-badge-font-size: var(--app-fs-text);
-  --bs-badge-padding-x: 1em;
-  --bs-badge-padding-y: 0.45em;
+  // the heading of a band (Ongoing) is a soft white pill with the blue of the look round it and in its words, in a size that follows the screen (`--app-fs-band`), and its room is in `em`, so the whole badge follows the text
+  --bs-badge-font-size: var(--app-fs-band);
+  --bs-badge-padding-x: 0.9em;
+  --bs-badge-padding-y: 0.4em;
+  --bs-badge-font-weight: 600;
+  color: var(--app-primary);
+  background-color: var(--bs-body-bg);
+  border: 1px solid color-mix(in srgb, var(--app-primary) 35%, transparent);
+  box-shadow: 0 0.125rem 0.5rem color-mix(in srgb, var(--app-primary) 18%, transparent);
+  transition: background-color 0.2s, box-shadow 0.2s;
+
+  &:hover,
+  &:focus-visible {
+    background-color: color-mix(in srgb, var(--app-primary) 9%, var(--bs-body-bg));
+    box-shadow: 0 0.1875rem 0.75rem color-mix(in srgb, var(--app-primary) 28%, transparent);
+  }
 }
 
 .btn-lg,
@@ -423,7 +538,6 @@ app-category-picker {
   --bs-btn-font-size: var(--app-fs-text);
   --bs-btn-padding-y: var(--app-btn-main-pad-y);
   --bs-btn-padding-x: var(--app-btn-main-pad-x);
-  font-weight: 600;
 }
 
 .form-control,
@@ -552,7 +666,6 @@ app-jigsaw-filter {
   --bs-btn-hover-color: var(--bs-body-color);
   --bs-btn-hover-bg: var(--bs-tertiary-bg);
   --bs-btn-hover-border-color: var(--bs-secondary-color);
-  font-weight: 500;
 }
 
 // a text that does something, in the toolbar: an icon and words, no box (`danger` for one that deletes)
@@ -861,7 +974,7 @@ app-my-rounds {
 .my-rounds {
   position: sticky;
   top: 0.5rem; // a little below the top of the page, so the pattern shows above it
-  z-index: calc(var(--app-z-bar) - 1);
+  z-index: var(--app-z-band);
   margin: 1rem 0.75rem 0; // room round it, so the soft pattern of the page shows (it is a frame of its own, like the lists); the top is room for the badge on the border
   padding: 0.875rem 0 0.25rem; // a little room under the badge that sits half over the top border
   border-radius: var(--bs-border-radius-lg);
@@ -872,12 +985,13 @@ app-my-rounds {
   }
 }
 
-/* every page starts where the band's own content does (`container-fluid page-margin`): its side margin (0.75rem) and its padding (1rem); on a phone both are half, so the room at the sides is not a big share of the screen */
+/* every page starts where the band's own content does (`container-fluid page-margin`): the same gap all the way round it, at the top, the sides and the bottom (`--app-page-gap`, 1.75rem; on a phone half of it, so the room round the page is not a big share of the screen). A page does not add its own vertical padding */
 .page-margin {
-  padding-inline: 1.75rem;
+  --app-page-gap: 1.75rem;
+  padding: var(--app-page-gap);
 
   @include below($bp-sm) {
-    padding-inline: 0.875rem;
+    --app-page-gap: 0.875rem;
   }
 }
 
@@ -890,11 +1004,6 @@ app-my-rounds {
 }
 
 /* the band of the rounds going: a border in the blue, green and yellow of the background pattern (the fill is painted inside the padding box, the gradient shows only in the border) */
-.my-rounds.ongoing.folded {
-  padding-bottom: 0; // folded to its badge: nothing under it
-  min-height: 0.5rem;
-}
-
 .my-rounds.ongoing {
   border: 1px solid transparent;
   // inside: white pieces over a light tint of the border's colours (a solid wash, so the band is not see-through when it is stuck over the list); the full gradient is only seen in the border
@@ -902,6 +1011,17 @@ app-my-rounds {
   background-size: 150px 150px, auto, auto;
   background-origin: border-box;
   background-clip: padding-box, padding-box, border-box;
+}
+
+/* folded (the badge was pressed): the band is gone, there is only a hairline across the page with the badge on it (pressing the badge opens the band again) */
+.my-rounds.ongoing.folded {
+  padding: 0;
+  min-height: 0;
+  background: none;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--app-primary) 30%, transparent);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* the welcome (no round going) is big: it is not stuck, it scrolls up and away with the list under it */
@@ -950,6 +1070,33 @@ app-my-rounds {
 
 .more-options[open] .more-options-icon {
   transform: rotate(90deg);
+}
+
+// menu style: one text size for everything that is written in a menu or a bar (the links, the switches, the clock, the name, the buttons): the normal text size. The words under an icon on a phone keep their own tiny size (`.nav-label`)
+.menu-style {
+  font-size: var(--app-fs-text);
+
+  :is(.nav-link, .form-check-label, .small, .btn) {
+    font-size: inherit;
+  }
+}
+
+// a bar that must stay on one line (`LabelFit`, `core/label-fit.ts`): it measures, and when everything does not fit on one line the words of its buttons are hidden (`fit-1`: the icons stay, the words stay for a
+// screen reader), and then what can go (`fit-2`: the name beside the logo, and the clock, `.fit-drop`)
+.fit-1 :is(.fit-label, .nav-label) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fit-2 :is(.brand-text, .fit-drop) {
+  display: none;
 }
 
 /* the words of the menu: beside the icon on a wide screen, under it on a phone or a tablet (an icon alone is guessed wrong) */
@@ -1108,8 +1255,7 @@ app-my-rounds {
   padding-block: 0;
 }
 
-.brand-lockup,
-.app-corner {
+.brand-lockup {
   .brand-logo {
     width: 2rem;
     height: 2rem;
@@ -1161,6 +1307,50 @@ app-my-rounds {
   border-radius: 0.125rem;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
   object-fit: cover;
+}
+
+// the button that chooses the language is small: a small flag and a small arrow, in the small text size whatever the menu style says (the flags in its list keep their size)
+.menu-style #language {
+  font-size: var(--app-fs-small);
+  line-height: 1;
+}
+
+#language .flag {
+  width: 1.125rem;
+  height: 0.75rem;
+}
+
+// a picture that is chosen by pressing it: the picture (or the avatar) with a round plus on its lower right corner (the file field is never shown)
+.avatar-upload {
+  position: relative;
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+
+  .avatar-plus {
+    position: absolute;
+    right: -0.2rem;
+    bottom: -0.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    border: 2px solid var(--bs-body-bg);
+    border-radius: 50%;
+    background: var(--app-primary);
+    color: #fff;
+    font-size: 0.75rem;
+    transition: transform 0.2s;
+  }
+
+  &:hover .avatar-plus,
+  &:focus-visible .avatar-plus {
+    transform: scale(1.15);
+  }
 }
 
 .header-details {
@@ -1413,7 +1603,7 @@ app-jigsaw-shell {
 }
 
 // the page: what scrolls (the pages are what is after the menu and the helper bar; the empty outlet is not)
-app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(.app-corner):not(router-outlet) {
+app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet) {
   order: 1;
   flex: 1 1 0;
   min-height: 0;
@@ -1429,22 +1619,33 @@ app-jigsaw-shell > .app-navbar {
   z-index: var(--app-z-bar);
 }
 
+// the bar of a round on a phone or a tablet: the way home (the logo) is as big as the buttons beside it, and the helper beside it takes the room that is left
+.app-toolbar .brand-lockup {
+  display: inline-flex;
+  align-items: center;
+
+  .brand-logo {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .brand-home {
+    right: -0.25rem;
+    bottom: -0.2rem;
+    font-size: 0.55rem;
+  }
+}
+
+.app-toolbar .jigsaw-helper-bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 app-jigsaw-shell > .app-toolbar {
   order: 1;
   flex: 0 0 auto;
   z-index: var(--app-z-bar);
   padding: 0.25rem 0.75rem;
-}
-
-// the logo in the upper left corner where the menu is at the bottom (a phone or a tablet): a small bar of its own above the page, the way home
-.app-corner {
-  display: flex; // the mark is the whole line: no room under it for a line of text
-  order: -1;
-  flex: 0 0 auto;
-  z-index: var(--app-z-bar);
-  padding: calc(0.5rem + env(safe-area-inset-top)) 0.5rem 0.5rem; // the same room at the top, the left and the bottom
-  background-color: var(--bs-body-bg);
-  background-image: linear-gradient(120deg, rgba(13, 110, 253, 0.07), rgba(32, 201, 151, 0.08) 55%, rgba(253, 126, 20, 0.07));
 }
 
 @include below($bp-lg) {
@@ -1462,7 +1663,7 @@ app-jigsaw-shell > .app-toolbar {
 }
 
 // the pages have the soft pattern behind their frames; the round (the board) is a working frame and has none
-app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(.app-corner):not(router-outlet):not(app-jigsaw-play) {
+app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet):not(app-jigsaw-play) {
   background-image: $soft-pattern;
   background-size: $soft-pattern-size;
 }
@@ -1493,10 +1694,76 @@ app-jigsaw-shell > app-jigsaw-play:not(.app-navbar):not(.app-toolbar):not(router
   }
 }
 
-// the title in the sidebar of a round is a link to the page of the jigsaw: it shows that when it is pointed at
-.sidebar-title:hover,
-.sidebar-title:focus-visible {
-  text-decoration: underline !important;
+// ---- the standard look of free text (what people typed or what is told about it) -------------------------------------------------------------
+// One place to change it: the tokens `--app-text-*` on `:root`. Use the classes, never a colour or weight of your own:
+//   .text-name   the name of a jigsaw, a player or a round, and every `.page-title` (a gradient; the size is the element's own)
+//   .text-author who made it or who played it
+//   .text-facts  the facts told about it (pieces, size, difficulty ...)
+//   .text-count  a count as a pill, the number in <strong>
+.text-name,
+.page-title { // the title of a page has the look of a name
+  font-weight: var(--app-text-name-weight);
+  letter-spacing: var(--app-text-name-spacing);
+  background-image: linear-gradient(120deg, var(--app-text-name-from), var(--app-text-name-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important; // the text takes the gradient behind it
+  text-decoration-color: var(--app-text-name-from);
+}
+
+.page-title .bi {
+  color: var(--app-text-name-from); // an icon in a title would take the see-through colour of the text
+}
+
+.page-title .text-name {
+  background-image: none; // a name inside a title is already clipped by the title's own gradient
+  color: inherit !important;
+}
+
+a.text-name:hover,
+a.text-name:focus-visible {
+  text-decoration: underline !important; // a name that is a link shows it when it is pointed at
+}
+
+.text-author {
+  color: var(--app-text-author);
+  font-weight: var(--app-text-author-weight);
+}
+
+.text-facts {
+  color: var(--app-text-facts);
+  font-weight: var(--app-text-facts-weight);
+  line-height: 1.5;
+}
+
+// the same look in the fields where it is typed (the placeholder keeps the plain look): `.text-input-name` for a name, `.text-input` for a description or a username
+.text-input-name {
+  color: var(--app-text-name-from);
+  font-weight: var(--app-text-name-weight);
+}
+
+.text-input {
+  color: var(--app-text-facts);
+  font-weight: var(--app-text-facts-weight);
+}
+
+.text-input-name::placeholder,
+.text-input::placeholder {
+  font-weight: 400;
+}
+
+.text-count {
+  display: inline-block;
+  padding: 0.25em 0.8em;
+  border-radius: 2em;
+  color: var(--app-text-facts);
+  font-weight: var(--app-text-facts-weight);
+  background: var(--app-text-count-bg);
+
+  strong {
+    color: var(--app-text-count);
+    font-weight: 700;
+  }
 }
 
 // the round (the board) has the same pattern, more discreet: the page colour laid over it, so it does not draw the eye from the pieces
@@ -1548,6 +1815,47 @@ app-jigsaw-shell > app-jigsaw-play {
   display: none;
 }
 
+// the scroll bar of the store of pieces: a plain thin bar (0.3125rem = 5 px, `STORE_SCROLLBAR_PX` in jigsaw-board.ts is the room the board keeps for it), a rounded thumb and no track, quiet until it
+// is pointed at, then the blue of the look. It asks for the browser's own bar again (`auto`) so the rules below can draw it
+.store-scroller {
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+
+  &::-webkit-scrollbar {
+    width: 0.3125rem;
+    height: 0.3125rem;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(var(--bs-emphasis-color-rgb), 0.28);
+    border-radius: 0.1875rem;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--app-primary) 70%, transparent);
+    }
+
+    &:active {
+      background-color: var(--app-primary);
+    }
+  }
+
+  &::-webkit-scrollbar-button {
+    display: none;
+  }
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .store-scroller {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--bs-emphasis-color-rgb), 0.28) transparent;
+  }
+}
+
 /** the layer the pieces are drawn in, over the picture area and the store frame: as big as the whole area, takes no room, lets the pointer through */
 /** the jigsaw pieces area is drawn at a scale (see the board): the sizer is as big as the scaled content, the content is scaled from its top left corner */
 .scale-sizer {
@@ -1556,6 +1864,17 @@ app-jigsaw-shell > app-jigsaw-play {
 
 .scale-content {
   transform-origin: 0 0;
+}
+
+// rule 4 and 13: the working area of a round is over what is round it (the bars, the sticky bands), so the pieces always show on top; menus, popups, the sidebar opened over the board, the helper picture and the dialogs are over it
+.board-root {
+  position: relative;
+  z-index: var(--app-z-play);
+}
+
+// a bar with a menu or a popup that is open is lifted over the play (the menu is part of the bar, and a bar is under the play)
+:is(.app-navbar, .app-toolbar):has(.dropdown-menu.show) {
+  z-index: var(--app-z-overlay);
 }
 
 .pieces-layer {
@@ -1729,7 +2048,6 @@ app-jigsaw-shell > app-jigsaw-play {
 .piece-svg {
   display: block;
   overflow: visible; // the tabs reach out of the square of the piece
-  filter: drop-shadow(calc(4px / var(--app-scale, 1)) calc(4px / var(--app-scale, 1)) calc(3px / var(--app-scale, 1)) var(--app-piece-shadow)); // the shadow falls on the right and the bottom: the piece lies above the board
 
   &.blink {
     transform-box: fill-box;
@@ -1788,16 +2106,6 @@ app-jigsaw-shell > app-jigsaw-play {
 .piece-blank {
   fill: var(--app-piece-blank);
 }
-
-// the tilt of a piece: shading over its picture, light at the top left and dark at the bottom right (the line round it stays the jigsaw's own)
-.piece-bevel {
-  pointer-events: none;
-}
-
-.piece-tilt { stroke: none; }
-.piece-tilt-light { stop-color: var(--app-tilt-light); }
-.piece-tilt-mid { stop-color: var(--app-tilt-mid); }
-.piece-tilt-dark { stop-color: var(--app-tilt-dark); }
 
 /** the number of the grid point a piece belongs on (debug): light with the ink round it, so it can be read on any part of a picture */
 .piece-number {
@@ -1951,4 +2259,23 @@ app-jigsaw-shell > app-jigsaw-play {
       display: block;
     }
   }
+}
+
+// for test and debug: with the Cheat switch on, the three areas of a round are drawn with a dotted line of their own colour (`.show-areas` is on `.jigsaw-play`): the area the pieces are drawn in (yellow), the picture area
+// (blue) and the store frame, the scroller (pink). Outlines, so nothing moves
+.show-areas {
+  --app-area-picture: color-mix(in srgb, #0d6efd 55%, transparent);
+  --app-area-store: color-mix(in srgb, #d63384 55%, transparent);
+  --app-area-layer: color-mix(in srgb, #ffc107 55%, transparent);
+
+  .store-scroller,
+  .pieces-layer {
+    outline-style: dotted;
+    outline-width: 1px;
+  }
+
+  // the picture area has a line of its own (the frame, set on the element), so its dotted line is a border on a layer over it
+  .picture-surface::after { content: ''; position: absolute; inset: 0; border: 1px dotted var(--app-area-picture); pointer-events: none; z-index: 99999; }
+  .store-scroller { outline-color: var(--app-area-store); outline-offset: -2px; }
+  .pieces-layer { outline-color: var(--app-area-layer); outline-offset: -1px; }
 }

@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import express from "express";
-import { JIGSAW_ROOT, Picture, etagOf, isPictureId, pictureType } from "./jigsaw-image";
+import { JIGSAW_ROOT, Picture, documentExists, etagOf, isPictureId, pictureType } from "./jigsaw-image";
 import { JIGSAW, JIGSAW_MAX_PIECES, JIGSAW_PIECES, JigsawPiece, JigsawPieces, PieceMove } from "../models";
 
 // The pieces of a jigsaw: one document each in the subcollection `jigsaw/<id>/pieces`, with its number, its edges, where it is, on which layer and
@@ -42,7 +42,7 @@ export function firestorePieceStore(): PieceStore {
   const pieces = (id: string) => parent(id).collection(JIGSAW_PIECES);
   const bucket = () => getStorage().bucket();
   const graphicFile = (id: string, pieceId: string) => bucket().file(`${JIGSAW_ROOT}/${id}/${JIGSAW_PIECES}/${pieceId}`);
-  const exists = async (id: string) => (await parent(id).get()).exists;
+  const exists = (id: string) => documentExists(parent(id));
 
   return {
     async list(id) {
@@ -70,19 +70,22 @@ export function firestorePieceStore(): PieceStore {
     },
     async move(id, moves) {
       if (!(await exists(id))) return false;
-      for (let i = 0; i < moves.length; i += BATCH) {
-        const chunk = moves.slice(i, i + BATCH);
-        const refs = chunk.map((m) => pieces(id).doc(m.id));
-        const snaps = await db().getAll(...refs);
-        const batch = db().batch();
-        snaps.forEach((snap, k) => {
-          if (!snap.exists) return;
-          const was = snap.data() as JigsawPiece;
-          const now = { ...was, centerX: chunk[k].centerX, centerY: chunk[k].centerY, layer: chunk[k].layer };
-          batch.update(refs[k], { centerX: now.centerX, centerY: now.centerY, layer: now.layer, matched: JigsawPieces.matched(now) });
-        });
-        await batch.commit();
-      }
+      const chunks: PieceMove[][] = [];
+      for (let i = 0; i < moves.length; i += BATCH) chunks.push(moves.slice(i, i + BATCH));
+      // the chunks do not touch the same pieces, so they go at the same time; only what says where a piece belongs is read (the cut: column, row and size), not its edges or anything else
+      await Promise.all(
+        chunks.map(async (chunk) => {
+          const refs = chunk.map((m) => pieces(id).doc(m.id));
+          const snaps = await db().getAll(...refs, { fieldMask: ["col", "row", "size"] });
+          const batch = db().batch();
+          snaps.forEach((snap, k) => {
+            if (!snap.exists) return;
+            const now = { ...(snap.data() as Pick<JigsawPiece, "col" | "row" | "size">), centerX: chunk[k].centerX, centerY: chunk[k].centerY };
+            batch.update(refs[k], { centerX: now.centerX, centerY: now.centerY, layer: chunk[k].layer, matched: JigsawPieces.matched(now) });
+          });
+          await batch.commit();
+        }),
+      );
       return true;
     },
     async graphic(id, pieceId) {

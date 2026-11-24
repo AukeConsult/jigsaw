@@ -43,10 +43,8 @@ export const SEARCH_MAX_CATEGORIES = 6;
 export interface JigsawIndexFields {
   /** the categories and the categories of the sub-categories it is in (`nature` and `nature/forest`); none when it is in none */
   tags?: string[];
-  level: Difficulty;
   /** the motive difficulty of the jigsaw (none when nobody has said it) */
   motive?: MotiveLevel;
-  sizeClass: SizeClass;
   /** the language of the jigsaw (English when it says nothing) */
   language: string;
 }
@@ -97,10 +95,10 @@ export class JigsawIndex {
     return grid.columns * grid.rows;
   }
 
-  /** What a jigsaw is matched by. */
-  static of(jigsaw: Pick<JigsawSpec, 'width' | 'height' | 'gridSize' | 'snapPercent' | 'categories' | 'language'> & { motive?: MotiveLevel }): JigsawIndexFields {
+  /** What a jigsaw is matched by (its size and difficulty are not here: a picture has every one, see `sizeClassesOf` and `levelsOf`). */
+  static of(jigsaw: Pick<JigsawSpec, 'categories' | 'language'> & { motive?: MotiveLevel }): JigsawIndexFields {
     const tags = JigsawIndex.tagsOf(jigsaw.categories);
-    return { ...(tags.length ? { tags } : {}), level: JigsawIndex.levelOf(jigsaw.snapPercent), ...(jigsaw.motive ? { motive: jigsaw.motive } : {}), sizeClass: JigsawIndex.sizeClassOf(JigsawIndex.piecesOf(jigsaw)), language: JigsawLanguages.of(jigsaw) };
+    return { ...(tags.length ? { tags } : {}), ...(jigsaw.motive ? { motive: jigsaw.motive } : {}), language: JigsawLanguages.of(jigsaw) };
   }
 
   /** A summary of a stored document (only the fields a search reads are in it; a document an older version saved gets what it lacked). */

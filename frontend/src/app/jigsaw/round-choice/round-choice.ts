@@ -8,15 +8,15 @@ import { Plays, PlayChoice } from '../../models/shared/play';
 import { SNAP_LEVELS, snapPercentOf } from '../snap-level';
 
 /** What a person chose last time for a round of a picture, kept on this device (rule 12): the number of pieces and the difficulty. */
-export const ROUND_DEFAULTS_KEY = 'jigsaw.roundDefaults';
-export interface RoundDefaults {
+const ROUND_DEFAULTS_KEY = 'jigsaw.roundDefaults';
+interface RoundDefaults {
   pieces: number;
   snapPercent: number;
   /** whether the round is timed (a choice kept before there was one has none: timed) */
   timed?: boolean;
 }
 const isRoundDefaults = (v: unknown): v is RoundDefaults => !!v && typeof v === 'object' && Number.isInteger((v as RoundDefaults).pieces) && (v as RoundDefaults).pieces > 0 && SNAP_LEVELS.some((l) => l.percent === (v as RoundDefaults).snapPercent) && ((v as RoundDefaults).timed === undefined || typeof (v as RoundDefaults).timed === 'boolean');
-const FIRST_TIME: RoundDefaults = { pieces: 100, snapPercent: 25 };
+const FIRST_TIME: RoundDefaults = { pieces: 24, snapPercent: 25 };
 
 /**
  * The choice at the start of a round of a picture: the number of pieces (the numbers that fit the shape of the picture, `JigsawCut.pieceChoices`; the sizes the person has solved are left out

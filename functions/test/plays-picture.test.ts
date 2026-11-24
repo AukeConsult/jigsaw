@@ -1,65 +1,11 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
-import type { JigsawStore } from "../src/common/jigsaw-list";
-import type { PieceStore } from "../src/jigsaw/jigsaw-pieces";
-import { TEST_KEY_SECRET, memoryPlays, memoryUsers } from "./memory-plays";
+import { TEST_KEY_SECRET, memoryJigsaws, memoryPieces, memoryPlays, memoryUsers } from "./memory-plays";
 import { JigsawCut, JigsawIndex, JigsawPiece, JigsawPieces, JigsawSearch, PlaySpec } from "../src/models";
 import type { JigsawSpec, JigsawSummary } from "../src/models";
 
 // The routes of a round of a picture (it has a cut and a difficulty of its own, with its pieces under it) and of a normal round (which is as it always was).
-
-function memoryJigsaws(): JigsawStore {
-  const items: JigsawSpec[] = [];
-  return {
-    async list() {
-      return [...items].reverse();
-    },
-    async add(input) {
-      const saved = { id: `jigsaw-${items.length + 1}`, ...input, createdAt: items.length + 1 };
-      items.push(saved);
-      return saved;
-    },
-    async remove(id) {
-      const i = items.findIndex((x) => x.id === id);
-      if (i < 0) return false;
-      items.splice(i, 1);
-      return true;
-    },
-    async update(id, input) {
-      const i = items.findIndex((x) => x.id === id);
-      if (i < 0) return null;
-      items[i] = { ...input, id, createdAt: items[i].createdAt };
-      return items[i];
-    },
-  };
-}
-
-function memoryPieces(): PieceStore & { docs: Map<string, JigsawPiece[]>; reads: () => number } {
-  const docs = new Map<string, JigsawPiece[]>();
-  let reads = 0;
-  return {
-    docs,
-    reads: () => reads,
-    async list(id) {
-      reads++;
-      return [...(docs.get(id) ?? [])].sort((a, b) => a.number - b.number);
-    },
-    async replaceAll(id, pieces) {
-      docs.set(id, pieces);
-      return true;
-    },
-    async move() {
-      return true;
-    },
-    async graphic() {
-      return null;
-    },
-    async removeAll(id) {
-      docs.delete(id);
-    },
-  };
-}
 
 const seeded = (seed = 11) => () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
 const choices = JigsawCut.pieceChoices(1200, 800);

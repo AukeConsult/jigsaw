@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { JigsawCut } from '../../models/shared/jigsaw';
 import { PiecePlace } from '../../models/shared/placed';
 
@@ -9,6 +9,7 @@ import { PiecePlace } from '../../models/shared/placed';
 @Component({
   selector: 'app-puzzle-piece',
   templateUrl: './puzzle-piece.html',
+  changeDetection: ChangeDetectionStrategy.OnPush, // every input is a signal: a piece is looked at again only when one of its own inputs changes, not at every move of another piece
 })
 export class PuzzlePiece {
   readonly id = input.required<string>();

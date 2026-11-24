@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} palaa",
   "difficulty": "Vaikeustaso",
   "privateForPlayers": "Yksityinen: vain omistaja ja pelaajat näkevät sen",
-  "findAndView": "Hae ja näytä",
+  "findAndView": "Suodata kuvia",
+  "selectPackages": "Valitse paketit",
   "kind": "Mikä se on",
   "kinds": {
     "jigsaw": "Valmis palapeli",
@@ -35,7 +36,7 @@
   "more": "Näytä lisää",
   "noneMatch": "Mikään kuva ei sovi. Kokeile muita valintoja.",
   "go": "Näytä",
-  "findTitle": "Etsi kuva",
+  "findTitle": "Suodata kuvia",
   "changeSearch": "Muuta hakua",
   "noneToList": "Ei näytettäviä kuvia. Kokeile muita valintoja.",
   "matchOne": "{{ count }} kuva vastaa",

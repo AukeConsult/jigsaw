@@ -26,6 +26,9 @@ import { JigsawSummary, SearchSort } from '../../models/shared/jigsaw-search';
 import { LANGUAGES, LanguageService } from '../../core/language.service';
 import { JigsawUsers, JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../../models/shared/jigsaw-user';
 
+/** how long the account form waits after the last change before it saves it */
+const EDIT_PAUSE_MS = 800;
+
 /** how the list of the user's jigsaws is put in order */
 export const JIGSAW_SORTS = ['new', 'old', 'name', 'pieces', 'most'] as const;
 export type JigsawSort = (typeof JIGSAW_SORTS)[number];
@@ -106,6 +109,7 @@ export class JigsawUser implements OnInit {
   private openedLogins = false;
 
   constructor() {
+    this.startEditAutosave();
     effect(() => {
       if (!this.showLogins || this.openedLogins || !this.users.user()) return;
       this.openedLogins = true;
@@ -572,7 +576,7 @@ export class JigsawUser implements OnInit {
   readonly picture = signal<string | null | undefined>(undefined);
   readonly pictureFailed = signal(false);
 
-  /** A file is chosen for the picture: it is cut square and shrunk (nothing is saved until Save). */
+  /** A file is chosen for the picture: it is cut square and shrunk (it is saved by itself a moment later, see `startEditAutosave`). */
   async onPicture(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -586,10 +590,56 @@ export class JigsawUser implements OnInit {
     }
   }
 
-  /** Edit is a switch: it opens the form of the user, and pressed again it closes it (what was typed is let go). */
+  /** Edit is a switch: it opens the form of the user, and pressed again it closes it (what is waiting is saved first, see `closeEdit`). */
   toggleEdit(): void {
-    if (this.editing()) this.editing.set(false);
+    if (this.editing()) void this.closeEdit();
     else this.edit();
+  }
+
+  /** What the form changes in the account: only what differs from it (nothing: an empty object). */
+  private editChange(): { name?: string; username?: string; language?: string; picture?: string | null } {
+    const me = this.users.user();
+    const change: { name?: string; username?: string; language?: string; picture?: string | null } = {};
+    if (!me) return change;
+    if (this.name().trim() !== me.name) change.name = this.name();
+    if (this.username().trim().toLowerCase() !== me.username) change.username = this.username();
+    if (this.language() !== me.language) change.language = this.language();
+    if (this.picture() !== undefined && (this.picture() !== null || me.pictureAt)) change.picture = this.picture();
+    return change;
+  }
+
+  /** Whether what is in the form may be saved: it has a name, and a user name that is allowed and, when it is a new one, has been looked up and is free. */
+  private editSavable(): boolean {
+    const wanted = JigsawUsers.normalised(this.username());
+    if (!this.name().trim() || JigsawUsers.usernameError(wanted)) return false;
+    return wanted === this.users.user()?.username || this.usernameCheck() === 'free';
+  }
+
+  private editTimer: ReturnType<typeof setTimeout> | undefined;
+
+  /** Every change in the form is saved a pause after the last one (the page has no Save): the pause starts again at each change, and nothing is saved while the form may not be saved. */
+  private startEditAutosave(): void {
+    effect(() => {
+      if (!this.editing()) return;
+      this.name();
+      this.username();
+      this.language();
+      this.picture();
+      this.usernameCheck();
+      this.users.user(); // after a save the account is the form again: nothing is left to save
+      untracked(() => {
+        clearTimeout(this.editTimer);
+        if (!Object.keys(this.editChange()).length || !this.editSavable()) return;
+        this.editTimer = setTimeout(() => void this.saveEdit(), EDIT_PAUSE_MS);
+      });
+    });
+  }
+
+  /** Close: what is waiting is saved at once (when it may be), and the form is closed. */
+  async closeEdit(): Promise<void> {
+    clearTimeout(this.editTimer);
+    if (Object.keys(this.editChange()).length && this.editSavable()) await this.saveEdit();
+    if (!this.error()) this.editing.set(false);
   }
 
   edit(): void {
@@ -605,22 +655,15 @@ export class JigsawUser implements OnInit {
     this.editing.set(true);
   }
 
-  /** The changes are saved: only what differs from the user is sent. */
+  /** The changes are saved: only what differs from the user is sent. The form stays open. */
   async saveEdit(): Promise<void> {
-    const me = this.users.user();
-    if (!me) return;
-    const change: { name?: string; username?: string; language?: string; picture?: string | null } = {};
-    if (this.name().trim() !== me.name) change.name = this.name();
-    if (this.username().trim().toLowerCase() !== me.username) change.username = this.username();
-    if (this.language() !== me.language) change.language = this.language();
-    if (this.picture() !== undefined && (this.picture() !== null || me.pictureAt)) change.picture = this.picture();
-    if (!Object.keys(change).length) return void this.editing.set(false); // nothing changed
+    const change = this.editChange();
+    if (!Object.keys(change).length) return;
     this.busy.set(true);
     this.error.set('');
     const error = await this.users.update(change);
     this.busy.set(false);
     if (error) return this.error.set(error);
-    this.editing.set(false);
     await this.refreshList(); // the list of the users shows the new name and user name
   }
 

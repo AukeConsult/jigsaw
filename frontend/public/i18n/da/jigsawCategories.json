@@ -6,6 +6,7 @@
   "name": {
     "recommended": "Anbefalet",
     "family": "Familie",
+    "portraits": "Portrætter",
     "travel": "Rejser",
     "nature": "Natur",
     "animals": "Dyr",
@@ -23,6 +24,9 @@
     "family/parties": "Fester og fødselsdage",
     "family/friends": "Venner",
     "family/reunions": "Familiesammenkomster",
+    "portraits/faces": "Ansigter",
+    "portraits/groups": "Gruppeportrætter",
+    "portraits/pets": "Kæledyrsportrætter",
     "travel/cities": "Byer",
     "travel/landmarks": "Seværdigheder",
     "travel/beaches": "Strande og øer",

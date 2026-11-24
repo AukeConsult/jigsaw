@@ -156,7 +156,7 @@ describe("jigsaw-list", () => {
     ["an object without a name", [{ id: "p", centerX: 10, centerY: 10, object: { ...box, name: " " } }]],
     ["a repeated id", [{ id: "p", centerX: 10, centerY: 10, object: box }, { id: "p", centerX: 40, centerY: 10, object: box }]],
     ["a centre that is not a number", [{ id: "p", centerX: "10", centerY: 10, object: box }]],
-    ["a centre too near the left edge", [{ id: "p", centerX: 9, centerY: 10, object: box }]],
+    ["a centre too near the left edge (further out than the margin)", [{ id: "p", centerX: 1, centerY: 10, object: box }]],
     ["outside to the right", [{ id: "p", centerX: 91, centerY: 10, object: box }]],
     ["outside at the bottom", [{ id: "p", centerX: 10, centerY: 91, object: box }]],
     ["no centre (the old top-left fields)", [{ id: "p", x: 0, y: 0, object: box }]],

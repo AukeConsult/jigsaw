@@ -14,8 +14,8 @@ describe("moving a figure", () => {
   it("puts the centre of an object on a grid point, inside the picture area", () => {
     const d = Puzzle.from([at("a", 100, 100)], 800, 600).moveFigure("a", 203, 153, STEP);
     expect([figure(d, "a").centerX, figure(d, "a").centerY]).toEqual([205, 155]);
-    const corner = Puzzle.from([at("a", 100, 100)], 800, 600).moveFigure("a", 3, 2, STEP); // pulled in so the whole object is inside
-    expect([figure(corner, "a").centerX, figure(corner, "a").centerY]).toEqual([50, 50]);
+    const corner = Puzzle.from([at("a", 100, 100)], 800, 600).moveFigure("a", 3, 2, STEP); // pulled in so the whole object is inside, or at most in the margin (8 px)
+    expect([figure(corner, "a").centerX, figure(corner, "a").centerY]).toEqual([45, 45]);
   });
 
   it("changes nothing when it does not move, or for an object that is not there", () => {

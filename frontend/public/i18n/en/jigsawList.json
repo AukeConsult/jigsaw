@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} pieces",
   "difficulty": "Difficulty",
   "privateForPlayers": "Private: only its owner and its players see it",
-  "findAndView": "Find and view",
+  "findAndView": "Filter pictures",
+  "selectPackages": "Select packages",
   "kind": "What it is",
   "kinds": {
     "jigsaw": "Ready jigsaw",
@@ -35,7 +36,7 @@
   "more": "Show more",
   "noneMatch": "No picture matches. Try other choices.",
   "go": "Show",
-  "findTitle": "Find a picture",
+  "findTitle": "Filter pictures",
   "changeSearch": "Change the search",
   "noneToList": "No pictures to list. Try other choices.",
   "matchOne": "{{ count }} picture matches",

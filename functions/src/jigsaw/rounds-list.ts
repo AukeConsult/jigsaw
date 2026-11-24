@@ -8,7 +8,7 @@ import type { PlayStore } from "./plays";
 // order and how they are paged. The answer is kept a few seconds for the person, so the next pages of the list (the page asks for them one by one) are the same list and do not read everything again.
 
 /** How many jigsaws are asked about their rounds at the same time. */
-const AT_ONCE = 25;
+const AT_ONCE = 50;
 /** How long the list of a person is kept (milliseconds). */
 const KEEP_MS = 15_000;
 const KEEP_MAX = 200;
@@ -36,12 +36,15 @@ export function roundsListRouter(plays: PlayStore, deps: RoundsListDeps): expres
     const found: ListedRound[] = [];
     for (let i = 0; i < visible.length; i += AT_ONCE) {
       const batch = visible.slice(i, i + AT_ONCE);
-      const rounds = await Promise.all(batch.map((j) => plays.list(j.id)));
-      for (const [n, j] of batch.entries()) {
-        if (!rounds[n].length) continue;
-        const imageKey = await deps.imageKeyFor(j, me); // asked only for a jigsaw that has rounds to show
-        for (const play of rounds[n]) found.push({ play: Plays.publicOf(play), jigsaw: { id: j.id, name: j.name, ...(j.timed === false || play.timed === false ? { timed: false } : {}), ...(imageKey ? { imageKey } : {}) } });
-      }
+      // each jigsaw reads its rounds and then asks for its key, all the jigsaws of the batch at the same time (the key is asked only for a jigsaw that has rounds to show)
+      const listed = await Promise.all(
+        batch.map(async (j) => {
+          const rounds = await plays.list(j.id);
+          const imageKey = rounds.length ? await deps.imageKeyFor(j, me) : undefined;
+          return rounds.map((play): ListedRound => ({ play: Plays.publicOf(play), jigsaw: { id: j.id, name: j.name, ...(j.timed === false || play.timed === false ? { timed: false } : {}), ...(imageKey ? { imageKey } : {}) } }));
+        }),
+      );
+      found.push(...listed.flat());
     }
     return RoundsList.select(found);
   };

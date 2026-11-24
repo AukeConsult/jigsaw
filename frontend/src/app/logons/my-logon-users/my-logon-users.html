@@ -64,7 +64,7 @@
           <div class="row g-2 mb-2">
             <div class="col-sm-6">
               <label class="form-label" for="link-username">{{ t('logons.myUsers.username') || 'Account alias' }}</label>
-              <input id="link-username" name="username" class="form-control" type="text" autocapitalize="none" spellcheck="false" autocomplete="off" [value]="username()" (input)="username.set($any($event.target).value)">
+              <input id="link-username" name="username" class="form-control text-input" type="text" autocapitalize="none" spellcheck="false" autocomplete="off" [value]="username()" (input)="username.set($any($event.target).value)">
             </div>
             <div class="col-sm-6">
               <label class="form-label" for="link-code">{{ t('logons.myUsers.code') || 'Link code' }}</label>

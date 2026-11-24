@@ -1,5 +1,5 @@
 import { Box } from './geometry';
-import { PICTURE_LAYER, MAX_LAYER, PiecePlace, PlacedFigure, PlacedObject } from './placed';
+import { AREA_MARGIN_PX, PICTURE_LAYER, MAX_LAYER, PiecePlace, PlacedFigure, PlacedObject } from './placed';
 
 // What the objects placed on a picture area (the jigsaw pieces) do together: stick together, are collected, and are moved as a group.
 
@@ -74,7 +74,7 @@ export class Puzzle {
    * (an object nearly as big as the picture area) the centre is held at the range instead.
    */
   private static stickCenter(wanted: number, size: number, pictureSize: number, step: number, origin = 0): number {
-    const low = size / 2;
+    const low = size / 2 - AREA_MARGIN_PX; // the box may go into the margin at the top and the left
     const high = pictureSize - size / 2;
     let center = origin + Math.round((wanted - origin) / step) * step;
     if (center < low) center = origin + Math.ceil((low - origin) / step) * step;
@@ -273,9 +273,10 @@ export class Puzzle {
    * enough, within `range` pixels, of one of two things: its own grid point (the home of a piece in it, see `PlacedFigure.home`), or the place where a
    * piece in it fits a neighbour that is not in the group (so the group sticks to it). The whole group moves by the smallest of these steps, so the
    * piece is exactly there, and the groups that now fit each other stick together. Only pieces are looked at, and only when they are dropped, not while
-   * they are moved. `range` 0 (or less) means nothing clicks. Nothing changes (the same puzzle) when nothing is near enough.
+   * they are moved. `range` 0 (or less) means nothing clicks. Nothing changes (the same puzzle) when nothing is near enough. With `within` (the picture area) a group only clicks when the middle of
+   * one of its pieces is inside it: outside it (the free space, the store) a piece settles where it is dropped.
    */
-  dropPieces(ids: readonly string[], range: number): Puzzle {
+  dropPieces(ids: readonly string[], range: number, within?: Box): Puzzle {
     if (!(range > 0)) return this;
     let puzzle: Puzzle = this;
     const done = new Set<string>();
@@ -283,6 +284,11 @@ export class Puzzle {
       if (done.has(id)) continue;
       const group = puzzle.stuckGroup([id]);
       for (const member of group) done.add(member);
+      const inside = (m: string) => {
+        const f = puzzle.get(m);
+        return !!f && !!within && f.centerX >= within.left && f.centerX <= within.left + within.width && f.centerY >= within.top && f.centerY <= within.top + within.height;
+      };
+      if (within && !group.some(inside)) continue;
       puzzle = puzzle.snapGroup(group, range);
     }
     return puzzle.settled(); // the pieces that are fixed now go to the bottom
@@ -296,7 +302,7 @@ export class Puzzle {
    */
   settled(): Puzzle {
     const fixed = this.grown(this.items.filter((p) => p.data.piece && p.inPlace()));
-    const back = this.groupShifts({ left: 0, top: 0, width: this.width, height: this.height }, null, fixed); // a group that is outside the area comes back whole, never piece by piece
+    const back = this.groupShifts({ left: -AREA_MARGIN_PX, top: -AREA_MARGIN_PX, width: this.width + AREA_MARGIN_PX, height: this.height + AREA_MARGIN_PX }, null, fixed); // a group that is outside the area comes back whole, never piece by piece
     let changed = false;
     const items = this.items.map((p) => {
       if (!p.data.piece) return p;
@@ -389,9 +395,9 @@ export class Puzzle {
     if (!figures.length || this.isFixed(ids) || !Number.isFinite(dx) || !Number.isFinite(dy)) return this;
     const boxes = figures.map((f) => f.box());
     // the furthest the whole group can go each way: the figure that is nearest to an edge decides
-    const lowX = Math.max(...boxes.map((b) => -b.left));
+    const lowX = Math.max(...boxes.map((b) => -AREA_MARGIN_PX - b.left));
     const highX = Math.min(...boxes.map((b) => this.width - (b.left + b.width)));
-    const lowY = Math.max(...boxes.map((b) => -b.top));
+    const lowY = Math.max(...boxes.map((b) => -AREA_MARGIN_PX - b.top));
     const highY = Math.min(...boxes.map((b) => this.height - (b.top + b.height)));
     const moveX = Math.min(Math.max(Math.round(dx * 2) / 2, lowX), highX);
     const moveY = Math.min(Math.max(Math.round(dy * 2) / 2, lowY), highY);

@@ -1,5 +1,5 @@
 <ng-container *transloco="let t">
-<main class="container-fluid page-margin page-max pt-2 pb-4">
+<main class="container-fluid page-margin page-max">
   <!-- the same page as the page of a jigsaw: a back link, its top (the picture, the name, the description and the details, as it will look) and, under it, the form -->
   <div class="mb-2"><a class="link-action" [routerLink]="editId ? ['/jigsaw', editId] : '/'" [replaceUrl]="true"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('jigsawNew.cancel') || 'Cancel' }}</a></div>
   @let ttl = editId ? (isPicture() ? (t('jigsawNew.editPictureTitle') || 'Edit picture') : (t('jigsawNew.editTitle') || 'Edit jigsaw')) : (isPicture() ? (t('jigsawNew.newPictureTitle') || 'New picture') : (t('jigsawNew.newTitle') || 'New jigsaw'));
@@ -14,10 +14,10 @@
     <!-- the name, in the card: the text with a small pencil; pressed, it is a field to type in -->
     <div draft-title>
       @if (editingName()) {
-        <input id="jigsaw-name" name="name" class="form-control form-control-lg" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required [attr.aria-label]="t('jigsawNew.name') || 'Name'" [attr.placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'"
+        <input id="jigsaw-name" name="name" class="form-control form-control-lg text-input-name" [class.is-invalid]="nameMissing()" type="text" [maxlength]="maxName" required [attr.aria-label]="t('jigsawNew.name') || 'Name'" [attr.placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'"
                [ngModel]="name()" (ngModelChange)="name.set($event)" (blur)="editingName.set(false)" (keydown.enter)="$any($event.target).blur()">
       } @else {
-        <h1 class="page-title mb-1">{{ name() || ttl }}<button type="button" class="link-action ms-2 align-middle" [attr.aria-label]="t('jigsawNew.name') || 'Name'" (click)="edit('name')"><i class="bi bi-pencil" aria-hidden="true"></i></button></h1>
+        <h1 class="page-title mb-1"><span class="text-name">{{ name() || ttl }}</span><button type="button" class="link-action ms-2 align-middle" [attr.aria-label]="t('jigsawNew.name') || 'Name'" (click)="edit('name')"><i class="bi bi-pencil" aria-hidden="true"></i></button></h1>
       }
       @if (nameMissing() && !loading()) {
         <div class="small text-danger">{{ t('jigsawNew.nameMissing') || 'Give the jigsaw a name.' }}</div>
@@ -26,10 +26,10 @@
     <!-- the description, in the card, the same way -->
     <div draft-description>
       @if (editingDescription()) {
-        <textarea id="jigsaw-description" name="description" class="form-control" rows="3" [maxlength]="maxDescription" [attr.aria-label]="t('jigsawNew.description') || 'Description'" [attr.placeholder]="t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…'"
+        <textarea id="jigsaw-description" name="description" class="form-control text-input" rows="3" [maxlength]="maxDescription" [attr.aria-label]="t('jigsawNew.description') || 'Description'" [attr.placeholder]="t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…'"
                   [ngModel]="description()" (ngModelChange)="description.set($event)" (blur)="editingDescription.set(false)"></textarea>
       } @else {
-        <p class="description text-body-secondary mb-0">{{ description() || (t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…') }}<button type="button" class="link-action ms-2" [attr.aria-label]="t('jigsawNew.description') || 'Description'" (click)="edit('description')"><i class="bi bi-pencil" aria-hidden="true"></i></button></p>
+        <p class="description text-facts mb-0">{{ description() || (t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…') }}<button type="button" class="link-action ms-2" [attr.aria-label]="t('jigsawNew.description') || 'Description'" (click)="edit('description')"><i class="bi bi-pencil" aria-hidden="true"></i></button></p>
       }
     </div>
     <fieldset draft-top class="mb-0" [disabled]="loading() || saving() || played()">

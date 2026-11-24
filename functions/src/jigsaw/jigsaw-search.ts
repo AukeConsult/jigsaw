@@ -80,7 +80,8 @@ export function jigsawSearchRouter(
   const router = express.Router();
   /** The jigsaws the person may see, the newest first; with `only.favorites`, those the person has ticked, with `only.solved`, those the person has solved (none for nobody). */
   const visible = async (me: string | undefined, only: { favorites?: boolean; solved?: boolean } = {}): Promise<JigsawSummary[]> => {
-    const [all, mine] = await Promise.all([store.load(await owners(), SEARCH_MAX_READ), only.favorites && me ? favorites(me) : Promise.resolve([] as string[])]);
+    // who the owners are, the jigsaws and the favorites: the favorites are asked for while the owners are, and the jigsaws as soon as the owners are known
+    const [all, mine] = await Promise.all([owners().then((who) => store.load(who, SEARCH_MAX_READ)), only.favorites && me ? favorites(me) : Promise.resolve([] as string[])]);
     const seen = await Promise.all(all.map((j, i) => (!JigsawVisibilities.listed(j.visibility) ? false : j.visibility !== "owner" ? true : me ? canSee(j, me) : false))); // a hidden one is never found; the private ones are asked about at the same time
     const seeable = all.filter((j, i) => seen[i]);
     const favored = new Set(mine);

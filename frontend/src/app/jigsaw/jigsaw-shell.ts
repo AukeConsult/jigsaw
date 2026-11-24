@@ -3,6 +3,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../core/language.service';
+import { LabelFit } from '../core/label-fit';
 import { WelcomeTime } from '../core/welcome-time';
 import { JigsawHelper } from './jigsaw-helper';
 import { JigsawUserService } from './jigsaw-user.service';
@@ -11,20 +12,20 @@ import { ShareButton } from './share-button/share-button';
 /** The jigsaw module: its own header menu above whatever page of the module is open. */
 @Component({
   selector: 'app-jigsaw-shell',
-  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, ShareButton],
+  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, ShareButton, LabelFit],
   providers: [provideTranslocoScope('jigsawShell')],
   template: `
     <ng-container *transloco="let t">
     <ng-template #helper let-sfx>
   <!-- the helper, on the page of a jigsaw: the helper picture (a frame on top of the page with the whole picture), only the corner and edge pieces -->
-  <div class="jigsaw-helper-bar d-flex align-items-center flex-wrap gap-2 gap-sm-3" [attr.aria-label]="t('jigsawShell.helper') || 'Helper'">
+  <div appLabelFit class="jigsaw-helper-bar d-flex align-items-center flex-wrap gap-2 gap-sm-3" [attr.aria-label]="t('jigsawShell.helper') || 'Helper'">
     @if (tools.current(); as jigsawId) {
       <!-- the page of the jigsaw, for every round (the same as the name of the jigsaw and the details in the sidebar) -->
       <a class="btn btn-sm btn-outline-secondary" [routerLink]="['/jigsaw', jigsawId]" [title]="t('jigsawShell.toJigsaw') || 'Show the page of the jigsaw'" [attr.aria-label]="t('jigsawShell.toJigsaw') || 'Show the page of the jigsaw'"><i class="bi bi-puzzle" aria-hidden="true"></i></a>
     }
     @if (tools.clock(); as time) {
       <!-- the time played in this round, a small clock that runs while the round is open on the screen -->
-      <span class="small text-nowrap text-body-secondary" role="timer" [title]="t('jigsawShell.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i><span class="visually-hidden">{{ t('jigsawShell.timePlayed') || 'Time played' }}: </span><span class="font-monospace">{{ time }}</span></span>
+      <span class="fit-drop small text-nowrap text-body-secondary" role="timer" [title]="t('jigsawShell.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i><span class="visually-hidden">{{ t('jigsawShell.timePlayed') || 'Time played' }}: </span><span class="font-monospace">{{ time }}</span></span>
     }
     @if (tools.viewing(); as name) {
       <!-- another player's round is looked at: whose it is -->
@@ -33,29 +34,31 @@ import { ShareButton } from './share-button/share-button';
     <div class="form-check form-switch mb-0">
       <input [id]="'helper-picture' + sfx" class="form-check-input" type="checkbox" role="switch" [checked]="tools.helper()" [disabled]="!tools.hasPicture()"
              (change)="tools.helper.set($any($event.target).checked)">
-      <label class="form-check-label small text-nowrap" [attr.for]="'helper-picture' + sfx" [title]="t('jigsawShell.pictureTitle') || 'Show the whole picture in a small frame'"><i class="bi bi-image me-1" aria-hidden="true"></i>{{ t('jigsawShell.picture') || 'Picture' }}</label>
+      <label class="form-check-label small text-nowrap" [attr.for]="'helper-picture' + sfx" [title]="t('jigsawShell.pictureTitle') || 'Show the whole picture in a small frame'"><i class="bi bi-image me-1" aria-hidden="true"></i><span class="fit-label">{{ t('jigsawShell.picture') || 'Picture' }}</span></label>
     </div>
     <div class="form-check form-switch mb-0">
       <input [id]="'edges-only' + sfx" class="form-check-input" type="checkbox" role="switch" [checked]="tools.edgesOnly()" [disabled]="!tools.hasPieces()"
              (change)="tools.edgesOnly.set($any($event.target).checked)">
-      <label class="form-check-label small text-nowrap" [attr.for]="'edges-only' + sfx" [title]="t('jigsawShell.edgesTitle') || 'Only the corner and edge pieces'"><i class="bi bi-bounding-box me-1" aria-hidden="true"></i>{{ t('jigsawShell.edges') || 'Edges' }}</label>
+      <label class="form-check-label small text-nowrap" [attr.for]="'edges-only' + sfx" [title]="t('jigsawShell.edgesTitle') || 'Only the corner and edge pieces'"><i class="bi bi-bounding-box me-1" aria-hidden="true"></i><span class="fit-label">{{ t('jigsawShell.edges') || 'Edges' }}</span></label>
     </div>
     @if (tools.edgesOnly() && tools.hasPieces()) {
       <span class="small text-body-secondary text-nowrap d-none d-lg-inline" role="status">{{ t('jigsawShell.showing', { shown: tools.counts().shown, total: tools.counts().total }) || 'Showing ' + tools.counts().shown + ' of ' + tools.counts().total + ' pieces' }}</span>
     }
     <!-- on a narrow screen the sidebar is folded away: this shows the details; a click anywhere else closes them again (on a wide screen they are always there) -->
     <button type="button" class="sidebar-open btn btn-sm btn-outline-secondary text-nowrap d-xl-none" [title]="t('jigsawShell.details') || 'Details'" aria-controls="jigsaw-sidebar" [attr.aria-expanded]="tools.sidebarOpen()" [class.active]="tools.sidebarOpen()"
-            (click)="tools.sidebarOpen.set(!tools.sidebarOpen())"><i class="bi bi-layout-sidebar me-1" aria-hidden="true"></i>{{ t('jigsawShell.details') || 'Details' }}</button>
+            (click)="tools.sidebarOpen.set(!tools.sidebarOpen())"><i class="bi bi-layout-sidebar me-1" aria-hidden="true"></i><span class="fit-label">{{ t('jigsawShell.details') || 'Details' }}</span></button>
   </div>
     </ng-template>
-    <!-- on a phone or a tablet the menu is at the bottom: the logo, which is also the way home, is still in the upper left corner -->
-    <a class="app-corner d-lg-none" routerLink="/" aria-label="Karins jigsaw"><span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32"><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span></a>
     @if (tools.active()) {
       <!-- the helper of a round, on a phone or a tablet: at the top of the page, stuck there, while the menu is at the bottom -->
-      <div class="app-toolbar d-xl-none border-bottom"><ng-container *ngTemplateOutlet="helper; context: { $implicit: '-top' }" /></div>
+      <div class="app-toolbar menu-style d-flex align-items-center gap-2 d-xl-none border-bottom">
+        <!-- where the menu is at the bottom (under the width of lg) the logo, with the house that says it takes you home, is the first thing of this bar: the way back to the front page -->
+        <a class="brand-lockup d-lg-none flex-shrink-0" routerLink="/" aria-label="Karins jigsaw" [title]="t('jigsawShell.home') || 'Home'"><span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32"><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span></a>
+        <ng-container *ngTemplateOutlet="helper; context: { $implicit: '-top' }" />
+      </div>
     }
-    <nav class="app-navbar navbar navbar-expand border-bottom" [attr.aria-label]="t('jigsawShell.menu') || 'Karins jigsaw menu'">
-      <div class="container-fluid flex-wrap gap-1">
+    <nav class="app-navbar menu-style navbar navbar-expand border-bottom" [attr.aria-label]="t('jigsawShell.menu') || 'Karins jigsaw menu'">
+      <div appLabelFit class="container-fluid flex-wrap gap-1">
         <a class="navbar-brand brand-lockup d-flex align-items-center gap-2" routerLink="/" aria-label="Karins jigsaw">
           <span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32"><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span>
           <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
@@ -85,9 +88,9 @@ import { ShareButton } from './share-button/share-button';
           </ul>
           <!-- the language of the texts, chosen on this device: the flag of the language in use, and a list of flags with the names of the languages -->
           <div class="position-relative">
-            <button id="language" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2 ps-3 pe-2" aria-haspopup="listbox" [attr.aria-expanded]="languageOpen()"
+            <button id="language" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-2 py-1" aria-haspopup="listbox" [attr.aria-expanded]="languageOpen()"
                     [attr.aria-label]="(t('jigsawShell.language') || 'Language') + ': ' + current().name" [title]="current().name" (click)="toggleLanguages($event)">
-              <img class="flag" [src]="'flags/' + current().code + '.svg'" alt="" width="24" height="16"><i class="bi bi-chevron-down small" aria-hidden="true"></i>
+              <img class="flag" [src]="'flags/' + current().code + '.svg'" alt="" width="18" height="12"><i class="bi bi-chevron-down tiny" aria-hidden="true"></i>
             </button>
             @if (languageOpen()) {
               <ul class="dropdown-menu language-menu show" role="listbox" [style.top.px]="languageTop()" [style.bottom.px]="languageBottom()"[attr.aria-label]="t('jigsawShell.language') || 'Language'">

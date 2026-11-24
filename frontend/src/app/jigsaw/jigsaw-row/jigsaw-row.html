@@ -12,9 +12,9 @@
         }
       </a>
       <a class="text-decoration-none flex-grow-1 min-w-0" [routerLink]="['/jigsaw', item.id]">
-        <strong class="d-block text-break">{{ item.name }}</strong>
+        <strong class="d-block text-break text-name">{{ item.name }}</strong>
         @if (details.on() && item.author) {
-          <span class="d-block text-body-secondary small"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.author }}</span>
+          <span class="d-block text-author small"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.author }}</span>
         }
         @if (item.visibility === 'hidden') {
           <span class="d-block text-body-secondary tiny"><i class="bi bi-eye-slash me-1" aria-hidden="true"></i>{{ t('jigsawList.hiddenNote') || 'Hidden: only in your list of jigsaws' }}</span>

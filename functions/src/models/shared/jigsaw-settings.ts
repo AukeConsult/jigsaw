@@ -107,6 +107,9 @@ export interface JigsawSpec {
 /** What the page sends to make a jigsaw. */
 export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
+/** The stored fields of a jigsaw except `placed` (the objects on its board, most of a big document) and the id: what a list that only names, counts or ranks jigsaws reads. A test keeps it in step with `JigsawInput`. */
+export const JIGSAW_HEAD_FIELDS = ['name', 'author', 'ownerUid', 'kind', 'visibility', 'timed', 'pictureName', 'description', 'categories', 'motive', 'language', 'width', 'height', 'gridSize', 'gridVisible', 'storeWidth', 'snapPercent', 'frameWidth', 'lineWidth', 'lineColor', 'backColor', 'createdAt'] as const satisfies readonly (keyof JigsawInput | 'createdAt')[];
+
 /** A jigsaw as it comes from outside (the page, the API): it checks itself. */
 export class JigsawSettings {
   constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; kind?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}

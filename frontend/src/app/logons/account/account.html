@@ -1,4 +1,4 @@
-<main class="container-fluid page-margin py-4" *transloco="let t">
+<main class="container-fluid page-margin" *transloco="let t">
   <div class="form-card card card-body mx-auto">
     @if (user(); as me) {
       <h1 class="page-title d-flex align-items-center gap-2 mb-1"><i class="bi bi-person-circle text-primary" aria-hidden="true"></i><span class="text-break">{{ me.displayName || me.email || (t('logons.account.title') || 'Your sign-in') }}</span></h1>

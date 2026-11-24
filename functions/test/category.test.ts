@@ -2,10 +2,17 @@ import { describe, expect, it } from "vitest";
 import { CATEGORIES_MAX_PER_JIGSAW, JigsawCategories } from "../src/models";
 
 describe("the categories", () => {
-  it("are the thirteen there are, each with a key, a name and an icon, and a key is used once", () => {
+  it("has the portraits, with the faces, the group portraits and the pet portraits", () => {
+    expect(JigsawCategories.of("portraits")?.icon).toBe("bi-person-bounding-box");
+    expect(JigsawCategories.of("portraits")?.subs.map((c) => c.key)).toEqual(["portraits/faces", "portraits/groups", "portraits/pets"]);
+    expect(JigsawCategories.of("portraits/faces")?.parent).toBe("portraits");
+    expect(JigsawCategories.error(["portraits/faces", "family"])).toBe("");
+  });
+
+  it("are the fourteen there are, each with a key, a name and an icon, and a key is used once", () => {
     const all = JigsawCategories.all();
-    expect(all).toHaveLength(13);
-    expect(all.map((c) => c.key)).toEqual(["recommended", "family", "travel", "nature", "animals", "flowers", "food", "art", "buildings", "seasons", "transport", "kids", "other"]);
+    expect(all).toHaveLength(14);
+    expect(all.map((c) => c.key)).toEqual(["recommended", "family", "portraits", "travel", "nature", "animals", "flowers", "food", "art", "buildings", "seasons", "transport", "kids", "other"]);
     expect(JigsawCategories.of("motive")).toBeUndefined(); // the motive difficulty is a property of a jigsaw, not a category
     expect(new Set(all.map((c) => c.key)).size).toBe(all.length);
     for (const c of all) {

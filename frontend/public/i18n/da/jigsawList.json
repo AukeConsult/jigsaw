@@ -17,7 +17,8 @@
   "piecesShort": "{{ count }} brikker",
   "difficulty": "Sværhedsgrad",
   "privateForPlayers": "Privat: kun ejeren og spillerne ser det",
-  "findAndView": "Find og vis",
+  "findAndView": "Filtrer billeder",
+  "selectPackages": "Vælg pakker",
   "kind": "Hvad det er",
   "kinds": {
     "jigsaw": "Færdigt puslespil",
@@ -35,7 +36,7 @@
   "more": "Vis flere",
   "noneMatch": "Ingen billeder passer. Prøv andre valg.",
   "go": "Vis",
-  "findTitle": "Find et billede",
+  "findTitle": "Filtrer billeder",
   "changeSearch": "Ændr søgningen",
   "noneToList": "Ingen billeder at vise. Prøv andre valg.",
   "matchOne": "{{ count }} billede passer",

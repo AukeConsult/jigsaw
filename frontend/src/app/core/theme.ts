@@ -19,10 +19,10 @@ export function cssNumber(name: string, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
 }
 
-/** The height of the menu when it is at the bottom of the screen (a screen narrower than 992 px: the shell is as high as the screen), else 0: what a page that fills the screen must leave. */
-export function bottomBarHeight(): number {
+/** Where the menu begins when it is at the bottom of the screen (the footer), else the bottom of the screen: the working area of a round must end here and never go below it (rule 6 of the board). */
+export function footerTop(): number {
   const bar = document.querySelector('.app-navbar')?.getBoundingClientRect();
-  return bar && bar.top > window.innerHeight / 2 ? Math.ceil(bar.height) : 0;
+  return bar && bar.top > window.innerHeight / 2 ? Math.floor(bar.top) : window.innerHeight;
 }
 
 /** The nearest parent of an element that scrolls up and down (the page on a phone or a small tablet), or null when it is the window. */

@@ -1,6 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import express from "express";
-import { ImageStore, pictureType } from "./jigsaw-image";
+import { ImageStore, documentExists, pictureType } from "./jigsaw-image";
 import { JIGSAW_USERS, JigsawSetup, JigsawUserSpec, JigsawUsers } from "../models";
 
 // The users of the jigsaws: one document each in the collection `jigsaw-users`, with an id the database makes (the UID, the one a play is kept by), the user name the
@@ -14,6 +14,8 @@ const LIST_LIMIT = 500;
 export interface UserStore {
   /** the users, by name (at most `LIST_LIMIT`) */
   list(): Promise<JigsawUserSpec[]>;
+  /** the ids of the users (at most `LIST_LIMIT`), for who only needs to know who they are: no field is read. A fake store may leave it out: the list is used then. */
+  ids?(): Promise<string[]>;
   /** the user with this UID */
   get(id: string): Promise<JigsawUserSpec | null>;
   /** the user who has this user name (already in small letters) */
@@ -73,6 +75,9 @@ export function firestoreUserStore(): UserStore {
       const snap = await users().limit(LIST_LIMIT).get();
       return snap.docs.map((d) => read(d.id, d.data())).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     },
+    async ids() {
+      return (await users().limit(LIST_LIMIT).select().get()).docs.map((d) => d.id);
+    },
     async get(id) {
       const doc = await users().doc(id).get();
       return doc.exists ? read(id, doc.data()) : null;
@@ -96,7 +101,7 @@ export function firestoreUserStore(): UserStore {
     },
     async remove(id) {
       const ref = users().doc(id);
-      if (!(await ref.get()).exists) return false;
+      if (!(await documentExists(ref))) return false;
       await db().recursiveDelete(ref); // its subcollections too (link codes, AI use)
       return true;
     },

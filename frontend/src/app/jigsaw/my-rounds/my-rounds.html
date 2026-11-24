@@ -4,7 +4,7 @@
       <div class="band-inner">
         <!-- the heading is a badge on the middle of the band's top border (half over it); pressed, it folds the band to the badge and opens it again -->
         <h2 class="position-absolute top-0 start-50 translate-middle m-0 z-1">
-          <button type="button" class="badge band-badge rounded-pill text-bg-primary border-0" [attr.aria-expanded]="!folded()" [title]="folded() ? (t('jigsawHome.showBand') || 'Show') : (t('jigsawHome.hideBand') || 'Hide')" (click)="toggleFolded()">
+          <button type="button" class="badge band-badge rounded-pill" [attr.aria-expanded]="!folded()" [title]="folded() ? (t('jigsawHome.showBand') || 'Show') : (t('jigsawHome.hideBand') || 'Hide')" (click)="toggleFolded()">
             {{ t('jigsawHome.continue') || 'Ongoing' }}<i class="bi ms-1" [class]="folded() ? 'bi-chevron-down' : 'bi-chevron-up'" aria-hidden="true"></i>
           </button>
         </h2>
