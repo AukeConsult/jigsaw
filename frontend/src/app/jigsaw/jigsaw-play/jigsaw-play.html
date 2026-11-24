@@ -46,23 +46,36 @@
           <div class="alert py-1 px-2 small" [class.alert-success]="msg.kind === 'success'" [class.alert-danger]="msg.kind === 'danger'" role="status">{{ msg.text }}</div>
         }
 
+        <!-- who sees the round, for its player: public (in the list of rounds on the front page) or private (only the player); saved at once -->
+        @if (!viewOnly() && play(); as round) {
+          <fieldset class="mb-3">
+            <legend class="form-label fs-6 mb-1">{{ t('jigsawPage.roundWho') || 'Who sees the round' }}</legend>
+            <div class="d-flex flex-wrap gap-2">
+              <input id="side-round-public" name="sideRoundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="!round.private" [disabled]="privacyBusy()" (change)="setPrivate(false)">
+              <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="side-round-public"><i class="bi bi-globe2 me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityEveryone') || 'Public' }}</label>
+              <input id="side-round-private" name="sideRoundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="!!round.private" [disabled]="privacyBusy()" (change)="setPrivate(true)">
+              <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="side-round-private"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityOwner') || 'Private' }}</label>
+            </div>
+          </fieldset>
+        }
+
         <!-- the buttons that start or delete a round are for the player of the round only (Bootstrap's d-flex beats the hidden attribute, so it is not rendered at all) -->
         @if (!viewOnly()) {
-          <div class="d-flex flex-wrap gap-1 mb-3">
+          <div class="d-grid gap-2 mb-3">
             @if (confirmingStartOver()) {
-              <div class="w-100 small" role="alert">{{ t('jigsawPlay.startNewAsk') || 'Reset this round? The pieces are scattered again and the time starts from zero.' }}</div>
-              <button type="button" class="btn btn-sm btn-danger" (click)="startOver()">{{ t('jigsawPlay.yesNew') || 'Yes, reset' }}</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingStartOver.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
+              <div class="small" role="alert">{{ t('jigsawPlay.startNewAsk') || 'Reset this round? The pieces are scattered again and the time starts from zero.' }}</div>
+              <button type="button" class="btn btn-danger" (click)="startOver()">{{ t('jigsawPlay.yesNew') || 'Yes, reset' }}</button>
+              <button type="button" class="btn btn-outline-secondary" (click)="confirmingStartOver.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
             } @else if (confirmingDelete()) {
-              <div class="w-100 small" role="alert">{{ t('jigsawPlay.deleteAsk') || 'Delete this round for good? Its pieces and progress are lost. The jigsaw stays.' }}</div>
-              <button type="button" class="btn btn-sm btn-danger" (click)="deleteGame()">{{ t('jigsawPlay.yesDelete') || 'Yes, delete' }}</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingDelete.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
+              <div class="small" role="alert">{{ t('jigsawPlay.deleteAsk') || 'Delete this round for good? Its pieces and progress are lost. The jigsaw stays.' }}</div>
+              <button type="button" class="btn btn-danger" (click)="deleteGame()">{{ t('jigsawPlay.yesDelete') || 'Yes, delete' }}</button>
+              <button type="button" class="btn btn-outline-secondary" (click)="confirmingDelete.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
             } @else {
               @if (!(m.total > 0 && m.count === m.total)) {
                 <!-- a solved round is not played over -->
-              <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{{ t('jigsawPlay.newRound') || 'Reset round' }}</button>
+              <button type="button" class="btn btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{{ t('jigsawPlay.newRound') || 'Reset round' }}</button>
               }
-              <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawPlay.deleteRound') || 'Delete round' }}</button>
+              <button type="button" class="btn btn-outline-danger text-nowrap" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawPlay.deleteRound') || 'Delete round' }}</button>
             }
           </div>
         }

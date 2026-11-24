@@ -34,6 +34,8 @@ export class JigsawHelper {
   readonly clock = signal<string | null>(null);
   /** the name of the player whose round is looked at (another player's round: the menu shows it); null when the round is the person's own, or none is open */
   readonly viewing = signal<string | null>(null);
+  /** the round that is open is completed (every piece is in its place): the switches of the helper are not needed and are turned off; told by the round */
+  readonly solved = signal(false);
   /** how many pieces there are and how many of them are shown */
   readonly counts = signal({ shown: 0, total: 0 });
 

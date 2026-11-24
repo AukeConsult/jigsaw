@@ -38,3 +38,5 @@ The **yellow** working area (where the pieces are drawn), the **blue** board (th
 - **Bars:** the menu and the bar of the round stay on **one line**; when they do not fit, the words of the buttons go first (`LabelFit`), then the name beside the logo and the clock. Everything written in them has one text size (`menu-style`). Under 992 px the logo with the little house is first in the bar of the round (the way home).
 - **Gaps:** every page has the same gap round it (`--app-page-gap`, 28 px, 14 px on a phone).
 - **Not here any more:** the line, colour and background of a round (they are for the account settings, see `TODO.md`).
+
+- **A completed round has no helper.** When every piece is in its place (`JigsawHelper.solved`, set by the round) the two switches of the helper, **Picture** and **Edges**, and the line "Showing x of y pieces" are not shown in the bar, the helper picture frame goes away (`JigsawBoard.helperShown`) and every piece is shown (`hiddenIds` ignores Edges). Reset round starts the helper again.

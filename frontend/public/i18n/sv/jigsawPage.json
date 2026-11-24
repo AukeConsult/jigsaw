@@ -43,5 +43,7 @@
   "startSolved": "löst",
   "choosePieces": "Du väljer bitar och svårighetsgrad när du startar en rond",
   "snapTitle": "Snap-avstånd",
-  "snapHelp": "Hur nära en bit måste vara sin plats innan den klickar på plats. Lätt: långt ifrån. Svår: bara precis intill."
+  "snapHelp": "Hur nära en bit måste vara sin plats innan den klickar på plats. Lätt: långt ifrån. Svår: bara precis intill.",
+  "roundWho": "Vem ser rundan",
+  "roundWhoHelp": "Offentlig: rundan finns i listan över rundor på startsidan. Privat: bara du ser den."
 }

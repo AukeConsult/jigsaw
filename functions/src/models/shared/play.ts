@@ -42,6 +42,8 @@ export interface PlayChoice {
   snapPercent: number;
   /** `false`: no clock in this round (left out: it follows the picture, which has a clock unless it says it has none) */
   timed?: boolean;
+  /** `true`: a private round (see `PlaySpec.private`) */
+  private?: boolean;
 }
 
 /** The subcollection of a round that holds the pieces of its own cut: `jigsaw/<id>/plays/<play id>/pieces/<piece id>` (the same documents as `JIGSAW_PIECES` under a jigsaw). */
@@ -84,6 +86,8 @@ export interface PlaySpec {
   snapPercent?: number;
   /** a round of a picture: `false` when it was started without a clock (left out: the round follows the picture) */
   timed?: false;
+  /** a private round: only its player sees it (not in the list of rounds on the front page, nor in the rounds of the jigsaw for the others); without it the round is public */
+  private?: true;
   /** the look this play has chosen (the jigsaw's is used until the player changes it); never the difficulty, which is the jigsaw's */
   overrides: PlayOverrides;
 }
@@ -143,7 +147,27 @@ export class Plays {
     if (!JigsawCut.pieceChoices(jigsaw.width, jigsaw.height).some((o) => o.columns === c.columns && o.rows === c.rows)) return 'Choose one of the numbers of pieces that are offered for this picture.';
     if (!DIFFICULTIES.some((d) => d.percent === c.snapPercent)) return 'Choose the difficulty: hard, medium or easy.';
     if (c.timed !== undefined && typeof c.timed !== 'boolean') return 'Say whether the round is timed: yes or no.';
-    return '';
+    return Plays.privateError(c.private);
+  }
+
+  /** The reason a choice of a private or public round is not allowed, or '': true (private), false or nothing (public). */
+  static privateError(value: unknown): string {
+    return value === undefined || typeof value === 'boolean' ? '' : 'Say whether the round is private: yes or no.';
+  }
+
+  /** The round with its privacy: private when `isPrivate` is true, public when it is false (the mark is taken away), else as it was. */
+  static withPrivacy<T extends Omit<PlaySpec, 'id'>>(play: T, isPrivate: unknown): T {
+    if (isPrivate === true) return { ...play, private: true as const };
+    if (isPrivate === false) {
+      const { private: _was, ...open } = play;
+      return open as T;
+    }
+    return play;
+  }
+
+  /** Whether the person who asks (`me`, the UID) may see the round: a public round by anybody, a private one by its player (an admin has a way too: `admin`). */
+  static mayLookAt(play: Pick<PlaySpec, 'userId' | 'private'>, me: string | undefined, admin = false): boolean {
+    return !play.private || admin || (!!me && play.userId === me);
   }
 
   /**
@@ -349,6 +373,7 @@ export class Plays {
       ...(play.cut ? { cut: { columns: play.cut.columns, rows: play.cut.rows, grid: play.cut.grid } } : {}),
       ...(typeof play.snapPercent === 'number' ? { snapPercent: play.snapPercent } : {}),
       ...(play.timed === false ? { timed: false as const } : {}),
+      ...(play.private ? { private: true as const } : {}),
       ...(typeof play.elapsedMs === 'number' && play.elapsedMs > 0 ? { elapsedMs: play.elapsedMs } : {}),
       overrides: Object.fromEntries(PLAY_OVERRIDE_KEYS.filter((k) => play.overrides?.[k] !== undefined).map((k) => [k, play.overrides[k]])) as PlayOverrides,
     };

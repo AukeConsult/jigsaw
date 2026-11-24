@@ -81,5 +81,6 @@
   "choosePieces": "Velg brikker",
   "choosePiecesTitle": "Antall brikker og vanskelighetsgrad velges når du starter en runde",
   "noneMatchTitle": "Ingen bilder passer",
-  "noneMatchHelp": "Prøv andre valg."
+  "noneMatchHelp": "Prøv andre valg.",
+  "roundsNoneHelp": "Velg et bilde for å starte den første."
 }

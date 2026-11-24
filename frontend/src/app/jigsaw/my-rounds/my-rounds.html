@@ -2,14 +2,14 @@
   @if (welcome()) {
     <!-- the band is Karin's welcome (for a minute after the app is opened, when no round is going; or when Welcome in the menu was pressed). On a wide screen: the jigsaws that are almost put together (one after the other), the welcome in the middle, and Karin's picture with her note under it; on a narrow one the welcome is under the jigsaws -->
     <section class="my-rounds welcome-band position-relative bg-body-tertiary border" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
-      <div class="container pt-3 pb-2 px-4">
+      <div class="container pt-3 pb-2 pb-lg-5 px-4">
         <div class="welcome-grid">
-          <div class="welcome-art" aria-hidden="true">
+          <div class="welcome-art" aria-hidden="true" [style.--welcome-art-h]="textHeight() ? textHeight() + 'px' : null">
             @for (src of art; track src; let i = $index) {
               <img [src]="src" alt="" [class.on]="artIndex() === i">
             }
           </div>
-          <div class="welcome-text">
+          <div class="welcome-text" #welcomeText>
             <h2 class="subsection-title mt-0 mb-1">{{ t('jigsawHome.welcome') || 'Welcome' }}</h2>
             <p class="text-body-secondary mb-1">{{ t('jigsawHome.welcomeIntro') || 'Enjoy my jigsaws, play them and have fun, or use your own picture to make your own.' }}</p>
             <!-- the first steps, for somebody who has not played yet -->
@@ -20,6 +20,8 @@
               <li class="d-flex gap-2 align-items-start"><i class="bi bi-plus-circle-fill text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('jigsawHome.step3') || 'Want your own? Make one from a picture:' }} <a class="link-inline fw-semibold" routerLink="/jigsaw/new">{{ t('jigsawHome.makeOwn') || 'Make a jigsaw' }}</a></span></li>
             </ul>
           </div>
+          <!-- news and offers: its own row under the picture and the text, from the left edge over to Karin's picture -->
+          <app-news class="welcome-news" />
           <div class="welcome-karin">
             <img class="welcome-photo rounded-3 shadow-sm" src="images/front.jpg" width="510" height="815" [attr.alt]="t('jigsawHome.imageAlt') || 'Karin with a colourful parasol on a fort terrace'">
             <p class="welcome-note text-body-secondary fst-italic small mb-0 mt-1"><i class="bi bi-heart-fill text-danger" aria-hidden="true"></i> {{ t('jigsawHome.note') || 'I love making jigsaws and puzzles, and I hope you will love my system too.' }} <span class="text-nowrap">&mdash; Karin</span></p>

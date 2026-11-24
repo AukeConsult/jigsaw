@@ -137,6 +137,8 @@ export class JigsawBoard {
   /** whether the helper picture is shown (on to begin with) */
   private readonly jigsawHelper = inject(JigsawHelper);
   readonly helper = this.jigsawHelper.helper; // the switch is in the top menu (see `JigsawHelper`)
+  /** the helper picture is shown: the switch is on, and the round is not completed (a completed round has no helper) */
+  readonly helperShown = computed(() => this.helper() && !this.jigsawHelper.solved());
   /** where the floating frame of the helper picture is on the window (its top left corner, in pixels): it can be moved by its title */
   readonly helperFrame = signal(readPreference('jigsaw.helperFrame', { x: Math.max(8, window.innerWidth - 260), y: 70 }, isPlace));
   /** how big the window is now (it can change after the page was opened: a phone turned, a window made smaller) */
@@ -172,7 +174,7 @@ export class JigsawBoard {
   readonly hasPieces = computed(() => this.placed().some((p) => p.piece));
   /** the pieces that are hidden because only corner and edge pieces are shown: the ones from the inside of the picture */
   readonly hiddenIds = computed(() => {
-    if (!this.edgesOnly()) return new Set<string>();
+    if (!this.edgesOnly() || this.jigsawHelper.solved()) return new Set<string>(); // a completed round shows every piece
     const grid = pieceGrid(this.width(), this.height(), this.gridSize()); // the border is also known from where the cell is, not only from the flat sides the piece has
     return new Set(this.placed().filter((p) => p.piece && !JigsawPieces.isBorder(p.piece, grid)).map((p) => p.id));
   });

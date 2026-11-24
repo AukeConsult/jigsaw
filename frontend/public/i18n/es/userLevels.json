@@ -1,7 +1,7 @@
 {
   "menu": "Admin",
   "title": "Niveles de las cuentas",
-  "intro": "Elige lo que puede hacer cada cuenta. Un nivel solo cuenta para una cuenta protegida por un inicio de sesión.",
+  "intro": "Elige lo que puede hacer cada cuenta. Un nivel solo cuenta para una cuenta verificada.",
   "level": {
     "label": "Nivel",
     "user": "Usuario",
@@ -13,7 +13,7 @@
     "publisher": "También hace públicos los puzles.",
     "admin": "También cambia y borra todo, ve los puzles privados y fija los niveles."
   },
-  "needsLogin": "No está protegida por un inicio de sesión: solo puede ser usuario.",
+  "needsLogin": "La cuenta no está verificada: solo puede ser usuario.",
   "you": "Tú",
   "couldNotSave": "No se pudo guardar el nivel: inténtalo de nuevo.",
   "couldNotRead": "No se pudieron leer las cuentas.",

@@ -72,6 +72,11 @@ export class PlaysService {
     return firstValueFrom(this.http.post(`${this.one(jigsawId, playId)}/restart`, {}, { headers: this.whoAsks() }));
   }
 
+  /** the round is made private (only its player sees it) or public again */
+  setPrivate(jigsawId: string, playId: string, isPrivate: boolean): Promise<PlaySpec> {
+    return firstValueFrom(this.http.patch<PlaySpec>(`${this.one(jigsawId, playId)}/privacy`, { private: isPrivate }, { headers: this.whoAsks() }));
+  }
+
   get(jigsawId: string, playId: string): Promise<PlayDetail> {
     return firstValueFrom(this.http.get<PlayDetail>(this.one(jigsawId, playId)));
   }

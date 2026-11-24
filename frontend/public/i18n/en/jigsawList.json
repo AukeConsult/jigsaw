@@ -81,5 +81,6 @@
   "choosePieces": "Choose pieces",
   "choosePiecesTitle": "The number of pieces and the difficulty are chosen when you start a round",
   "noneMatchTitle": "No pictures match",
-  "noneMatchHelp": "Try other choices."
+  "noneMatchHelp": "Try other choices.",
+  "roundsNoneHelp": "Pick a picture to start the first one."
 }

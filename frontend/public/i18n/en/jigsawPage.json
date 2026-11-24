@@ -43,5 +43,7 @@
   "startSolved": "solved",
   "choosePieces": "You choose the pieces and the difficulty when you start a round",
   "snapTitle": "Snap",
-  "snapHelp": "How close a piece must be to its place before it snaps in. Easy: from far away. Hard: only right next to it."
+  "snapHelp": "How close a piece must be to its place before it snaps in. Easy: from far away. Hard: only right next to it.",
+  "roundWho": "Who sees the round",
+  "roundWhoHelp": "Public: the round is in the list of rounds on the front page. Private: only you see it."
 }

@@ -31,6 +31,8 @@ import { ShareButton } from './share-button/share-button';
       <!-- another player's round is looked at: whose it is -->
       <span class="small fw-semibold text-nowrap" role="status" [title]="t('jigsawShell.viewing', { name }) || 'You are looking at the round of ' + name"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ name }}</span>
     }
+    <!-- the switches of the helper are for a round that is going: a completed round has none -->
+    @if (!tools.solved()) {
     <div class="form-check form-switch mb-0">
       <input [id]="'helper-picture' + sfx" class="form-check-input" type="checkbox" role="switch" [checked]="tools.helper()" [disabled]="!tools.hasPicture()"
              (change)="tools.helper.set($any($event.target).checked)">
@@ -41,7 +43,8 @@ import { ShareButton } from './share-button/share-button';
              (change)="tools.edgesOnly.set($any($event.target).checked)">
       <label class="form-check-label small text-nowrap" [attr.for]="'edges-only' + sfx" [title]="t('jigsawShell.edgesTitle') || 'Only the corner and edge pieces'"><i class="bi bi-bounding-box me-1" aria-hidden="true"></i><span class="fit-label">{{ t('jigsawShell.edges') || 'Edges' }}</span></label>
     </div>
-    @if (tools.edgesOnly() && tools.hasPieces()) {
+    }
+    @if (tools.edgesOnly() && tools.hasPieces() && !tools.solved()) {
       <span class="small text-body-secondary text-nowrap d-none d-lg-inline" role="status">{{ t('jigsawShell.showing', { shown: tools.counts().shown, total: tools.counts().total }) || 'Showing ' + tools.counts().shown + ' of ' + tools.counts().total + ' pieces' }}</span>
     }
     <!-- on a narrow screen the sidebar is folded away: this shows the details; a click anywhere else closes them again (on a wide screen they are always there) -->

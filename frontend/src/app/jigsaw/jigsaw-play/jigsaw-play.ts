@@ -26,7 +26,7 @@ import { PlaySpec } from '../../models/shared/play';
 @Component({
   selector: 'app-jigsaw-play',
   imports: [RouterLink, JigsawBoard, TranslocoDirective],
-  providers: [provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawLevels')],
+  providers: [provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawNew')],
   templateUrl: './jigsaw-play.html',
 })
 export class JigsawPlay implements OnDestroy {
@@ -46,6 +46,22 @@ export class JigsawPlay implements OnDestroy {
   /** the jigsaw (its store is as wide as this game has made it) and the game */
   readonly item = signal<JigsawSpec | null>(null);
   readonly play = signal<PlaySpec | null>(null);
+  /** the privacy of the round is being saved */
+  protected readonly privacyBusy = signal(false);
+
+  /** The player makes the round private or public (saved at once; the round is told what the server says). */
+  protected async setPrivate(isPrivate: boolean): Promise<void> {
+    const round = this.play();
+    if (!round || this.viewOnly() || this.privacyBusy() || !!round.private === isPrivate) return;
+    this.privacyBusy.set(true);
+    try {
+      this.play.set(await this.plays.setPrivate(this.jigsawId, round.id, isPrivate));
+    } catch {
+      this.play.set({ ...round }); // not saved: the switch goes back to what is saved
+    } finally {
+      this.privacyBusy.set(false);
+    }
+  }
   /** the round is another player's: it can be looked at, never changed */
   readonly viewOnly = computed(() => {
     const play = this.play();
@@ -127,6 +143,10 @@ export class JigsawPlay implements OnDestroy {
     onAnyScroll(this.destroyRef, () => this.measureSidebar());
     this.clockTimer = setInterval(() => this.tickClock(), 1000);
     effect(() => this.tools.clock.set(this.status() === 'ready' && this.item()?.timed !== false ? this.clock() : null)); // the menu at the top shows it
+    effect(() => {
+      const m = this.matched();
+      this.tools.solved.set(this.status() === 'ready' && m.total > 0 && m.count === m.total); // a completed round: the switches of the helper are off
+    });
     effect(() => this.tools.viewing.set(this.status() === 'ready' && this.viewOnly() ? this.play()?.userName || tr('jigsawPlay.anotherPlayer', 'another player') : null)); // the menu at the top says whose round it is
     // another game can be opened from this page (a new game): the page is the same, the ids change
     this.route.paramMap.subscribe((params) => {
@@ -232,6 +252,7 @@ export class JigsawPlay implements OnDestroy {
     clearInterval(this.clockTimer);
     this.tools.clock.set(null);
     this.tools.viewing.set(null);
+    this.tools.solved.set(false);
     this.tools.open(''); // no jigsaw: the switches are not saved for the next one
     this.saveTimeNow();
     this.pieceSync.destroy();

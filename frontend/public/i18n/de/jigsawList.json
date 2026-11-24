@@ -81,5 +81,6 @@
   "choosePieces": "Teile wählen",
   "choosePiecesTitle": "Anzahl der Teile und Schwierigkeit wählst du beim Start einer Runde",
   "noneMatchTitle": "Kein Bild passt",
-  "noneMatchHelp": "Versuche andere Auswahlen."
+  "noneMatchHelp": "Versuche andere Auswahlen.",
+  "roundsNoneHelp": "Wähle ein Bild, um die erste zu starten."
 }

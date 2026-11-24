@@ -1,7 +1,7 @@
 {
   "menu": "Admin",
   "title": "Kontonivåer",
-  "intro": "Velg hva hver konto kan gjøre. Et nivå gjelder bare for en konto som er beskyttet av en pålogging.",
+  "intro": "Velg hva hver konto kan gjøre. Et nivå gjelder bare for en verifisert konto.",
   "level": {
     "label": "Nivå",
     "user": "Bruker",
@@ -13,7 +13,7 @@
     "publisher": "Gjør også puslespill offentlige.",
     "admin": "Endrer og sletter også alt, ser private puslespill og setter nivåer."
   },
-  "needsLogin": "Ikke beskyttet av en pålogging: den kan bare være bruker.",
+  "needsLogin": "Kontoen er ikke verifisert: den kan bare være bruker.",
   "you": "Deg",
   "couldNotSave": "Kunne ikke lagre nivået: prøv igjen.",
   "couldNotRead": "Kunne ikke lese kontoene.",

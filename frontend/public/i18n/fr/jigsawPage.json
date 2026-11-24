@@ -43,5 +43,7 @@
   "startSolved": "résolu",
   "choosePieces": "Vous choisissez les pièces et la difficulté au début d’une manche",
   "snapTitle": "Aimantation",
-  "snapHelp": "À quelle distance de sa place une pièce s'enclenche. Facile : de loin. Difficile : seulement tout près."
+  "snapHelp": "À quelle distance de sa place une pièce s'enclenche. Facile : de loin. Difficile : seulement tout près.",
+  "roundWho": "Qui voit la partie",
+  "roundWhoHelp": "Publique : la partie est dans la liste des parties de la page d'accueil. Privée : vous seul la voyez."
 }

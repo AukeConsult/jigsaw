@@ -1,4 +1,4 @@
-@if (helperBanner() && helper() && picture(); as src) {
+@if (helperBanner() && helperShown() && picture(); as src) {
   <!-- the helper picture: a frame on top of the rest of the page, moved by grabbing it anywhere (the close button and the corner do their own things) -->
   <div class="helper-frame shadow border rounded bg-body" [style.left.px]="shownHelperFrame().x" [style.top.px]="shownHelperFrame().y" [attr.aria-label]="t('jigsawBoard.helperFrame') || 'Helper picture frame'"
        (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame()" (pointercancel)="endHelperFrame()">

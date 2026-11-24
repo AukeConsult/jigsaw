@@ -81,5 +81,6 @@
   "choosePieces": "Elige piezas",
   "choosePiecesTitle": "El número de piezas y la dificultad se eligen al empezar una ronda",
   "noneMatchTitle": "Ninguna imagen coincide",
-  "noneMatchHelp": "Prueba otras opciones."
+  "noneMatchHelp": "Prueba otras opciones.",
+  "roundsNoneHelp": "Elige una imagen para empezar la primera."
 }

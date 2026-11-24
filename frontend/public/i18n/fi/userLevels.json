@@ -1,7 +1,7 @@
 {
   "menu": "Ylläpito",
   "title": "Tilien tasot",
-  "intro": "Valitse, mitä kukin tili saa tehdä. Taso vaikuttaa vain tiliin, jota kirjautuminen suojaa.",
+  "intro": "Valitse, mitä kukin tili saa tehdä. Taso vaikuttaa vain vahvistettuun tiliin.",
   "level": {
     "label": "Taso",
     "user": "Käyttäjä",
@@ -13,7 +13,7 @@
     "publisher": "Tekee palapelejä myös julkisiksi.",
     "admin": "Muokkaa ja poistaa myös kaiken, näkee yksityiset palapelit ja asettaa tasoja."
   },
-  "needsLogin": "Kirjautuminen ei suojaa tiliä: se voi olla vain käyttäjä.",
+  "needsLogin": "Tiliä ei ole vahvistettu: se voi olla vain käyttäjä.",
   "you": "Sinä",
   "couldNotSave": "Tason tallennus epäonnistui: yritä uudelleen.",
   "couldNotRead": "Tilejä ei voitu lukea.",

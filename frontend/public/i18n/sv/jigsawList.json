@@ -81,5 +81,6 @@
   "choosePieces": "Välj bitar",
   "choosePiecesTitle": "Antal bitar och svårighetsgrad väljs när du startar en rond",
   "noneMatchTitle": "Inga bilder passar",
-  "noneMatchHelp": "Prova andra val."
+  "noneMatchHelp": "Prova andra val.",
+  "roundsNoneHelp": "Välj en bild för att starta den första."
 }

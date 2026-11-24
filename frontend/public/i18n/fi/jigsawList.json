@@ -81,5 +81,6 @@
   "choosePieces": "Valitse palat",
   "choosePiecesTitle": "Palojen määrä ja vaikeustaso valitaan kierrosta aloitettaessa",
   "noneMatchTitle": "Yksikään kuva ei täsmää",
-  "noneMatchHelp": "Kokeile muita valintoja."
+  "noneMatchHelp": "Kokeile muita valintoja.",
+  "roundsNoneHelp": "Valitse kuva aloittaaksesi ensimmäisen."
 }

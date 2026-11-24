@@ -43,5 +43,7 @@
   "startSolved": "gelöst",
   "choosePieces": "Teile und Schwierigkeit wählst du beim Start einer Runde",
   "snapTitle": "Einrast-Abstand",
-  "snapHelp": "Wie nah ein Teil an seinem Platz sein muss, bevor es einrastet. Leicht: schon von weitem. Schwer: erst ganz nah dran."
+  "snapHelp": "Wie nah ein Teil an seinem Platz sein muss, bevor es einrastet. Leicht: schon von weitem. Schwer: erst ganz nah dran.",
+  "roundWho": "Wer sieht die Runde",
+  "roundWhoHelp": "Öffentlich: die Runde steht in der Liste der Runden auf der Startseite. Privat: nur du siehst sie."
 }

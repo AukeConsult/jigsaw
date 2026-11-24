@@ -10,6 +10,7 @@ import { Plays } from '../../models/shared/play';
 import { clockOf } from '../duration';
 import { JigsawCard } from '../jigsaw-card/jigsaw-card';
 import { JigsawService } from '../jigsaw.service';
+import { News } from '../news/news';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
 import { WELCOME_ART } from '../welcome-art';
@@ -17,7 +18,7 @@ import { WELCOME_ART } from '../welcome-art';
 /** A band stuck to the top of the page with the user's rounds that are not solved: the picture of each (press it to go straight on with the round), and under it, in tiny text, when it was started and the time played. Scrolls sideways; shows nothing when there are no rounds. */
 @Component({
   selector: 'app-my-rounds',
-  imports: [DatePipe, RouterLink, TranslocoDirective, JigsawCard],
+  imports: [DatePipe, RouterLink, TranslocoDirective, JigsawCard, News],
   providers: [provideTranslocoScope('jigsawHome')],
   templateUrl: './my-rounds.html',
   host: { '(window:resize)': 'update()' },
@@ -67,10 +68,20 @@ export class MyRounds {
 
   protected readonly clock = clockOf;
   private readonly row = viewChild<ElementRef<HTMLElement>>('row');
+  /** the text of the welcome (the title, the line and the three steps): the pictures of the almost finished jigsaws are as high as it, so their bottom edge is the bottom edge of the last step */
+  private readonly welcomeText = viewChild<ElementRef<HTMLElement>>('welcomeText');
+  protected readonly textHeight = signal<number | null>(null);
   protected readonly canBack = signal(false);
   protected readonly canForward = signal(false);
 
   constructor() {
+    effect((onCleanup) => {
+      const el = this.welcomeText()?.nativeElement;
+      if (!el) return;
+      const watch = new ResizeObserver(() => this.textHeight.set(Math.round(el.getBoundingClientRect().height)));
+      watch.observe(el);
+      onCleanup(() => watch.disconnect());
+    });
     void this.readRounds();
     // round robin between the pictures (not for a person who has asked for less movement)
     if (this.art.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

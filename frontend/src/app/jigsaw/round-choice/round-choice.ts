@@ -14,6 +14,8 @@ interface RoundDefaults {
   snapPercent: number;
   /** whether the round is timed (a choice kept before there was one has none: timed) */
   timed?: boolean;
+  /** `true`: the round is private (a choice kept before there was one has none: public) */
+  private?: boolean;
 }
 const isRoundDefaults = (v: unknown): v is RoundDefaults => !!v && typeof v === 'object' && Number.isInteger((v as RoundDefaults).pieces) && (v as RoundDefaults).pieces > 0 && SNAP_LEVELS.some((l) => l.percent === (v as RoundDefaults).snapPercent) && ((v as RoundDefaults).timed === undefined || typeof (v as RoundDefaults).timed === 'boolean');
 const FIRST_TIME: RoundDefaults = { pieces: 24, snapPercent: 25 };
@@ -57,6 +59,14 @@ export class RoundChoice {
   private readonly timedPicked = signal<boolean | null>(null);
   protected readonly timed = computed(() => this.timedPicked() ?? (this.last.timed !== false && this.jigsaw().timed !== false));
 
+  /** whether the round is private (it starts as it was last time) */
+  private readonly privatePicked = signal<boolean | null>(null);
+  protected readonly isPrivate = computed(() => this.privatePicked() ?? this.last.private === true);
+
+  protected setPrivate(on: boolean): void {
+    this.privatePicked.set(on);
+  }
+
   protected setTimed(on: boolean): void {
     this.timedPicked.set(on);
   }
@@ -85,7 +95,7 @@ export class RoundChoice {
   protected go(): void {
     const o = this.selected();
     if (!o || !this.canStart()) return;
-    writePreference(ROUND_DEFAULTS_KEY, { pieces: o.count, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }) } satisfies RoundDefaults);
-    this.chosen.emit({ columns: o.columns, rows: o.rows, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }) });
+    writePreference(ROUND_DEFAULTS_KEY, { pieces: o.count, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}) } satisfies RoundDefaults);
+    this.chosen.emit({ columns: o.columns, rows: o.rows, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}) });
   }
 }

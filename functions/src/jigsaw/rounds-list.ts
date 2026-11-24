@@ -39,7 +39,7 @@ export function roundsListRouter(plays: PlayStore, deps: RoundsListDeps): expres
       // each jigsaw reads its rounds and then asks for its key, all the jigsaws of the batch at the same time (the key is asked only for a jigsaw that has rounds to show)
       const listed = await Promise.all(
         batch.map(async (j) => {
-          const rounds = await plays.list(j.id);
+          const rounds = (await plays.list(j.id)).filter((p) => !p.private); // a private round is never on the front page
           const imageKey = rounds.length ? await deps.imageKeyFor(j, me) : undefined;
           return rounds.map((play): ListedRound => ({ play: Plays.publicOf(play), jigsaw: { id: j.id, name: j.name, ...(j.timed === false || play.timed === false ? { timed: false } : {}), ...(imageKey ? { imageKey } : {}) } }));
         }),

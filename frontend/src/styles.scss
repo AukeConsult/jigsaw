@@ -897,18 +897,32 @@ app-jigsaw-filter {
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     'art karin'
-    'text karin';
+    'text karin'
+    'news news';
   align-items: start;
 
   @include from($bp-lg) {
-    // the three have the width they need (the text at most 34rem), and what is left is shared as equal gaps between them
-    grid-template-columns: auto minmax(0, 34rem) auto;
-    grid-template-areas: 'art text karin';
-    justify-content: space-between;
+    // the picture and Karin's picture have the width they need, the text is the middle one (its lines at most 34rem, in the middle of its place); the news is a row of its own under the picture and the text, from the left edge to Karin's picture
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'art text karin'
+      'news news karin';
+    column-gap: 1.5rem;
   }
 }
 
-// the Hide button of the welcome: in the flow under the content (right-aligned) so it cannot cover it, and in the lower right corner of the band from `$bp-lg`, where the three columns leave room for it
+.welcome-text {
+  grid-area: text;
+
+  @include from($bp-lg) {
+    align-self: start; // its top is the top of the pictures
+    width: 100%;
+    max-width: 34rem;
+    justify-self: center;
+  }
+}
+
+// the Hide button of the welcome: in the lower right corner of the band. On a narrow screen it is in the flow under the content (right-aligned) so it cannot cover it; from `$bp-lg`, where the three columns leave room, it is in the corner itself
 .welcome-hide {
   display: flex;
   justify-content: flex-end;
@@ -923,12 +937,10 @@ app-jigsaw-filter {
   }
 }
 
-.welcome-text {
-  grid-area: text;
-
-  @include from($bp-lg) {
-    align-self: start; // its top is the top of the pictures
-  }
+.welcome-news {
+  grid-area: news;
+  display: block;
+  align-self: start;
 }
 
 /* the almost finished jigsaws, fading from one to the next: as wide as their place, and not higher than a third of the screen */
@@ -940,8 +952,9 @@ app-jigsaw-filter {
   max-height: 33dvh;
 
   @include from($bp-lg) {
-    width: auto; // as wide as its height says, so the gaps to the text are the same as those to Karin's picture
-    height: min(33dvh, 20rem);
+    width: auto; // as wide as its height says
+    height: var(--welcome-art-h, min(33dvh, 20rem)); // as high as the text beside it (the page measures it), so its bottom edge is the bottom edge of the last step
+    max-height: min(33dvh, 20rem);
   }
 
   img {

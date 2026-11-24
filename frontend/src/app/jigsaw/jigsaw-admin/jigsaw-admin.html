@@ -1,6 +1,6 @@
 <main class="container-fluid page-margin page-max" *transloco="let t">
   <h1 class="page-title mb-2"><i class="bi bi-shield-lock me-2" aria-hidden="true"></i>{{ t('userLevels.title') || 'Account levels' }}</h1>
-  <p class="text-body-secondary">{{ t('userLevels.intro') || 'Choose what each account may do. A level counts only for an account that is protected by a login.' }}</p>
+  <p class="text-body-secondary">{{ t('userLevels.intro') || 'Choose what each account may do. A level counts only for a verified account.' }}</p>
   <ul class="small text-body-secondary mb-3">
     @for (l of levels; track l) {
       <li><strong>{{ t('userLevels.level.' + l) || l }}:</strong> {{ t('userLevels.help.' + l) || '' }}</li>
@@ -23,7 +23,7 @@
           <div class="flex-grow-1">
             <div class="fw-semibold">{{ a.name }} @if (a.id === users.user()?.id) { <span class="badge text-bg-secondary">{{ t('userLevels.you') || 'You' }}</span> }</div>
             <div class="small text-body-secondary">{{ a.username }}</div>
-            @if (!a.protected) { <div class="small text-warning-emphasis"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ t('userLevels.needsLogin') || 'Not protected by a login: the level has no effect yet.' }}</div> }
+            @if (!a.protected) { <div class="small text-warning-emphasis"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ t('userLevels.needsLogin') || 'Account is not verified: it can only be a user.' }}</div> }
           </div>
           }
           @if (confirming() === a.id) {

@@ -43,5 +43,7 @@
   "startSolved": "løst",
   "choosePieces": "Du vælger brikker og sværhedsgrad, når du starter en runde",
   "snapTitle": "Snap-afstand",
-  "snapHelp": "Hvor tæt en brik skal være på sin plads, før den klikker på plads. Let: langt væk. Svær: kun lige ved siden af."
+  "snapHelp": "Hvor tæt en brik skal være på sin plads, før den klikker på plads. Let: langt væk. Svær: kun lige ved siden af.",
+  "roundWho": "Hvem ser runden",
+  "roundWhoHelp": "Offentlig: runden er på listen over runder på forsiden. Privat: kun du ser den."
 }

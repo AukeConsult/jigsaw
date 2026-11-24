@@ -65,3 +65,12 @@ To do:
 - [ ] Show the level of the signed-in account on the user page, and say in the guide (`jigsaw-guide.md`, nine languages) what a publisher and an admin may do.
 - [ ] Restrict the AI use route (`/jigsaw-users/:id/token-usage`) to the account itself and to admins: the button is only hidden for others now.
 - [ ] Build the **Make packages** page (`/jigsaw/packages/make`, publisher and admin; now a dummy, `make-packages/`), after "Packages" above is decided.
+
+## News and offers
+
+The front page has an area for news and offers under the steps of the welcome: the component `app-news` (`jigsaw/news/`), a dummy that says there is nothing new. What a news item or an offer is, who writes it, where it is kept and who sees it is not decided yet.
+
+To do:
+
+- [ ] Decide what a news item and an offer are (a title, a text, perhaps a picture and a link; for everybody or for some; from when to when), and who may write them (an admin, a publisher).
+- [ ] Keep them (the model, the API and a test), and show them in `app-news`; the welcome is shown for one minute, so decide if the news also has a place that stays.

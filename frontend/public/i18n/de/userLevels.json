@@ -1,7 +1,7 @@
 {
   "menu": "Admin",
   "title": "Kontostufen",
-  "intro": "Wähle, was jedes Konto darf. Eine Stufe gilt nur für ein Konto, das durch eine Anmeldung geschützt ist.",
+  "intro": "Wähle, was jedes Konto darf. Eine Stufe gilt nur für ein verifiziertes Konto.",
   "level": {
     "label": "Stufe",
     "user": "Nutzer",
@@ -13,7 +13,7 @@
     "publisher": "Macht Puzzles auch öffentlich.",
     "admin": "Ändert und löscht auch alles, sieht private Puzzles und legt Stufen fest."
   },
-  "needsLogin": "Nicht durch eine Anmeldung geschützt: es kann nur Nutzer sein.",
+  "needsLogin": "Konto ist nicht verifiziert: es kann nur Nutzer sein.",
   "you": "Du",
   "couldNotSave": "Die Stufe konnte nicht gespeichert werden: versuche es noch einmal.",
   "couldNotRead": "Die Konten konnten nicht gelesen werden.",

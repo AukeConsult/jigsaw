@@ -81,5 +81,6 @@
   "choosePieces": "Kies stukjes",
   "choosePiecesTitle": "Het aantal stukjes en de moeilijkheid kies je als je een ronde start",
   "noneMatchTitle": "Geen afbeelding past",
-  "noneMatchHelp": "Probeer andere keuzes."
+  "noneMatchHelp": "Probeer andere keuzes.",
+  "roundsNoneHelp": "Kies een afbeelding om de eerste te starten."
 }

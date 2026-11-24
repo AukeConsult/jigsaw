@@ -43,5 +43,7 @@
   "startSolved": "opgelost",
   "choosePieces": "Je kiest de stukjes en de moeilijkheid als je een ronde start",
   "snapTitle": "Klikafstand",
-  "snapHelp": "Hoe dicht een stukje bij zijn plek moet zijn voordat het vastklikt. Makkelijk: van ver. Moeilijk: pas helemaal dichtbij."
+  "snapHelp": "Hoe dicht een stukje bij zijn plek moet zijn voordat het vastklikt. Makkelijk: van ver. Moeilijk: pas helemaal dichtbij.",
+  "roundWho": "Wie ziet de ronde",
+  "roundWhoHelp": "Openbaar: de ronde staat in de lijst met rondes op de voorpagina. Privé: alleen jij ziet haar."
 }

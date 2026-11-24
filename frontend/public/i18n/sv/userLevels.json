@@ -1,7 +1,7 @@
 {
   "menu": "Admin",
   "title": "Kontonivåer",
-  "intro": "Välj vad varje konto får göra. En nivå gäller bara ett konto som skyddas av en inloggning.",
+  "intro": "Välj vad varje konto får göra. En nivå gäller bara ett verifierat konto.",
   "level": {
     "label": "Nivå",
     "user": "Användare",
@@ -13,7 +13,7 @@
     "publisher": "Gör också pussel offentliga.",
     "admin": "Ändrar och tar också bort allt, ser privata pussel och sätter nivåer."
   },
-  "needsLogin": "Skyddas inte av en inloggning: det kan bara vara användare.",
+  "needsLogin": "Kontot är inte verifierat: det kan bara vara användare.",
   "you": "Du",
   "couldNotSave": "Kunde inte spara nivån: försök igen.",
   "couldNotRead": "Kunde inte läsa kontona.",

@@ -1,7 +1,7 @@
 {
   "menu": "Beheer",
   "title": "Accountniveaus",
-  "intro": "Kies wat elk account mag. Een niveau telt alleen voor een account dat door een login wordt beschermd.",
+  "intro": "Kies wat elk account mag. Een niveau telt alleen voor een geverifieerd account.",
   "level": {
     "label": "Niveau",
     "user": "Gebruiker",
@@ -13,7 +13,7 @@
     "publisher": "Maakt puzzels ook openbaar.",
     "admin": "Wijzigt en verwijdert ook alles, ziet privépuzzels en stelt niveaus in."
   },
-  "needsLogin": "Niet beschermd door een login: het kan alleen gebruiker zijn.",
+  "needsLogin": "Account is niet geverifieerd: het kan alleen gebruiker zijn.",
   "you": "Jij",
   "couldNotSave": "Het niveau kon niet worden opgeslagen: probeer het opnieuw.",
   "couldNotRead": "De accounts konden niet worden gelezen.",
