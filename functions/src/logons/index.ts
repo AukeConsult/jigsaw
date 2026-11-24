@@ -35,6 +35,8 @@ export interface Logons {
   attachLogon: RequestHandler;
   /** `/jigsaw-users/:id/logons` */
   link: express.Router;
+  /** an account was changed (its logins, or its level): the gate reads it again at the next call, not after the 10 seconds it keeps it */
+  forget(userId: string): void;
 }
 
 export function createLogons(users: UserStore, deps: LogonDeps = {}): Logons {
@@ -85,7 +87,7 @@ export function createLogons(users: UserStore, deps: LogonDeps = {}): Logons {
   };
 
   const codes = deps.codes ?? firestoreLinkCodes();
-  return { session, gate: gate.gate, sweepList: gate.sweepList, attachLogon, identify, link: linkRouter({ verifier, users, accounts, codes, changed: gate.forget, now }) };
+  return { session, gate: gate.gate, sweepList: gate.sweepList, forget: gate.forget, attachLogon, identify, link: linkRouter({ verifier, users, accounts, codes, changed: gate.forget, now }) };
 }
 
 export type { AccountStore, TokenVerifier };

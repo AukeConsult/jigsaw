@@ -222,7 +222,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
   });
 
   it("works through the API with nothing faked: picture, cut, play, reopen, delete (the app sends bytes to the API, the API writes to Storage)", async () => {
-    const app = createJigsawApp(); // the real stores: Firestore and Storage on the emulators
+    const app = createJigsawApp({ levels: { of: async () => "publisher", forget() {} } }); // the real stores: Firestore and Storage on the emulators; the caller may make a public jigsaw (a rule of the levels, tested in `user-levels.test.ts`)
     const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(3000, 9)]);
     const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(40, 5)]);
 
@@ -263,5 +263,58 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect((await getFirestore().collection(JIGSAW).doc(id).collection(JIGSAW_PIECES).get()).size).toBe(0);
     expect((await request(app).get(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(404);
     expect((await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}/graphic/${own.id}`)).status).toBe(404);
+  });
+
+  it("works through the API with the real users: a first admin is made, a private picture of a verified account is found by it, and an admin changes the account of another at once", async () => {
+    // the real stores of Firestore and Storage; only the check of the Firebase token and the directory of logins are the tests' own (no Firebase Auth runs here)
+    const token = (uid: string) => ({ uid, email: `${uid}@example.com`, email_verified: true, firebase: { sign_in_provider: "google.com" } });
+    const verifier = { async verify(t: string) { if (!["tok-a", "tok-b"].includes(t)) throw new Error("bad token"); return token(t === "tok-a" ? "fb-a" : "fb-b"); } };
+    const accounts = { async sync() { throw new Error("not used"); }, async read() { return {}; } };
+    const directory = { async gone() { return []; } };
+    const app = createJigsawApp({ logons: { verifier, accounts, directory } as never });
+    const api = (method: "get" | "put" | "post" | "delete", path: string, as?: string, tok?: string) => {
+      const r = request(app)[method](`/jigsaw/api${path}`);
+      if (as) r.set("X-Jigsaw-User", as);
+      if (tok) r.set("Authorization", `Bearer ${tok}`);
+      return r;
+    };
+    const suffix = Date.now().toString(36);
+    const made = async (name: string, uid?: string) => {
+      const res = await api("post", "/jigsaw-users").send({ username: `${name}-${suffix}`, name: `Emulator ${name}` });
+      expect(res.status).toBe(201);
+      if (uid) await firestoreUserStore().changeLogons(res.body.id, () => [uid]); // verified for a login (the logon routes need Firebase Auth; this is what they write)
+      return res.body.id as string;
+    };
+    const first = await made("first", "fb-a");
+    const second = await made("second", "fb-b");
+    const open = await made("open");
+    // nothing is an admin yet (the data of other tests is not): the page asks, and the first account may make itself one
+    const before = await api("get", "/jigsaw-levels/open");
+    expect(before.status).toBe(200);
+    const rename = (target: string) => api("put", `/jigsaw-users/${target}`, first, "tok-a").send({ name: "Renamed by an admin" });
+    if (before.body.open) {
+      expect((await rename(second)).status).toBe(403); // not an admin, the account of another is locked to its own login
+      expect((await api("put", `/jigsaw-levels/${first}`, first, "tok-a").send({ level: "admin" })).status).toBe(200);
+    } else {
+      await firestoreUserStore().update(first, { level: "admin" }); // another test left an admin: the first account is made one directly
+    }
+    expect((await api("get", "/jigsaw-users/" + first)).body.level).toBe("admin"); // kept in Firestore, told to the page
+    expect((await rename(second)).status).toBe(200); // at once: the gate did not keep the answer from before
+    expect((await rename(open)).status).toBe(200); // an account with no login
+    expect((await raw("jigsaw-users", second)).name).toBe("Renamed by an admin");
+    // the level goes with the last login: an account that is open again has none (the next login to verify it must not find one)
+    await firestoreUserStore().changeLogons(first, () => []);
+    expect((await raw("jigsaw-users", first)).level).toBeUndefined();
+    expect((await raw("jigsaw-users", first)).firebaseUids).toBeUndefined();
+    // a private picture of a verified account is found by that account, not by others
+    await firestoreUserStore().changeLogons(second, () => ["fb-b"]);
+    const picture = await api("post", "/jigsaw", second, "tok-b").send({ name: `Private ${suffix}`, kind: "picture", width: 1200, height: 800, gridSize: 0, gridVisible: false, placed: [], ownerUid: second, visibility: "owner" });
+    expect(picture.status).toBe(201); // private is for every account (public is for a publisher)
+    const found = async (as?: string, tok?: string) => ((await api("get", "/jigsaw-search?limit=50", as, tok)).body.items as { id: string }[]).map((j) => j.id);
+    expect(await found(second, "tok-b")).toContain(picture.body.id);
+    expect(await found(open)).not.toContain(picture.body.id);
+    expect(await found()).not.toContain(picture.body.id);
+    await api("delete", `/jigsaw/${picture.body.id}`, second, "tok-b");
+    for (const id of [first, second, open]) await api("delete", `/jigsaw-users/${id}`, id === second ? second : undefined, id === second ? "tok-b" : undefined); // what the test made is taken away again
   });
 });

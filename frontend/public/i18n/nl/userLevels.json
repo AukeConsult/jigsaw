@@ -34,5 +34,6 @@
     "banner": "Je gebruikt {{ name }} als beheerder.",
     "back": "Terug naar {{ name }}",
     "notAllowed": "Alleen een beheerder kan in een account gaan."
-  }
+  },
+  "noAdminYet": "Er is nog geen beheerder. Maak hieronder je eigen account beheerder: alleen een beheerder kan de accounts van anderen wijzigen, openen of verwijderen."
 }

@@ -69,6 +69,10 @@ import { ShareButton } from './share-button/share-button';
         </a>
         <ul class="navbar-nav flex-shrink-0">
           <li class="nav-item">
+            <!-- the pictures: the front page, where they are shown (the first link, beside the logo) -->
+            <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [title]="t('jigsawShell.showPictures') || 'Show pictures'"><i class="bi bi-images me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.showPictures') || 'Show pictures' }}</span></a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" routerLink="/jigsaw/find" routerLinkActive="active" [title]="t('jigsawShell.find') || 'Find a jigsaw'"><i class="bi bi-search me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.find') || 'Find' }}</span></a>
           </li>
           <li class="nav-item">

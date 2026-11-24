@@ -34,5 +34,6 @@
     "banner": "Estás usando {{ name }} como admin.",
     "back": "Volver a {{ name }}",
     "notAllowed": "Solo un admin puede entrar en una cuenta."
-  }
+  },
+  "noAdminYet": "Todavía no hay ningún admin. Haz de tu propia cuenta un admin abajo: solo un admin puede cambiar, abrir o borrar las cuentas de otros."
 }

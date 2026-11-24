@@ -34,5 +34,6 @@
     "banner": "Käytät tiliä {{ name }} ylläpitäjänä.",
     "back": "Takaisin tiliin {{ name }}",
     "notAllowed": "Vain ylläpitäjä voi siirtyä tiliin."
-  }
+  },
+  "noAdminYet": "Ylläpitäjää ei vielä ole. Tee oma tilisi ylläpitäjäksi alla: vain ylläpitäjä voi muuttaa, avata tai poistaa muiden tilejä."
 }

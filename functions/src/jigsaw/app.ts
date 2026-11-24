@@ -54,7 +54,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // the level of an account (user, publisher, admin): what it may do beyond playing; it counts only for an account that needs a login, which the gate has checked (`UserLevels.of`)
   const levels = stores.levels ?? userLevels(users, stores.now);
   const isAdmin = async (me: string | undefined) => UserLevels.isAdmin(await levels.of(me));
-  router.use("/jigsaw-levels", userLevelRouter(users, levels));
+  router.use("/jigsaw-levels", userLevelRouter(users, levels, logons.forget));
   // the games of a user over all the jigsaws (before the users, whose own routes would take the address first)
   router.use("/jigsaw-users/:id/plays", userPlaysRouter(plays, { jigsaws: () => heads(), userOf: async (userId) => (await users.get(userId)) ?? null, imageKeyFor: (c, me) => keyIfSeen(c, me) }));
   // what the AI has used for a user, kept under the user (written by the classification, read here)

@@ -34,5 +34,6 @@
     "banner": "Du bruker {{ name }} som admin.",
     "back": "Tilbake til {{ name }}",
     "notAllowed": "Bare en admin kan gå inn i en konto."
-  }
+  },
+  "noAdminYet": "Det finnes ingen admin ennå. Gjør din egen konto til admin under: bare en admin kan endre, åpne eller slette andres kontoer."
 }

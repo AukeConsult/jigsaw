@@ -6,6 +6,9 @@
       <li><strong>{{ t('userLevels.level.' + l) || l }}:</strong> {{ t('userLevels.help.' + l) || '' }}</li>
     }
   </ul>
+  @if (!users.isAdmin()) {
+    <div class="alert alert-info py-2 small" role="status"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ t('userLevels.noAdminYet') || 'There is no admin yet. Make your own account an admin below: only an admin can change, open or delete the accounts of others.' }}</div>
+  }
   @if (error()) { <div class="alert alert-danger" role="alert">{{ error() }}</div> }
   @if (accounts(); as list) {
     <ul class="list-group">
@@ -26,6 +29,7 @@
             @if (!a.protected) { <div class="small text-warning-emphasis"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ t('userLevels.needsLogin') || 'Account is not verified: it can only be a user.' }}</div> }
           </div>
           }
+          @if (users.isAdmin()) {
           @if (confirming() === a.id) {
             <span class="small">{{ t('userLevels.account.confirmDelete') || 'Delete this account for good?' }}</span>
             <button type="button" class="btn btn-sm btn-danger" [disabled]="saving() !== null" (click)="remove(a)">{{ t('userLevels.account.yesDelete') || 'Yes, delete' }}</button>
@@ -36,6 +40,7 @@
             }
             <button type="button" class="btn btn-sm btn-outline-secondary" [attr.aria-label]="t('userLevels.account.edit') || 'Edit'" [title]="t('userLevels.account.edit') || 'Edit'" (click)="startEdit(a)"><i class="bi bi-pencil" aria-hidden="true"></i></button>
             <button type="button" class="btn btn-sm btn-outline-danger" [attr.aria-label]="t('userLevels.account.delete') || 'Delete'" [title]="t('userLevels.account.delete') || 'Delete'" (click)="confirming.set(a.id); editing.set(null)"><i class="bi bi-trash" aria-hidden="true"></i></button>
+          }
           }
           <select class="form-select form-select-sm w-auto" [attr.aria-label]="t('userLevels.level.label') || 'Level'" [ngModel]="levelOf(a)" [disabled]="saving() !== null" (ngModelChange)="choose(a, $event)">
             @for (l of levels; track l) { <option [value]="l" [disabled]="!a.protected && l !== 'user'">{{ t('userLevels.level.' + l) || l }}</option> }

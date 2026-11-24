@@ -417,3 +417,19 @@ describe("the front page and a private picture of a verified account", () => {
     expect(await popular("pub", "pub")).not.toContain(secret.id);
   });
 });
+
+describe("an account that has just been made an admin", () => {
+  it("can change the accounts of others at once: the gate does not keep the account as it was before it was an admin", async () => {
+    const users = memoryUsers("me", "other");
+    await users.changeLogons("me", () => ["fb-boss"]);
+    await users.changeLogons("other", () => ["fb-pub"]);
+    const app = createJigsawApp({ users, plays: memoryPlays(), jigsaw: memoryJigsaws(), viewKeySecret: TEST_KEY_SECRET, logons: { verifier, accounts, directory } });
+    const rename = () => request(app).put("/jigsaw/api/jigsaw-users/other").set("X-Jigsaw-User", "me").set("Authorization", "Bearer boss").send({ name: "Renamed" });
+    expect((await rename()).status).toBe(403); // no admin yet, and `me` is not one: it is locked to other sign-ins
+    // there is no admin at all, so `me` may make itself one (and the gate has just looked at `me`)
+    const made = await request(app).put("/jigsaw/api/jigsaw-levels/me").set("X-Jigsaw-User", "me").set("Authorization", "Bearer boss").send({ level: "admin" });
+    expect(made.status).toBe(200);
+    expect((await rename()).status).toBe(200); // now an admin: at once, not after the gate has forgotten the old answer
+    expect((await users.get("other"))?.name).toBe("Renamed");
+  });
+});
