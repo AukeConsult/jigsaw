@@ -17,7 +17,7 @@
         }
       </h1>
       @if (users.user()) {
-        <span class="toolbar">
+        <span class="toolbar flex-grow-1 flex-md-grow-0 justify-content-center justify-content-md-end">
           <!-- a switch: pressed it opens the form of the user, and pressed again it closes it without saving -->
           <button type="button" class="link-action" [class.fw-semibold]="editing()" [attr.aria-pressed]="editing()" (click)="toggleEdit()"><i class="bi" [class.bi-pencil]="!editing()" [class.bi-pencil-fill]="editing()" aria-hidden="true"></i>{{ t('jigsawUser.editAccount') || 'Edit account' }}</button>
           <!-- a button, not a plain word: this is how another person gets to play on this device -->

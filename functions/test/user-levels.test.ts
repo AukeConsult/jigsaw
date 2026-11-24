@@ -165,6 +165,18 @@ describe("what an admin may do with what is not theirs", () => {
     expect((await call("delete", `/jigsaw/${hidden.id}`, "plain", "plain")).status).toBe(204);
   });
 
+  it("starts a round on a private jigsaw of another, which a publisher and a player cannot", async () => {
+    const { app, make, pieces } = await setup();
+    const cut = JigsawCut.cut(200, 150, 50, () => 0.3);
+    if ("error" in cut) throw new Error(cut.error);
+    const secret = (await make("plain", "plain", { visibility: "owner" })).body as JigsawSpec;
+    await pieces.replaceAll(secret.id, cut.placed.flatMap((p) => JigsawPieces.of(p, cut.columns) ?? []), new Map());
+    const start = (as: string, token: string) => request(app).post(`/jigsaw/api/jigsaw/${secret.id}/plays`).set("X-Jigsaw-User", as).set("Authorization", `Bearer ${token}`).send({ userId: as });
+    expect((await start("pub", "pub")).status).toBe(404); // cannot even see it
+    expect((await start("boss", "boss")).status).toBe(201);
+    expect((await start("plain", "plain")).status).toBe(201); // its owner
+  });
+
   it("changes and deletes the round of another player; a publisher cannot", async () => {
     const { app, make, call, pieces } = await setup();
     const cut = JigsawCut.cut(200, 150, 50, () => 0.3);

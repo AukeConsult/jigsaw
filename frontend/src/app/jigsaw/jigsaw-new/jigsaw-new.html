@@ -222,22 +222,6 @@
     <img [src]="big" [attr.alt]="t('jigsawNew.pictureAlt') || 'The picture'">
   </div>
 }
-@if (askingName()) {
-  <!-- Save was pressed with no name: a box over the page asks for it (Enter saves, Escape or Cancel closes it) -->
-  <div class="crop-backdrop" role="dialog" aria-modal="true" [attr.aria-label]="t('jigsawNew.askNameTitle') || 'What is it called?'" (window:keydown.escape)="askingName.set(false)">
-    <div class="row justify-content-center w-100 m-0">
-      <form class="card shadow p-3 col-11 col-sm-8 col-md-6 col-lg-4" (ngSubmit)="useName()">
-        <h2 class="subsection-title mb-1">{{ t('jigsawNew.askNameTitle') || 'What is it called?' }}</h2>
-        <p class="small text-body-secondary mb-2">{{ t('jigsawNew.askNameHelp') || 'Give it a name before it is saved.' }}</p>
-        <input id="jigsaw-name-ask" name="nameAsk" class="form-control mb-3" type="text" [maxlength]="maxName" autocomplete="off" [attr.aria-label]="t('jigsawNew.name') || 'Name'" [placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'" [ngModel]="nameDraft()" (ngModelChange)="nameDraft.set($event)">
-        <div class="d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-outline-secondary" (click)="askingName.set(false)">{{ t('jigsawNew.cancel') || 'Cancel' }}</button>
-          <button type="submit" class="btn btn-primary" [disabled]="!nameDraft().trim()"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawNew.saveNew') || 'Save' }}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-}
 @if (cropping() && file(); as chosen) {
   <app-picture-cropper [file]="chosen" [width]="width()" [height]="height()" (use)="useCut($event)" (cancel)="cropping.set(false)" />
 }

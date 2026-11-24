@@ -77,7 +77,5 @@
   "kindPictureHelp": "Palojen määrä ja vaikeustaso valitaan kierrosta aloitettaessa.",
   "kindJigsaw": "Valmis palapeli",
   "kindJigsawHelp": "Valitset palojen määrän ja vaikeustason nyt.",
-  "pictureAlt": "Kuva",
-  "askNameTitle": "Mikä sen nimi on?",
-  "askNameHelp": "Anna sille nimi ennen tallennusta."
+  "pictureAlt": "Kuva"
 }

@@ -71,11 +71,6 @@ import { ShareButton } from './share-button/share-button';
             <!-- a direct way to make a new picture: the form of a new jigsaw, as a picture -->
             <a class="nav-link" routerLink="/jigsaw/new" [queryParams]="{ kind: 'picture' }" routerLinkActive="active" [title]="t('jigsawShell.addPicture') || 'Add picture'"><i class="bi bi-plus-circle me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.addPicture') || 'Add picture' }}</span></a>
           </li>
-          @if (users.mayOpenLevels()) {
-            <li class="nav-item">
-              <a class="nav-link" routerLink="/jigsaw/admin" routerLinkActive="active" [title]="t('userLevels.title') || 'Account levels'"><i class="bi bi-shield-lock me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('userLevels.menu') || 'Admin' }}</span></a>
-            </li>
-          }
         </ul>
         @if (tools.active()) {
           <!-- on a wide screen the helper is in the menu; on a narrow one it is its own bar at the top of the page (below) -->
@@ -88,6 +83,15 @@ import { ShareButton } from './share-button/share-button';
             <li class="nav-item">
             <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'Help'"><i class="bi bi-book me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.guide') || 'Help' }}</span></a>
             </li>
+            <li class="nav-item">
+              <!-- the welcome of the front page, brought back (and its counting started again) -->
+              <a class="nav-link" href="/" (click)="showWelcome($event)" [title]="t('jigsawShell.fromMe') || 'From me'"><i class="bi bi-house-heart me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.fromMe') || 'From me' }}</span></a>
+            </li>
+            @if (users.mayOpenLevels()) {
+              <li class="nav-item">
+                <a class="nav-link" routerLink="/jigsaw/admin" routerLinkActive="active" [title]="t('userLevels.title') || 'Account levels'"><i class="bi bi-shield-lock me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('userLevels.menu') || 'Admin' }}</span></a>
+              </li>
+            }
             <li class="nav-item">
             <!-- who plays: the name of the user, and a way to choose another -->
             <a class="nav-link text-nowrap" routerLink="/jigsaw/user" routerLinkActive="active" [title]="users.user() ? (t('jigsawShell.whoPlaysTitle', { name: users.user()!.username }) || 'Who plays: ' + users.user()!.username) : (t('jigsawShell.choosePlayer') || 'Choose who plays')">
@@ -128,6 +132,14 @@ import { ShareButton } from './share-button/share-button';
               <li role="none">
                 <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/jigsaw/guide" (click)="moreOpen.set(false)"><i class="bi bi-book" aria-hidden="true"></i>{{ t('jigsawShell.guide') || 'Help' }}</a>
               </li>
+              <li role="none">
+                <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" href="/" (click)="showWelcome($event); moreOpen.set(false)"><i class="bi bi-house-heart" aria-hidden="true"></i>{{ t('jigsawShell.fromMe') || 'From me' }}</a>
+              </li>
+              @if (users.mayOpenLevels()) {
+                <li role="none">
+                  <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/jigsaw/admin" (click)="moreOpen.set(false)"><i class="bi bi-shield-lock" aria-hidden="true"></i>{{ t('userLevels.menu') || 'Admin' }}</a>
+                </li>
+              }
               <li role="none"><app-share-button variant="item" /></li>
               <li role="none"><hr class="dropdown-divider"></li>
               <!-- the language: one row that shows the language in use, and opens the list of languages one step down -->
@@ -168,6 +180,15 @@ export class JigsawShell {
   protected readonly users = inject(JigsawUserService);
   protected readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  /** the minute of the welcome begins when the app is opened, on whatever page (it is made here, with the menu); the menu brings it back */
+  private readonly welcomeTime = inject(WelcomeTime);
+
+  /** The welcome comes back (and its counting starts again), on the front page. */
+  protected showWelcome(event: Event): void {
+    event.preventDefault();
+    this.welcomeTime.show();
+    void this.router.navigateByUrl('/');
+  }
 
   /** The admin comes out of the account they went into, and is back on the page of the accounts. */
   protected async backToAdmin(): Promise<void> {
@@ -222,7 +243,6 @@ export class JigsawShell {
 
   constructor() {
     void this.users.load(); // the user who played here last is read, so the menu can show the name
-    inject(WelcomeTime); // the minute of the welcome begins when the app is opened, on whatever page
   }
 
   /** A click anywhere closes the details again, also on the empty parts of them; the title, the buttons and the settings in them are used, so they stay open, as does the button that opened them. */

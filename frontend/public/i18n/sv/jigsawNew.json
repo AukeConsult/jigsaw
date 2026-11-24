@@ -77,7 +77,5 @@
   "kindPictureHelp": "Man väljer antal bitar och svårighetsgrad när man startar en rond.",
   "kindJigsaw": "Ett färdigt pussel",
   "kindJigsawHelp": "Du väljer antal bitar och svårighetsgrad nu.",
-  "pictureAlt": "Bilden",
-  "askNameTitle": "Vad heter det?",
-  "askNameHelp": "Ge det ett namn innan det sparas."
+  "pictureAlt": "Bilden"
 }

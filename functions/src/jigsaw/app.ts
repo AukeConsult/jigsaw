@@ -86,7 +86,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (!c || !JigsawVisibilities.restricted(c.visibility)) return next();
     const me = req.get("X-Jigsaw-User");
     if (!(await canSee(c, me))) return void res.status(404).json({ error: "No such jigsaw." });
-    if (req.method === "POST" && !isOwnerOf(c, me)) return void res.status(403).json({ error: "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have." });
+    if (req.method === "POST" && !isOwnerOf(c, me) && !(await isAdmin(me))) return void res.status(403).json({ error: "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have." });
     next();
   });
   router.use("/jigsaw/:id/plays", logons.identify, playsRouter(plays, { jigsaw: jigsawById, pieces, userOf: async (userId) => (await users.get(userId)) ?? null, mayManage: isAdmin, random: stores.random }));
@@ -117,10 +117,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   router.use("/jigsaw-rounds", roundsListRouter(plays, { jigsaws: () => heads(), canSee: (c, me) => canSee(c, me), imageKeyFor: (c, me) => keyIfSeen(c, me), now: stores.now }));
   // the popular jigsaws, for the front page: the ones the person may see, ranked by the rounds played and by being new (`Popularity`); before the routes of one jigsaw
   router.get("/jigsaw-popular", async (req, res) => {
-    const me = req.get("X-Jigsaw-User");
     const all = await heads();
-    const seen = await Promise.all(all.map((j) => canSee(j, me)));
-    const visible = all.filter((j, i) => seen[i] && JigsawVisibilities.listed(j.visibility)); // a hidden jigsaw is not among the popular
+    const visible = all.filter((j) => !JigsawVisibilities.restricted(j.visibility)); // only public ones are popular: a private or hidden jigsaw is not on the front page
     const counted = await Promise.all(visible.map(async (j) => ({ jigsaw: j, rounds: await plays.count(j.id) })));
     res.json(await Promise.all(Popularity.rank(counted, (stores.now ?? Date.now)()).map(imageAccess.keyed)));
   });
@@ -145,7 +143,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     const solved = new Set((await plays.listOfUser(userId)).filter((r) => r.play.status === "solved").map((r) => r.jigsawId));
     return among.filter((j) => solved.has(j.id)).map((j) => j.id);
   };
-  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canSee(c, me), () => (users.ids ? users.ids() : users.list().then((all) => all.map((u) => u.id))), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed));
+  router.use("/jigsaw-search", jigsawSearchRouter(search, () => (users.ids ? users.ids() : users.list().then((all) => all.map((u) => u.id))), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed));
   // the AI classification of one jigsaw by its picture (categories, name and description); its settings are read when it is asked for (before the routes of one jigsaw)
   router.use(
     "/jigsaw/:id/classify",

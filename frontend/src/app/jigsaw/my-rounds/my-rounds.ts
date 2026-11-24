@@ -48,7 +48,7 @@ export class MyRounds {
     this.welcomeTime.hide();
   }
 
-  protected readonly welcome = computed(() => this.going()?.length === 0 && this.welcomeTime.visible()); // and only for a minute after the app is opened, then not for 24 hours (`WelcomeTime`)
+  protected readonly welcome = computed(() => this.welcomeTime.visible() && (this.going()?.length === 0 || this.welcomeTime.forced())); // for a minute after the app is opened; also with a round going when Welcome in the menu was pressed (`WelcomeTime`)
 
   /** the rounds are read (also when there are none, nobody is chosen, or they could not be read): the page waits for this before it asks for the jigsaws, so the band is there first and nothing below it jumps */
   readonly loaded = output<void>();

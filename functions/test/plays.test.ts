@@ -805,10 +805,10 @@ describe("the popular jigsaws", () => {
     expect(await popular()).toHaveLength(10);
   });
 
-  it("leave out a jigsaw only its owner sees, for everybody but its owner and the players who have a round on it", async () => {
+  it("leave out a private jigsaw for everybody: its owner and the players who have a round on it too (the front page has public ones only)", async () => {
     const { popular } = await popularApp({ Secret: { moved: 6 }, Open: { moved: 1 } }, { ownerUid: "anna", visibility: "owner" });
-    expect(await popular("anna")).toEqual(["Secret", "Open"]);
-    expect(await popular("bo")).toEqual(["Secret", "Open"]); // bo has rounds on it
+    expect(await popular("anna")).toEqual(["Open"]);
+    expect(await popular("bo")).toEqual(["Open"]); // bo has rounds on it
     expect(await popular()).toEqual(["Open"]);
   });
 });

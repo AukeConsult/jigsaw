@@ -381,7 +381,7 @@ describe("the route", () => {
     const nb = (await get(app, "/facets?languages=nb")).body;
     expect([nb.total, nb.languages]).toEqual([1, { nb: 1, en: 3 }]);
     expect((await get(app, "/facets?sizes=tiny")).status).toBe(400);
-    expect((await get(app, "/facets", "u3")).body.total).toBe(5); // the private one is seen by its owner
+    expect((await get(app, "/facets", "u3")).body.total).toBe(4); // not even its owner finds the private one here: it is in their own list
   });
 
   it("refuses what is not a search, with the reason", async () => {
@@ -391,12 +391,12 @@ describe("the route", () => {
     expect(res.body.error).toMatch(/not allowed in sizes/);
   });
 
-  it("shows a jigsaw only its owner sees to its owner, and to nobody who does not say who they are", async () => {
+  it("shows a private jigsaw to nobody, its owner too: only public ones are on the front page, the owner finds the rest in their own list", async () => {
     const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsawSearch: fakeSearch(all), plays: memoryPlays(), users: memoryUsers() });
     const seen = async (me?: string) => ids((await get(app, "?sort=name", me)).body.items);
     expect(await seen()).toEqual(["family", "forest"]);
     expect(await seen("u2")).toEqual(["family", "forest"]); // not the owner, and no round on it
-    expect(await seen("u1")).toEqual(["family", "forest", "secret"]);
+    expect(await seen("u1")).toEqual(["family", "forest"]); // the owner: not here either
   });
 
   it("reads once for each question, with the limit, the newest and each user's: what is found and what is counted are the same jigsaws", async () => {
@@ -425,14 +425,14 @@ describe("the route", () => {
     const favorites = { list: async (u: string) => (u === "u1" ? ["forest", "secret"] : []), add: async () => undefined, remove: async () => undefined, removeAllOf: async () => undefined };
     const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsawSearch: fakeSearch(all), favorites, plays: memoryPlays(), users: memoryUsers("u1", "u2") });
     const found = async (qs: string, me?: string) => ids((await get(app, qs, me)).body.items);
-    expect(await found("?favorites=true", "u1")).toEqual(["secret", "forest"]); // their own private jigsaw too: they may see it
-    expect(await found("?favorites=true&categories=nature", "u1")).toEqual(["secret", "forest"]); // with the rest of the filter
+    expect(await found("?favorites=true", "u1")).toEqual(["forest"]); // their private favorite is not here: only public ones are found
+    expect(await found("?favorites=true&categories=nature", "u1")).toEqual(["forest"]); // with the rest of the filter
     expect(await found("?favorites=true&categories=family", "u1")).toEqual([]);
     expect(await found("?favorites=true", "u2")).toEqual([]); // u2 has none
     expect(await found("?favorites=true")).toEqual([]); // nobody: none
-    expect(await found("", "u2")).toEqual(["forest", "family"]); // without it, all the user may see
+    expect(await found("", "u2")).toEqual(["forest", "family"]); // without it, all the public ones
     const facets = (await get(app, "/facets?favorites=true", "u1")).body;
-    expect([facets.total, facets.sizes]).toEqual([2, { large: 2 }]); // the counts are over the favorites
+    expect([facets.total, facets.sizes]).toEqual([1, { large: 1 }]); // the counts are over the favorites
   });
 
   it("looks only at the jigsaws the user who asks has solved, in the search and in the counts, and at none for nobody", async () => {

@@ -348,12 +348,6 @@ small,
   margin-inline: auto;
 }
 
-.find-loading {
-  // the spinner of the Find page while it is loading, at the top of the page content (it takes room only while it is there, a line high)
-  min-height: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
 .solved-mark {
   // a small green round mark with a check, in the top right corner of a card's picture (right: 0.25rem from the edge, or left of the heart)
   right: 0;
@@ -914,6 +908,21 @@ app-jigsaw-filter {
   }
 }
 
+// the Hide button of the welcome: in the flow under the content (right-aligned) so it cannot cover it, and in the lower right corner of the band from `$bp-lg`, where the three columns leave room for it
+.welcome-hide {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0.5rem 0.5rem;
+
+  @include from($bp-lg) {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: 0;
+    margin: 0.5rem;
+  }
+}
+
 .welcome-text {
   grid-area: text;
 
@@ -1073,6 +1082,9 @@ app-my-rounds {
 /* the welcome (no round going) is big: it is not stuck, it scrolls up and away with the list under it */
 .my-rounds.welcome-band {
   position: static;
+  margin-top: 0; // no badge on its top border (the "Ongoing" band has one), so no room for it above the band or under the border
+  padding-top: 0;
+  margin-bottom: 0.5rem; // a small gap between the band and the row of quick filters under it
   background-image: $soft-pattern;
   background-size: $soft-pattern-size;
 }

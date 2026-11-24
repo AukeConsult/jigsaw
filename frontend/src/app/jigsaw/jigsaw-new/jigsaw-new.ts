@@ -204,9 +204,6 @@ export class JigsawNew implements OnDestroy {
   readonly cut = signal<{ rect: SourceRect; shape: number } | null>(null);
 
   constructor() {
-    effect(() => {
-      if (this.askingName()) setTimeout(() => document.getElementById('jigsaw-name-ask')?.focus()); // the cursor is in the box
-    });
     void this.loadOwners();
     if (this.editId) {
       void this.loadForEdit(this.editId);
@@ -376,17 +373,26 @@ export class JigsawNew implements OnDestroy {
   /** the problem for the box above the buttons: the missing name is already said under its own field */
   readonly otherProblem = computed(() => this.problemBesidesName());
 
-  /** the box that asks for the name is open (Save was pressed with no name), and what is typed in it */
-  readonly askingName = signal(false);
-  readonly nameDraft = signal('');
-
-  /** The name was given in the box: it is the name of the jigsaw, and the jigsaw is saved. */
-  useName(): void {
-    const given = this.nameDraft().trim().slice(0, JIGSAW_MAX_NAME);
-    if (!given) return;
-    this.name.set(given);
-    this.askingName.set(false);
-    void this.save();
+  /**
+   * A jigsaw that is edited has no name (it was taken away): the AI looks at its saved picture and gives it one (and fills in what is still empty: the description, the categories and the
+   * motive difficulty); when it cannot, or the picture was changed and is not saved yet, the name of the picture file stands in. A new jigsaw is named by the AI in `save(true)`.
+   */
+  private async nameWithAi(): Promise<void> {
+    this.saving.set(true);
+    this.analysing.set(true);
+    try {
+      if (!this.pictureChanged()) {
+        const found = await this.service.classify(this.editId!, true).catch(() => null);
+        if (found?.name) this.name.set(found.name.slice(0, JIGSAW_MAX_NAME));
+        if (found?.description && !this.description().trim()) this.description.set(found.description);
+        if (found?.categories.length && !this.categories().length) this.categories.set(found.categories);
+        if (found?.motive && !this.motive()) this.motive.set(found.motive);
+      }
+    } finally {
+      this.analysing.set(false);
+      this.saving.set(false);
+    }
+    if (this.nameMissing()) this.name.set(this.nameForAi()); // the AI did not name it: the name of the picture file
   }
 
   /** the name of the picture file that is kept with the jigsaw: the chosen file's, or else the one the jigsaw had */
@@ -619,15 +625,14 @@ export class JigsawNew implements OnDestroy {
   /** the AI is looking at the picture of the jigsaw that was just made */
   readonly analysing = signal(false);
 
-  /** Save: the jigsaw is made, its picture and pieces are kept, and its page is opened. With `analyse` the AI looks at the picture first and sets the categories, the motive difficulty, the name and the description, and the person stays in the form (now the edit form of the new jigsaw, with what the AI said in it) instead of going to its page. */
-  async save(analyse = false): Promise<void> {
+  /** Save: the jigsaw is made, its picture and pieces are kept, and its page is opened. With `analyse` the AI looks at the picture first and sets the categories, the motive difficulty, the name and the description, and the person stays in the form (now the edit form of the new jigsaw, with what the AI said in it) instead of going to its page (with `leave` it goes to the page when the AI is done: a jigsaw saved with no name). */
+  async save(analyse = false, leave = false): Promise<void> {
     const file = this.file();
     const cut = this.cut();
     if (!(analyse && !this.editId ? this.canAnalyse() : this.canSave())) return;
     if (!analyse && this.nameMissing()) {
-      this.nameDraft.set(''); // no name: a box asks for it, and saves when it is given
-      this.askingName.set(true);
-      return;
+      if (!this.editId) return this.save(true, true); // no name: the AI looks at the picture, names the jigsaw, and it is saved; the person goes on to its page when the AI is done
+      await this.nameWithAi(); // no name left in an edit: the AI names it first, and the changes are saved
     }
     if (this.editId) return this.saveEdit(file, cut);
     if (!file || !cut) return;
@@ -661,6 +666,10 @@ export class JigsawNew implements OnDestroy {
       if (analyse) {
         this.analysing.set(true);
         await this.service.classify(made.id, true).catch(() => null); // the jigsaw is made: when the AI cannot, the person can ask again with the AI link of the form
+        if (leave) {
+          await this.router.navigate(['/jigsaw', made.id], { replaceUrl: true }); // saved with the name the AI gave: the page of the jigsaw
+          return;
+        }
         // the person stays in the page: it is the edit form of the jigsaw that is made now, in place, with what the AI said in it, to look at and change (the address is changed to the one of the edit form without leaving)
         const fresh = (await this.service.get(made.id).catch(() => null)) ?? made;
         this.original = fresh;

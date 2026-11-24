@@ -211,9 +211,9 @@ describe("who is given the key", () => {
     const { app } = setup();
     const ids = (list: { id: string; imageKey?: string }[]) => Object.fromEntries(list.map((j) => [j.id, !!j.imageKey]));
     expect(ids((await get(app, "/jigsaw", "u1")).body)).toEqual({ [PUBLIC]: false, [PRIVATE]: true, [HIDDEN]: true }); // the list of the owner has the hidden one too
-    expect(ids((await get(app, "/jigsaw-search", "u1")).body.items)).toMatchObject({ [PUBLIC]: false, [PRIVATE]: true });
+    expect(ids((await get(app, "/jigsaw-search", "u1")).body.items)).toEqual({ [PUBLIC]: false }); // the front page has public ones only
     expect(ids((await get(app, "/jigsaw-search/mine", "u1")).body.items)).toEqual({ [PUBLIC]: false, [PRIVATE]: true, [HIDDEN]: true });
-    expect(ids((await get(app, "/jigsaw-popular", "u1")).body)).toMatchObject({ [PUBLIC]: false, [PRIVATE]: true });
+    expect(ids((await get(app, "/jigsaw-popular", "u1")).body)).toEqual({ [PUBLIC]: false });
     const made = await request(app).post("/jigsaw/api/jigsaw").set(as("u1")).send({ name: "Mine", width: 100, height: 100, gridSize: 50, gridVisible: false, placed: [], ownerUid: "u1", visibility: "owner" });
     expect(made.status).toBe(201);
     expect(made.body.imageKey).toMatch(/^\d+\./);

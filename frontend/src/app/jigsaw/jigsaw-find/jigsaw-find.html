@@ -1,10 +1,11 @@
 <main class="container-fluid page-margin find-page" *transloco="let t">
-  <!-- a spinner at the top of the page that turns while the counts are being read (the page is loading or a choice is being counted) -->
-  <!-- always there, only unseen when nothing is being read: it takes its room all the time, so the page below it does not move when it turns up and goes -->
-  <div class="find-loading d-flex align-items-center gap-2 text-body-secondary" [class.invisible]="!slow()" [attr.aria-hidden]="!slow()" role="status"><span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span><span>{{ t('jigsawList.loading') || 'Fetching the jigsaws…' }}</span></div>
   <!-- Go is at the top too, so it is there without scrolling down the choices -->
   <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="page-title mb-0">{{ t('jigsawList.findTitle') || 'Filter pictures' }}</h1>
+    <!-- the spinner that turns while the counts are being read is beside the title (it takes its small room all the time, so nothing moves when it turns up and goes; no line of its own at the top) -->
+    <div class="d-flex align-items-center gap-2">
+      <h1 class="page-title mb-0">{{ t('jigsawList.findTitle') || 'Filter pictures' }}</h1>
+      <span class="spinner-border spinner-border-sm text-primary" [class.invisible]="!slow()" [attr.aria-hidden]="!slow()" role="status"><span class="visually-hidden">{{ t('jigsawList.loading') || 'Fetching the jigsaws…' }}</span></span>
+    </div>
     <div class="d-flex gap-2">
       <!-- Reset all: a button that can be seen, there as soon as something is chosen -->
       <button type="button" class="btn btn-outline-danger" [disabled]="!chosen()" (click)="resetAll()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.resetAll') || 'Reset all' }}</button>
