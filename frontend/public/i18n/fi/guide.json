@@ -3,5 +3,7 @@
   "opening": "Avataan ohjetta…",
   "tabGuide": "Ohje",
   "tabAbout": "Tietoa",
-  "documents": "Asiakirjat"
+  "documents": "Asiakirjat",
+  "version": "Versio",
+  "devBuild": "kehitysversio"
 }

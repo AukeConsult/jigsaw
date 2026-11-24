@@ -5,7 +5,7 @@ export const environment = {
   jigsawApi: '/jigsaw/api',
   firebase: {
     apiKey: 'AIzaSyDy-ZStO1xAoNpPHU5EGFaRHD7dUHLtPdQ',
-    authDomain: 'sevenfriends.firebaseapp.com',
+    authDomain: 'sevenfriends.io',
     projectId: 'sevenfriends',
     storageBucket: 'sevenfriends.firebasestorage.app',
     messagingSenderId: '757442652591',

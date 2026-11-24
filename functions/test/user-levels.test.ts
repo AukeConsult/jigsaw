@@ -155,8 +155,9 @@ describe("what an admin may do with what is not theirs", () => {
     expect((await call("get", `/jigsaw/${secret.id}`, "plain", "plain")).status).toBe(200); // the owner
     const change = { name: "Seen", width: 200, height: 150, gridSize: 0, gridVisible: false, placed: [], ownerUid: "plain", visibility: "owner" };
     const listed = (as: string) => call("get", `/jigsaw`, as, as).then((r) => r.body.map((j: JigsawSpec) => j.id) as string[]);
-    expect(await listed("boss")).toContain(secret.id); // an admin sees all pictures
-    expect(await listed("boss")).toContain(hidden.id);
+    expect(await listed("boss")).not.toContain(secret.id); // an admin opens them by address, but does not find them in the list
+    expect(await listed("boss")).not.toContain(hidden.id);
+    expect(await listed("plain")).toEqual(expect.arrayContaining([secret.id, hidden.id])); // the owner finds both
     expect(await listed("pub")).not.toContain(secret.id);
     expect((await call("put", `/jigsaw/${secret.id}`, "pub", "pub").send(change)).status).toBe(404);
     expect((await call("put", `/jigsaw/${secret.id}`, "boss", "boss").send(change)).status).toBe(200);
@@ -397,5 +398,22 @@ describe("an admin in an account has the rights of an admin there", () => {
     expect((await call("get", `/jigsaw/${theirs.id}`, "plain", "plain")).status).toBe(404);
     expect((await call("put", "/jigsaw-levels/pub", "plain", "plain").send({ level: "user" })).status).toBe(403);
     expect((await call("get", `/jigsaw/${theirs.id}`, "plain", "plain").set("X-Jigsaw-Admin", "pub")).status).toBe(404); // a publisher cannot say it is an admin
+  });
+});
+
+describe("the front page and a private picture of a verified account", () => {
+  it("is found by its own owner when signed in, and by nobody else: not a visitor, not another account, not an admin", async () => {
+    const { call, make } = await setup();
+    const secret = (await make("plain", "plain", { visibility: "owner", name: "Only mine" })).body as JigsawSpec;
+    const open = (await make("pub", "pub", { name: "For everybody" })).body as JigsawSpec;
+    const found = async (as?: string, token?: string) => (await call("get", "/jigsaw-search", as, token)).body.items.map((j: JigsawSpec) => j.id) as string[];
+    expect(await found("plain", "plain")).toEqual(expect.arrayContaining([secret.id, open.id])); // the owner, signed in: both
+    expect(await found()).toEqual([open.id]); // a visitor: the public one
+    expect(await found("plain")).toEqual([open.id]); // the account without its login: not its private ones
+    expect(await found("pub", "pub")).toEqual([open.id]); // another account
+    expect(await found("boss", "boss")).toEqual([open.id]); // an admin does not find it on the front page either
+    const popular = async (as?: string, token?: string) => (await call("get", "/jigsaw-popular", as, token)).body.map((j: JigsawSpec) => j.id) as string[];
+    expect(await popular("plain", "plain")).toContain(secret.id);
+    expect(await popular("pub", "pub")).not.toContain(secret.id);
   });
 });

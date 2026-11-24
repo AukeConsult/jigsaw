@@ -80,6 +80,8 @@ interface FreeDrag {
 
 /** One object as it is drawn: where its box is, its layer, and what is known about it for the page (`JigsawBoard.view`). */
 interface BoardView {
+  /** it is held now: it is drawn whole, never cut off at the edge of the store frame it was lying in */
+  held: boolean;
   anchor: string;
   p: PlacedObject;
   layer: number;
@@ -232,6 +234,7 @@ export class JigsawBoard {
     const width = stacked ? store.width : Math.max(store.width, Math.min(JIGSAW_MAX_SIDE - store.left, Math.ceil((taken + 1) / slice) * slice));
     if (width > store.width) this.storeWidthChange.emit(width);
     if (next !== before) this.placed.set(next.toData());
+    if (all) this.storeFitted.set(true); // the scroller is now as long as its pieces (`storeUsed`)
     const frame = this.storeInner()?.nativeElement.parentElement;
     if (all && frame) {
       frame.scrollTop = 0;
@@ -469,12 +472,40 @@ export class JigsawBoard {
   private sliceOfDown(down: number): number {
     return Math.min(this.sliceCount() - 1, Math.max(0, Math.floor((down - this.gridSize() / 2) / this.sliceStride())));
   }
-  /** the size of the inside of the store frame: the store as it is, or the bands side by side (below the picture), or the slices one under the other (beside it) */
+  /** the store has been collected: from then on the scroller is as long as the pieces in it need (`storeUsed`), not as long as the store was cut */
+  private readonly storeFitted = signal(false);
+  /**
+   * How far the pieces in the store reach, in the pixels of the scroller (across below the picture, down beside it, one piece of room after the last), once the store has been collected;
+   * null before. It is worked out from the places of the pieces, as `place` maps them, so it is never out of date after a resize, and nothing of it is saved.
+   */
+  private readonly storeUsed = computed(() => {
+    const store = this.store();
+    if (!this.storeFitted() || !store) return null;
+    const size = this.gridSize();
+    let reach = 0;
+    for (const item of this.puzzle().items) {
+      if (!item.data.piece || item.centerX < store.left) continue;
+      const own = item.object.width;
+      if (this.stacked()) reach = Math.max(reach, item.left - store.left + this.bandOf(item.centerY) * this.bandStride() + own);
+      else reach = Math.max(reach, item.top + this.sliceOfAcross(item.left + own / 2 - store.left) * this.sliceStride() + own);
+    }
+    return reach + size;
+  });
+  /** the slice of the scroller a place this far across the store (where the middle of a piece is) is in, beside the picture */
+  private sliceOfAcross(across: number): number {
+    return this.sliceCount() > 1 ? Math.min(this.sliceCount() - 1, Math.max(0, Math.floor(across / this.sliceWidth()))) : 0;
+  }
+  /** the size of the inside of the store frame: the store as it is, or the bands side by side (below the picture), or the slices one under the other (beside it); once collected, no longer than the pieces need (and never less than the frame shows) */
   readonly storeInnerSize = computed(() => {
     const store = this.store();
     if (!store) return { width: 0, height: 0 };
-    if (this.stacked()) return { width: this.bandCount() * this.bandStride() + this.gridSize() / 2, height: this.bandHeight() };
-    return this.sliceCount() > 1 ? { width: this.sliceWidth(), height: (this.sliceCount() - 1) * this.sliceStride() + store.height } : { width: store.width, height: store.height };
+    const used = this.storeUsed();
+    if (this.stacked()) {
+      const full = this.bandCount() * this.bandStride() + this.gridSize() / 2;
+      return { width: used === null ? full : Math.min(full, Math.max(this.storeFrameWidth(), used)), height: this.bandHeight() };
+    }
+    const full = this.sliceCount() > 1 ? { width: this.sliceWidth(), height: (this.sliceCount() - 1) * this.sliceStride() + store.height } : { width: store.width, height: store.height };
+    return used === null ? full : { width: full.width, height: Math.min(full.height, Math.max(this.storeViewHeight(), used)) };
   });
   /**
    * Below the picture the bands of the store lie side by side, each this far from the next: a band is as wide as the store minus half a piece, because the middle of a piece is never further across
@@ -507,12 +538,14 @@ export class JigsawBoard {
    * (`shift` across, `shiftY` down), what to cut off a piece of the store that is partly out of the frame at the top or the bottom (`clip`: only there, not at the
    * sides, so a piece can lie over the edge), and whether it is out of the frame altogether (`hidden`: a piece that has been scrolled out of sight).
    */
-  place(v: { anchor?: string; p?: { id: string }; inStore: boolean; left: number; top: number; object: { width: number } }): { shift: number; shiftY: number; clip: string | null; hidden: boolean } {
+  place(v: { anchor?: string; p?: { id: string }; inStore: boolean; held?: boolean; left: number; top: number; object: { width: number } }): { shift: number; shiftY: number; clip: string | null; hidden: boolean } {
     // a group of pieces that stick together is one piece: it is put where the piece that stands for it is, all the pieces by the same shift, so a group is never torn when it passes the edge
     // of the picture, the free space or the store (the store cuts a piece at its edge: a piece of a group is not cut by itself)
     const anchor = v.anchor && v.p && v.anchor !== v.p.id ? this.viewById().get(v.anchor) : undefined;
     if (anchor) return { ...this.placeOwn(anchor), clip: null };
-    return this.placeOwn(v);
+    const own = this.placeOwn(v);
+    // a piece that is picked up is drawn again whole: the cut at the edge of the store frame was for a piece lying in it, and would leave the held piece cut off wherever it is taken
+    return v.held ? { ...own, clip: null } : own;
   }
 
   private placeOwn(v: { inStore: boolean; left: number; top: number; object: { width: number } }): { shift: number; shiftY: number; clip: string | null; hidden: boolean } {
@@ -644,6 +677,7 @@ export class JigsawBoard {
         return before.entry;
       }
       const entry: BoardView = {
+        held: isHeld,
         anchor,
         p: item.data,
         layer: isHeld ? HELD_LAYER : item.layer,

@@ -15,9 +15,9 @@ Not done yet: sign-in inside the app (Google's popup does not work in a WebView)
 
 ## Offering the app for download on the website (no app store)
 Two Gradle tasks (group **karinsjigsaw**, in `app/publish.gradle`), run in Android Studio (Gradle panel > Tasks > karinsjigsaw) or here with `gradlew`:
-- **`publishApk`** builds the app and copies it to `frontend/public/downloads/KarinsJigsaw.apk` (git-ignored).
+- **`publishApk`** builds the app and copies it to `frontend/public/installs/KarinsJigsaw.apk` (git-ignored).
 - **`deployApp`** does `publishApk` and then `npm run deploy:hosting`, which puts the website online with the file (Node and the Firebase login are needed).
 
-The Install page and the sign-in page then show **Download the Android app** on an Android phone (only when the file is there). People must allow their
+The file is then at `https://karins-jigsaw.web.app/installs/KarinsJigsaw.apk` (no page links to it yet). People must allow their
 browser to install apps from this source once. The file is signed with the debug key: fine for this, but Google Play needs a release key.
 If the web config or plugins changed, run `npm run android:sync` first.

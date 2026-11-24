@@ -3,6 +3,7 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
+import { version } from '../../environments/version';
 import { LanguageService } from '../core/language.service';
 import { renderMarkdown } from '../core/markdown';
 
@@ -30,6 +31,10 @@ import { renderMarkdown } from '../core/markdown';
           <div [innerHTML]="html()"></div>
         }
       </article>
+      @if (aboutPage) {
+        <!-- which build this is: one more for every build, so an app (Windows, Android, a browser) can be told from another -->
+        <p class="text-center text-body-secondary small mt-3">{{ t('guide.version') || 'Version' }} {{ version.name }}@if (version.dev) { · {{ t('guide.devBuild') || 'development build' }}}</p>
+      }
     </main>
   `,
 })
@@ -37,6 +42,11 @@ export class GuidePage {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly language = inject(LanguageService);
+
+  /** the build number of this web app, shown on the About page */
+  protected readonly version = version;
+  /** true on the About page (the same component shows the help and the about document) */
+  protected readonly aboutPage = this.route.snapshot.data['guide'] === 'jigsaw-about.md';
 
   /** the guide as HTML (null: not read yet) */
   readonly html = signal<string | null>(null);

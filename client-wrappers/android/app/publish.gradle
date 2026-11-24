@@ -2,16 +2,16 @@
 // Run them in Android Studio (Gradle panel > Tasks > karinsjigsaw) or in this folder:  gradlew publishApk   /   gradlew deployApp
 // (Android Studio uses its own Java: no JAVA_HOME needed there.)
 
-// publishApk: builds the app file and puts it where the website serves it: frontend/public/downloads/KarinsJigsaw.apk
+// publishApk: builds the app file and puts it where the website serves it: frontend/public/installs/KarinsJigsaw.apk
 // (git-ignored). With the release key set up (SF_KEYSTORE... in .env, see build.gradle) it builds the signed RELEASE app; without it
 // it falls back to the debug key: fine to install by hand, but a debug-signed app cannot be updated by a release-signed one.
 def signedRelease = android.signingConfigs.findByName('release') != null
 tasks.register('publishApk', Copy) {
     group = 'karinsjigsaw'
-    description = 'Builds the app (release-signed when the keystore is set up) and copies it to frontend/public/downloads/KarinsJigsaw.apk'
+    description = 'Builds the app (release-signed when the keystore is set up) and copies it to frontend/public/installs/KarinsJigsaw.apk'
     dependsOn signedRelease ? 'assembleRelease' : 'assembleDebug'
     from layout.buildDirectory.file(signedRelease ? 'outputs/apk/release/app-release.apk' : 'outputs/apk/debug/app-debug.apk')
-    into rootProject.file('../../frontend/public/downloads')
+    into rootProject.file('../../frontend/public/installs')
     rename { 'KarinsJigsaw.apk' }
     doLast { logger.lifecycle("KarinsJigsaw.apk is signed with the ${signedRelease ? 'RELEASE' : 'DEBUG'} key") }
 }

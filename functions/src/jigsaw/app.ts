@@ -80,6 +80,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   const canSee = async (c: { id: string; visibility?: string; ownerUid?: string }, me: string | undefined) => !JigsawVisibilities.restricted(c.visibility) || isOwnerOf(c, me) || (await isAdmin(me)) || (await hasRoundOn(c, me)); // an admin sees all pictures: also the private ones of others (a hidden one is never in a list, but is opened by its address)
   // the pictures of a jigsaw that is private or hidden are read with a key that the answers about it give to those who may see it (`ImageAccess`): the key is made at each answer and never kept
   const imageAccess = new ImageAccess(new ViewKeys(stores.viewKeySecret ?? firestoreSecret(), stores.now), async (id) => (await jigsawById(id))?.visibility);
+  // what the front page, the search and the popular ones show: a private jigsaw is found by its owner and by each player who has a round on it, and only by them (an admin may open it, but finds it only if it is theirs)
+  const canFind = async (c: { id: string; ownerUid?: string }, me: string | undefined) => isOwnerOf(c, me) || (await hasRoundOn(c, me));
   const keyIfSeen = async (c: JigsawSpec, me: string | undefined): Promise<string | undefined> => (JigsawVisibilities.restricted(c.visibility) && (await canSee(c, me)) ? (await imageAccess.keyed(c)).imageKey : undefined);
   router.use("/jigsaw/:id/plays", async (req, res, next) => {
     const c = await jigsawById(req.params.id);
@@ -118,7 +120,9 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // the popular jigsaws, for the front page: the ones the person may see, ranked by the rounds played and by being new (`Popularity`); before the routes of one jigsaw
   router.get("/jigsaw-popular", async (req, res) => {
     const all = await heads();
-    const visible = all.filter((j) => !JigsawVisibilities.restricted(j.visibility)); // only public ones are popular: a private or hidden jigsaw is not on the front page
+    const me = req.get("X-Jigsaw-User");
+    const seen = await Promise.all(all.map((j) => (j.visibility === "owner" ? canFind(j, me) : Promise.resolve(JigsawVisibilities.listed(j.visibility))))); // public ones, and a private one for its owner and its players; a hidden one never
+    const visible = all.filter((_, i) => seen[i]);
     const counted = await Promise.all(visible.map(async (j) => ({ jigsaw: j, rounds: await plays.count(j.id) })));
     res.json(await Promise.all(Popularity.rank(counted, (stores.now ?? Date.now)()).map(imageAccess.keyed)));
   });
@@ -143,7 +147,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     const solved = new Set((await plays.listOfUser(userId)).filter((r) => r.play.status === "solved").map((r) => r.jigsawId));
     return among.filter((j) => solved.has(j.id)).map((j) => j.id);
   };
-  router.use("/jigsaw-search", jigsawSearchRouter(search, () => (users.ids ? users.ids() : users.list().then((all) => all.map((u) => u.id))), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed));
+  router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canFind(c, me), () => (users.ids ? users.ids() : users.list().then((all) => all.map((u) => u.id))), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed));
   // the AI classification of one jigsaw by its picture (categories, name and description); its settings are read when it is asked for (before the routes of one jigsaw)
   router.use(
     "/jigsaw/:id/classify",
@@ -227,6 +231,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
       },
       (c, me) => canSee(c, me),
       imageAccess.keyed,
+      async (c, me) => !JigsawVisibilities.restricted(c.visibility) || isOwnerOf(c, me) || (c.visibility === "owner" && (await hasRoundOn(c, me))), // the list: public, the owner's own, and the private ones the person has a round on (an admin opens others' by their address, but does not find them here)
     ),
   );
   // a picture, or the graphic of a piece, of a jigsaw that is private or hidden is read only with its key (a jigsaw that everybody sees has none); this is before the routes that give them

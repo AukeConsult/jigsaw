@@ -3,5 +3,7 @@
   "opening": "Ouverture de l’aide…",
   "tabGuide": "Aide",
   "tabAbout": "À propos",
-  "documents": "Documents"
+  "documents": "Documents",
+  "version": "Version",
+  "devBuild": "version de développement"
 }

@@ -9,32 +9,20 @@ A native Windows app (.NET 8, WPF) with the Microsoft Edge WebView2 control that
   except the WebView2 Runtime, which is part of Windows 11 and of Microsoft Edge (the app says so if it is missing).
 - `client-wrappers/windows/nuget.config` makes the restore use nuget.org only (a missing offline source from Visual Studio, `NU1301`, no longer stops it).
 - **Try it:** `npm run windows:run` (builds and opens a window with the app).
-- **Build, pack and publish, in one command:** `npm run windows:release` (`scripts/windows-release.mjs`): it builds the self-contained `client-wrappers/windows/publish/KarinsJigsaw.exe`, packs the installer with Inno Setup 6 (https://jrsoftware.org/isdl.php; found in its usual folders) and copies it to `frontend/public/downloads/KarinsJigsawSetup.exe`. The last step runs `npm run deploy:hosting`, so the new installer is on the website (the installer is not committed: the release has to run on this computer). `npm run windows:release -- --no-deploy` stops before the deploy.
+- **Build, pack and publish, in one command:** `npm run windows:release` (`scripts/windows-release.mjs`): it builds the self-contained `client-wrappers/windows/publish/KarinsJigsaw.exe`, packs the installer with Inno Setup 6 (https://jrsoftware.org/isdl.php; found in its usual folders) and copies it to `frontend/public/installs/KarinsJigsawSetup.exe`. The last step runs `npm run deploy:hosting`, so the new installer is on the website (the installer is not committed: the release has to run on this computer). `npm run windows:release -- --no-deploy` stops before the deploy.
 - The installer (`client-wrappers/windows/installer/output/KarinsJigsawSetup.exe`) installs for the current person only (no administrator needed), with a Start menu entry and an optional desktop icon, and has an uninstaller in Windows Settings → Apps. To publish a new version, change the version in `KarinsJigsaw.csproj` and in `installer/KarinsJigsaw.iss`, then run `npm run windows:release`.
-- Only the app's own pages and the sign-in popup open inside the window; every other link opens in the browser. The microphone,
-  camera and notifications are allowed for the app's own pages only. The sign-in is kept in `%LOCALAPPDATA%\KarinsJigsaw`.
+- Only the app's own pages and the sign-in popup open inside the window; every other link opens in the browser. It asks for no permission: the camera, microphone, location and notifications are refused. The sign-in is kept in `%LOCALAPPDATA%\KarinsJigsaw`.
+- The window opens at 1280 x 800 and cannot be made smaller than 1000 x 600 (`MainWindow.xaml`); on a screen with less room (a laptop with scaling) it starts as big as the screen allows and its smallest size gives way. It can be maximised to the whole screen.
 - The icon is `app.ico` (made from `frontend/public/icons/icon-512.png`).
-
-**Running in the background (tray icon):** the close button does not end the app: the window goes to the tray (next to the clock) and
-the app keeps running. Left-click the icon to open it, right-click for **Open**, **Start with Windows** and **Quit**. The installer
-has a "Start Karins jigsaw when I sign in" choice (on by default); it starts the app hidden (`--tray`). A new message, friend request or answer
-shows as a Windows notification, and clicking it opens the conversation. This needs the web app's own switch: in the app, Settings → Sound and notifications → turn on
-notifications on this computer.
 
 **MSIX package:** `npm run windows:release` also makes `client-wrappers/windows/msix/output/KarinsJigsaw.msix` (after the installer; it is not put on the website, and a problem there only prints a warning; leave it out with `-- --no-msix`). `npm run windows:msix` makes only the package (`-- --unsigned`: no signing, only for checks; `-- --skip-publish`: use the files already in `publish/`). Needs the Windows 10/11 SDK (`makeappx.exe`, `signtool.exe`). The manifest is `msix/AppxManifest.xml` (logos in `msix/Assets/`, made from `icon-512.png`); the version comes from `KarinsJigsaw.csproj`. **Signing:** Windows installs only a signed MSIX. With `SF_MSIX_PFX`, `SF_MSIX_PFX_PASSWORD` and `SF_MSIX_PUBLISHER` (the certificate's Subject) in `.env` that certificate signs it; without them a self-signed TEST certificate "Karins jigsaw MSIX test" is made in your Current User store (public part: `msix/output/KarinsJigsaw-test.cer`, which a computer must trust under Local Machine > Trusted People before it installs the package). For the Microsoft Store the Store signs the package. Known differences of the packaged app: Windows redirects its writes to `%LOCALAPPDATA%` into a folder of the package, so it starts with its own empty sign-in (not the one of the installer version); the "Start with Windows" switch writes the registry Run key, which does not start a packaged app (a manifest start-up task is needed, not done yet).
 
-**Share target (MSIX package only):** "Karins jigsaw" appears in the Windows share dialog for a link or text (the manifest has `windows.shareTarget`, the code is `SharedContent.cs`). A share starts the app (or, when it runs, a second start hands it to the first copy through a pipe only this person can reach); the window opens on the web app's `/share-in` page with the title, text and link as parameters, where the person chooses the friend or group; the text then lands in the writing field of that conversation (`/friends/:id/send?draft=`) and **nothing is sent until the person presses Send**. What is shared is cut to 4000 characters and cleaned of control characters. Not tried on a computer yet (the package has to be installed with the test certificate trusted, then share a link from Edge): packing and the build are checked, the share dialog is not.
-
-**Log:** an error in a message from the page to the app is written to `%LOCALAPPDATA%\KarinsJigsawpp.log`.
-
 Not done yet:
-- Whether a notification of the web app (it comes through the service worker) reaches the tray in every case is not tried yet:
-  `NotificationReceived` in `MainWindow.xaml.cs` is where to look if it does not.
 - **Google sign-in** in an embedded window may be refused by Google. Email and phone sign-in do not depend on it.
 - **Signing** the installer with a code-signing certificate (without it Windows SmartScreen warns on the first start) and **automatic updates**.
-- Not compiled or tried on Windows yet: the first `windows:run` may need a small fix.
+- The app compiles; it has not been run or installed on a computer yet.
 
 ## Offering it for download on the website
-`npm run windows:release` copies `client-wrappers/windows/installer/output/KarinsJigsawSetup.exe` to `frontend/public/downloads/KarinsJigsawSetup.exe` (not committed); `windows:release` then runs `npm run deploy:hosting` (skip it with `-- --no-deploy`), which
-publishes it, and the Install page shows **Download for Windows** to people on a Windows computer (only when the file is there). A new version is a new
+`npm run windows:release` copies `client-wrappers/windows/installer/output/KarinsJigsawSetup.exe` to `frontend/public/installs/KarinsJigsawSetup.exe` (not committed); `windows:release` then runs `npm run deploy:hosting` (skip it with `-- --no-deploy`), which
+publishes it at `https://karins-jigsaw.web.app/installs/KarinsJigsawSetup.exe` (no page links to it yet). A new version is a new
 build, `windows:release` and a deploy: people download the installer again (no automatic updates yet).

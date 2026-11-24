@@ -3,5 +3,7 @@
   "opening": "Öppnar hjälpen…",
   "tabGuide": "Hjälp",
   "tabAbout": "Om",
-  "documents": "Dokument"
+  "documents": "Dokument",
+  "version": "Version",
+  "devBuild": "utvecklingsbygge"
 }

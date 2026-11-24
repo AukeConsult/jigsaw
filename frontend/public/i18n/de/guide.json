@@ -3,5 +3,7 @@
   "opening": "Die Hilfe wird geöffnet…",
   "tabGuide": "Hilfe",
   "tabAbout": "Über",
-  "documents": "Dokumente"
+  "documents": "Dokumente",
+  "version": "Version",
+  "devBuild": "Entwicklungsversion"
 }

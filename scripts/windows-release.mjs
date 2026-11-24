@@ -4,7 +4,7 @@
 //   npm run windows:release -- --no-msix       the same without the MSIX package (see scripts/windows-msix.mjs)
 // 1. dotnet publish   -> client-wrappers/windows/publish/KarinsJigsaw.exe (self-contained, no .NET needed to run it)
 // 2. Inno Setup (ISCC) -> client-wrappers/windows/installer/output/KarinsJigsawSetup.exe
-// 3. copy             -> frontend/public/downloads/KarinsJigsawSetup.exe
+// 3. copy             -> frontend/public/installs/KarinsJigsawSetup.exe
 // 3b. MSIX package    -> client-wrappers/windows/msix/output/KarinsJigsaw.msix (not put on the website; a problem here only warns)
 // 4. npm run deploy:hosting -> the website, with the new installer on the Install page (the installer is git-ignored: this has to run on THIS computer)
 // Needs on this computer: the .NET SDK 8 or newer, and Inno Setup 6 (https://jrsoftware.org/isdl.php; found in its usual folders, not only on the PATH).
@@ -17,7 +17,7 @@ import { buildMsix } from "./windows-msix.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const publishFolder = join(root, "client-wrappers", "windows", "publish");
 const installer = join(root, "client-wrappers", "windows", "installer", "output", "KarinsJigsawSetup.exe");
-const target = join(root, "frontend", "public", "downloads", "KarinsJigsawSetup.exe");
+const target = join(root, "frontend", "public", "installs", "KarinsJigsawSetup.exe");
 const deploy = !process.argv.includes("--no-deploy");
 const msix = !process.argv.includes("--no-msix");
 
@@ -65,10 +65,10 @@ function copyWithRetry(from, to, tries = 30) {
   }
 }
 
-console.log("\n== 3/4 Copy to the website downloads");
+console.log("\n== 3/4 Copy to the website installs folder");
 mkdirSync(dirname(target), { recursive: true });
 copyWithRetry(installer, target);
-console.log(`${(statSync(target).size / 1024 / 1024).toFixed(1)} MB in frontend/public/downloads/KarinsJigsawSetup.exe`);
+console.log(`${(statSync(target).size / 1024 / 1024).toFixed(1)} MB in frontend/public/installs/KarinsJigsawSetup.exe`);
 
 if (msix) {
   // the installer is the download of the website: a problem with the MSIX package must not stop the release

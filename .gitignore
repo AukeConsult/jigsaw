@@ -17,6 +17,7 @@ firebase-export-*/
 # generated copy of functions/src/models/shared (scripts/sync-models.mjs)
 frontend/src/app/models/shared/
 frontend/src/environments/version.ts
+frontend/public/version.json
 # secrets and keys: never committed
 service-account*.json
 *-firebase-adminsdk-*.json
@@ -24,7 +25,7 @@ client-wrappers/android/app/google-services.json
 # the iPhone build's Firebase file (made by scripts/ios-config.mjs)
 client-wrappers/ios/App/App/GoogleService-Info.plist
 # built apps and installers: made by the scripts, put on the website, never committed
-frontend/public/downloads/
+frontend/public/installs/
 client-wrappers/android/build/
 client-wrappers/android/app/build/
 client-wrappers/android/.gradle/

@@ -65,11 +65,14 @@ export function firestoreJigsawSearch(
 /**
  * The route of the search (mounted at `/jigsaw-search`). GET with categories, sizes, difficulties, languages, owners, text, favorites, sort, limit and page: the jigsaws the person may see that
  * match, a page of them, with how many there are in all. `/facets` counts the jigsaws for each choice. Both are over what `store.load` reads (the newest jigsaws, and up to
- * `SEARCH_MAX_READ` of each owner's, `owners` says who the owners are). **Only public jigsaws are found, whoever asks** (the owner and an admin too): a private or hidden one is not on the
- * front page or in the search; its owner finds it in their own list (`/mine`), and it is opened by its address.
+ * `SEARCH_MAX_READ` of each owner's, `owners` says who the owners are). **Public jigsaws are found by everybody, and a private one only by those it is private for** (`canFind`: its owner and each
+ * player who has a round on it, the one who asks says who they are in `X-Jigsaw-User`; an admin finds only their own): it is on the front page and in the search of those. A hidden one is never
+ * found here: its owner finds it in their own list (`/mine`), and it is opened by its address.
  */
 export function jigsawSearchRouter(
   store: JigsawSearchStore,
+  /** whether the person finds this private jigsaw on the front page: its owner, and a player who has a round on it */
+  canFind: (jigsaw: JigsawSummary, me: string | undefined) => Promise<boolean>,
   owners: () => Promise<string[]>,
   favorites: (userId: string) => Promise<string[]>,
   solvedOf: (userId: string, among: readonly JigsawSummary[]) => Promise<string[]>,
@@ -77,11 +80,12 @@ export function jigsawSearchRouter(
   keyed: (jigsaw: JigsawSummary) => Promise<JigsawSummary> = async (j) => j,
 ): express.Router {
   const router = express.Router();
-  /** The public jigsaws, the newest first; with `only.favorites`, those the person has ticked, with `only.solved`, those the person has solved (none for nobody). */
+  /** The jigsaws the person finds, the newest first: the public ones and the private ones that are the person's (owner or player); with `only.favorites`, those the person has ticked, with `only.solved`, those the person has solved (none for nobody). */
   const visible = async (me: string | undefined, only: { favorites?: boolean; solved?: boolean } = {}): Promise<JigsawSummary[]> => {
     // who the owners are, the jigsaws and the favorites: the favorites are asked for while the owners are, and the jigsaws as soon as the owners are known
     const [all, mine] = await Promise.all([owners().then((who) => store.load(who, SEARCH_MAX_READ)), only.favorites && me ? favorites(me) : Promise.resolve([] as string[])]);
-    const seeable = all.filter((j) => !JigsawVisibilities.restricted(j.visibility)); // a private or hidden one is never found here
+    const seen = await Promise.all(all.map((j) => (!JigsawVisibilities.listed(j.visibility) ? false : j.visibility !== "owner" ? true : me ? canFind(j, me) : false))); // a hidden one is never found; the private ones are asked about at the same time
+    const seeable = all.filter((_, i) => seen[i]);
     const favored = new Set(mine);
     const solved = new Set(only.solved && me ? await solvedOf(me, seeable) : []);
     return seeable.filter((j) => (!only.favorites || favored.has(j.id)) && (!only.solved || (!!me && solved.has(j.id))));

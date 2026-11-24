@@ -9,11 +9,12 @@
     "test": "ng test",
     "test:reach": "ng test --no-watch --include=src/app/board/jigsaw-board/jigsaw-board.reach.spec.ts",
     "sync:models": "node ../scripts/sync-models.mjs",
+    "sync:version": "node ../scripts/sync-version.mjs",
     "cap": "cap",
-    "prestart": "npm run sync:models",
-    "prebuild": "npm run sync:models",
-    "prewatch": "npm run sync:models",
-    "pretest": "npm run sync:models"
+    "prestart": "npm run sync:models && npm run sync:version",
+    "prebuild": "npm run sync:models && node ../scripts/sync-version.mjs --bump",
+    "prewatch": "npm run sync:models && npm run sync:version",
+    "pretest": "npm run sync:models && npm run sync:version"
   },
   "prettier": {
     "printWidth": 100,
