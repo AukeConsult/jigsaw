@@ -1,7 +1,21 @@
 {
-  "appId": "io.canvas.app",
+  "appId": "io.karinsjigsaw.app",
   "appName": "Karins jigsaw",
   "webDir": "dist/frontend/browser",
-  "android": { "path": "../client-wrappers/android" },
-  "server": { "url": "https://karins-jigsaw.web.app", "cleartext": false }
+  "android": {
+    "path": "../client-wrappers/android"
+  },
+  "server": {
+    "url": "https://karins-jigsaw.web.app",
+    "cleartext": false
+  },
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": ["google.com"]
+    }
+  },
+  "ios": {
+    "path": "../client-wrappers/ios"
+  }
 }

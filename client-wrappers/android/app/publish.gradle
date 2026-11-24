@@ -1,0 +1,28 @@
+// Our own Gradle tasks (group "karinsjigsaw"): hand out the Android app from the website, without an app store.
+// Run them in Android Studio (Gradle panel > Tasks > karinsjigsaw) or in this folder:  gradlew publishApk   /   gradlew deployApp
+// (Android Studio uses its own Java: no JAVA_HOME needed there.)
+
+// publishApk: builds the app file and puts it where the website serves it: frontend/public/downloads/KarinsJigsaw.apk
+// (git-ignored). With the release key set up (SF_KEYSTORE... in .env, see build.gradle) it builds the signed RELEASE app; without it
+// it falls back to the debug key: fine to install by hand, but a debug-signed app cannot be updated by a release-signed one.
+def signedRelease = android.signingConfigs.findByName('release') != null
+tasks.register('publishApk', Copy) {
+    group = 'karinsjigsaw'
+    description = 'Builds the app (release-signed when the keystore is set up) and copies it to frontend/public/downloads/KarinsJigsaw.apk'
+    dependsOn signedRelease ? 'assembleRelease' : 'assembleDebug'
+    from layout.buildDirectory.file(signedRelease ? 'outputs/apk/release/app-release.apk' : 'outputs/apk/debug/app-debug.apk')
+    into rootProject.file('../../frontend/public/downloads')
+    rename { 'KarinsJigsaw.apk' }
+    doLast { logger.lifecycle("KarinsJigsaw.apk is signed with the ${signedRelease ? 'RELEASE' : 'DEBUG'} key") }
+}
+
+// deployApp: publishApk, then puts the website (with the file) online: `npm run deploy:hosting` in the project root
+// (needs Node and the Firebase login of this computer). The Install page and the sign-in page then offer the download.
+tasks.register('deployApp', Exec) {
+    group = 'karinsjigsaw'
+    description = 'publishApk, then deploys the website (Firebase Hosting) so the app can be downloaded'
+    dependsOn 'publishApk'
+    workingDir rootProject.file('../..')
+    def windows = org.gradle.internal.os.OperatingSystem.current().isWindows()
+    commandLine(windows ? ['cmd', '/c', 'npm', 'run', 'deploy:hosting'] : ['npm', 'run', 'deploy:hosting'])
+}

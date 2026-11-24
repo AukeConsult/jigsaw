@@ -21,5 +21,18 @@ frontend/src/environments/version.ts
 service-account*.json
 *-firebase-adminsdk-*.json
 client-wrappers/android/app/google-services.json
+# the iPhone build's Firebase file (made by scripts/ios-config.mjs)
+client-wrappers/ios/App/App/GoogleService-Info.plist
+# built apps and installers: made by the scripts, put on the website, never committed
+frontend/public/downloads/
+client-wrappers/android/build/
+client-wrappers/android/app/build/
+client-wrappers/android/.gradle/
+client-wrappers/android/local.properties
+client-wrappers/windows/bin/
+client-wrappers/windows/obj/
+client-wrappers/windows/publish/
+client-wrappers/windows/installer/output/
+client-wrappers/windows/msix/output/
 *.keystore
 *.jks

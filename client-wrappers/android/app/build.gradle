@@ -1,0 +1,76 @@
+apply plugin: 'com.android.application'
+
+// Release signing: the keystore and its passwords are NEVER in git. They come from client-wrappers/android/local.properties (git-ignored) or from
+// environment variables of the same name, or from the project's .env, e.g. in local.properties:
+//   SF_KEYSTORE=C:/keys/karinsjigsaw.jks
+//   SF_KEYSTORE_PASSWORD=...
+//   SF_KEY_ALIAS=karinsjigsaw
+//   SF_KEY_PASSWORD=...
+// Without them assembleRelease still works but gives an unsigned APK.
+def signingProps = new Properties()
+rootProject.file('local.properties').withInputStream { signingProps.load(it) }
+// the project's .env (git-ignored) is read too, but only for the SF_ keys
+def envFile = rootProject.file('../../.env')
+if (envFile.exists()) {
+    envFile.eachLine { line ->
+        def m = line =~ /^\s*(SF_[A-Z_]+)\s*=\s*(.*?)\s*$/
+        if (m && !signingProps.getProperty(m[0][1]) && m[0][2]) signingProps.setProperty(m[0][1], m[0][2])
+    }
+}
+def signingValue = { String name -> signingProps.getProperty(name) ?: System.getenv(name) }
+def canSign = signingValue('SF_KEYSTORE') && signingValue('SF_KEYSTORE_PASSWORD') && signingValue('SF_KEY_ALIAS')
+
+android {
+    namespace = "io.karinsjigsaw.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "io.karinsjigsaw.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (canSign) {
+            release {
+                storeFile file(signingValue('SF_KEYSTORE'))
+                storePassword signingValue('SF_KEYSTORE_PASSWORD')
+                keyAlias signingValue('SF_KEY_ALIAS')
+                keyPassword signingValue('SF_KEY_PASSWORD') ?: signingValue('SF_KEYSTORE_PASSWORD')
+                enableV1Signing true
+                enableV2Signing true
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (canSign) signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+apply from: 'publish.gradle' // our tasks: publishApk, deployApp
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Google sign-in in the app won't work")
+}

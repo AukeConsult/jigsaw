@@ -2,7 +2,7 @@
 
 Make a jigsaw puzzle from any picture and put it together on the screen, alone or with others: users, rounds, timing. Texts and the user guide are in English, Norwegian, Swedish, Danish, Finnish, German, French, Spanish and Dutch.
 
-The project has the same layout as Seven Friends: an Angular web app (`frontend/`), an Express backend as a Firebase Cloud Function (`functions/`), and an Android shell (Capacitor, `client-wrappers/android`).
+The project has the same layout as Seven Friends: an Angular web app (`frontend/`), an Express backend as a Firebase Cloud Function (`functions/`), and the native apps that wrap the site (`client-wrappers/`: Android and iPhone with Capacitor, Windows with WebView2; app id `io.karinsjigsaw.app`, see `client-wrappers/README.md`).
 
 It shares the Firebase project `sevenfriends` but has its own Hosting site (`karins-jigsaw`, target `jigsaw`) and its own function (`jigsawApi`, served at `/jigsaw/api`, codebase `jigsaw`).
 
