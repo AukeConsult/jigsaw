@@ -31,5 +31,7 @@
   "step2": "Dra brikkene dit de hører hjemme.",
   "step3": "Vil du ha ditt eget? Lag et av et bilde:",
   "makeOwn": "Lag et puslespill",
-  "hide": "Skjul"
+  "hide": "Skjul",
+  "showBand": "Vis",
+  "hideBand": "Skjul"
 }

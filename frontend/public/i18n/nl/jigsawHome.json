@@ -31,5 +31,7 @@
   "step2": "Sleep de stukjes naar hun plek.",
   "step3": "Wil je een eigen puzzel? Maak er een van een afbeelding:",
   "makeOwn": "Puzzel maken",
-  "hide": "Verbergen"
+  "hide": "Verbergen",
+  "showBand": "Tonen",
+  "hideBand": "Verbergen"
 }

@@ -31,5 +31,7 @@
   "step2": "Vedä palat paikoilleen.",
   "step3": "Haluatko oman? Tee sellainen kuvasta:",
   "makeOwn": "Tee palapeli",
-  "hide": "Piilota"
+  "hide": "Piilota",
+  "showBand": "Näytä",
+  "hideBand": "Piilota"
 }

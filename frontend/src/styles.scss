@@ -404,6 +404,7 @@ app-category-picker {
 }
 
 .band-badge {
+  cursor: pointer; // the heading is a button: it folds the band and opens it again
   // the heading of a band (Ongoing) is a badge in the normal text size of the app (it grows with the screen, from 16 to 18 px), and its room is in `em`, so the whole badge follows the text
   --bs-badge-font-size: var(--app-fs-text);
   --bs-badge-padding-x: 1em;

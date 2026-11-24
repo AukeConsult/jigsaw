@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, computed, effect, inject, output, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { isBoolean, readPreference, writePreference } from '../../core/preferences';
 import { WelcomeTime } from '../../core/welcome-time';
 import { AuthService } from '../../logons/auth.service';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
@@ -55,6 +56,14 @@ export class MyRounds {
   /** the pictures of the welcome band (jigsaws almost put together), and which one is shown: they follow each other, round and round, every few seconds */
   protected readonly art = WELCOME_ART;
   protected readonly artIndex = signal(0);
+
+  /** the band is folded to its badge (kept on the device, so it stays as the person left it): only the heading is left, and a press on it opens the band again */
+  protected readonly folded = signal(readPreference('jigsaw.roundsFolded', false, isBoolean));
+
+  protected toggleFolded(): void {
+    this.folded.update((now) => !now);
+    writePreference('jigsaw.roundsFolded', this.folded());
+  }
 
   protected readonly clock = clockOf;
   private readonly row = viewChild<ElementRef<HTMLElement>>('row');

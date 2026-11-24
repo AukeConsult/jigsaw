@@ -31,5 +31,7 @@
   "step2": "Arrastra las piezas a su sitio.",
   "step3": "¿Quieres uno propio? Haz uno a partir de una imagen:",
   "makeOwn": "Hacer un puzle",
-  "hide": "Ocultar"
+  "hide": "Ocultar",
+  "showBand": "Mostrar",
+  "hideBand": "Ocultar"
 }

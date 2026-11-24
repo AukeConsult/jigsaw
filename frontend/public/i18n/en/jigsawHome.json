@@ -31,5 +31,7 @@
   "step2": "Drag the pieces to where they belong.",
   "step3": "Want your own? Make one from a picture:",
   "makeOwn": "Make a jigsaw",
-  "hide": "Hide"
+  "hide": "Hide",
+  "showBand": "Show",
+  "hideBand": "Hide"
 }
