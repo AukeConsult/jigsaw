@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { JigsawUserService } from './jigsaw-user.service';
 import { JigsawPiece, PieceMove } from '../models/shared/jigsaw';
-import { PlayOverrides, PlaySettings, PlaySpec } from '../models/shared/play';
+import { PlayChoice, PlayOverrides, PlaySettings, PlaySpec } from '../models/shared/play';
 import { ListedRoundsPage, RoundsView } from '../models/shared/rounds-list';
 
 /** A play as it is opened: the play, the settings it is played with, and the pieces of the jigsaw as this play has them. */
@@ -12,6 +12,8 @@ export interface PlayDetail {
   play: PlaySpec;
   settings: PlaySettings;
   pieces: JigsawPiece[];
+  /** only a round that has a cut of its own (a round of a picture): the size of its picture area, its grid and how wide its store is; the other rounds have the jigsaw's */
+  layout?: { width: number; height: number; gridSize: number; storeWidth: number };
 }
 
 /** A game of a user with the jigsaw it is a game of. */
@@ -60,9 +62,9 @@ export class PlaysService {
     return (await firstValueFrom(this.http.get<{ played: boolean }>(`${this.base(jigsawId)}/summary`))).played;
   }
 
-  /** starts a game: the pieces are scattered, the difficulty is copied from the jigsaw */
-  start(jigsawId: string, userId: string): Promise<PlaySpec> {
-    return firstValueFrom(this.http.post<PlaySpec>(this.base(jigsawId), { userId }));
+  /** starts a game: the pieces are scattered, the difficulty is copied from the jigsaw; a picture is cut as chosen (the number of pieces and the difficulty) */
+  start(jigsawId: string, userId: string, choice?: PlayChoice): Promise<PlaySpec> {
+    return firstValueFrom(this.http.post<PlaySpec>(this.base(jigsawId), { userId, ...choice }));
   }
 
   /** starts this round over: the pieces are scattered anew and the time played is nothing again */

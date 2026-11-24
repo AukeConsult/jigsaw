@@ -62,5 +62,10 @@
   "couldNotResetRounds": "Kierroksia ei voitu poistaa: vain omistaja voi.",
   "motive": "Kuvan vaikeus",
   "youSolvedIt": "Olet ratkaissut tämän palapelin",
-  "roundProtected": "Lukittu: aloitettu tilin kirjautumisella"
+  "roundProtected": "Lukittu: aloitettu tilin kirjautumisella",
+  "startTitle": "Valitse palat ja vaikeustaso",
+  "startPieces": "Palat",
+  "startGo": "Aloita kierros",
+  "startSolved": "ratkaistu",
+  "choosePieces": "Valitset palat ja vaikeustason kierrosta aloittaessasi"
 }

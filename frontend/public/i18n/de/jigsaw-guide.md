@@ -14,6 +14,8 @@ Mach aus jedem Bild ein Puzzle und setze es am Bildschirm zusammen. Alles wird v
 4. Wähle die **Schwierigkeit** und ob es **Mit Zeitmessung** sein soll. Unter **Weitere Optionen** kannst du außerdem Sprache, Kategorien, Aussehen, Autor und Sichtbarkeit ändern.
 5. Drücke **Speichern** (oder **Speichern und mit KI analysieren**, wobei die KI auch Kategorien, Namen und Beschreibung setzt). Die Seite des neuen Puzzles öffnet sich: starte dort eine Runde.
 
+**Ein Bild oder ein fertiges Puzzle:** oben im Formular wählst du, was du erstellst. Ein **Bild** (die erste Wahl) wird nur mit seinem Bild gespeichert: Wer spielt, wählt beim Start einer Runde die Anzahl der Teile und die Schwierigkeit, so kann dasselbe Bild in verschiedenen Größen gespielt werden (ein Bild, das du mit einer Anzahl Teile gelöst hast, kannst du mit einer anderen noch spielen). Bei einem Bild entfallen **Größe und Teile** und die **Schwierigkeit**. Bei einem **fertigen Puzzle** wählst du Teile und Schwierigkeit selbst, wie oben.
+
 ## Spielen
 
 * Ziehe die Teile aus dem Rahmen neben dem Bild (auf einem kleinen Bildschirm darunter) auf das Bild. Ein Teil bleibt liegen, wo du es loslässt.

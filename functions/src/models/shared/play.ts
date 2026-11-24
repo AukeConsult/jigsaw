@@ -1,5 +1,7 @@
 import { JigsawSettings, JigsawSpec } from './jigsaw-settings';
-import { JigsawCut, JigsawPiece, JigsawPieces, PieceMove, JIGSAW_MAX_PIECES } from './jigsaw';
+import { JigsawKinds } from './jigsaw-kind';
+import { DIFFICULTIES } from './jigsaw-search';
+import { JigsawCut, JigsawPiece, JigsawPieces, PieceChoice, PieceMove, JIGSAW_MAX_PIECES } from './jigsaw';
 import { STICK_TOLERANCE_PX } from './puzzle';
 import { JigsawUsers } from './jigsaw-user';
 
@@ -27,6 +29,25 @@ export type PlayOverrides = Partial<Pick<JigsawSpec, PlayOverrideKey>>;
 export type PlayOverridesChange = { [K in PlayOverrideKey]?: NonNullable<JigsawSpec[K]> | null };
 
 export type PlayStatus = 'active' | 'solved';
+
+/** The cut a round of a picture has of its own: how many pieces across and down, and the side of a piece in pixels (the picture area is `columns * grid` wide and `rows * grid` high). */
+export interface PlayCut {
+  columns: number;
+  rows: number;
+  grid: number;
+}
+
+/** What a person chooses when a round of a picture starts: the cut (a whole number of columns and rows), the difficulty (the snap range, in percent of the grid) and whether the round is timed. */
+export interface PlayChoice {
+  columns: number;
+  rows: number;
+  snapPercent: number;
+  /** `false`: no clock in this round (left out: it follows the picture, which has a clock unless it says it has none) */
+  timed?: boolean;
+}
+
+/** The subcollection of a round that holds the pieces of its own cut: `jigsaw/<id>/plays/<play id>/pieces/<piece id>` (the same documents as `JIGSAW_PIECES` under a jigsaw). */
+export const PLAY_PIECES = 'pieces';
 
 /** One game of a jigsaw. */
 export interface PlaySpec {
@@ -59,6 +80,12 @@ export interface PlaySpec {
   protected?: boolean;
   /** the round is made but nobody has moved a piece yet (looking at it and going back does not make a round): it is not listed, and not counted as played, until the first piece is moved */
   fresh?: boolean;
+  /** a round of a picture: the cut it was started with (its pieces are the documents under it); a round of a ready jigsaw has none and inherits the cut of the jigsaw */
+  cut?: PlayCut;
+  /** a round of a picture: the difficulty it was started with (the snap range in percent of the grid); without it the round follows the jigsaw's */
+  snapPercent?: number;
+  /** a round of a picture: `false` when it was started without a clock (left out: the round follows the picture) */
+  timed?: false;
   /** the look this play has chosen (the jigsaw's is used until the player changes it); never the difficulty, which is the jigsaw's */
   overrides: PlayOverrides;
 }
@@ -104,14 +131,82 @@ export class Plays {
   }
 
   /** The settings a play is played with. */
-  static effective(jigsaw: Pick<JigsawSpec, PlayOverrideKey | 'snapPercent'>, play: Pick<PlaySpec, 'overrides'>): PlaySettings {
+  static effective(jigsaw: Pick<JigsawSpec, PlayOverrideKey | 'snapPercent'>, play: Pick<PlaySpec, 'overrides'> & { snapPercent?: number }): PlaySettings {
     const own = play.overrides;
     return {
-      snapPercent: jigsaw.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT, // the difficulty is the jigsaw's
+      snapPercent: play.snapPercent ?? jigsaw.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT, // the round's own difficulty when it was chosen for a picture, else the jigsaw's
       lineWidth: own.lineWidth ?? jigsaw.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH,
       lineColor: own.lineColor ?? jigsaw.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR,
       backColor: own.backColor ?? jigsaw.backColor ?? JigsawSettings.DEFAULT_BACK_COLOR,
     };
+  }
+
+  /**
+   * The jigsaw as this round plays it: what a cut of its own and a difficulty of its own say wins over the jigsaw's (the size of the picture area, the grid, the difficulty, how wide the store is),
+   * everything else is the jigsaw's. A round with none of its own (every round of a ready jigsaw) gets the jigsaw itself, the same object.
+   */
+  static jigsawFor<J extends Pick<JigsawSpec, 'width' | 'height' | 'gridSize' | 'snapPercent' | 'storeWidth'>>(jigsaw: J, play: Pick<PlaySpec, 'cut' | 'snapPercent' | 'storeWidth' | 'timed'>): J {
+    if (!play.cut && play.snapPercent === undefined && play.timed === undefined) return jigsaw;
+    const { cut } = play;
+    return {
+      ...jigsaw,
+      ...(cut ? { width: cut.columns * cut.grid, height: cut.rows * cut.grid, gridSize: cut.grid, storeWidth: play.storeWidth } : {}),
+      ...(play.snapPercent !== undefined ? { snapPercent: play.snapPercent } : {}),
+      ...(play.timed === false ? { timed: false } : {}), // a round without a clock has none, whatever the picture says
+    };
+  }
+
+  /**
+   * The reason a choice at the start of a round is not allowed, or ''. A picture needs one: a number of pieces from `JigsawCut.pieceChoices` for the shape of its picture, and one of the
+   * difficulties. A ready jigsaw has its cut and difficulty already, so a choice for it is refused.
+   */
+  static choiceError(jigsaw: Pick<JigsawSpec, 'kind' | 'width' | 'height'>, choice: unknown): string {
+    if (!JigsawKinds.isPicture(jigsaw)) return choice === undefined ? '' : 'This jigsaw is ready cut: the number of pieces and the difficulty are its own.';
+    if (!choice || typeof choice !== 'object') return 'Choose the number of pieces and the difficulty.';
+    const c = choice as Partial<PlayChoice>;
+    if (!JigsawCut.pieceChoices(jigsaw.width, jigsaw.height).some((o) => o.columns === c.columns && o.rows === c.rows)) return 'Choose one of the numbers of pieces that are offered for this picture.';
+    if (!DIFFICULTIES.some((d) => d.percent === c.snapPercent)) return 'Choose the difficulty: hard, medium or easy.';
+    if (c.timed !== undefined && typeof c.timed !== 'boolean') return 'Say whether the round is timed: yes or no.';
+    return '';
+  }
+
+  /**
+   * Starts a round of a picture with the cut and the difficulty the person chose: the picture area is made `columns * grid` wide and `rows * grid` high (`JigsawCut.layoutOf`), the picture is cut into
+   * pieces, and the round is started with them (see `start`). The round keeps its cut and difficulty, and its pieces are given back to be kept under it. `error` when the choice is not allowed.
+   */
+  static startOwn(
+    jigsaw: Pick<JigsawSpec, 'id' | 'kind' | 'width' | 'height'>,
+    user: { id: string; name: string },
+    choice: PlayChoice,
+    now: number,
+    random: () => number = Math.random,
+  ): { play: Omit<PlaySpec, 'id'>; positions: PlayPositions; pieces: JigsawPiece[] } | { error: string } {
+    const bad = Plays.choiceError(jigsaw, choice);
+    if (bad) return { error: bad };
+    const layout = JigsawCut.layoutOf(jigsaw.width, jigsaw.height, choice.columns, choice.rows);
+    const cutting = JigsawCut.cut(layout.width, layout.height, layout.grid, random);
+    if ('error' in cutting) return { error: cutting.error };
+    const pieces = cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []);
+    const started = Plays.start({ id: jigsaw.id, width: layout.width, height: layout.height, gridSize: layout.grid }, user, pieces, now, random);
+    if ('error' in started) return started;
+    return { play: { ...started.play, cut: { columns: layout.columns, rows: layout.rows, grid: layout.grid }, snapPercent: choice.snapPercent, ...(choice.timed === false ? { timed: false as const } : {}) }, positions: started.positions, pieces };
+  }
+
+  /** The number of pieces to have chosen when the round is started: the offered one nearest to the one the person chose last time, one that is not in `avoid` (sizes already solved) if there is one; none when nothing is offered. */
+  static choiceNear(options: readonly PieceChoice[], wanted: number, avoid: readonly number[] = []): PieceChoice | undefined {
+    const open = options.filter((o) => !avoid.includes(o.count));
+    const from = open.length ? open : options;
+    return [...from].sort((a, b) => Math.abs(Math.log(a.count / wanted)) - Math.abs(Math.log(b.count / wanted)))[0];
+  }
+
+  /** The reason a user may not start a round at this size because they solved it at that size already, or '' (a number of pieces solved is not played twice, another is). Without a size (a ready jigsaw) any solved round blocks. */
+  static blockedBy(rounds: readonly Pick<PlaySpec, 'status' | 'total'>[], total?: number): string {
+    return rounds.some((p) => p.status === 'solved' && (total === undefined || p.total === total)) ? 'You have solved this jigsaw: it cannot be played again.' : '';
+  }
+
+  /** The reason a user may not start another round of a picture because one is going (a piece moved, not solved), or ''. A round that is only opened is replaced instead. */
+  static goingError(rounds: readonly Pick<PlaySpec, 'status' | 'fresh'>[]): string {
+    return rounds.some((p) => p.status !== 'solved' && !p.fresh) ? 'You have a round of this picture going: finish it or delete it to start another.' : '';
   }
 
   /** How many of the pieces are in their own place, of how many there are, for these positions. A piece that has no position is not in place. */
@@ -170,7 +265,7 @@ export class Plays {
   ): { play: PlaySpec; positions: PlayPositions } | { error: string } {
     const started = Plays.start(jigsaw, { id: play.userId, name: play.userName }, pieces, now, random);
     if ('error' in started) return started;
-    return { play: { ...started.play, id: play.id, overrides: play.overrides ?? {} }, positions: started.positions };
+    return { play: { ...started.play, id: play.id, overrides: play.overrides ?? {}, ...(play.cut ? { cut: play.cut } : {}), ...(play.snapPercent !== undefined ? { snapPercent: play.snapPercent } : {}), ...(play.timed === false ? { timed: false as const } : {}) }, positions: started.positions };
   }
 
   /**
@@ -275,6 +370,9 @@ export class Plays {
       total: play.total,
       storeWidth: play.storeWidth,
       ...(play.fresh ? { fresh: true } : {}),
+      ...(play.cut ? { cut: { columns: play.cut.columns, rows: play.cut.rows, grid: play.cut.grid } } : {}),
+      ...(typeof play.snapPercent === 'number' ? { snapPercent: play.snapPercent } : {}),
+      ...(play.timed === false ? { timed: false as const } : {}),
       ...(typeof play.elapsedMs === 'number' && play.elapsedMs > 0 ? { elapsedMs: play.elapsedMs } : {}),
       overrides: Object.fromEntries(PLAY_OVERRIDE_KEYS.filter((k) => play.overrides?.[k] !== undefined).map((k) => [k, play.overrides[k]])) as PlayOverrides,
     };

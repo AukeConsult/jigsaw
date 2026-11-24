@@ -34,8 +34,13 @@
       <a class="card-name fw-semibold text-decoration-none" [routerLink]="link()">{{ item.name }}</a>@if (item.timed !== false) {<i class="bi bi-stopwatch tiny ms-1 text-body-secondary" [title]="t('jigsawList.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tiny ms-1 text-body-secondary" [title]="t('jigsawList.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tiny ms-1 text-body-secondary" [title]="t('jigsawList.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
       <!-- what every card tells: how many pieces and how hard (the words are in the tooltips) -->
       <div class="text-body-secondary tiny">
-        <span class="text-nowrap" [title]="t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}</span>
-        <span class="ms-2 text-nowrap" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
+        @if (isPicture()) {
+          <!-- a picture is cut in each round: the pieces and the difficulty are chosen when the round starts -->
+          <span class="text-nowrap" [title]="t('jigsawList.choosePiecesTitle') || 'The number of pieces and the difficulty are chosen when you start a round'"><i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('jigsawList.choosePieces') || 'Choose pieces' }}</span>
+        } @else {
+          <span class="text-nowrap" [title]="t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}</span>
+          <span class="ms-2 text-nowrap" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
+        }
       </div>
       <!-- the rest only when the Details switch is on -->
       @if (details.on()) {

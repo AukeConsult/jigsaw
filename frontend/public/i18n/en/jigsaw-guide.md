@@ -14,6 +14,8 @@ Make a jigsaw puzzle from any picture and put it together on the screen. Everyth
 4. Choose the **Difficulty** and whether it is **Timed**. Under **More options** you can also change the language, the categories, the look, the author and who sees it.
 5. Press **Save** (or **Save and analyse with AI**, which also has the AI set the categories, the name and the description, and never leaves the page, so you can look at it and change it). Save opens the page of the new jigsaw: start a round from there.
 
+**A picture or a ready jigsaw:** at the top of the form you choose what you make. A **picture** (the first choice) is saved with its picture only: the person who plays chooses the number of pieces and the difficulty when they start a round, so the same picture can be played at different sizes (one you have solved at one number of pieces can still be played at another). For a picture the **Size and pieces** and the **Difficulty** are left out. A **ready jigsaw** has its pieces and difficulty chosen by you, as above.
+
 ## Play
 
 * Drag the pieces from the frame next to the picture (below it on a small screen) to the picture. A piece stays where you leave it.

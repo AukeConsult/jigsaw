@@ -9,7 +9,7 @@ import { TokenUsageStore, firestoreTokenUsageStore, tokenUsageRouter } from "./t
 import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, JIGSAW_ROOT, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
-import { JigsawSettings, JigsawSpec, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity } from "../models";
+import { JigsawKinds, JigsawSettings, JigsawSpec, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity } from "../models";
 import { ImageAccess } from "./image-access";
 import { roundsListRouter } from "./rounds-list";
 import { SecretSource, ViewKeys, firestoreSecret } from "./view-key";
@@ -21,7 +21,7 @@ import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./p
 export const JIGSAW_API = "/jigsaw/api";
 
 /** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
-export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; accountPictures?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; logons?: LogonDeps; viewKeySecret?: SecretSource; now?: () => number } = {}): express.Express {
+export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; accountPictures?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; logons?: LogonDeps; viewKeySecret?: SecretSource; now?: () => number; random?: () => number } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
@@ -82,7 +82,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (req.method === "POST" && !isOwnerOf(c, me)) return void res.status(403).json({ error: "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have." });
     next();
   });
-  router.use("/jigsaw/:id/plays", logons.identify, playsRouter(plays, { jigsaw: jigsawById, pieces, userOf: async (userId) => (await users.get(userId)) ?? null }));
+  router.use("/jigsaw/:id/plays", logons.identify, playsRouter(plays, { jigsaw: jigsawById, pieces, userOf: async (userId) => (await users.get(userId)) ?? null, random: stores.random }));
   // the owner of a jigsaw is a user that exists (chosen from the users); the author of the jigsaw is then that user's name, put there here, not taken from the request
   const stampOwner: express.RequestHandler = async (req, res, next) => {
     const body = (req.body ?? {}) as { ownerUid?: unknown; author?: unknown };
@@ -184,7 +184,16 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   });
   // nor can its picture or its cut into pieces be put in again, taken away or moved once it has been played (the pieces of every round are the ones it has); a jigsaw that
   // is not played can have them put in by whoever is making it (a jigsaw can be made for another user, who is then its owner)
+  // a picture is not cut: its pieces are cut in each round, so none is put in, moved or taken away for the picture itself
+  const notPicture: express.RequestHandler = async (req, res, next) => {
+    const now = await jigsawById(req.params.id);
+    if (now && JigsawKinds.isPicture(now)) return void res.status(409).json({ error: "A picture is not cut: its rounds are." });
+    next();
+  };
   router.put(["/jigsaw-image/:id", "/jigsaw-pieces/:id"], notWhenPlayed);
+  router.put("/jigsaw-pieces/:id", notPicture);
+  router.patch("/jigsaw-pieces/:id", notPicture);
+  router.delete("/jigsaw-pieces/:id", notPicture);
   router.delete(["/jigsaw-image/:id", "/jigsaw-pieces/:id"], ownerOnly("change"), notWhenPlayed);
   router.patch("/jigsaw-pieces/:id", ownerOnly("change"), notWhenPlayed);
   router.use(
@@ -193,7 +202,15 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
       {
         // what the search has read is forgotten when a jigsaw is made, changed or deleted, so the next question sees it
         add: async (input) => (search.forget(), imageAccess.forget(), jigsaw.add(input)),
-        update: async (id, input) => (search.forget(), imageAccess.forget(), jigsaw.update(id, input)),
+        update: async (id, input) => {
+          // a ready jigsaw that is made a picture (it can only be while nobody has played it) loses its pieces: a picture is cut in each round
+          const wasReady = JigsawKinds.isPicture(input) ? ((await jigsawById(id)) ?? undefined) : undefined;
+          search.forget();
+          imageAccess.forget();
+          const saved = await jigsaw.update(id, input);
+          if (saved && wasReady && !JigsawKinds.isPicture(wasReady)) await pieces.replaceAll(id, [], new Map());
+          return saved;
+        },
         list: () => jigsaw.list(),
         remove: async (id) => (search.forget(), imageAccess.forget(), (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id), favorites.removeAllOf(id)]).then(() => true, () => true))),
       },

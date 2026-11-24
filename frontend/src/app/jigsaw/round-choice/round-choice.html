@@ -1,0 +1,31 @@
+<ng-container *transloco="let t">
+  <form class="card card-body mt-3" (submit)="$event.preventDefault(); go()">
+    <h2 class="form-section first"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawPage.startTitle') || 'Choose the pieces and the difficulty' }}</h2>
+    <div class="row g-3">
+      <div class="col-sm-6">
+        <label class="form-label" for="round-pieces">{{ t('jigsawPage.startPieces') || 'Pieces' }}</label>
+        <select id="round-pieces" name="roundPieces" class="form-select" [ngModel]="key()" (ngModelChange)="setPieces($event)">
+          @for (o of options(); track o.key) {
+            <option [value]="o.key" [disabled]="o.solved" [title]="o.columns + ' × ' + o.rows">{{ o.count }}@if (o.solved) { ({{ t('jigsawPage.startSolved') || 'solved' }}) }</option>
+          }
+        </select>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label" for="round-difficulty">{{ t('jigsawPage.difficulty') || 'Difficulty' }}</label>
+        <select id="round-difficulty" name="roundDifficulty" class="form-select" [ngModel]="level()" (ngModelChange)="setLevel($event)">
+          @for (l of levels; track l.key) {
+            <option [value]="l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="form-check form-switch mt-3">
+      <input id="round-timed" name="roundTimed" class="form-check-input" type="checkbox" role="switch" [ngModel]="timed()" (ngModelChange)="setTimed($event)">
+      <label class="form-check-label" for="round-timed" [title]="t('jigsawNew.timedHelp') || 'A clock counts how long each round takes.'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawNew.timed') || 'Timed' }}</label>
+    </div>
+    <div class="d-flex gap-2 mt-3">
+      <button type="submit" class="btn btn-primary" [disabled]="!canStart()"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawPage.startGo') || 'Start the round' }}</button>
+      <button type="button" class="btn btn-outline-secondary" (click)="cancelled.emit()">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+    </div>
+  </form>
+</ng-container>

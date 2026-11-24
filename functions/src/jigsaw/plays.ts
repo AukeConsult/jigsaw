@@ -1,13 +1,15 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { PieceStore } from "./jigsaw-pieces";
-import { JIGSAW_MAX_SIDE, JigsawSpec, JIGSAW, PLAYS, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayPositions, PlaySpec, Plays } from "../models";
+import { JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays } from "../models";
 
 // The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`. A play can only
 // choose the look (see `Plays.overridesError`); the difficulty, the size, the picture and the pieces are the jigsaw's.
 
 /** The most plays of one jigsaw that are listed for a user. */
 const LIST_LIMIT = 100;
+/** How many pieces are written in one Firestore batch. */
+const PIECES_BATCH = 400;
 
 /** The play and where its pieces are, together. */
 export interface PlayRecord {
@@ -17,8 +19,10 @@ export interface PlayRecord {
 
 /** Where the plays are kept (Firestore in the app, memory in the tests). */
 export interface PlayStore {
-  /** Makes a play (its id is made here); the positions are kept with it. */
-  create(jigsawId: string, play: Omit<PlaySpec, "id">, positions: PlayPositions): Promise<PlaySpec>;
+  /** Makes a play (its id is made here); the positions are kept with it, and the pieces of the cut it has of its own (a round of a picture) under it. */
+  create(jigsawId: string, play: Omit<PlaySpec, "id">, positions: PlayPositions, pieces?: JigsawPiece[]): Promise<PlaySpec>;
+  /** the pieces of the cut a round has of its own (`play.cut`), by number: the documents under the round, the same as the pieces under a jigsaw (without graphics) */
+  roundPieces(jigsawId: string, playId: string): Promise<JigsawPiece[]>;
   /** the plays of a jigsaw, newest first; of one user when a user is given */
   list(jigsawId: string, userId?: string): Promise<PlaySpec[]>;
   get(jigsawId: string, playId: string): Promise<PlayRecord | null>;
@@ -40,11 +44,18 @@ export function firestorePlayStore(): PlayStore {
   const db = () => getFirestore();
   const plays = (jigsawId: string) => db().collection(JIGSAW).doc(jigsawId).collection(PLAYS);
   const positionsRef = (jigsawId: string, playId: string) => plays(jigsawId).doc(playId).collection(PLAY_STATE).doc(PLAY_POSITIONS_DOC);
+  const piecesRef = (jigsawId: string, playId: string) => plays(jigsawId).doc(playId).collection(PLAY_PIECES);
   const readPlay = (id: string, data: unknown): PlaySpec => ({ id, ...(Plays.stored(data as Omit<PlaySpec, "id">) as Omit<PlaySpec, "id">) });
 
   return {
-    async create(jigsawId, play, positions) {
+    async create(jigsawId, play, positions, pieces) {
       const ref = plays(jigsawId).doc();
+      // the pieces of its own cut first (in batches: a batch holds 500 writes), then the round itself, so a round is never there without its pieces
+      for (let i = 0; i < (pieces?.length ?? 0); i += PIECES_BATCH) {
+        const chunk = db().batch();
+        for (const piece of pieces!.slice(i, i + PIECES_BATCH)) chunk.set(piecesRef(jigsawId, ref.id).doc(piece.id), JigsawPieces.stored(piece));
+        await chunk.commit();
+      }
       const batch = db().batch();
       batch.set(ref, Plays.stored(play));
       batch.set(positionsRef(jigsawId, ref.id), { data: Plays.positionsToText(positions) });
@@ -57,6 +68,10 @@ export function firestorePlayStore(): PlayStore {
         .map((d) => readPlay(d.id, d.data()))
         .sort((a, b) => Plays.lastActive(b) - Plays.lastActive(a))
         .slice(0, LIST_LIMIT);
+    },
+    async roundPieces(jigsawId, playId) {
+      const snap = await piecesRef(jigsawId, playId).get();
+      return snap.docs.map((d) => d.data() as JigsawPiece).sort((a, b) => a.number - b.number);
     },
     async get(jigsawId, playId) {
       const [play, state] = await Promise.all([plays(jigsawId).doc(playId).get(), positionsRef(jigsawId, playId).get()]);
@@ -151,6 +166,8 @@ export interface PlayDeps {
   userOf: (userId: string) => Promise<{ id: string; name: string; firebaseUids?: string[] } | null>;
   /** the time now, in milliseconds (the tests give their own) */
   now?: () => number;
+  /** numbers from 0 up to 1 for the cut of a picture (the tests give their own) */
+  random?: () => number;
 }
 
 /**
@@ -181,8 +198,12 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
   const ownRound: express.RequestHandler = async (req, res, next) => {
     const record = await plays.get(idOf(req), String(req.params.playId));
     if (record && req.get("X-Jigsaw-User") !== record.play.userId) return bad(res, "This round belongs to someone else: you can look at it, but not change it.", 403);
+    res.locals.round = record?.play; // already read: the pieces of the round are found from it without another read
     next(); // no such round: the handler says so
   };
+
+  /** the pieces a round is played with: those of the cut it has of its own (a round of a picture), else the jigsaw's, as always */
+  const piecesOf = (jigsaw: JigsawSpec, round: PlaySpec | undefined): Promise<JigsawPiece[]> => (round?.cut ? plays.roundPieces(jigsaw.id, round.id) : deps.pieces.list(jigsaw.id));
 
   router.get("/", async (req, res) => {
     if (!(await jigsawOf(req, res))) return;
@@ -202,8 +223,14 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (error) return bad(res, error);
     const user = await deps.userOf(userId as string);
     if (!user) return bad(res, "No such account: choose an account first.", 404);
+    // a picture is cut in the round: the person chooses the number of pieces and the difficulty (a ready jigsaw has its own and refuses a choice)
+    const body = req.body as { columns?: unknown; rows?: unknown; snapPercent?: unknown; timed?: unknown };
+    const asked = body.columns !== undefined || body.rows !== undefined || body.snapPercent !== undefined ? { columns: body.columns, rows: body.rows, snapPercent: body.snapPercent, ...(body.timed !== undefined ? { timed: body.timed } : {}) } : undefined;
+    const wrong = Plays.choiceError(jigsaw, asked);
+    if (wrong) return bad(res, wrong);
     // a jigsaw that the user has solved is not played again by them (it can be looked at, or the solved round deleted)
     const theirs = await plays.list(jigsaw.id, user.id);
+    if (asked) return startOfPicture(res, jigsaw, user, asked as PlayChoice, theirs);
     if (theirs.some((p) => p.status === "solved")) return bad(res, "You have solved this jigsaw: it cannot be played again.", 409);
     // opening a jigsaw again does not make another round: the player's round with no piece moved in it is the one to go on with
     const waiting = theirs.find((p) => p.fresh);
@@ -215,6 +242,20 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     res.status(201).json(Plays.publicOf(await plays.create(jigsaw.id, marked, started.positions)));
   });
 
+  /** Starts a round of a picture: not at a size the user has solved, not while another is going; a round only opened is gone on with when the choice is the same and replaced when it is not. */
+  const startOfPicture = async (res: express.Response, jigsaw: JigsawSpec, user: { id: string; name: string; firebaseUids?: string[] }, choice: PlayChoice, theirs: PlaySpec[]) => {
+    const blocked = Plays.blockedBy(theirs, choice.columns * choice.rows) || Plays.goingError(theirs);
+    if (blocked) return bad(res, blocked, 409);
+    const waiting = theirs.filter((p) => p.fresh);
+    const same = waiting.find((p) => p.cut?.columns === choice.columns && p.cut?.rows === choice.rows && p.snapPercent === choice.snapPercent && (p.timed === false) === (choice.timed === false));
+    if (same) return void res.status(200).json(Plays.publicOf(same));
+    await Promise.all(waiting.map((p) => plays.remove(jigsaw.id, p.id))); // nothing was moved in them: nothing is lost
+    const started = Plays.startOwn(jigsaw, { id: user.id, name: user.name }, choice, now(), deps.random);
+    if ("error" in started) return bad(res, started.error, 409);
+    const marked = Plays.marked(started.play, user, res.locals.logonUid as string | undefined);
+    res.status(201).json(Plays.publicOf(await plays.create(jigsaw.id, marked, started.positions, started.pieces)));
+  };
+
   router.get("/summary", async (req, res) => {
     if (!(await jigsawOf(req, res))) return;
     res.json({ played: await plays.has(idOf(req)) }); // whether anyone has started a game of it: if not, the whole jigsaw can still be edited
@@ -225,15 +266,19 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (!jigsaw) return;
     const record = await plays.get(jigsaw.id, req.params.playId);
     if (!record) return bad(res, "No such play.", 404);
-    const pieces = await deps.pieces.list(jigsaw.id);
-    res.json({ play: Plays.publicOf(record.play), settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, record.positions) });
+    const pieces = await piecesOf(jigsaw, record.play);
+    const layout = Plays.jigsawFor(jigsaw, record.play);
+    // a round of a picture says the size of its picture area, its grid and its store (it has a cut of its own); another round is answered as it was
+    res.json({ play: Plays.publicOf(record.play), settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, record.positions), ...(record.play.cut ? { layout: { width: layout.width, height: layout.height, gridSize: layout.gridSize, storeWidth: layout.storeWidth } } : {}) });
   });
 
   // starts this round over: the pieces are scattered anew and the time is back to nothing (the same round, not another one)
   router.post("/:playId/restart", ownRound, async (req, res) => {
     const jigsaw = await jigsawOf(req, res);
     if (!jigsaw) return;
-    const pieces = await deps.pieces.list(jigsaw.id);
+    const round = res.locals.round as PlaySpec | undefined;
+    const pieces = await piecesOf(jigsaw, round);
+    const layout = round ? Plays.jigsawFor(jigsaw, round) : jigsaw; // the picture area of the round's own cut
     let failed = "";
     let solved = false;
     const saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {
@@ -241,7 +286,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
         solved = true; // a solved round stays solved: it is not played over
         return cur;
       }
-      const again = Plays.restart(cur.play, jigsaw, pieces, now());
+      const again = Plays.restart(cur.play, layout, pieces, now());
       if ("error" in again) {
         failed = again.error;
         return cur;
@@ -278,7 +323,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (storeWidth !== undefined && !(typeof storeWidth === "number" && Number.isInteger(storeWidth) && storeWidth >= 0 && storeWidth <= JIGSAW_MAX_SIDE)) {
       return bad(res, `The store must be a whole number of pixels from 0 to ${JIGSAW_MAX_SIDE} wide.`);
     }
-    const pieces = await deps.pieces.list(jigsaw.id);
+    const pieces = await piecesOf(jigsaw, res.locals.round as PlaySpec | undefined);
     let saved;
     try {
       saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {

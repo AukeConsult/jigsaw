@@ -3,6 +3,7 @@ import { PlacedFigure, PlacedObject } from './placed';
 import { JigsawCategories } from './category';
 import { JigsawLanguages } from './language';
 import { JigsawMotives, MotiveLevel } from './motive';
+import { JigsawKind, JigsawKinds, PICTURE_MAX_SIDE } from './jigsaw-kind';
 
 // A saved jigsaw: its settings, and the check of what comes from outside.
 
@@ -56,6 +57,8 @@ export interface JigsawSpec {
   author?: string;
   /** a jigsaw: the UID of its owner, the user who is its author (chosen from the users; the API puts that user's name in `author`); without it, a jigsaw from before owners */
   ownerUid?: string;
+  /** a jigsaw: `picture` is only a stored picture (the pieces and the difficulty are chosen in each round: no grid, store or snap range of its own); without it, a ready jigsaw (every document from before kinds) */
+  kind?: JigsawKind;
   /** a jigsaw: who sees it: `everyone` (also when it says nothing: the default), `owner` (private: its owner and its players) or `hidden` (only in the list of its owner's own jigsaws, nowhere else); the last two need an owner */
   visibility?: JigsawVisibility;
   /** a jigsaw: a clock counts how long each round takes (also when it says nothing: the default); `false` means no clock */
@@ -102,11 +105,11 @@ export interface JigsawSpec {
 }
 
 /** What the page sends to make a jigsaw. */
-export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** A jigsaw as it comes from outside (the page, the API): it checks itself. */
 export class JigsawSettings {
-  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; kind?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a jigsaw whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -179,10 +182,11 @@ export class JigsawSettings {
    * (the name, the description, the author, who sees it, the look) can still change.
    */
   static changesWhatPlayersShare(
-    before: Pick<JigsawSpec, 'width' | 'height' | 'gridSize' | 'storeWidth' | 'snapPercent' | 'timed'>,
-    after: { width?: unknown; height?: unknown; gridSize?: unknown; storeWidth?: unknown; snapPercent?: unknown; timed?: unknown },
+    before: Pick<JigsawSpec, 'width' | 'height' | 'gridSize' | 'storeWidth' | 'snapPercent' | 'timed'> & { kind?: unknown },
+    after: { width?: unknown; height?: unknown; gridSize?: unknown; storeWidth?: unknown; snapPercent?: unknown; timed?: unknown; kind?: unknown },
   ): boolean {
     return (
+      JigsawKinds.of(after) !== JigsawKinds.of(before) ||
       after.width !== before.width ||
       after.height !== before.height ||
       after.gridSize !== before.gridSize ||
@@ -200,10 +204,12 @@ export class JigsawSettings {
   /** The jigsaw as it is stored, for a jigsaw that is allowed (`error()` is ''): only the known fields, the name trimmed, the objects as `PlacedFigure.stored` gives them. */
   stored(): JigsawInput {
     const i = this.input;
+    const picture = JigsawKinds.isPicture(i); // a picture has no grid, store or snap range: its rounds have them
     return {
       name: (i.name as string).trim(),
       ...(typeof i.author === 'string' && i.author.trim() ? { author: i.author.trim() } : {}),
       ...(typeof i.ownerUid === 'string' && i.ownerUid ? { ownerUid: i.ownerUid } : {}),
+      ...(picture ? { kind: 'picture' as const } : {}), // a ready jigsaw is what none says
       ...(i.visibility === 'owner' || i.visibility === 'hidden' ? { visibility: i.visibility } : {}), // `everyone` is what none says
       ...(i.timed === false ? { timed: false } : {}), // timed is what none says
       ...(typeof i.pictureName === 'string' && i.pictureName.trim() ? { pictureName: i.pictureName.trim() } : {}),
@@ -213,11 +219,11 @@ export class JigsawSettings {
       ...(JigsawLanguages.is(i.language) ? { language: i.language } : {}),
       width: i.width as number,
       height: i.height as number,
-      gridSize: i.gridSize as number,
-      gridVisible: i.gridVisible as boolean,
-      placed: (i.placed as PlacedObject[]).map((p) => PlacedFigure.stored(p)),
-      ...(i.storeWidth ? { storeWidth: i.storeWidth as number } : {}),
-      ...(i.snapPercent !== undefined ? { snapPercent: i.snapPercent as number } : {}),
+      gridSize: picture ? 0 : (i.gridSize as number),
+      gridVisible: picture ? false : (i.gridVisible as boolean),
+      placed: picture ? [] : (i.placed as PlacedObject[]).map((p) => PlacedFigure.stored(p)),
+      ...(i.storeWidth && !picture ? { storeWidth: i.storeWidth as number } : {}),
+      ...(i.snapPercent !== undefined && !picture ? { snapPercent: i.snapPercent as number } : {}),
       ...(i.frameWidth !== undefined ? { frameWidth: i.frameWidth as number } : {}),
       ...(i.lineWidth !== undefined ? { lineWidth: i.lineWidth as number } : {}),
       ...(i.lineColor !== undefined ? { lineColor: (i.lineColor as string).toLowerCase() } : {}),
@@ -232,6 +238,7 @@ export class JigsawSettings {
       name: doc.name ?? '',
       ...(doc.author ? { author: doc.author } : {}),
       ...(doc.ownerUid ? { ownerUid: doc.ownerUid } : {}),
+      ...(JigsawKinds.isPicture(doc) ? { kind: 'picture' as const } : {}),
       ...(doc.visibility === 'owner' || doc.visibility === 'hidden' ? { visibility: doc.visibility } : {}),
       ...(doc.timed === false ? { timed: false } : {}),
       ...(doc.pictureName ? { pictureName: doc.pictureName } : {}),
@@ -262,6 +269,8 @@ export class JigsawSettings {
     if (name.length > JIGSAW_MAX_NAME) return `The name can be at most ${JIGSAW_MAX_NAME} characters.`;
     if (input.author !== undefined && (typeof input.author !== 'string' || input.author.trim().length > JIGSAW_MAX_NAME)) return `The author can be at most ${JIGSAW_MAX_NAME} characters.`;
     if (input.ownerUid !== undefined && (typeof input.ownerUid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(input.ownerUid))) return 'The owner must be the id of an account.';
+    const kind = JigsawKinds.error(input.kind);
+    if (kind) return kind;
     if (input.timed !== undefined && typeof input.timed !== 'boolean') return 'Timed is yes or no.';
     if (input.visibility !== undefined && !(JIGSAW_VISIBILITIES as readonly unknown[]).includes(input.visibility)) return 'A jigsaw is public, private or hidden.';
     if (JigsawVisibilities.restricted(input.visibility as string) && !input.ownerUid) return 'A private or hidden jigsaw needs an owner: choose the author from the accounts.';
@@ -309,6 +318,11 @@ export class JigsawSettings {
     if (lineColor !== undefined && (typeof lineColor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(lineColor))) return 'The colour of the line round the pieces must be written as #rrggbb.';
     const back = input.backColor;
     if (back !== undefined && (typeof back !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(back))) return 'The background colour must be written as #rrggbb.';
+    if (JigsawKinds.isPicture(input)) {
+      if (Math.max(input.width as number, input.height as number) > PICTURE_MAX_SIDE) return `The picture can be at most ${PICTURE_MAX_SIDE} pixels on its longest side.`;
+      if (grid !== 0 || store !== undefined || range !== undefined) return 'A picture has no grid, store or difficulty: the pieces and the difficulty are chosen in each round.';
+      if (Array.isArray(input.placed) && input.placed.length > 0) return 'A picture has no pieces or objects of its own.';
+    }
     const extent = JigsawSettings.extent(input.width as number, input.height as number, grid, store);
     return Puzzle.validate(input.placed, extent.width, extent.height);
   }

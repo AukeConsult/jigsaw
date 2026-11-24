@@ -3,12 +3,14 @@ import { firstValueFrom } from 'rxjs';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { JigsawInput, JigsawSpec } from '../models/shared/jigsaw-settings';
+import { JigsawKind } from '../models/shared/jigsaw-kind';
 import { MotiveLevel } from '../models/shared/motive';
 import { Difficulty, JigsawFacets, JigsawSearch, JigsawSummary, MineAnswer, SearchSort, SizeClass } from '../models/shared/jigsaw-search';
 import { ApiCollection } from '../core/api-collection';
 
 /** What is looked for: a field that is null or left out does not narrow the search. */
 export interface JigsawSearchRequest {
+  kinds?: JigsawKind[] | null;
   categories?: string[] | null;
   sizes?: SizeClass[] | null;
   difficulties?: Difficulty[] | null;

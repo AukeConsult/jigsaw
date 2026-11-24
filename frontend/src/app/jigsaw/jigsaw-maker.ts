@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { JigsawCut, JigsawPieces } from '../models/shared/jigsaw';
 import { JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawInput, JigsawSettings, JigsawSpec } from '../models/shared/jigsaw-settings';
+import { JigsawKind, JigsawKinds } from '../models/shared/jigsaw-kind';
 import { JigsawUserSpec } from '../models/shared/jigsaw-user';
 import { MAX_PICTURE_BYTES, fitPicture } from './fit-picture';
 import { JigsawImageService } from './jigsaw-image.service';
@@ -10,6 +11,8 @@ import { renderPieceGraphics } from './piece-graphics';
 
 /** What the jigsaws that are made are like: the same for every picture. */
 export interface MakeOptions {
+  /** a picture (nothing is cut: each round is) or a ready jigsaw (what none says) */
+  kind?: JigsawKind;
   /** about how many pieces (the picture area is made a whole number of pieces wide and high, so it can differ a little) */
   pieces: number;
   /** how wide the picture area is, in pixels (its height follows the shape of the picture) */
@@ -42,6 +45,7 @@ export class JigsawMaker {
   private readonly pieceApi = inject(JigsawPiecesService);
 
   async make(file: File, owner: JigsawUserSpec, options: MakeOptions, step: (s: MakeStep) => void = () => undefined): Promise<JigsawSpec> {
+    if (options.kind === 'picture') return this.makePicture(file, owner, options, step);
     step('cutting');
     // the picture area has the shape of the picture, and is cut into whole pieces
     const bitmap = await createImageBitmap(file);
@@ -92,6 +96,47 @@ export class JigsawMaker {
       return made;
     } catch (err) {
       if (madeId) await this.jigsaws.remove(madeId).catch(() => undefined); // nothing half made is left
+      throw err;
+    }
+  }
+
+  /**
+   * Makes a picture entry of a picture: the whole picture at the size `JigsawKinds.pictureSize` says, saved with its picture and nothing else (no cut, no pieces, no graphics: each round of it is cut
+   * as the person who plays chooses). A picture that could not be saved is taken away again.
+   */
+  private async makePicture(file: File, owner: JigsawUserSpec, options: MakeOptions, step: (s: MakeStep) => void): Promise<JigsawSpec> {
+    step('cutting');
+    const bitmap = await createImageBitmap(file);
+    const size = JigsawKinds.pictureSize(bitmap.width, bitmap.height);
+    bitmap.close();
+    const picture = await fitPicture(file, size.width, size.height, MAX_PICTURE_BYTES);
+    const input: JigsawInput = {
+      name: nameOfFile(file.name),
+      author: owner.name,
+      ownerUid: owner.id,
+      kind: 'picture',
+      visibility: 'hidden', // as a jigsaw that is made: its owner looks at it, and makes it public when it is good
+      ...(options.timed ? {} : { timed: false }),
+      pictureName: file.name.slice(0, JIGSAW_MAX_PICTURE_NAME),
+      language: options.language,
+      width: size.width,
+      height: size.height,
+      gridSize: 0,
+      gridVisible: false,
+      placed: [],
+      lineWidth: JigsawSettings.DEFAULT_LINE_WIDTH,
+      lineColor: JigsawSettings.DEFAULT_LINE_COLOR,
+      backColor: JigsawSettings.DEFAULT_BACK_COLOR,
+    };
+    let madeId: string | null = null;
+    try {
+      step('uploading');
+      const made = await this.jigsaws.create(input);
+      madeId = made.id;
+      await this.images.upload(made.id, picture);
+      return made;
+    } catch (err) {
+      if (madeId) await this.jigsaws.remove(madeId).catch(() => undefined);
       throw err;
     }
   }

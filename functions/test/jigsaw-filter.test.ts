@@ -6,7 +6,7 @@ const on = (over: Partial<JigsawFilter>): JigsawFilter => ({ ...JigsawFilters.em
 
 describe("a filter of jigsaws", () => {
   it("asks for everything when it is empty, and is on when any choice is made", () => {
-    expect(JigsawFilters.empty()).toEqual({ text: "", categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [] });
+    expect(JigsawFilters.empty()).toEqual({ text: "", kinds: [], categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [] });
     expect(JigsawFilters.isOn(JigsawFilters.empty())).toBe(false);
     expect(JigsawFilters.isOn(on({ text: "  " }))).toBe(false); // no words
     expect(JigsawFilters.isOn(on({ text: "harbour" }))).toBe(true);
@@ -59,6 +59,23 @@ describe("a filter of jigsaws", () => {
     expect(JigsawFilters.toggled(on({}), "sizes", "tiny")).toEqual(on({}));
     expect(JigsawFilters.toggled(on({}), "difficulties", "insane")).toEqual(on({}));
     expect(JigsawFilters.toggled(on({}), "owners", "")).toEqual(on({}));
+  });
+
+  it("has the kind of the entry: one or the other, or both (none is all), nothing else", () => {
+    const picture = JigsawFilters.toggled(on({}), "kinds", "picture");
+    expect(picture.kinds).toEqual(["picture"]);
+    expect(JigsawFilters.isOn(picture)).toBe(true);
+    const both = JigsawFilters.toggled(picture, "kinds", "jigsaw");
+    expect(both.kinds).toEqual(["picture", "jigsaw"]);
+    expect(JigsawFilters.canChoose(both, "kinds", "picture")).toBe(true); // ticked: it can be taken away
+    expect(JigsawFilters.toggled(both, "kinds", "picture").kinds).toEqual(["jigsaw"]);
+    expect(JigsawFilters.toggled(on({}), "kinds", "book")).toEqual(on({})); // not a kind
+    expect(JigsawFilters.query(both).kinds).toEqual(["picture", "jigsaw"]);
+    expect(JigsawFilters.query(on({})).kinds).toBeUndefined(); // none asks for all
+    expect(JigsawFilters.is(both)).toBe(true);
+    expect(JigsawFilters.is({ ...both, kinds: ["book"] })).toBe(false);
+    const { kinds: _kinds, ...kept } = both; // a filter kept before the kinds had none
+    expect(JigsawFilters.is(kept)).toBe(true);
   });
 
   it("has a text with the spaces tidied and not longer than a search takes", () => {

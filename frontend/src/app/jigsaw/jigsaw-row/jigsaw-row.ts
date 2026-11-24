@@ -10,6 +10,7 @@ import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { CardDetails } from '../card-details';
 import { snapLevelOfJigsaw } from '../snap-level';
+import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 
 /** One jigsaw as a row of a list: the small picture, the name and author, the button to show it, and under them the difficulty, pieces, size and date. */
 @Component({
@@ -35,4 +36,6 @@ export class JigsawRow {
   });
   protected readonly favorite = computed(() => this.favorites.isFavorite(this.jigsaw().id));
   protected readonly level = computed(() => snapLevelOfJigsaw(this.jigsaw()));
+  /** the entry is only a picture: it is cut in each round */
+  protected readonly isPicture = computed(() => JigsawKinds.isPicture(this.jigsaw()));
 }

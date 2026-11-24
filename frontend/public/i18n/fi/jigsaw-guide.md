@@ -14,6 +14,8 @@ Tee palapeli mistä tahansa kuvasta ja kokoa se ruudulla. Kaikki tallentuu itses
 4. Valitse **Vaikeustaso** ja onko se **Ajastettu**. Kohdassa **Lisää valintoja** voit muuttaa myös kielen, luokat, ulkonäön, tekijän ja sen, kuka näkee sen.
 5. Paina **Tallenna** (tai **Tallenna ja analysoi tekoälyllä**, joka antaa tekoälyn asettaa myös luokat, nimen ja kuvauksen). Uuden palapelin sivu aukeaa: aloita kierros sieltä.
 
+**Kuva vai valmis palapeli:** lomakkeen yläosassa valitset, mitä teet. **Kuva** (ensimmäinen vaihtoehto) tallennetaan vain kuvana: pelaaja valitsee palojen määrän ja vaikeustason kierrosta aloittaessaan, joten samaa kuvaa voi pelata eri kokoisena (kuvan, jonka olet ratkaissut yhdellä palamäärällä, voi silti pelata toisella). Kuvalle **Koko ja palat** sekä **Vaikeustaso** jäävät pois. **Valmiissa palapelissä** valitset palat ja vaikeustason itse, kuten yllä.
+
 ## Pelaa
 
 * Vedä palat kuvan vieressä olevasta kehyksestä (pienellä näytöllä sen alta) kuvaan. Pala jää siihen, mihin sen jätät.

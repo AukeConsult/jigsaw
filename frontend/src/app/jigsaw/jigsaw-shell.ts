@@ -48,6 +48,8 @@ import { ShareButton } from './share-button/share-button';
             (click)="tools.sidebarOpen.set(!tools.sidebarOpen())"><i class="bi bi-layout-sidebar me-1" aria-hidden="true"></i>{{ t('jigsawShell.details') || 'Details' }}</button>
   </div>
     </ng-template>
+    <!-- on a phone or a tablet the menu is at the bottom: the logo, which is also the way home, is still in the upper left corner -->
+    <a class="app-corner d-lg-none" routerLink="/" aria-label="Karins jigsaw"><span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32"><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span></a>
     @if (tools.active()) {
       <!-- the helper of a round, on a phone or a tablet: at the top of the page, stuck there, while the menu is at the bottom -->
       <div class="app-toolbar d-xl-none border-bottom"><ng-container *ngTemplateOutlet="helper; context: { $implicit: '-top' }" /></div>

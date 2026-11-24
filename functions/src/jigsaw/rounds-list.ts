@@ -40,7 +40,7 @@ export function roundsListRouter(plays: PlayStore, deps: RoundsListDeps): expres
       for (const [n, j] of batch.entries()) {
         if (!rounds[n].length) continue;
         const imageKey = await deps.imageKeyFor(j, me); // asked only for a jigsaw that has rounds to show
-        for (const play of rounds[n]) found.push({ play: Plays.publicOf(play), jigsaw: { id: j.id, name: j.name, ...(j.timed === false ? { timed: false } : {}), ...(imageKey ? { imageKey } : {}) } });
+        for (const play of rounds[n]) found.push({ play: Plays.publicOf(play), jigsaw: { id: j.id, name: j.name, ...(j.timed === false || play.timed === false ? { timed: false } : {}), ...(imageKey ? { imageKey } : {}) } });
       }
     }
     return RoundsList.select(found);

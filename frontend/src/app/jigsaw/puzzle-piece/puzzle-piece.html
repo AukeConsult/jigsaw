@@ -2,6 +2,12 @@
      [style.--app-line-width]="lineWidth() === null ? null : lineWidth()" [style.--app-line-color]="lineColor()" [style.--app-line-opacity]="lineColor() ? 0.55 : null">
   <defs>
     <clipPath [attr.id]="clipId()"><path [attr.d]="path()" /></clipPath>
+    <!-- the tilt: light at the top left, dark at the bottom right -->
+    <linearGradient [attr.id]="'tilt-' + id()" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" class="piece-tilt-light" />
+      <stop offset="0.5" class="piece-tilt-mid" />
+      <stop offset="1" class="piece-tilt-dark" />
+    </linearGradient>
   </defs>
   @if (picture(); as src) {
     <g [attr.clip-path]="'url(#' + clipId() + ')'">
@@ -11,6 +17,10 @@
   } @else {
     <path [attr.d]="path()" class="piece-blank" />
   }
+  <!-- the 3D look: only the tilt shading over the picture and the shadow; the line round the piece is the one the jigsaw chose -->
+  <g [attr.clip-path]="'url(#' + clipId() + ')'" class="piece-bevel">
+    <path [attr.d]="path()" [attr.fill]="'url(#tilt-' + id() + ')'" class="piece-tilt" />
+  </g>
   <path [attr.d]="path()" class="piece-outline" [class.matched]="matched()" />
   @if (numbered()) {
     <!-- the number of its own grid point on the picture: light with the ink round it, so it can be read on any part of the picture -->

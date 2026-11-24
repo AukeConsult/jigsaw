@@ -2,19 +2,24 @@ import type { UserStore } from "../src/jigsaw/jigsaw-users";
 import { etagOf } from "../src/jigsaw/jigsaw-image";
 import type { ImageStore, Picture } from "../src/jigsaw/jigsaw-image";
 import type { PlayRecord, PlayStore } from "../src/jigsaw/plays";
-import { JigsawUserSpec, JigsawUsers, PlaySpec, Plays } from "../src/models";
+import { JigsawPiece, JigsawUserSpec, JigsawUsers, PlaySpec, Plays } from "../src/models";
 
 /** the plays in memory: what the subcollection of a jigsaw is in the app */
 export function memoryPlays(): PlayStore & { all: Map<string, Map<string, PlayRecord>> } {
   const all = new Map<string, Map<string, PlayRecord>>();
   const of = (id: string) => all.get(id) ?? all.set(id, new Map()).get(id)!;
+  const roundPieces = new Map<string, JigsawPiece[]>(); // the pieces under a round that has a cut of its own, by `<jigsaw id>/<play id>`
   let n = 0;
   return {
     all,
-    async create(jigsawId, play, positions) {
+    async create(jigsawId, play, positions, pieces) {
       const saved = { id: `play${++n}`, ...Plays.stored(play) } as PlaySpec;
       of(jigsawId).set(saved.id, { play: saved, positions });
+      if (pieces) roundPieces.set(`${jigsawId}/${saved.id}`, pieces);
       return saved;
+    },
+    async roundPieces(jigsawId, playId) {
+      return roundPieces.get(`${jigsawId}/${playId}`) ?? [];
     },
     async list(jigsawId, userId) {
       return [...of(jigsawId).values()].map((r) => r.play).filter((p) => !userId || p.userId === userId).sort((a, b) => b.startedAt - a.startedAt);

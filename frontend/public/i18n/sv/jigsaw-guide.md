@@ -14,6 +14,8 @@ Gör ett pussel av vilken bild som helst och lägg det på skärmen. Allt sparas
 4. Välj **Svårighetsgrad** och om det ska vara **Tidtagning**. Under **Fler val** kan du också ändra språk, kategorier, utseende, vem som har gjort det och vem som ser det.
 5. Tryck **Spara** (eller **Spara och analysera med AI**, som också låter AI sätta kategorier, namn och beskrivning). Sidan för det nya pusslet öppnas: starta en runda därifrån.
 
+**En bild eller ett färdigt pussel:** överst i formuläret väljer du vad du gör. En **bild** (det första valet) sparas bara med sin bild: den som spelar väljer antal bitar och svårighetsgrad när en rond startas, så samma bild kan spelas i olika storlekar (en bild du löst med ett antal bitar kan fortfarande spelas med ett annat). För en bild utgår **Storlek och bitar** och **Svårighetsgrad**. Ett **färdigt pussel** har bitar och svårighetsgrad valda av dig, som ovan.
+
 ## Spela
 
 * Dra bitarna från ramen bredvid bilden (under den på en liten skärm) till bilden. En bit ligger kvar där du släpper den.

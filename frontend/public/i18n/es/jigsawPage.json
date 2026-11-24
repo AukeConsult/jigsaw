@@ -62,5 +62,10 @@
   "couldNotResetRounds": "No se pudieron borrar las rondas: solo su propietario puede.",
   "motive": "Dificultad del motivo",
   "youSolvedIt": "Has resuelto este rompecabezas",
-  "roundProtected": "Bloqueada: iniciada con un inicio de sesión de la cuenta"
+  "roundProtected": "Bloqueada: iniciada con un inicio de sesión de la cuenta",
+  "startTitle": "Elige las piezas y la dificultad",
+  "startPieces": "Piezas",
+  "startGo": "Empezar la ronda",
+  "startSolved": "resuelto",
+  "choosePieces": "Eliges las piezas y la dificultad al empezar una ronda"
 }

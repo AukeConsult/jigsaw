@@ -12,6 +12,7 @@ import { CategoryTags } from '../category-tags/category-tags';
 import { JigsawService } from '../jigsaw.service';
 import { snapLevelOfJigsaw } from '../snap-level';
 import { pieceGrid } from '../../models/shared/jigsaw';
+import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { PlaysService, UserGame } from '../plays.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { AuthService } from '../../logons/auth.service';
@@ -436,6 +437,11 @@ export class JigsawUser implements OnInit {
   piecesOf(j: Pick<JigsawSpec, 'width' | 'height' | 'gridSize'>): { count: number; columns: number; rows: number } {
     const g = pieceGrid(j.width, j.height, j.gridSize);
     return { count: g.columns * g.rows, columns: g.columns, rows: g.rows };
+  }
+
+  /** the entry is only a picture: it is cut in each round */
+  isPicture(j: Pick<JigsawSpec, 'kind'>): boolean {
+    return JigsawKinds.isPicture(j);
   }
 
   /** the difficulty of a jigsaw (hard, medium or easy) */

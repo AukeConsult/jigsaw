@@ -117,7 +117,7 @@
           <input id="tab-rounds" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'rounds'" (change)="tab.set('rounds')">
           <label class="btn" for="tab-rounds"><i class="bi bi-play-circle" aria-hidden="true"></i>{{ t('jigsawUser.yourRounds') || 'Your rounds' }}</label>
           <input id="tab-jigsaws" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'jigsaws'" (change)="tab.set('jigsaws')">
-          <label class="btn" for="tab-jigsaws"><i class="bi bi-puzzle" aria-hidden="true"></i>{{ t('jigsawUser.yourJigsaws') || 'Your jigsaws' }}</label>
+          <label class="btn" for="tab-jigsaws"><i class="bi bi-images" aria-hidden="true"></i>{{ t('jigsawUser.yourJigsaws') || 'Your pictures' }}</label>
           <input id="tab-ai" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'ai'" (change)="tab.set('ai')">
           <label class="btn" for="tab-ai"><i class="bi bi-stars" aria-hidden="true"></i>{{ t('jigsawUser.aiUsage') || 'AI use' }}</label>
         </div>
@@ -230,9 +230,9 @@
         </div>
       </div>
       @if (mine() === null) {
-        <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingJigsaws') || 'Looking for your jigsaws…' }}</div>
+        <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingJigsaws') || 'Looking for your pictures…' }}</div>
       } @else if (mineFailed()) {
-        <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.jigsawsFailed') || 'Could not read your jigsaws: reload the page.' }}</div>
+        <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.jigsawsFailed') || 'Could not read your pictures: reload the page.' }}</div>
       } @else if (hasJigsaws() === false) {
         <div class="text-center py-4">
           <p class="text-body-secondary mb-3">{{ t('jigsawUser.noJigsaws') || 'You have not made a jigsaw yet.' }}</p>
@@ -244,7 +244,7 @@
       } @else {
         <!-- find and put in order: words in the name, and the order (kept on the device) -->
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-          <input type="search" class="form-control form-control-sm w-auto flex-grow-1" name="jigsaw-text" autocomplete="off" [attr.aria-label]="t('jigsawUser.searchJigsaws') || 'Search your jigsaws'" [attr.placeholder]="t('jigsawUser.searchJigsaws') || 'Search your jigsaws'"
+          <input type="search" class="form-control form-control-sm w-auto flex-grow-1" name="jigsaw-text" autocomplete="off" [attr.aria-label]="t('jigsawUser.searchJigsaws') || 'Search your pictures'" [attr.placeholder]="t('jigsawUser.searchJigsaws') || 'Search your pictures'"
                  [ngModel]="jigsawText()" (ngModelChange)="jigsawText.set($event)">
           <label class="d-flex align-items-center gap-2 mb-0">
             <span class="form-label mb-0">{{ t('jigsawUser.sortBy') || 'Sort' }}</span>
@@ -327,8 +327,12 @@
                     <a class="fw-semibold text-reset text-decoration-none stretched-link" [routerLink]="['/jigsaw', item.id]">{{ item.name }}</a>
                     <!-- pieces, difficulty and the categories the picture is in -->
                     <div class="tiny text-body-secondary">
+                      @if (isPicture(item)) {
+                        <span class="text-nowrap" [title]="t('jigsawList.choosePiecesTitle') || 'The number of pieces and the difficulty are chosen when you start a round'"><i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('jigsawList.choosePieces') || 'Choose pieces' }}</span>
+                      } @else {
                       <span class="text-nowrap"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: piecesOf(item).count }) || piecesOf(item).count + ' pieces' }} ({{ piecesOf(item).columns }} × {{ piecesOf(item).rows }})</span>
                       <span class="text-nowrap ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + levelOf(item)) || levelOf(item) }}</span>
+                      }
                       @if (item.motive) {
                         <span class="text-nowrap ms-2" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</span>
                       }

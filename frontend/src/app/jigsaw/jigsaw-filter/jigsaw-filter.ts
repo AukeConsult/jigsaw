@@ -1,13 +1,11 @@
-import { Component, computed, input, model, OnDestroy } from '@angular/core';
+import { Component, computed, input, model } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawCategories } from '../../models/shared/category';
+import { JIGSAW_KINDS } from '../../models/shared/jigsaw-kind';
 import { JIGSAW_FILTER_FIELDS, JigsawFilter, JigsawFilterField, JigsawFilters } from '../../models/shared/jigsaw-filter';
 import { JIGSAW_LANGUAGES } from '../../models/shared/language';
 import { MOTIVES } from '../../models/shared/motive';
-import { DIFFICULTIES, JigsawFacets, NO_OWNER, SEARCH_MAX_OWNERS, SEARCH_MAX_TEXT, SIZE_CLASSES } from '../../models/shared/jigsaw-search';
-
-/** How long the typing of the text waits before it is used: so a question is not asked at every letter. */
-const TEXT_PAUSE_MS = 300;
+import { DIFFICULTIES, JigsawFacets, NO_OWNER, SEARCH_MAX_OWNERS, SIZE_CLASSES } from '../../models/shared/jigsaw-search';
 
 /** The lists a filter has to tick from. */
 type TickedField = Exclude<JigsawFilterField, 'text' | 'favorites' | 'solved'>;
@@ -24,7 +22,7 @@ type TickedField = Exclude<JigsawFilterField, 'text' | 'favorites' | 'solved'>;
   providers: [provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawCategories')],
   templateUrl: './jigsaw-filter.html',
 })
-export class JigsawFilterBar implements OnDestroy {
+export class JigsawFilterBar {
   /** what is chosen (a new filter is made at each choice) */
   readonly filter = model<JigsawFilter>(JigsawFilters.empty());
   /** which choices are shown (all of them when not said) */
@@ -34,6 +32,7 @@ export class JigsawFilterBar implements OnDestroy {
   /** a prefix that makes the ids of the fields different when there are two filters on a page */
   readonly idPrefix = input('filter');
 
+  protected readonly kinds = JIGSAW_KINDS;
   protected readonly categories = JigsawCategories.all();
   protected readonly sizes = SIZE_CLASSES;
   protected readonly difficulties = DIFFICULTIES;
@@ -43,10 +42,8 @@ export class JigsawFilterBar implements OnDestroy {
   protected readonly languages = computed(() => JIGSAW_LANGUAGES);
   protected readonly maxOwners = SEARCH_MAX_OWNERS;
   protected readonly noOwner = NO_OWNER;
-  protected readonly maxText = SEARCH_MAX_TEXT;
   /** the ticked categories that have sub-categories to tick from, in the order they are shown */
   protected readonly withSubs = computed(() => this.categories.filter((c) => c.subs.length && JigsawFilters.isChosen(this.filter(), 'categories', c.key)));
-  private timer: ReturnType<typeof setTimeout> | undefined;
 
   /** Whether a choice is shown: it is one of the `fields`, owners only when there are some to tick from, and languages only when there are some. */
   protected shows(field: JigsawFilterField): boolean {
@@ -56,7 +53,7 @@ export class JigsawFilterBar implements OnDestroy {
   /** how many jigsaws a choice gives, as it is shown beside it (nothing until they are counted) */
   protected count(field: Exclude<TickedField, 'owners'>, value: string): string {
     const facets = this.facets();
-    return facets ? `(${facets[field][value] ?? 0})` : '';
+    return facets ? `(${facets[field]?.[value] ?? 0})` : ''; // a server older than the kinds sends no counts for them: none, not a crash
   }
 
   protected chosen(field: TickedField, value: string): boolean {
@@ -70,15 +67,5 @@ export class JigsawFilterBar implements OnDestroy {
   /** Ticks the value, or takes it away when it is ticked. */
   protected toggle(field: TickedField, value: string): void {
     this.filter.set(JigsawFilters.toggled(this.filter(), field, value));
-  }
-
-  /** The text is typed: it is used when the typing has paused. */
-  protected typed(text: string): void {
-    clearTimeout(this.timer);
-    this.timer = setTimeout(() => this.filter.set(JigsawFilters.withText(this.filter(), text)), TEXT_PAUSE_MS);
-  }
-
-  ngOnDestroy(): void {
-    clearTimeout(this.timer);
   }
 }

@@ -14,6 +14,8 @@ Lav et puslespil af et hvilket som helst billede og læg det sammen på skærmen
 4. Vælg **Sværhedsgrad** og om det skal have **Tidtagning**. Under **Flere valg** kan du også ændre sprog, kategorier, udseende, hvem der har lavet det og hvem der ser det.
 5. Tryk **Gem** (eller **Gem og analysér med AI**, som også lader AI sætte kategorier, navn og beskrivelse). Siden til det nye puslespil åbnes: start en runde derfra.
 
+**Et billede eller et færdigt puslespil:** øverst i formularen vælger du, hvad du laver. Et **billede** (det første valg) gemmes kun med sit billede: den, der spiller, vælger antal brikker og sværhedsgrad, når en runde startes, så det samme billede kan spilles i forskellige størrelser (et billede, du har løst med ét antal brikker, kan stadig spilles med et andet). For et billede udgår **Størrelse og brikker** og **Sværhedsgrad**. Et **færdigt puslespil** har brikker og sværhedsgrad valgt af dig, som ovenfor.
+
 ## Spil
 
 * Træk brikkerne fra rammen ved siden af billedet (under det på en lille skærm) hen til billedet. En brik bliver liggende, hvor du slipper den.

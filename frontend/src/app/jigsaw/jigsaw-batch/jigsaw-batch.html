@@ -1,10 +1,23 @@
-<main class="container-fluid page-margin py-3" *transloco="let t">
+<main class="container-fluid page-margin page-max py-3" *transloco="let t">
   <h1 class="page-title mb-2"><i class="bi bi-images me-2" aria-hidden="true"></i>{{ t('jigsawBatch.title') || 'Make many jigsaws' }}</h1>
   <p class="text-body-secondary">{{ t('jigsawBatch.intro') || 'Choose how big and how hard, then pick pictures from your computer. Each picture becomes a jigsaw, and the AI sets its categories, name and description.' }}</p>
 
   <form (submit)="$event.preventDefault()">
-    <h2 class="form-section first"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawBatch.sectionSettings') || 'Size and difficulty' }}</h2>
+    <!-- what to make, first: ready jigsaws (cut into pieces here) or pictures (cut in each round, by the one who plays); the AI looks at every picture either way -->
+    <fieldset class="mb-3" [disabled]="running()">
+      <legend class="visually-hidden">{{ t('jigsawBatch.modeLabel') || 'What to make' }}</legend>
+      <div class="d-flex flex-wrap gap-2">
+        <input id="batch-mode-jigsaw" name="mode" class="btn-check" type="radio" autocomplete="off" [checked]="!isPicture()" (change)="kind.set('jigsaw')">
+        <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="batch-mode-jigsaw"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawBatch.modeJigsaw') || 'Make jigsaws' }}</label>
+        <input id="batch-mode-picture" name="mode" class="btn-check" type="radio" autocomplete="off" [checked]="isPicture()" (change)="kind.set('picture')">
+        <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="batch-mode-picture"><i class="bi bi-image me-1" aria-hidden="true"></i>{{ t('jigsawBatch.modePicture') || 'Make pictures' }}</label>
+      </div>
+    </fieldset>
+    @if (!isPicture()) {
+    <h2 class="form-section"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawBatch.sectionSettings') || 'Size and difficulty' }}</h2>
+    }
     <div class="row g-3 mb-3">
+      @if (!isPicture()) {
       <div class="col-6 col-md-3">
         <label class="form-label" for="batch-pieces">{{ t('jigsawBatch.pieces') || 'Number of pieces' }}</label>
         <select id="batch-pieces" name="pieces" class="form-select" [disabled]="running()" [ngModel]="pieces()" (ngModelChange)="pieces.set(+$event)">
@@ -29,6 +42,7 @@
           }
         </select>
       </div>
+      }
       <div class="col-6 col-md-3">
         <label class="form-label" for="batch-language">{{ t('jigsawBatch.language') || 'Language' }}</label>
         <select id="batch-language" name="language" class="form-select" [disabled]="running()" [ngModel]="language()" (ngModelChange)="language.set($event)">
@@ -39,20 +53,17 @@
       </div>
     </div>
     <div class="form-text mb-3">{{ t('jigsawBatch.languageHelp') || 'The language the names and the descriptions are written in.' }}</div>
+    @if (!isPicture()) {
     <div class="form-check form-switch mb-3">
       <input id="batch-timed" name="timed" class="form-check-input" type="checkbox" role="switch" [disabled]="running()" [ngModel]="timed()" (ngModelChange)="timed.set($event)">
       <label class="form-check-label" for="batch-timed"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawBatch.timed') || 'Timed' }}</label>
     </div>
-    <div class="form-check form-switch mb-3">
-      <input id="batch-ai" name="ai" class="form-check-input" type="checkbox" role="switch" [disabled]="running()" [ngModel]="ai()" (ngModelChange)="ai.set($event)">
-      <label class="form-check-label" for="batch-ai"><i class="bi bi-stars me-1" aria-hidden="true"></i>{{ t('jigsawBatch.ai') || 'Let the AI set the categories, name and description' }}</label>
-      <div class="form-text mt-0">{{ t('jigsawBatch.aiHelp') || 'The pictures are sent to OpenAI to be looked at. Turn it off to keep the file names as the names.' }}</div>
-    </div>
-
+    }
     <h2 class="form-section"><i class="bi bi-image" aria-hidden="true"></i>{{ t('jigsawBatch.sectionPictures') || 'Pictures' }}</h2>
     <div class="mb-3">
-      <label class="form-label" for="batch-files">{{ t('jigsawBatch.choose') || 'Choose pictures' }}</label>
-      <input id="batch-files" type="file" class="form-control" accept="image/jpeg,image/png,image/webp" multiple [disabled]="running()" (change)="choose($event)">
+      <!-- the file field is never shown: the button opens it -->
+      <input #batchFiles id="batch-files" type="file" class="d-none" accept="image/jpeg,image/png,image/webp" multiple [disabled]="running()" (change)="choose($event)">
+      <button type="button" class="btn btn-primary btn-lg w-100" [disabled]="running()" (click)="batchFiles.click()"><i class="bi bi-images me-2" aria-hidden="true"></i>{{ t('jigsawBatch.choose') || 'Choose pictures' }}</button>
       <div class="form-text">{{ t('jigsawBatch.chooseHelp', { max }) || 'Pick many at once: jpeg, png or webp, up to ' + max + ' pictures.' }}</div>
       @if (leftOut().notPictures || leftOut().tooMany) {
         <div class="alert alert-warning py-2 small mt-2" role="status">
@@ -109,7 +120,7 @@
   @if (finished()) {
     <div class="alert alert-success py-2" role="status">
       {{ t('jigsawBatch.summary', { made: made(), classified: classified(), failed: failed() }) || made() + ' made, ' + classified() + ' classified by the AI, ' + failed() + ' failed.' }}
-      <a routerLink="/jigsaw/user">{{ t('jigsawBatch.yourJigsaws') || 'Your jigsaws' }}</a>
+      <a routerLink="/jigsaw/user">{{ t('jigsawBatch.yourJigsaws') || 'Your pictures' }}</a>
     </div>
   }
 
@@ -118,7 +129,11 @@
       <button type="button" class="btn btn-outline-secondary" (click)="stop()"><i class="bi bi-stop-circle" aria-hidden="true"></i>{{ t('jigsawBatch.stop') || 'Stop after this one' }}</button>
     } @else {
       <button type="button" class="btn btn-primary btn-main" [disabled]="!waiting()" (click)="start()">
-        <i class="bi bi-magic" aria-hidden="true"></i>{{ (waiting() === 1 ? t('jigsawBatch.makeOne') : t('jigsawBatch.makeMany', { count: waiting() })) || 'Make ' + waiting() + ' jigsaws' }}
+        @if (isPicture()) {
+          <i class="bi bi-image" aria-hidden="true"></i>{{ (waiting() === 1 ? t('jigsawBatch.storeOne') : t('jigsawBatch.storeMany', { count: waiting() })) || 'Make ' + waiting() + ' pictures' }}
+        } @else {
+          <i class="bi bi-magic" aria-hidden="true"></i>{{ (waiting() === 1 ? t('jigsawBatch.makeOne') : t('jigsawBatch.makeMany', { count: waiting() })) || 'Make ' + waiting() + ' jigsaws' }}
+        }
       </button>
       @if (items().length) {
         <button type="button" class="btn btn-outline-secondary" (click)="clear()">{{ t('jigsawBatch.clear') || 'Clear the list' }}</button>

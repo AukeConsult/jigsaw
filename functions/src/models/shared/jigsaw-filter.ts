@@ -1,4 +1,5 @@
 import { JigsawCategories } from './category';
+import { JIGSAW_KINDS, JigsawKind, JigsawKinds } from './jigsaw-kind';
 import { JigsawLanguages, JIGSAW_LANGUAGES } from './language';
 import { JigsawMotives, MotiveLevel } from './motive';
 import { DIFFICULTIES, Difficulty, JigsawQuery, NO_OWNER, SEARCH_MAX_CATEGORIES, SEARCH_MAX_OWNERS, SEARCH_MAX_TEXT, SIZE_CLASSES, SizeClass } from './jigsaw-search';
@@ -7,6 +8,8 @@ import { DIFFICULTIES, Difficulty, JigsawQuery, NO_OWNER, SEARCH_MAX_CATEGORIES,
 export interface JigsawFilter {
   /** words in the name or the author */
   text: string;
+  /** what the entry is: a ready jigsaw, a picture, or both */
+  kinds: JigsawKind[];
   /** categories and sub-categories (`nature`, `nature/forest`) */
   categories: string[];
   sizes: SizeClass[];
@@ -31,22 +34,22 @@ export interface JigsawSetup {
 
 /** The parts of a filter, in the order a page shows them. */
 export type JigsawFilterField = keyof JigsawFilter;
-export const JIGSAW_FILTER_FIELDS: readonly JigsawFilterField[] = ['text', 'categories', 'sizes', 'difficulties', 'motives', 'languages', 'owners', 'favorites', 'solved'];
+export const JIGSAW_FILTER_FIELDS: readonly JigsawFilterField[] = ['text', 'kinds', 'categories', 'sizes', 'difficulties', 'motives', 'languages', 'owners', 'favorites', 'solved'];
 
 /** The lists of a filter that are chosen by ticking, with what can be ticked in each and the most that can be. */
 type TickedField = Exclude<JigsawFilterField, 'text' | 'favorites' | 'solved'>;
-const MOST: Record<TickedField, number> = { categories: SEARCH_MAX_CATEGORIES, sizes: SIZE_CLASSES.length, difficulties: DIFFICULTIES.length, motives: JigsawMotives.keys().length, languages: JIGSAW_LANGUAGES.length, owners: SEARCH_MAX_OWNERS };
+const MOST: Record<TickedField, number> = { kinds: JIGSAW_KINDS.length, categories: SEARCH_MAX_CATEGORIES, sizes: SIZE_CLASSES.length, difficulties: DIFFICULTIES.length, motives: JigsawMotives.keys().length, languages: JIGSAW_LANGUAGES.length, owners: SEARCH_MAX_OWNERS };
 
 /** The rules of a filter of jigsaws: one place, so every page that has one (and its remembered choice) agrees. A filter is never changed: a choice gives a new one. */
 export class JigsawFilters {
   /** The filter that asks for everything. */
   static empty(): JigsawFilter {
-    return { text: '', categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [] };
+    return { text: '', kinds: [], categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [] };
   }
 
   /** Whether any choice is made. */
   static isOn(filter: JigsawFilter): boolean {
-    return filter.text.trim() !== '' || filter.categories.length > 0 || filter.sizes.length > 0 || filter.difficulties.length > 0 || filter.motives.length > 0 || filter.languages.length > 0 || filter.owners.length > 0 || filter.favorites === true || filter.solved === true;
+    return filter.text.trim() !== '' || filter.kinds.length > 0 || filter.categories.length > 0 || filter.sizes.length > 0 || filter.difficulties.length > 0 || filter.motives.length > 0 || filter.languages.length > 0 || filter.owners.length > 0 || filter.favorites === true || filter.solved === true;
   }
 
   /** The filter with this text (the words are trimmed, and not longer than a search takes). */
@@ -70,7 +73,7 @@ export class JigsawFilters {
    */
   static toggled(filter: JigsawFilter, field: TickedField, value: string): JigsawFilter {
     if (field === 'categories') return { ...filter, categories: JigsawCategories.toggled(filter.categories, value, MOST.categories) };
-    const allowed = field === 'sizes' ? SIZE_CLASSES.some((s) => s.key === value) : field === 'difficulties' ? DIFFICULTIES.some((d) => d.key === value) : field === 'motives' ? JigsawMotives.is(value) : field === 'languages' ? JigsawLanguages.is(value) : value.length > 0;
+    const allowed = field === 'kinds' ? JigsawKinds.is(value) : field === 'sizes' ? SIZE_CLASSES.some((s) => s.key === value) : field === 'difficulties' ? DIFFICULTIES.some((d) => d.key === value) : field === 'motives' ? JigsawMotives.is(value) : field === 'languages' ? JigsawLanguages.is(value) : value.length > 0;
     if (!allowed) return filter;
     const now = filter[field] as string[];
     if (now.includes(value)) return { ...filter, [field]: now.filter((v) => v !== value) };
@@ -85,6 +88,7 @@ export class JigsawFilters {
     const id = (x: unknown) => x === NO_OWNER || (typeof x === 'string' && x.length > 0 && x.length <= 60 && !/[/\s~]/.test(x));
     return (
       typeof f.text === 'string' && f.text.length <= SEARCH_MAX_TEXT &&
+      list(f.kinds ?? [], MOST.kinds, (k) => JigsawKinds.is(k)) && // a filter kept before the kinds has none
       list(f.categories, MOST.categories, (k) => JigsawCategories.of(k) !== undefined) &&
       list(f.sizes, MOST.sizes, (k) => SIZE_CLASSES.some((s) => s.key === k)) &&
       list(f.difficulties, MOST.difficulties, (k) => DIFFICULTIES.some((d) => d.key === k)) &&
@@ -106,6 +110,7 @@ export class JigsawFilters {
   static query(filter: JigsawFilter, page = 1, limit?: number): Partial<JigsawQuery> {
     const text = filter.text.trim();
     return {
+      ...(filter.kinds.length ? { kinds: filter.kinds } : {}),
       ...(filter.categories.length ? { categories: filter.categories } : {}),
       ...(filter.sizes.length ? { sizes: filter.sizes } : {}),
       ...(filter.difficulties.length ? { difficulties: filter.difficulties } : {}),

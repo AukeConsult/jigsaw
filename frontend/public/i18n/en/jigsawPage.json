@@ -62,5 +62,10 @@
   "couldNotResetRounds": "Could not take away the rounds: only its owner can.",
   "motive": "Motive difficulty",
   "youSolvedIt": "You have solved this jigsaw",
-  "roundProtected": "Locked: started with a sign-in of this account"
+  "roundProtected": "Locked: started with a sign-in of this account",
+  "startTitle": "Choose the pieces and the difficulty",
+  "startPieces": "Pieces",
+  "startGo": "Start the round",
+  "startSolved": "solved",
+  "choosePieces": "You choose the pieces and the difficulty when you start a round"
 }

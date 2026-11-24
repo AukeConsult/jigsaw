@@ -84,6 +84,23 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     await store.remove(made.id);
   });
 
+  it("keeps the pieces of a round that has a cut of its own under the round, and takes them away with it", async () => {
+    const store = firestoreJigsawStore(JIGSAW);
+    const plays = firestorePlayStore();
+    const made = await store.add({ ...jigsaw, kind: "picture", gridSize: 0, gridVisible: false, placed: [] });
+    const cut = JigsawCut.cut(1000, 800, 100, () => 0.4);
+    if ("error" in cut) throw new Error(cut.error);
+    const pieces = cut.placed.flatMap((p) => JigsawPieces.of(p, cut.columns) ?? []); // 80 pieces
+    const round = { jigsawId: made.id, userId: "u", userName: "U", status: "active" as const, startedAt: 1, matched: 0, total: pieces.length, storeWidth: 300, overrides: {}, cut: { columns: 10, rows: 8, grid: 100 }, snapPercent: 10 };
+    const saved = await plays.create(made.id, round, {}, pieces);
+    expect((await plays.roundPieces(made.id, saved.id)).map((p) => p.number)).toEqual(pieces.map((p) => p.number).sort((a, b) => a - b));
+    expect((await plays.get(made.id, saved.id))!.play).toMatchObject({ cut: { columns: 10, rows: 8, grid: 100 }, snapPercent: 10 });
+    expect(await plays.roundPieces(made.id, "no-such-round")).toEqual([]);
+    await plays.remove(made.id, saved.id);
+    expect(await plays.roundPieces(made.id, saved.id)).toEqual([]); // they went with the round
+    await store.remove(made.id);
+  });
+
   it("says null for a jigsaw that is not there, and deletes one for good", async () => {
     const store = firestoreJigsawStore(JIGSAW);
     expect(await store.update("does-not-exist", jigsaw)).toBeNull();

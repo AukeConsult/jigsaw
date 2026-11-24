@@ -44,6 +44,9 @@ export class JigsawExample {
   readonly lineColor = input.required<string>();
   readonly backColor = input.required<string>();
 
+  /** plain: just the cut picture as it will be, as wide as the room, with no pieces lifted out and no back colour or border round it (the form of a new jigsaw shows it in its card) */
+  readonly plain = input(false);
+
   private readonly host = viewChild.required<ElementRef<HTMLElement>>('host');
   /** how wide the room for the example is, in pixels */
   private readonly room = signal(0);
@@ -59,13 +62,13 @@ export class JigsawExample {
   readonly size = computed(() => this.gridSize());
 
   /** the room the back colour has round the picture, in the pixels of the jigsaw */
-  private readonly margin = computed(() => this.size() * MARGIN);
+  private readonly margin = computed(() => (this.plain() ? 0 : this.size() * MARGIN));
 
   /** the pieces to draw: each with where it lies (the lifted ones are moved out of the picture, and drawn last, over the others) */
   readonly pieces = computed(() => {
     const all = (this.cut()?.placed ?? []).flatMap((p) => (p.piece ? [{ id: p.id, piece: p.piece as PiecePlace }] : []));
     const lifted = new Map<string, { dx: number; dy: number }>();
-    if (this.columns() >= 5 && this.rows() >= 4) {
+    if (!this.plain() && this.columns() >= 5 && this.rows() >= 4) {
       for (const l of LIFTED) {
         const col = Math.min(this.columns() - 2, Math.max(1, Math.floor(this.columns() * l.across)));
         const row = Math.min(this.rows() - 2, Math.max(1, Math.floor(this.rows() * l.down)));
@@ -95,6 +98,7 @@ export class JigsawExample {
   /** how many screen pixels a pixel of the jigsaw is drawn as: the example fits the room and is not too high */
   readonly scale = computed(() => {
     const area = this.area();
+    if (this.plain()) return this.room() > 0 ? this.room() / area.width : 0;
     return this.room() > 0 ? Math.min(this.room() / area.width, MAX_HEIGHT_PX / area.height) : 0;
   });
 

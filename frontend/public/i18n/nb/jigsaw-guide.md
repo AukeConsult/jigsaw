@@ -14,6 +14,8 @@ Lag et puslespill av et hvilket som helst bilde og legg det sammen på skjermen.
 4. Velg **Vanskelighetsgrad** og om det skal ha **Tidtaking**. Under **Flere valg** kan du også endre språk, kategorier, utseende, hvem som har laget det og hvem som ser det.
 5. Trykk **Lagre** (eller **Lagre og analyser med KI**, som også lar KI sette kategorier, navn og beskrivelse). Siden til det nye puslespillet åpnes: start en runde derfra.
 
+**Et bilde eller et ferdig puslespill:** øverst i skjemaet velger du hva du lager. Et **bilde** (det første valget) lagres bare med bildet: den som spiller velger antall brikker og vanskelighetsgrad når en runde startes, så det samme bildet kan spilles i ulike størrelser (et bilde du har løst med ett antall brikker, kan fortsatt spilles med et annet). For et bilde utgår **Størrelse og brikker** og **Vanskelighetsgrad**. Et **ferdig puslespill** har brikker og vanskelighetsgrad valgt av deg, som over.
+
 ## Spill
 
 * Dra brikkene fra rammen ved siden av bildet (under det på en liten skjerm) til bildet. En brikke blir liggende der du slipper den.

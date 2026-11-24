@@ -14,6 +14,8 @@ Haz un puzle con cualquier imagen y arma el puzle en la pantalla. Todo se guarda
 4. Elige la **Dificultad** y si es **Cronometrado**. En **Más opciones** también puedes cambiar el idioma, las categorías, el aspecto, el autor y quién lo ve.
 5. Pulsa **Guardar** (o **Guardar y analizar con IA**, que también hace que la IA ponga las categorías, el nombre y la descripción). Se abre la página del nuevo puzle: empieza una ronda desde allí.
 
+**Una imagen o un puzle listo:** arriba en el formulario eliges qué creas. Una **imagen** (la primera opción) se guarda solo con su imagen: quien juega elige el número de piezas y la dificultad al empezar una ronda, así que la misma imagen puede jugarse en distintos tamaños (una que resolviste con un número de piezas aún puede jugarse con otro). Para una imagen se omiten **Tamaño y piezas** y la **Dificultad**. En un **puzle listo** eliges tú las piezas y la dificultad, como arriba.
+
 ## Jugar
 
 * Arrastra las piezas desde el marco junto a la imagen (debajo en una pantalla pequeña) hasta la imagen. Una pieza se queda donde la sueltas.

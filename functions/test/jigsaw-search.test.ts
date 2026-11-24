@@ -120,6 +120,19 @@ describe("matching and paging what came back", () => {
     expect(found({ owners: [NO_OWNER] })).toEqual(["old-big"]); // no owner: from before owners
   });
 
+  it("matches the kind: ready jigsaws, pictures or both, and a document that says nothing is a ready jigsaw", () => {
+    const entries = [...items, summary(jigsaw("a-picture", { createdAt: 5, name: "Photo", kind: "picture", gridSize: 0 }))];
+    const found = (q: Partial<JigsawQuery>) => ids(entries.filter((j) => JigsawSearch.matches(j, query(q))));
+    expect(found({ kinds: ["picture"] })).toEqual(["a-picture"]);
+    expect(found({ kinds: ["jigsaw"] })).toEqual(["old-big", "mid", "new-small"]);
+    expect(found({ kinds: ["jigsaw", "picture"] })).toEqual(["old-big", "mid", "new-small", "a-picture"]); // both
+    expect(found({})).toHaveLength(4); // none: all
+    expect(found({ kinds: ["picture"], sizes: ["small"] })).toEqual(["a-picture"]); // a picture is found by every size
+    expect(JigsawSearch.facets(entries, query({ kinds: ["picture"] })).kinds).toEqual({ jigsaw: 3, picture: 1 }); // the kinds are counted with their own list left out
+    expect(JigsawSearch.parse({ kinds: "picture,jigsaw" })).toEqual({ query: expect.objectContaining({ kinds: ["picture", "jigsaw"] }) });
+    expect(JigsawSearch.parse({ kinds: "book" })).toEqual({ error: '"book" is not allowed in kinds.' });
+  });
+
   it("matches words of the name, the author or the description, in any order and case, a part of a word being enough, and every word having to be there", () => {
     const named = [summary(jigsaw("a", { name: "Harbour at dawn", author: "Karin Auke", description: "Taken on a cold morning" })), summary(jigsaw("b", { name: "Mountain", author: "Leif" }))];
     const found = (text: string) => ids(named.filter((j) => JigsawSearch.matches(j, query({ text }))));
@@ -182,7 +195,7 @@ describe("the counts of a filter", () => {
     expect(f.total).toBe(2);
     expect(f.owners).toEqual([{ id: "u1", name: "Karin", count: 2 }]);
     expect("family" in f.categories).toBe(false);
-    expect(JigsawSearch.facets([], query())).toEqual({ total: 0, categories: {}, sizes: {}, difficulties: {}, motives: {}, languages: {}, owners: [] });
+    expect(JigsawSearch.facets([], query())).toEqual({ total: 0, kinds: {}, categories: {}, sizes: {}, difficulties: {}, motives: {}, languages: {}, owners: [] });
   });
 });
 

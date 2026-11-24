@@ -62,5 +62,10 @@
   "couldNotResetRounds": "Die Runden konnten nicht gelöscht werden: nur der Besitzer kann das.",
   "motive": "Motiv-Schwierigkeit",
   "youSolvedIt": "Du hast dieses Puzzle gelöst",
-  "roundProtected": "Gesperrt: mit einer Anmeldung des Kontos gestartet"
+  "roundProtected": "Gesperrt: mit einer Anmeldung des Kontos gestartet",
+  "startTitle": "Teile und Schwierigkeit wählen",
+  "startPieces": "Teile",
+  "startGo": "Runde starten",
+  "startSolved": "gelöst",
+  "choosePieces": "Teile und Schwierigkeit wählst du beim Start einer Runde"
 }

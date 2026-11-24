@@ -798,8 +798,8 @@ export class JigsawBoard {
 
   /**
    * What is moved is let go. A piece (or the group of pieces that stick together) that is dropped within the range of its own grid point, or of a place
-   * where it fits a neighbour, clicks into place (see `Puzzle.dropPieces` and `snapRange`): it goes exactly there, the pieces that now stick
-   * together blink, and the device vibrates. A piece does not click while it is moved, only when it is dropped.
+   * where it fits a neighbour, clicks into place (see `Puzzle.dropPieces` and `snapRange`): it goes exactly there, the piece that was dropped
+   * blinks (only that one, not the group it joined), and the device vibrates. A piece does not click while it is moved, only when it is dropped.
    */
   endMove(): void {
     const moving = this.moving;
@@ -815,8 +815,8 @@ export class JigsawBoard {
     if (dropped !== before) this.apply(dropped);
     const fresh = [...this.matchedAmong(dropped, ids)].filter((id) => !moving.matchedAtStart.has(id)); // in place now, and was not when it was picked up
     const joined = dropped.stuckGroup(ids).filter((id) => !moving.stuckAtStart.has(id)); // pieces that stick to what was moved now, and did not when it was picked up
-    const blinking = new Set([...fresh, ...joined, ...(joined.length ? [moving.id] : [])]);
-    if (blinking.size) this.blink([...blinking]);
+    // only the piece that was dropped blinks (not the whole group it clicked into): the person sees which piece clicked
+    if (fresh.length || joined.length) this.blink([moving.id]);
   }
 
   /** which of these objects are jigsaw pieces on their own place */

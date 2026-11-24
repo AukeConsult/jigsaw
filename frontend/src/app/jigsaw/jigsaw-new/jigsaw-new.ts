@@ -14,18 +14,24 @@ import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
 import { PlaysService } from '../plays.service';
 import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
 import { JigsawExample } from '../jigsaw-example/jigsaw-example';
+import { CategoryPicker } from '../category-picker/category-picker';
+import { VisibilityChoice } from '../visibility-choice/visibility-choice';
+import { JigsawHeader } from '../jigsaw-header/jigsaw-header';
 import { JigsawFields } from '../jigsaw-fields/jigsaw-fields';
-import { LanguageService } from '../../core/language.service';
+import { LANGUAGES, LanguageService } from '../../core/language.service';
 import { JigsawLanguages } from '../../models/shared/language';
 import { PictureCropper } from '../picture-cropper/picture-cropper';
 import { renderPieceGraphics } from '../piece-graphics';
-import { JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
-import { JigsawMotives, MotiveLevel } from '../../models/shared/motive';
+import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { JigsawMotives, MOTIVES, MotiveLevel } from '../../models/shared/motive';
+import { JigsawKind, JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { SourceRect } from '../../models/shared/geometry';
 import { JigsawCut, JigsawPieces, PieceLayout, pieceGrid } from '../../models/shared/jigsaw';
 
 /** What the person chose the last time they made a jigsaw: the form starts with it (what is typed for this jigsaw, like the name and the picture, is not kept). */
 interface NewJigsawPreferences {
+  /** a picture or a ready jigsaw (a form kept before the kinds has none: a picture) */
+  kind?: JigsawKind;
   /** the size: a standard one by its key, or 'custom' with the width and height as they were typed */
   size: string;
   width: number;
@@ -46,7 +52,7 @@ const isNewJigsawPreferences = (v: unknown): v is NewJigsawPreferences => {
   const num = (x: unknown) => typeof x === 'number' && Number.isFinite(x);
   const colour = (x: unknown) => typeof x === 'string' && /^#[0-9a-fA-F]{6}$/.test(x);
   return (
-    !!p && typeof p === 'object' && typeof p.size === 'string' && num(p.width) && num(p.height) && typeof p.pieces === 'string' && num(p.pieceCount) && num(p.snapPercent) &&
+    !!p && typeof p === 'object' && (p.kind === undefined || JigsawKinds.is(p.kind)) && typeof p.size === 'string' && num(p.width) && num(p.height) && typeof p.pieces === 'string' && num(p.pieceCount) && num(p.snapPercent) &&
     typeof p.timed === 'boolean' && num(p.lineWidth) && colour(p.lineColor) && colour(p.backColor)
   );
 };
@@ -59,13 +65,14 @@ const PREVIEW_BYTES = 300 * 1024;
  * dropped to click into place), then saves. Saving makes the jigsaw (its settings), puts its picture in Storage, cuts it into pieces and keeps them in
  * the database with their graphics, and opens it to play. If a step fails what was made is taken away again: there is no half made jigsaw.
  *
- * The same form edits a jigsaw (`/jigsaw/:id/edit`) that nobody has played: it is filled in with the jigsaw and its picture, and everything can be changed, a new
- * picture too. Saving changes the settings, and when the picture or the cut into pieces changed the picture and the pieces are made again.
+ * The same form edits a jigsaw (`/jigsaw/:id/edit`): it is filled in with the jigsaw and its picture. When nobody has played it everything can be changed, a new picture too;
+ * saving changes the settings, and when the picture or the cut into pieces changed the picture and the pieces are made again. When rounds have been started (`played`) the
+ * picture, the kind, the size, the pieces, the difficulty and the clock are fixed (they are shown as they are, locked), and the owner can take all the rounds away to change them.
  */
 @Component({
   selector: 'app-jigsaw-new',
-  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample, TranslocoDirective, JigsawFields],
-  providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels')],
+  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample, TranslocoDirective, JigsawFields, JigsawHeader, VisibilityChoice, CategoryPicker],
+  providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPage')],
   templateUrl: './jigsaw-new.html',
 })
 export class JigsawNew implements OnDestroy {
@@ -101,8 +108,51 @@ export class JigsawNew implements OnDestroy {
   /** the standard numbers of pieces to choose from: whole columns and rows in the shape of the picture area (see `JigsawCut.pieceChoices`) */
   readonly pieceOptions = computed(() => JigsawCut.pieceChoices(this.asked().width, this.asked().height).map((c) => ({ ...c, key: `${c.columns}x${c.rows}` })));
   /** which standard size and number of pieces is chosen ('custom': typed by hand; a number of pieces is 'columns x rows') */
-  readonly sizeChoice = signal<string>('standard');
+  readonly sizeChoice = signal<string>('whole');
+  /** the size shown in the list: a ready jigsaw has no "whole picture" (that is the size of a picture entry), it shows the standard size then */
+  readonly sizeKey = computed(() => (!this.isPicture() && this.sizeChoice() === 'whole' ? 'standard' : this.sizeChoice()));
   readonly pieceChoice = signal<string>('16x12');
+
+  /** what is made: a picture (the pieces and the difficulty are chosen in each round: none are cut here) or a ready jigsaw; a picture to begin with */
+  readonly kind = signal<JigsawKind>('picture');
+  readonly isPicture = computed(() => this.kind() === 'picture');
+
+  /**
+   * The kind was chosen. A picture is made of the whole picture at its own size (no cut to find); a ready jigsaw gets a cut into pieces, so one that has none yet (a picture that is
+   * edited) gets the usual number of pieces, and a picture that was chosen has to be adjusted to the shape of its picture area.
+   */
+  chooseKind(kind: JigsawKind): void {
+    if (kind === this.kind() || this.played()) return;
+    this.kind.set(kind);
+    const file = this.file();
+    if (kind === 'picture') {
+      this.sizeChoice.set('whole');
+      if (file) void this.useWholePicture(file);
+      return;
+    }
+    if (this.sizeChoice() === 'whole') this.sizeChoice.set('custom'); // the size it has stays: the sides are typed ones now
+    this.asked.set({ width: this.width(), height: this.height() });
+    if (this.gridSize() <= 0) this.pieceCount.set(16 * 12);
+    this.relayout('pieces');
+  }
+
+  /** The whole picture is the picture of a picture entry: it gets the size `JigsawKinds.pictureSize` says, and there is no cut to find. */
+  private async useWholePicture(file: File): Promise<void> {
+    const bitmap = await createImageBitmap(file);
+    const size = JigsawKinds.pictureSize(bitmap.width, bitmap.height);
+    const rect = { x: 0, y: 0, w: bitmap.width, h: bitmap.height };
+    bitmap.close();
+    this.sizeChoice.set('whole');
+    this.width.set(size.width);
+    this.height.set(size.height);
+    this.cut.set({ rect, shape: size.width / size.height });
+    this.pictureChanged.set(true);
+    try {
+      this.setPreview(URL.createObjectURL(await fitPicture(file, size.width, size.height, PREVIEW_BYTES, rect)));
+    } catch {
+      this.setPreview(null);
+    }
+  }
 
   /** the name is needed, and starts empty (nothing is filled in for the person) */
   readonly name = signal('');
@@ -162,6 +212,7 @@ export class JigsawNew implements OnDestroy {
     if (saved) this.useDefaults(saved);
     effect(() => {
       const now: NewJigsawPreferences = {
+        kind: this.kind(),
         size: this.sizeChoice(),
         width: this.asked().width,
         height: this.asked().height,
@@ -179,6 +230,7 @@ export class JigsawNew implements OnDestroy {
 
   /** The form is filled in with what was chosen for the last jigsaw: the look, the difficulty and the clock, and the size and the number of pieces (worked out again, so they fit). */
   private useDefaults(saved: NewJigsawPreferences): void {
+    this.kind.set(saved.kind ?? 'picture');
     this.snapPercent.set(saved.snapPercent);
     this.timed.set(saved.timed);
     this.lineWidth.set(saved.lineWidth);
@@ -210,6 +262,11 @@ export class JigsawNew implements OnDestroy {
   /** a small picture of the cut, as an address of the page (null: none yet) */
   readonly preview = signal<string | null>(null);
   readonly cropping = signal(false);
+  /** the languages the name and the description can be written in (the AI writes them in the one chosen) */
+  protected readonly languages = LANGUAGES;
+  protected readonly motives = MOTIVES;
+  /** the picture is shown big over the page */
+  readonly enlarged = signal(false);
 
   readonly saving = signal(false);
   readonly error = signal('');
@@ -217,6 +274,16 @@ export class JigsawNew implements OnDestroy {
   readonly minSide = JIGSAW_MIN_SIDE;
   readonly maxSide = JIGSAW_MAX_SIDE;
   readonly maxName = JIGSAW_MAX_NAME;
+  readonly maxDescription = JIGSAW_MAX_DESCRIPTION;
+  /** the name or the description is being edited in place in the card (the others show the text with a pencil) */
+  readonly editingName = signal(false);
+  readonly editingDescription = signal(false);
+
+  /** opens the editor of the name or of the description in the card and puts the cursor in it */
+  edit(which: 'name' | 'description'): void {
+    (which === 'name' ? this.editingName : this.editingDescription).set(true);
+    setTimeout(() => document.getElementById(which === 'name' ? 'jigsaw-name' : 'jigsaw-description')?.focus());
+  }
 
   /** the cut was found for another shape of picture area: the size changed since, so the picture has to be adjusted again */
   readonly stale = computed(() => {
@@ -224,10 +291,54 @@ export class JigsawNew implements OnDestroy {
     return !!c && Math.abs(c.shape - this.width() / this.height()) > 0.002;
   });
 
-  /** the settings as the API takes them (the store of the pieces is added when the picture is cut) */
-  private settings(storeWidth?: number): JigsawInput {
+  /** the jigsaw as it will look on its page: the top of the page shows it while it is made (the same page as the one of a jigsaw, so it is familiar) */
+  readonly draft = computed(() => ({ id: this.editId ?? '', ...this.settings() }) as JigsawSpec);
+
+  /** a round of this jigsaw has been started (editing only): what every round shares is fixed */
+  readonly played = signal(false);
+  /** "Delete all rounds" was pressed and waits for "Yes" */
+  readonly confirmingReset = signal(false);
+
+  /** All the rounds are taken away (also other players'): the whole jigsaw can be changed now, and the form is open for all of it. */
+  async resetRounds(): Promise<void> {
+    if (!this.editId || this.saving()) return;
+    this.saving.set(true);
+    this.error.set('');
+    try {
+      await this.plays.removeAll(this.editId);
+      this.played.set(false);
+      this.confirmingReset.set(false);
+    } catch {
+      this.error.set(tr('jigsawPage.couldNotResetRounds', 'Could not take away the rounds: only its owner can.'));
+      this.confirmingReset.set(false);
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  /** what the rounds of a played jigsaw share, as the jigsaw has it (the API refuses a change of them): sent back as it is */
+  private fixedFields(item: JigsawSpec) {
     return {
-      name: this.name().trim(),
+      width: item.width,
+      height: item.height,
+      gridSize: item.gridSize,
+      gridVisible: item.gridVisible,
+      placed: item.placed,
+      ...(JigsawKinds.isPicture(item) ? { kind: 'picture' as const } : {}),
+      ...(item.storeWidth ? { storeWidth: item.storeWidth } : {}),
+      ...(item.snapPercent !== undefined ? { snapPercent: item.snapPercent } : {}),
+    };
+  }
+
+  /** the settings as the API takes them (the store of the pieces is added when the picture is cut) */
+  private settings(storeWidth?: number, name = this.name().trim()): JigsawInput {
+    // a picture has no grid, store or difficulty of its own: each round has them
+    const cutSettings = this.isPicture()
+      ? { kind: 'picture' as const, gridSize: 0, gridVisible: false }
+      : { gridSize: this.gridSize(), gridVisible: false, snapPercent: this.snapPercent(), ...(storeWidth ? { storeWidth } : {}) }; // the grid points were only for debugging: a new jigsaw does not show them
+    const fixed = this.played() && this.original ? this.fixedFields(this.original) : null;
+    return {
+      name,
       ...(this.owner() ? { author: this.owner()!.name, ownerUid: this.owner()!.id } : this.ownerUid() ? { ownerUid: this.ownerUid() } : {}), // the API puts the name of the user in `author` itself
       ...(this.visibility() !== 'everyone' && this.ownerUid() ? { visibility: this.visibility() as 'owner' | 'hidden' } : {}),
       ...(this.timed() ? {} : { timed: false }), // timed is what none says
@@ -236,21 +347,20 @@ export class JigsawNew implements OnDestroy {
       language: this.language(),
       ...(this.categories().length ? { categories: this.categories() } : {}),
       ...(JigsawMotives.is(this.motive()) ? { motive: this.motive() as MotiveLevel } : {}),
-      width: this.width(),
-      height: this.height(),
-      gridSize: this.gridSize(),
-      gridVisible: false, // the grid points were only for debugging: a new jigsaw does not show them
-      placed: [],
-      snapPercent: this.snapPercent(),
+      ...(fixed ?? { width: this.width(), height: this.height(), ...cutSettings, placed: [] }),
       lineWidth: this.lineWidth(),
       lineColor: this.lineColor(),
       backColor: this.backColor(),
-      ...(storeWidth ? { storeWidth } : {}),
     };
   }
 
   /** why the settings are not allowed ('' when they are) */
   readonly problem = computed(() => new JigsawSettings(this.settings()).error());
+
+  /** the name the AI replaces: the name of the picture file without its ending (a picture to analyse needs no name of its own yet) */
+  private nameForAi(): string {
+    return (this.name().trim() || this.pictureNameOf().replace(/\.[^.]*$/, '') || 'Picture').slice(0, JIGSAW_MAX_NAME);
+  }
 
   /** the name is missing: said under the name field */
   readonly nameMissing = computed(() => !this.name().trim());
@@ -280,6 +390,12 @@ export class JigsawNew implements OnDestroy {
     return !!this.editId && !this.layoutChanged() && !this.pictureChanged();
   });
 
+  /** "Save and analyse" is allowed without a name: the AI sets it (the settings are checked with the name of the picture file, which stands in until then) */
+  readonly canAnalyse = computed(() => {
+    if (this.editId || this.saving() || this.loading() || !this.ownerUid() || !this.file()) return false;
+    return !new JigsawSettings(this.settings(undefined, this.nameForAi())).error() && !!this.cut() && !this.stale();
+  });
+
   /** a jigsaw that is edited has no picture (it was made without one): said under the picture field */
   readonly lacksPicture = computed(() => !!this.editId && !this.loading() && !this.file());
 
@@ -288,6 +404,7 @@ export class JigsawNew implements OnDestroy {
    * wide and high (see `JigsawCut.layoutFor`). The number shown is the number of pieces that really comes out.
    */
   relayout(changed: 'width' | 'height' | 'pieces'): void {
+    if (this.isPicture()) return this.asked.set({ width: this.width(), height: this.height() }); // a picture has no pieces: the sides are the ones typed
     // the sides as the person typed them, each on its own: not what the picture area was made last time (that is a little different when the pieces are whole squares)
     if (changed === 'width') this.asked.update((a) => ({ ...a, width: this.width() }));
     if (changed === 'height') this.asked.update((a) => ({ ...a, height: this.height() }));
@@ -314,6 +431,7 @@ export class JigsawNew implements OnDestroy {
 
   /** A standard size was chosen: the picture area gets that shape, and the grid is worked out again for the number of pieces. */
   chooseSize(key: string): void {
+    if (this.isPicture()) return this.choosePictureSize(key);
     this.sizeChoice.set(key);
     const preset = this.sizePresets.find((p) => p.key === key);
     if (!preset) return;
@@ -322,6 +440,22 @@ export class JigsawNew implements OnDestroy {
     this.height.set(preset.height);
     if (this.pieceChoice() !== 'custom') return this.choosePiecesNear();
     this.relayout('pieces');
+  }
+
+  /** The size of a picture entry: the whole picture, or a shape (a standard one, or typed) that the picture is then cut to; there are no pieces to work out. */
+  private choosePictureSize(key: string): void {
+    this.sizeChoice.set(key);
+    const file = this.file();
+    if (key === 'whole') {
+      if (file) void this.useWholePicture(file);
+      return;
+    }
+    const preset = this.sizePresets.find((p) => p.key === key);
+    if (!preset) return;
+    this.asked.set({ width: preset.width, height: preset.height });
+    this.width.set(preset.width);
+    this.height.set(preset.height);
+    if (file) this.cropping.set(true); // the shape changed: the picture is cut to it
   }
 
   /** A standard number of pieces was chosen (columns × rows): the picture area is made to fit exactly that many pieces. */
@@ -343,6 +477,7 @@ export class JigsawNew implements OnDestroy {
     this.pictureChanged.set(true);
     this.cut.set(null);
     this.setPreview(null);
+    if (this.isPicture()) return void this.useWholePicture(file); // a picture is the whole picture: no cut to find
     this.cropping.set(true);
   }
 
@@ -372,6 +507,7 @@ export class JigsawNew implements OnDestroy {
 
   /** Fills the form with a jigsaw (not its picture). */
   private fill(item: JigsawSpec): void {
+    this.kind.set(JigsawKinds.of(item));
     this.name.set(item.name);
     this.ownerUid.set(item.ownerUid ?? '');
     this.description.set(item.description ?? '');
@@ -400,8 +536,8 @@ export class JigsawNew implements OnDestroy {
     try {
       const item = await this.service.get(id);
       if (!item) return void (await this.router.navigate(['/'], { replaceUrl: true }));
-      if (item.ownerUid && item.ownerUid !== this.users.user()?.id) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // only its owner edits a jigsaw, also by its address
-      if (await this.plays.played(id)) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // it has been played: only the name and the defaults can change, on its page
+      if (!item.ownerUid || item.ownerUid !== this.users.user()?.id) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // only its owner edits a jigsaw, also by its address
+      this.played.set(await this.plays.played(id)); // played: what the rounds share is fixed (see `fixedFields`)
       this.original = item;
       this.fill(item);
       const response = await fetch(this.images.url(item, 1));
@@ -424,11 +560,17 @@ export class JigsawNew implements OnDestroy {
   private async saveEdit(file: File | null, cut: { rect: SourceRect; shape: number } | null): Promise<void> {
     const id = this.editId!;
     const before = this.original!;
-    const recut = !!file && !!cut && (this.pictureChanged() || this.layoutChanged());
+    const kindChanged = JigsawKinds.of(before) !== this.kind();
+    const recut = !this.isPicture() && !!file && !!cut && (this.pictureChanged() || this.layoutChanged() || kindChanged); // a picture is not cut: its rounds are
     this.error.set('');
     this.saving.set(true);
     try {
-      if (!recut) {
+      if (this.isPicture()) {
+        // only the picture itself is kept (a ready jigsaw that is made a picture loses its pieces on the server)
+        const picture = file && cut && (this.pictureChanged() || kindChanged) ? await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut.rect) : null;
+        await this.service.update(id, this.settings());
+        if (picture) await this.images.upload(id, picture);
+      } else if (!recut) {
         await this.service.update(id, this.settings(before.storeWidth));
       } else {
         const cutting = JigsawCut.cut(this.width(), this.height(), this.gridSize());
@@ -460,32 +602,35 @@ export class JigsawNew implements OnDestroy {
   async save(analyse = false): Promise<void> {
     const file = this.file();
     const cut = this.cut();
-    if (!this.canSave()) return;
+    if (!(analyse && !this.editId ? this.canAnalyse() : this.canSave())) return;
     if (this.editId) return this.saveEdit(file, cut);
     if (!file || !cut) return;
     this.error.set('');
     this.saving.set(true);
-    const cutting = JigsawCut.cut(this.width(), this.height(), this.gridSize());
-    if ('error' in cutting) {
+    // a picture is not cut here (each round cuts it as chosen): nothing but the picture is saved
+    const cutting = this.isPicture() ? null : JigsawCut.cut(this.width(), this.height(), this.gridSize());
+    if (cutting && 'error' in cutting) {
       this.error.set(cutting.error);
       this.saving.set(false);
       return;
     }
-    const pieces = cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []);
+    const pieces = cutting && !('error' in cutting) ? cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []) : [];
     let madeId: string | null = null;
     try {
       const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut.rect); // cut to the shape of the picture area
-      const made = await this.service.create(this.settings(cutting.storeWidth));
+      const made = await this.service.create(this.settings(cutting && !('error' in cutting) ? cutting.storeWidth : undefined, analyse ? this.nameForAi() : this.name().trim()));
       madeId = made.id;
       await this.images.upload(made.id, picture);
-      const address = URL.createObjectURL(picture);
-      let graphics: Map<string, string>;
-      try {
-        graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, { width: this.lineWidth(), color: this.lineColor() });
-      } finally {
-        URL.revokeObjectURL(address);
+      if (cutting && !('error' in cutting)) {
+        const address = URL.createObjectURL(picture);
+        let graphics: Map<string, string>;
+        try {
+          graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, { width: this.lineWidth(), color: this.lineColor() });
+        } finally {
+          URL.revokeObjectURL(address);
+        }
+        await this.pieceApi.replace(made.id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
       }
-      await this.pieceApi.replace(made.id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
       // the new jigsaw is only saved: no round is started, the person goes on to its page and starts one when they like
       if (analyse) {
         this.analysing.set(true);

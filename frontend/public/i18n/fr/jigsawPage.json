@@ -62,5 +62,10 @@
   "couldNotResetRounds": "Impossible de supprimer les manches : seul son propriétaire le peut.",
   "motive": "Difficulté du motif",
   "youSolvedIt": "Tu as résolu ce puzzle",
-  "roundProtected": "Verrouillé : démarré avec une connexion du compte"
+  "roundProtected": "Verrouillé : démarré avec une connexion du compte",
+  "startTitle": "Choisissez les pièces et la difficulté",
+  "startPieces": "Pièces",
+  "startGo": "Commencer la manche",
+  "startSolved": "résolu",
+  "choosePieces": "Vous choisissez les pièces et la difficulté au début d’une manche"
 }

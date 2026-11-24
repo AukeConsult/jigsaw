@@ -62,5 +62,10 @@
   "couldNotResetRounds": "Kunne ikke slette rundene: bare eieren kan.",
   "motive": "Motivets vanskelighet",
   "youSolvedIt": "Du har løst dette puslespillet",
-  "roundProtected": "Låst: startet med en innlogging på kontoen"
+  "roundProtected": "Låst: startet med en innlogging på kontoen",
+  "startTitle": "Velg brikker og vanskelighetsgrad",
+  "startPieces": "Brikker",
+  "startGo": "Start runden",
+  "startSolved": "løst",
+  "choosePieces": "Du velger brikker og vanskelighetsgrad når du starter en runde"
 }

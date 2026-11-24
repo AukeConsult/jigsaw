@@ -14,6 +14,8 @@ Fais un puzzle à partir de n’importe quelle image et assemble-le à l’écra
 4. Choisis la **Difficulté** et s’il est **Chronométré**. Sous **Plus d'options**, tu peux aussi changer la langue, les catégories, l’apparence, l’auteur et qui le voit.
 5. Appuie sur **Enregistrer** (ou **Enregistrer et analyser avec l’IA**, qui fait aussi mettre à l’IA les catégories, le nom et la description). La page du nouveau puzzle s’ouvre : commence une manche à partir de là.
 
+**Une image ou un puzzle prêt :** en haut du formulaire, tu choisis ce que tu crées. Une **image** (le premier choix) est enregistrée avec son image seulement : la personne qui joue choisit le nombre de pièces et la difficulté au début d’une manche, donc la même image peut être jouée à différentes tailles (une image résolue avec un nombre de pièces peut encore être jouée avec un autre). Pour une image, **Taille et pièces** et **Difficulté** sont omises. Pour un **puzzle prêt**, tu choisis toi-même les pièces et la difficulté, comme ci-dessus.
+
 ## Jouer
 
 * Fais glisser les pièces du cadre à côté de l’image (en dessous sur un petit écran) vers l’image. Une pièce reste où tu la laisses.

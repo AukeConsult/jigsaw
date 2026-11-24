@@ -10,6 +10,7 @@ import { SolvedService } from '../solved.service';
 import { CardDetails } from '../card-details';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { snapLevelOfJigsaw } from '../snap-level';
+import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 
 /** One jigsaw as a card: its picture with a play button, the name, the author, the pieces, the difficulty and the date. Press it to open the jigsaw. */
 @Component({
@@ -35,6 +36,8 @@ export class JigsawCard {
 
   protected readonly link =computed(() => this.route() ?? ['/jigsaw', this.jigsaw().id]);
   protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw(), 1));
+  /** the entry is only a picture: it is cut in each round */
+  protected readonly isPicture = computed(() => JigsawKinds.isPicture(this.jigsaw()));
   protected readonly pieces = computed(() => {
     const j = this.jigsaw();
     const grid = pieceGrid(j.width, j.height, j.gridSize);

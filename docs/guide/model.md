@@ -5,6 +5,7 @@ All of it lives in `functions/src/models/shared/`, the ONE place to edit shared 
 | file | what is in it |
 |---|---|
 | `jigsaw-settings.ts` | `JigsawSpec` (a saved jigsaw as a document) and `JigsawSettings` (checks one) |
+| `jigsaw-kind.ts` | `JigsawKinds`: a ready jigsaw or a picture (cut in each round), `pictureSize` |
 | `jigsaw.ts` | `JigsawCut` (the cut into pieces), `JigsawPieces`, `pieceGrid`, limits |
 | `play.ts` | `Plays`, `PlaySpec`: a round, its positions, the settings of the player, the time played |
 | `jigsaw-user.ts` | `JigsawUsers`: the users who play |

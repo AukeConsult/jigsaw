@@ -1,5 +1,6 @@
 // Shared types and plain data (frontend and backend). May only import from this folder.
 export * from './jigsaw-settings';
+export * from './jigsaw-kind';
 export * from './base-object';
 export * from './puzzle';
 export * from './geometry';

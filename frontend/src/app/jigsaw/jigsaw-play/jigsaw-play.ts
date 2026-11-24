@@ -16,6 +16,7 @@ import { PieceSync, PieceSyncApi } from '../piece-sync';
 import { clockOf } from '../duration';
 import { PlaysService } from '../plays.service';
 import { JigsawSettings, JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
 import { PlacedObject } from '../../models/shared/placed';
 import { PlayOverrides, PlaySpec } from '../../models/shared/play';
@@ -191,7 +192,7 @@ export class JigsawPlay implements OnDestroy {
       if (!jigsaw) return this.status.set('missing');
       const detail = await this.plays.get(this.jigsawId, this.playId).catch((err) => (err?.status === 404 ? null : Promise.reject(err)));
       if (!detail) return this.status.set('missing');
-      this.item.set({ ...jigsaw, storeWidth: detail.play.storeWidth });
+      this.item.set({ ...jigsaw, ...detail.layout, storeWidth: detail.play.storeWidth, ...(detail.play.timed === false ? { timed: false } : {}) }); // a round of a picture has the picture area, grid and store of its own cut
       this.play.set(detail.play);
       this.snapPercent.set(detail.settings.snapPercent);
       this.lineWidth.set(detail.settings.lineWidth);
@@ -308,6 +309,7 @@ export class JigsawPlay implements OnDestroy {
     const me = this.users.user();
     if (!me) return;
     this.pieceSync.leaving();
+    if (JigsawKinds.isPicture(this.item() ?? {})) return void (await this.router.navigate(['/jigsaw', this.jigsawId])); // a picture is cut as the person chooses: the page of the picture asks
     try {
       const game = await this.plays.start(this.jigsawId, me.id);
       await this.router.navigate(['/jigsaw', this.jigsawId, 'play', game.id]);

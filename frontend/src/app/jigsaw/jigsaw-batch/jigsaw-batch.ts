@@ -6,6 +6,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../../core/language.service';
 import { readPreference, writePreference } from '../../core/preferences';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
+import { JigsawKind, JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { JigsawMaker, MakeStep } from '../jigsaw-maker';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
@@ -24,12 +25,13 @@ interface BatchPreferences {
   width: number;
   difficulty: SnapLevelKey;
   timed: boolean;
-  ai: boolean;
+  /** ready jigsaws or pictures (kept before there was a choice: pictures) */
+  kind?: JigsawKind;
 }
-const DEFAULTS: BatchPreferences = { pieces: 96, width: 800, difficulty: 'medium', timed: true, ai: true };
+const DEFAULTS: BatchPreferences = { pieces: 96, width: 800, difficulty: 'medium', timed: true, kind: 'picture' };
 const isBatchPreferences = (v: unknown): v is BatchPreferences => {
   const p = v as Partial<BatchPreferences> | null;
-  return !!p && typeof p === 'object' && BATCH_PIECES.some((n) => n === p.pieces) && BATCH_WIDTHS.some((n) => n === p.width) && SNAP_LEVELS.some((l) => l.key === p.difficulty) && typeof p.timed === 'boolean' && typeof p.ai === 'boolean';
+  return !!p && typeof p === 'object' && BATCH_PIECES.some((n) => n === p.pieces) && BATCH_WIDTHS.some((n) => n === p.width) && SNAP_LEVELS.some((l) => l.key === p.difficulty) && typeof p.timed === 'boolean' && (p.kind === undefined || JigsawKinds.is(p.kind));
 };
 const BATCH_KEY = 'jigsaw.batch';
 
@@ -72,7 +74,9 @@ export class JigsawBatch implements OnDestroy {
   readonly width = signal(this.saved.width);
   readonly difficulty = signal<SnapLevelKey>(this.saved.difficulty);
   readonly timed = signal(this.saved.timed);
-  readonly ai = signal(this.saved.ai);
+  /** ready jigsaws (cut into pieces here) or pictures (cut in each round: no pieces, size or difficulty are chosen here) */
+  readonly kind = signal<JigsawKind>(this.saved.kind ?? 'picture');
+  readonly isPicture = computed(() => this.kind() === 'picture');
   /** the language of the names and descriptions: the language the app is shown in, to begin with */
   readonly language = signal(inject(LanguageService).lang());
 
@@ -99,7 +103,7 @@ export class JigsawBatch implements OnDestroy {
 
   constructor() {
     // what is chosen is kept on the device
-    effect(() => writePreference(BATCH_KEY, { pieces: this.pieces(), width: this.width(), difficulty: this.difficulty(), timed: this.timed(), ai: this.ai() } satisfies BatchPreferences));
+    effect(() => writePreference(BATCH_KEY, { pieces: this.pieces(), width: this.width(), difficulty: this.difficulty(), timed: this.timed(), kind: this.kind() } satisfies BatchPreferences));
   }
 
   /** The files that were chosen are put on the list (only pictures, and no more than `BATCH_MAX` in all). */
@@ -137,8 +141,12 @@ export class JigsawBatch implements OnDestroy {
     this.items.update((now) => now.map((i) => (i.id === item.id ? { ...i, ...change } : i)));
   }
 
-  /** Makes a jigsaw of each picture that waits, one after the other. */
+  /**
+   * Makes something of each picture that waits, one after the other: a ready jigsaw (cut into pieces here) or, when the choice is pictures, a stored picture (each round cuts it).
+   * Either way the AI looks at it and sets its categories, name and description.
+   */
   async start(): Promise<void> {
+    const kind = this.kind();
     const me = this.users.user();
     if (!me || this.running()) return;
     this.running.set(true);
@@ -150,13 +158,9 @@ export class JigsawBatch implements OnDestroy {
         this.change(item, { state: 'cutting', problem: undefined });
         let jigsaw: JigsawSpec;
         try {
-          jigsaw = await this.maker.make(item.file, me, { pieces: this.pieces(), width: this.width(), snapPercent, timed: this.timed(), language: this.language() }, (step) => this.change(item, { state: step }));
+          jigsaw = await this.maker.make(item.file, me, { kind, pieces: this.pieces(), width: this.width(), snapPercent, timed: this.timed(), language: this.language() }, (step) => this.change(item, { state: step }));
         } catch (err) {
           this.change(item, { state: 'failed', problem: reasonOf(err) });
-          continue;
-        }
-        if (!this.ai()) {
-          this.change(item, { state: 'done', jigsaw });
           continue;
         }
         this.change(item, { state: 'classifying', jigsaw });

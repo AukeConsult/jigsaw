@@ -14,6 +14,8 @@ Maak een puzzel van elke afbeelding en leg hem op het scherm. Alles wordt vanzel
 4. Kies de **Moeilijkheid** en of het **Met tijdmeting** is. Onder **Meer opties** kun je ook de taal, de categorieën, het uiterlijk, de maker en wie het ziet wijzigen.
 5. Tik op **Opslaan** (of **Opslaan en analyseren met AI**, waarbij de AI ook de categorieën, de naam en de beschrijving zet). De pagina van de nieuwe puzzel gaat open: begin daar een ronde.
 
+**Een afbeelding of een kant-en-klare puzzel:** bovenaan het formulier kies je wat je maakt. Een **afbeelding** (de eerste keuze) wordt alleen met haar afbeelding opgeslagen: wie speelt kiest het aantal stukjes en de moeilijkheid als een ronde begint, zodat dezelfde afbeelding in verschillende formaten gespeeld kan worden (een afbeelding die je met één aantal stukjes hebt opgelost, kun je nog met een ander aantal spelen). Bij een afbeelding vervallen **Formaat en stukjes** en de **Moeilijkheid**. Bij een **kant-en-klare puzzel** kies je zelf de stukjes en de moeilijkheid, zoals hierboven.
+
 ## Spelen
 
 * Sleep de stukjes uit het kader naast de afbeelding (op een klein scherm eronder) naar de afbeelding. Een stukje blijft liggen waar je het loslaat.

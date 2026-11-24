@@ -1,49 +1,21 @@
 <ng-container *transloco="let t">
 @switch (status()) {
   @case ('loading') {
-    <main class="container-fluid page-margin py-4 text-body-secondary" role="status">{{ t('jigsawPage.opening') || 'Opening the jigsaw…' }}</main>
+    <main class="container-fluid page-margin page-max py-4 text-body-secondary" role="status">{{ t('jigsawPage.opening') || 'Opening the jigsaw…' }}</main>
   }
   @case ('missing') {
-    <main class="container-fluid page-margin py-4"><div class="alert alert-warning" role="alert">{{ t('jigsawPage.missing') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPage.goToJigsaws') || 'Go to the jigsaws' }}</a>.</div></main>
+    <main class="container-fluid page-margin page-max py-4"><div class="alert alert-warning" role="alert">{{ t('jigsawPage.missing') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPage.goToJigsaws') || 'Go to the jigsaws' }}</a>.</div></main>
   }
   @case ('failed') {
-    <main class="container-fluid page-margin py-4"><div class="alert alert-danger" role="alert">{{ t('jigsawPage.openFailed') || 'Could not open the jigsaw.' }} <a routerLink="/">{{ t('jigsawPage.goToJigsaws') || 'Go to the jigsaws' }}</a>.</div></main>
+    <main class="container-fluid page-margin page-max py-4"><div class="alert alert-danger" role="alert">{{ t('jigsawPage.openFailed') || 'Could not open the jigsaw.' }} <a routerLink="/">{{ t('jigsawPage.goToJigsaws') || 'Go to the jigsaws' }}</a>.</div></main>
   }
   @case ('ready') {
     @let it = item()!;
-    <main class="container-fluid page-margin pt-2 pb-4">
-      <!-- a pure back: to the page the person came from (the list of all jigsaws, the page of a user, ...) -->
-      <div class="mb-2"><button type="button" class="link-action" (click)="back()"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('jigsawPage.goBack') || 'Back' }}</button></div>
+    <main class="container-fluid page-margin page-max pt-2 pb-4">
       <!-- the picture and what it is: a frame of its own; the rounds are under it -->
-      <app-jigsaw-header [jigsaw]="it" [mayChange]="mayChange()" [editing]="editing()" [busy]="busy()" [solved]="solvedByMe()" [(confirmingDelete)]="confirmingDelete" (edit)="toggleEdit()" (remove)="deleteJigsaw()" (play)="play()" (addDescription)="addDescription()" />
-          @if (editing()) {
-            <!-- the edit form: the name, the author and the defaults; the picture, size and pieces are fixed -->
-            <form class="card card-body mt-3" (submit)="$event.preventDefault()">
-              <!-- closes the panel (what was changed is already saved) -->
-              <button type="button" class="btn-close position-absolute top-0 end-0 m-3" [attr.aria-label]="t('jigsawPage.close') || 'Close'" [title]="t('jigsawPage.close') || 'Close'" (click)="editing.set(false)"></button>
-              <app-jigsaw-fields [(name)]="name" [(description)]="description" [(language)]="language" [(categories)]="categories" [(motive)]="motive" [(lineWidth)]="lineWidth" [(lineColor)]="lineColor" [(backColor)]="backColor" [(ownerUid)]="ownerUid" [(visibility)]="visibility"
-                                 [owners]="owners()" [classifyId]="id" />
-              <!-- the picture, size, pieces and difficulty are fixed while there are rounds: the owner can take the rounds away to change them -->
-              <h2 class="form-section"><i class="bi bi-lock" aria-hidden="true"></i>{{ t('jigsawPage.sectionFixed') || 'Picture, size and difficulty' }}</h2>
-              <p class="text-body-secondary">{{ t('jigsawPage.fixedNote') || 'The picture, the size, the pieces and the difficulty are fixed, since rounds of this jigsaw have been started.' }}</p>
-              @if (confirmingReset()) {
-                <div class="alert alert-danger py-2 small" role="alert">
-                  {{ t('jigsawPage.resetAsk') || 'Delete all the rounds of this jigsaw for good, also other players’? Then the picture, the size and the difficulty can be changed.' }}
-                  <div class="d-flex gap-1 mt-2">
-                    <button type="button" class="btn btn-sm btn-danger" [disabled]="busy()" (click)="resetRounds()">{{ t('jigsawPage.yesReset') || 'Yes, delete the rounds' }}</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingReset.set(false)">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
-                  </div>
-                </div>
-              } @else {
-                <div class="toolbar mb-3">
-                  <button type="button" class="link-action danger" (click)="confirmingReset.set(true)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{{ t('jigsawPage.resetRounds') || 'Delete all rounds to change them' }}</button>
-                </div>
-              }
-              <!-- what is changed here is saved by itself; only a problem is said. Only what can be changed is here: the difficulty, the clock, the size, the picture and the pieces are fixed once somebody has started a round, so they are not shown -->
-              @if (saveState() === 'failed') {
-                <div class="small text-danger" role="alert">{{ t('jigsawPage.couldNotSave') || 'Could not save the changes: try again.' }}</div>
-              }
-            </form>
+      <app-jigsaw-header [jigsaw]="it" [mayChange]="mayChange()" [busy]="busy()" [solved]="solvedByMe()" [(confirmingDelete)]="confirmingDelete" (edit)="edit()" (remove)="deleteJigsaw()" (play)="play()" (addDescription)="edit()" />
+          @if (choosing() && isPicture()) {
+            <app-round-choice [jigsaw]="it" [solved]="solvedSizes()" [busy]="busy()" (chosen)="startChosen($event)" (cancelled)="choosing.set(false)" />
           }
           @if (error()) {
             <div class="alert alert-warning py-2 small mt-3" role="alert">{{ error() }}</div>
@@ -55,7 +27,7 @@
           } @else {
             <ul class="list-group">
               @for (game of games(); track game.id) {
-                <app-round-row [game]="game" [jigsawId]="it.id" [timed]="it.timed !== false" [mine]="isMine(game)" (remove)="removeGame(game)" />
+                <app-round-row [game]="game" [jigsawId]="it.id" [timed]="it.timed !== false && game.timed !== false" [mine]="isMine(game)" (remove)="removeGame(game)" />
               }
             </ul>
           }
