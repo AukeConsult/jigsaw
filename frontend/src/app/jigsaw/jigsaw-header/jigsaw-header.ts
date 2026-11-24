@@ -37,6 +37,8 @@ export class JigsawHeader {
   readonly busy = input(false);
   /** the user has solved this jigsaw: there is no button to play it again */
   readonly solved = input(false);
+  /** the way to start a round is on the page itself (the choice of a picture), so the button is not shown */
+  readonly hidePlay = input(false);
   /** Delete was pressed and waits for "Yes" (the page keeps it, since it closes it when the delete fails) */
   readonly confirmingDelete = model(false);
 
@@ -51,6 +53,8 @@ export class JigsawHeader {
 
   /** the picture could not be read (a jigsaw can be made without one): nothing is shown */
   protected readonly hasPicture = signal(true);
+  /** the picture of a saved jigsaw is shown big over the page (pressed to open, pressed again or Escape to close) */
+  protected readonly enlarged = signal(false);
   protected readonly pictureUrl = computed(() => (this.draft() ? this.pictureSrc() : this.images.url(this.jigsaw(), 1)));
   protected readonly pieces = computed(() => {
     const j = this.jigsaw();

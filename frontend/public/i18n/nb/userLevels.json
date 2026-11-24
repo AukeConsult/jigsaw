@@ -1,0 +1,38 @@
+{
+  "menu": "Admin",
+  "title": "Kontonivåer",
+  "intro": "Velg hva hver konto kan gjøre. Et nivå gjelder bare for en konto som er beskyttet av en pålogging.",
+  "level": {
+    "label": "Nivå",
+    "user": "Bruker",
+    "publisher": "Utgiver",
+    "admin": "Admin"
+  },
+  "help": {
+    "user": "Spiller og lager private eller skjulte puslespill.",
+    "publisher": "Gjør også puslespill offentlige.",
+    "admin": "Endrer og sletter også alt, ser private puslespill og setter nivåer."
+  },
+  "needsLogin": "Ikke beskyttet av en pålogging: den kan bare være bruker.",
+  "you": "Deg",
+  "couldNotSave": "Kunne ikke lagre nivået: prøv igjen.",
+  "couldNotRead": "Kunne ikke lese kontoene.",
+  "publicLocked": "Bare en utgiver kan gjøre et puslespill offentlig.",
+  "loading": "Leser kontoene …",
+  "account": {
+    "edit": "Rediger",
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "delete": "Slett",
+    "confirmDelete": "Slette denne kontoen for godt?",
+    "yesDelete": "Ja, slett",
+    "name": "Navn",
+    "alias": "Alias"
+  },
+  "into": {
+    "open": "Gå inn i denne kontoen",
+    "banner": "Du bruker {{ name }} som admin.",
+    "back": "Tilbake til {{ name }}",
+    "notAllowed": "Bare en admin kan gå inn i en konto."
+  }
+}

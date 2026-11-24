@@ -20,8 +20,8 @@
   "selectPackages": "Pakete auswählen",
   "kind": "Was es ist",
   "kinds": {
-    "jigsaw": "Fertiges Puzzle",
-    "picture": "Bild"
+    "jigsaw": "Fertige Puzzles",
+    "picture": "Bilder"
   },
   "category": "Kategorie",
   "size": "Größe",
@@ -77,7 +77,9 @@
   "roundsWhoseOthersTitle": "Nur die Runden der anderen",
   "resetAll": "Alles zurücksetzen",
   "detailsIn": "Details in der Bildansicht anzeigen",
-  "viewHelp": "Diese Auswahl bestimmt, wie die Listen der Bilder angezeigt werden. Karten zeigen jedes Bild als Bildkarte, Liste zeigt ein Bild pro Zeile. Details fügt jeder Karte oder Zeile Autor, Kategorien und Datum hinzu.",
+  "viewHelp": "So werden die Bilder gezeigt: als Karten oder Liste, mit oder ohne Details.",
   "choosePieces": "Teile wählen",
-  "choosePiecesTitle": "Anzahl der Teile und Schwierigkeit wählst du beim Start einer Runde"
+  "choosePiecesTitle": "Anzahl der Teile und Schwierigkeit wählst du beim Start einer Runde",
+  "noneMatchTitle": "Kein Bild passt",
+  "noneMatchHelp": "Versuche andere Auswahlen."
 }

@@ -20,8 +20,8 @@
   "selectPackages": "Select packages",
   "kind": "What it is",
   "kinds": {
-    "jigsaw": "Ready jigsaw",
-    "picture": "Picture"
+    "jigsaw": "Ready jigsaws",
+    "picture": "Pictures"
   },
   "category": "Category",
   "size": "Size",
@@ -77,7 +77,9 @@
   "roundsWhoseOthersTitle": "Only the rounds of the others",
   "resetAll": "Reset all",
   "detailsIn": "Show details in the picture view",
-  "viewHelp": "These choices set how the lists of pictures are shown. Cards show each picture as a picture card, List shows one picture on each row. Details adds the author, the categories and the date to every card or row.",
+  "viewHelp": "How the pictures are shown: as cards or a list, with or without details.",
   "choosePieces": "Choose pieces",
-  "choosePiecesTitle": "The number of pieces and the difficulty are chosen when you start a round"
+  "choosePiecesTitle": "The number of pieces and the difficulty are chosen when you start a round",
+  "noneMatchTitle": "No pictures match",
+  "noneMatchHelp": "Try other choices."
 }

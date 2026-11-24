@@ -8,7 +8,7 @@
                 <!-- the cut picture in pieces, as the jigsaw will be -->
                 <ng-content select="[draft-picture]" />
               } @else {
-                <img class="img-fluid rounded-3 w-100" [class.zoomable]="draft()" [src]="pictureUrl()" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (error)="hasPicture.set(false)" (click)="draft() && zoom.emit()">
+                <img class="img-fluid rounded-3 w-100" [class.zoomable]="true" [src]="pictureUrl()" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (error)="hasPicture.set(false)" (click)="draft() ? zoom.emit() : enlarged.set(true)">
               }
               @if (draft() && changeLabel()) {
                 <!-- a draft: choose another picture, in the lower right corner of the picture -->
@@ -149,7 +149,7 @@
               @if (solved()) {
                 <!-- solved by the user: it is not played twice -->
                 <div class="text-success fw-semibold" role="status"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.youSolvedIt') || 'You have solved this jigsaw' }}</div>
-              } @else if (jigsaw().visibility === 'everyone' || !jigsaw().visibility || mayChange()) {
+              } @else if (!hidePlay() && (jigsaw().visibility === 'everyone' || !jigsaw().visibility || mayChange())) {
                 <!-- a jigsaw only its owner sees can get a new round from its owner only; the players who have a round on it go on with it below -->
                 <button type="button" class="btn btn-heading btn-outline-primary" [disabled]="busy()" (click)="play.emit()">
                   <i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawPage.enterRound') || 'Enter a round, solve it' }}
@@ -163,4 +163,10 @@
           </div>
         </div>
       </div>
+@if (enlarged() && !draft() && pictureUrl(); as big) {
+  <!-- the picture big, over the page: a click or Escape closes it (a draft is shown big by the form that holds it) -->
+  <div class="picture-zoom" role="dialog" aria-modal="true" [attr.aria-label]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (click)="enlarged.set(false)" (window:keydown.escape)="enlarged.set(false)">
+    <img [src]="big" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'">
+  </div>
+}
 </ng-container>

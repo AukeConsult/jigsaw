@@ -20,5 +20,7 @@
   "shareEmail": "Sähköposti",
   "viewing": "Katsot pelaajan {{ name }} kierrosta",
   "toJigsaw": "Näytä palapelin sivu",
-  "home": "Etusivu"
+  "home": "Etusivu",
+  "addPicture": "Lisää kuva",
+  "more": "Lisää"
 }

@@ -20,5 +20,7 @@
   "shareEmail": "E-post",
   "viewing": "Du tittar på {{ name }}s omgång",
   "toJigsaw": "Visa pusselsidan",
-  "home": "Hem"
+  "home": "Hem",
+  "addPicture": "Lägg till bild",
+  "more": "Mer"
 }

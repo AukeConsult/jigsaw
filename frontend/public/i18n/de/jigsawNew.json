@@ -77,5 +77,7 @@
   "kindPictureHelp": "Beim Start einer Runde wählt man die Anzahl der Teile und die Schwierigkeit.",
   "kindJigsaw": "Ein fertiges Puzzle",
   "kindJigsawHelp": "Du wählst die Anzahl der Teile und die Schwierigkeit jetzt.",
-  "pictureAlt": "Das Bild"
+  "pictureAlt": "Das Bild",
+  "askNameTitle": "Wie heißt es?",
+  "askNameHelp": "Gib ihm einen Namen, bevor es gespeichert wird."
 }

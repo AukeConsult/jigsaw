@@ -41,5 +41,7 @@
   "startPieces": "Stukjes",
   "startGo": "Start de ronde",
   "startSolved": "opgelost",
-  "choosePieces": "Je kiest de stukjes en de moeilijkheid als je een ronde start"
+  "choosePieces": "Je kiest de stukjes en de moeilijkheid als je een ronde start",
+  "snapTitle": "Klikafstand",
+  "snapHelp": "Hoe dicht een stukje bij zijn plek moet zijn voordat het vastklikt. Makkelijk: van ver. Moeilijk: pas helemaal dichtbij."
 }

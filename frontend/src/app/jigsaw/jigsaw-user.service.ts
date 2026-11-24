@@ -2,12 +2,15 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { tr } from '../core/i18n';
+import { ADMIN_KEY } from '../core/user-header.interceptor';
 import { AuthService } from '../logons/auth.service';
 import { LanguageService } from '../core/language.service';
 import { environment } from '../../environments/environment';
 import { JigsawSetup } from '../models/shared/jigsaw-filter';
 import { JigsawUserSpec, JigsawUsers } from '../models/shared/jigsaw-user';
-import { FRONT_FINDER_KEY, hasFinderPreferences, writeFinderPreferences } from './jigsaw-finder/finder-preferences';
+import { UserLevel, UserLevels } from '../models/shared/user-level';
+import { FRONT_FINDER_KEY, hasFinderPreferences, readFinderPreferences, writeFinderPreferences } from './jigsaw-finder/finder-preferences';
+import { JigsawFilters } from '../models/shared/jigsaw-filter';
 
 /** Where the browser keeps which user is playing (the UID; the user itself is in the database). An earlier version kept the user name, which was then the id too. */
 const STORED_KEY = 'jigsaw.userId';
@@ -37,9 +40,47 @@ export class JigsawUserService {
    */
   readonly acting = computed(() => {
     const user = this.user();
-    return user && JigsawUsers.mayAct(user, this.auth.user()?.uid) ? user : null;
+    return user && (this.admin() || JigsawUsers.mayAct(user, this.auth.user()?.uid)) ? user : null; // an admin who has gone into the account acts as it with their own login
   });
+  /** The admin who has gone into the account that plays (null: nobody has): kept for this tab only, so a new tab, or a browser that is closed, is back to the login the account needs. */
+  readonly admin = signal<{ id: string; name: string } | null>(this.readAdmin());
+  /** What the user who plays may do beyond playing (`UserLevels.of`: it counts only for an account that needs a login). Only for what the page shows: the server decides what is allowed. */
+  readonly level = computed<UserLevel>(() => (this.admin() ? 'admin' : UserLevels.of(this.user()))); // an admin who is in an account has the rights of an admin there
+  readonly mayPublish = computed(() => UserLevels.mayPublish(this.level()));
+  readonly isAdmin = computed(() => UserLevels.isAdmin(this.level()));
+  /** There is no admin at all (the server says so): the first one has to be made by somebody, so the page of the levels is open to every account who plays. */
+  readonly noAdmin = signal(false);
+  /** The admin menu and the page of the levels are for an admin, or for every account who plays while there is no admin. */
+  readonly mayOpenLevels = computed(() => this.isAdmin() || (this.noAdmin() && !!this.user()));
   private loaded: Promise<JigsawUserSpec | null> | null = null;
+
+  /** Asks whether there is no admin (the answer is public: only a yes or a no); a failure is a no. */
+  async readNoAdmin(): Promise<void> {
+    try {
+      this.noAdmin.set((await firstValueFrom(this.http.get<{ open: boolean }>(`${environment.jigsawApi}/jigsaw-levels/open`))).open);
+    } catch {
+      this.noAdmin.set(false);
+    }
+  }
+
+  private readAdmin(): { id: string; name: string } | null {
+    try {
+      const kept = JSON.parse(sessionStorage.getItem(ADMIN_KEY) ?? 'null') as { id?: unknown; name?: unknown } | null;
+      return typeof kept?.id === 'string' && typeof kept.name === 'string' ? { id: kept.id, name: kept.name } : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private keepAdmin(admin: { id: string; name: string } | null): void {
+    try {
+      if (admin) sessionStorage.setItem(ADMIN_KEY, JSON.stringify(admin));
+      else sessionStorage.removeItem(ADMIN_KEY);
+    } catch {
+      /* no storage: the admin is not kept */
+    }
+    this.admin.set(admin);
+  }
 
   private url(id: string): string {
     return `${environment.jigsawApi}/jigsaw-users/${encodeURIComponent(id)}`;
@@ -66,17 +107,22 @@ export class JigsawUserService {
   /** The user who played here last, read from the database (once); null when none was chosen or the user is gone. */
   load(): Promise<JigsawUserSpec | null> {
     this.loaded ??= (async () => {
-      const id = this.stored();
-      if (!id) return null;
+      const noAdmin = this.readNoAdmin(); // asked at the same time as the user is read
       try {
-        const user = await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
-        this.user.set(user);
-        this.language.use(user.language); // the app is shown in the language of the user
-        if (user.search && !hasFinderPreferences(FRONT_FINDER_KEY)) writeFinderPreferences(FRONT_FINDER_KEY, user.search); // a device that has no search of its own takes the user's
-        return user;
-      } catch (err) {
-        if (err instanceof HttpErrorResponse && err.status === 404) this.remember(null); // the user is gone: choose again
-        return null;
+        const id = this.stored();
+        if (!id) return null;
+        try {
+          const user = await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
+          this.user.set(user);
+          this.language.use(user.language); // the app is shown in the language of the user
+          if (user.search && !hasFinderPreferences(FRONT_FINDER_KEY)) writeFinderPreferences(FRONT_FINDER_KEY, user.search); // a device that has no search of its own takes the user's
+          return user;
+        } catch (err) {
+          if (err instanceof HttpErrorResponse && err.status === 404) this.remember(null); // the user is gone: choose again
+          return null;
+        }
+      } finally {
+        await noAdmin;
       }
     })();
     return this.loaded;
@@ -117,6 +163,59 @@ export class JigsawUserService {
   /** The users to choose from (without their e-mail addresses), by name. */
   list(): Promise<JigsawUserSpec[]> {
     return firstValueFrom(this.http.get<JigsawUserSpec[]>(`${environment.jigsawApi}/jigsaw-users`));
+  }
+
+  /** Changes the name or the alias of another account (an admin does it): the account as it is then, or the reason it was refused (the alias is taken, ...). */
+  async changeAccount(id: string, change: { name?: string; username?: string }): Promise<{ user: JigsawUserSpec } | { error: string }> {
+    try {
+      const user = await firstValueFrom(this.http.put<JigsawUserSpec>(this.url(id), change));
+      if (user.id === this.user()?.id) this.user.set(user);
+      return { user };
+    } catch (err) {
+      return { error: reasonOf(err) };
+    }
+  }
+
+  /**
+   * An admin goes into an account: from now on the app is that account (its jigsaws, rounds and settings, seen and changed as it), with no login of its own; the calls say who the admin is
+   * (`X-Jigsaw-Admin`) and the server lets the admin's login act as the account, except for the account's logins. The reason when it is not allowed, or ''.
+   */
+  async openAs(id: string): Promise<string> {
+    const me = this.user();
+    const origin = this.admin() ?? (me && this.isAdmin() ? { id: me.id, name: me.name } : null); // an admin who is in an account goes into another as the same admin
+    if (!me || !origin || origin.id === id || me.id === id) return tr('userLevels.into.notAllowed', 'Only an admin can go into an account.');
+    try {
+      const account = await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
+      this.emptyFinder();
+      this.keepAdmin(origin);
+      this.remember(account.id);
+      this.user.set(account);
+      this.loaded = Promise.resolve(account);
+      return '';
+    } catch (err) {
+      return reasonOf(err);
+    }
+  }
+
+  /** The admin comes out of the account and is the admin account again. */
+  async backToAdmin(): Promise<string> {
+    const admin = this.admin();
+    if (!admin) return '';
+    this.keepAdmin(null);
+    this.emptyFinder();
+    return this.selectById(admin.id);
+  }
+
+  /** Gives an account a level (an admin does it): the account as it is then, or the reason it was refused (the last admin cannot step down). */
+  async setLevel(id: string, level: UserLevel): Promise<{ user: JigsawUserSpec } | { error: string }> {
+    try {
+      const user = await firstValueFrom(this.http.put<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-levels/${encodeURIComponent(id)}`, { level }));
+      if (user.id === this.user()?.id) this.user.set(user); // an admin who changes their own level is told at once
+      void this.readNoAdmin(); // the first admin may have been made
+      return { user };
+    } catch (err) {
+      return { error: reasonOf(err) };
+    }
   }
 
   /** Plays as a user from the list. */
@@ -194,18 +293,29 @@ export class JigsawUserService {
 
   /** Stops playing as this user (the user stays in the database). */
   leave(): void {
+    this.keepAdmin(null);
+    this.emptyFinder();
     this.remember(null);
     this.user.set(null);
     this.loaded = Promise.resolve(null);
   }
 
+  /**
+   * What was looked for belongs to the person who looked: when the user changes (another account is chosen, or none plays any more) the filter of the front page is emptied, so the next person sees all the
+   * pictures. How they are shown (cards or list) stays. An empty setup is written, not nothing, so a device that has been emptied is not given the search of the user again when the page opens.
+   */
+  private emptyFinder(): void {
+    writeFinderPreferences(FRONT_FINDER_KEY, { view: readFinderPreferences(FRONT_FINDER_KEY).view, filter: JigsawFilters.empty() });
+  }
+
   private choose(user: JigsawUserSpec): void {
+    if (this.user()?.id !== user.id) this.emptyFinder();
+    this.keepAdmin(null); // an account that is chosen is used with its own login
     this.remember(user.id);
     // the account was chosen: the lists put it first the next time (a failure is not worth telling the person about)
     void firstValueFrom(this.http.post(`${this.url(user.id)}/used`, {})).catch(() => undefined);
     this.user.set(user);
     this.language.use(user.language); // the app is shown in the language of the user
-    if (user.search) writeFinderPreferences(FRONT_FINDER_KEY, user.search); // a user who is chosen brings their search
     this.loaded = Promise.resolve(user);
   }
 }

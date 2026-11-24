@@ -2,5 +2,12 @@
   "title": "Pakketten kiezen",
   "intro": "Pakketten zijn verzamelingen afbeeldingen om uit te kiezen, zodat je de afbeeldingen speelt die je leuk vindt.",
   "soon": "Deze pagina is nog niet klaar. De pakketten komen binnenkort.",
-  "back": "Terug naar de afbeeldingen"
+  "back": "Terug naar de afbeeldingen",
+  "make": {
+    "tab": "Pakketten maken",
+    "title": "Een pakket maken",
+    "intro": "Een pakket is een verzameling afbeeldingen waaruit anderen kunnen kiezen om te spelen. Hier stelt een uitgever er een samen.",
+    "soon": "Dit is nog niet klaar. Pakketten maken komt binnenkort.",
+    "back": "Terug naar je account"
+  }
 }

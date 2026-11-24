@@ -20,5 +20,7 @@
   "shareEmail": "E-mail",
   "viewing": "Je kijkt naar de ronde van {{ name }}",
   "toJigsaw": "Toon de pagina van de puzzel",
-  "home": "Home"
+  "home": "Home",
+  "addPicture": "Afbeelding toevoegen",
+  "more": "Meer"
 }

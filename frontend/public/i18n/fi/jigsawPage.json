@@ -41,5 +41,7 @@
   "startPieces": "Palat",
   "startGo": "Aloita kierros",
   "startSolved": "ratkaistu",
-  "choosePieces": "Valitset palat ja vaikeustason kierrosta aloittaessasi"
+  "choosePieces": "Valitset palat ja vaikeustason kierrosta aloittaessasi",
+  "snapTitle": "Napsahdusetäisyys",
+  "snapHelp": "Kuinka lähellä paikkaansa palan täytyy olla, ennen kuin se napsahtaa paikalleen. Helppo: kaukaa. Vaikea: vasta aivan vieressä."
 }

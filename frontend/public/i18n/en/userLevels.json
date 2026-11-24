@@ -1,0 +1,38 @@
+{
+  "menu": "Admin",
+  "title": "Account levels",
+  "intro": "Choose what each account may do. A level counts only for an account that is protected by a login.",
+  "level": {
+    "label": "Level",
+    "user": "User",
+    "publisher": "Publisher",
+    "admin": "Admin"
+  },
+  "help": {
+    "user": "Plays and makes private or hidden jigsaws.",
+    "publisher": "Also makes jigsaws public.",
+    "admin": "Also changes and deletes anything, sees private jigsaws and sets levels."
+  },
+  "needsLogin": "Not protected by a login: it can only be a user.",
+  "you": "You",
+  "couldNotSave": "Could not save the level: try again.",
+  "couldNotRead": "Could not read the accounts.",
+  "publicLocked": "Only a publisher can make a jigsaw public.",
+  "loading": "Reading the accounts…",
+  "account": {
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmDelete": "Delete this account for good?",
+    "yesDelete": "Yes, delete",
+    "name": "Name",
+    "alias": "Alias"
+  },
+  "into": {
+    "open": "Go into this account",
+    "banner": "You are using {{ name }} as an admin.",
+    "back": "Back to {{ name }}",
+    "notAllowed": "Only an admin can go into an account."
+  }
+}

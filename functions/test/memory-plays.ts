@@ -1,3 +1,4 @@
+import type { Levels } from "../src/jigsaw/user-levels";
 import type { UserStore } from "../src/jigsaw/jigsaw-users";
 import { etagOf } from "../src/jigsaw/jigsaw-image";
 import type { ImageStore, Picture } from "../src/jigsaw/jigsaw-image";
@@ -89,8 +90,8 @@ export function memoryUsers(...names: string[]): UserStore {
       const now = JigsawUsers.logonsOf(user);
       const next = change(now);
       if (!Array.isArray(next)) return next;
-      const { firebaseUids: _was, ...rest } = user;
-      users.set(id, { ...rest, ...(next.length ? { firebaseUids: next } : {}) });
+      const { firebaseUids: _was, level: _level, ...rest } = user;
+      users.set(id, next.length ? { ...rest, ...(user.level ? { level: user.level } : {}), firebaseUids: next } : rest); // open again: no level, as in the database
       return next;
     },
     async update(id, change) {
@@ -98,7 +99,11 @@ export function memoryUsers(...names: string[]): UserStore {
       if (!user) return null;
       if (change.username !== undefined && [...users.values()].some((u) => u.id !== id && u.username === change.username)) return "taken";
       const rest = user;
-      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}) });
+      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}), ...(change.level !== undefined ? { level: change.level } : {}) });
+      if (change.level === "user") {
+        const { level: _was, ...bare } = users.get(id)!; // `user` is what none says, as in the database
+        users.set(id, bare);
+      }
       if (change.pictureAt !== undefined) {
         const { pictureAt: _was, ...bare } = users.get(id)!;
         users.set(id, change.pictureAt ? { ...bare, pictureAt: change.pictureAt } : bare);
@@ -182,3 +187,6 @@ export function memoryPieces(): PieceStore & { docs: Map<string, JigsawPiece[]>;
     },
   };
 }
+
+/** every account is a publisher, so a test can make a public jigsaw as anybody (the accounts of the tests have no login, so a level kept on them would not count: see `UserLevels.of`) */
+export const PUBLISHER: Levels = { of: async () => "publisher", forget() {} };

@@ -1,0 +1,38 @@
+{
+  "menu": "Admin",
+  "title": "Kontostufen",
+  "intro": "Wähle, was jedes Konto darf. Eine Stufe gilt nur für ein Konto, das durch eine Anmeldung geschützt ist.",
+  "level": {
+    "label": "Stufe",
+    "user": "Nutzer",
+    "publisher": "Herausgeber",
+    "admin": "Admin"
+  },
+  "help": {
+    "user": "Spielt und macht private oder versteckte Puzzles.",
+    "publisher": "Macht Puzzles auch öffentlich.",
+    "admin": "Ändert und löscht auch alles, sieht private Puzzles und legt Stufen fest."
+  },
+  "needsLogin": "Nicht durch eine Anmeldung geschützt: es kann nur Nutzer sein.",
+  "you": "Du",
+  "couldNotSave": "Die Stufe konnte nicht gespeichert werden: versuche es noch einmal.",
+  "couldNotRead": "Die Konten konnten nicht gelesen werden.",
+  "publicLocked": "Nur ein Herausgeber kann ein Puzzle öffentlich machen.",
+  "loading": "Konten werden gelesen …",
+  "account": {
+    "edit": "Bearbeiten",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "confirmDelete": "Dieses Konto für immer löschen?",
+    "yesDelete": "Ja, löschen",
+    "name": "Name",
+    "alias": "Alias"
+  },
+  "into": {
+    "open": "In dieses Konto wechseln",
+    "banner": "Du nutzt {{ name }} als Admin.",
+    "back": "Zurück zu {{ name }}",
+    "notAllowed": "Nur ein Admin kann in ein Konto wechseln."
+  }
+}

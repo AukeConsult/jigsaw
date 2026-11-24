@@ -20,8 +20,8 @@
   "selectPackages": "Valitse paketit",
   "kind": "Mikä se on",
   "kinds": {
-    "jigsaw": "Valmis palapeli",
-    "picture": "Kuva"
+    "jigsaw": "Valmiit palapelit",
+    "picture": "Kuvat"
   },
   "category": "Luokka",
   "size": "Koko",
@@ -77,7 +77,9 @@
   "roundsWhoseOthersTitle": "Vain muiden kierrokset",
   "resetAll": "Nollaa kaikki",
   "detailsIn": "Näytä tiedot kuvanäkymässä",
-  "viewHelp": "Nämä valinnat määrittävät, miten kuvaluettelot näytetään. Kortit näyttää jokaisen kuvan kuvakorttina, Luettelo yhden kuvan kullakin rivillä. Tiedot lisää tekijän, luokat ja päivämäärän jokaiseen korttiin tai riviin.",
+  "viewHelp": "Kuvien näyttötapa: korteina tai luettelona, tiedoilla tai ilman.",
   "choosePieces": "Valitse palat",
-  "choosePiecesTitle": "Palojen määrä ja vaikeustaso valitaan kierrosta aloitettaessa"
+  "choosePiecesTitle": "Palojen määrä ja vaikeustaso valitaan kierrosta aloitettaessa",
+  "noneMatchTitle": "Yksikään kuva ei täsmää",
+  "noneMatchHelp": "Kokeile muita valintoja."
 }

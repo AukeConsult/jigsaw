@@ -6,6 +6,7 @@ export * from './puzzle';
 export * from './geometry';
 export * from './jigsaw';
 export * from './jigsaw-user';
+export * from './user-level';
 export * from './placed';
 export * from './play';
 export * from './popularity';

@@ -17,9 +17,9 @@ import { renderMarkdown } from '../core/markdown';
   template: `
     <main class="container-fluid page-margin py-4" *transloco="let t">
       <!-- the two documents: the user guide and the about page -->
-      <nav class="toolbar guide mx-auto mb-3" [attr.aria-label]="t('guide.documents') || 'Documents'">
-        <a class="link-action" routerLink="/jigsaw/guide" routerLinkActive="fw-semibold"><i class="bi bi-book" aria-hidden="true"></i>{{ t('guide.tabGuide') || 'Help' }}</a>
-        <a class="link-action" routerLink="/jigsaw/about" routerLinkActive="fw-semibold"><i class="bi bi-info-circle" aria-hidden="true"></i>{{ t('guide.tabAbout') || 'About' }}</a>
+      <nav class="toolbar guide mx-auto mb-3 justify-content-center" [attr.aria-label]="t('guide.documents') || 'Documents'">
+        <a class="link-action large" routerLink="/jigsaw/guide" routerLinkActive="fw-semibold"><i class="bi bi-book" aria-hidden="true"></i>{{ t('guide.tabGuide') || 'Help' }}</a>
+        <a class="link-action large" routerLink="/jigsaw/about" routerLinkActive="fw-semibold"><i class="bi bi-info-circle" aria-hidden="true"></i>{{ t('guide.tabAbout') || 'About' }}</a>
       </nav>
       <article class="guide mx-auto" aria-label="Help">
         @if (failed()) {

@@ -8,7 +8,7 @@ import type { PieceStore } from "../src/jigsaw/jigsaw-pieces";
 import { VIEW_KEY_BUCKET_MS, ViewKeys } from "../src/jigsaw/view-key";
 import { JigsawIndex } from "../src/models";
 import type { JigsawSpec } from "../src/models";
-import { TEST_KEY_SECRET, memoryPlays, memoryUsers } from "./memory-plays";
+import { TEST_KEY_SECRET, memoryPlays, memoryUsers, PUBLISHER } from "./memory-plays";
 
 // Who may read the pictures of a jigsaw: a jigsaw that everybody sees, as before; one that is private or hidden only with its key, which the answers about the jigsaw give to those who may
 // see it. Nothing here needs a login or even a user: the rules are the ones of the jigsaw (`canSee`: the owner, or a player with a round).
@@ -75,7 +75,7 @@ function setup() {
   const plays = memoryPlays();
   const clock = { now: 1000 * VIEW_KEY_BUCKET_MS };
   const search: JigsawSearchStore = { load: async () => [...jigsaws.items.values()].map((j) => JigsawIndex.summaryOf(j.id, j as unknown as Record<string, unknown>)), forget() {} };
-  const app = createJigsawApp({
+  const app = createJigsawApp({ levels: PUBLISHER,
     jigsaw: jigsaws.store,
     jigsawImages: memoryImages([PUBLIC, PRIVATE, HIDDEN, "made-dddddddd"]),
     jigsawPieces: pieces,

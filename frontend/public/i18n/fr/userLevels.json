@@ -1,0 +1,38 @@
+{
+  "menu": "Admin",
+  "title": "Niveaux des comptes",
+  "intro": "Choisissez ce que chaque compte peut faire. Un niveau ne compte que pour un compte protégé par une connexion.",
+  "level": {
+    "label": "Niveau",
+    "user": "Utilisateur",
+    "publisher": "Éditeur",
+    "admin": "Admin"
+  },
+  "help": {
+    "user": "Joue et crée des puzzles privés ou cachés.",
+    "publisher": "Rend aussi les puzzles publics.",
+    "admin": "Modifie et supprime aussi tout, voit les puzzles privés et fixe les niveaux."
+  },
+  "needsLogin": "Non protégé par une connexion : il ne peut être qu'utilisateur.",
+  "you": "Vous",
+  "couldNotSave": "Impossible d'enregistrer le niveau : réessayez.",
+  "couldNotRead": "Impossible de lire les comptes.",
+  "publicLocked": "Seul un éditeur peut rendre un puzzle public.",
+  "loading": "Lecture des comptes…",
+  "account": {
+    "edit": "Modifier",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "confirmDelete": "Supprimer ce compte définitivement ?",
+    "yesDelete": "Oui, supprimer",
+    "name": "Nom",
+    "alias": "Alias"
+  },
+  "into": {
+    "open": "Entrer dans ce compte",
+    "banner": "Vous utilisez {{ name }} en tant qu'admin.",
+    "back": "Retour à {{ name }}",
+    "notAllowed": "Seul un admin peut entrer dans un compte."
+  }
+}

@@ -20,8 +20,8 @@
   "selectPackages": "Pakketten kiezen",
   "kind": "Wat het is",
   "kinds": {
-    "jigsaw": "Kant-en-klare puzzel",
-    "picture": "Afbeelding"
+    "jigsaw": "Kant-en-klare puzzels",
+    "picture": "Afbeeldingen"
   },
   "category": "Categorie",
   "size": "Grootte",
@@ -77,7 +77,9 @@
   "roundsWhoseOthersTitle": "Alleen de rondes van anderen",
   "resetAll": "Alles resetten",
   "detailsIn": "Details tonen in de afbeeldingsweergave",
-  "viewHelp": "Deze keuzes bepalen hoe de lijsten met afbeeldingen worden getoond. Kaarten toont elke afbeelding als een beeldkaart, Lijst toont één afbeelding per rij. Details voegt auteur, categorieën en datum toe aan elke kaart of rij.",
+  "viewHelp": "Zo worden de afbeeldingen getoond: als kaarten of lijst, met of zonder details.",
   "choosePieces": "Kies stukjes",
-  "choosePiecesTitle": "Het aantal stukjes en de moeilijkheid kies je als je een ronde start"
+  "choosePiecesTitle": "Het aantal stukjes en de moeilijkheid kies je als je een ronde start",
+  "noneMatchTitle": "Geen afbeelding past",
+  "noneMatchHelp": "Probeer andere keuzes."
 }

@@ -54,3 +54,14 @@ To do:
 - [ ] Decide what a package is (a named collection of pictures: made by whom, who sees it, how a picture gets into it) and write it in `docs/guide/jigsaws-and-sharing.md`.
 - [ ] Make the page: the packages to choose from, and the choice (one or more) kept on the device and in the account (`readPreference`, rule 12 in `CLAUDE.md`).
 - [ ] Let the choice of packages limit what the front page and the finder show (`JigsawFilters`, the model), with a test.
+
+## Levels (user, publisher, admin)
+
+Built: the level on the account, who may make a jigsaw public, what an admin may do with jigsaws and rounds, the page `/jigsaw/admin` and `PUT /jigsaw-levels/:id` (see `docs/guide/users-and-logon.md`).
+
+To do:
+
+- [ ] While there is no admin, any account that exists can make itself (or another account that has a verified login) the first admin: decide if that is safe enough, or if the first admin should be started another way (a one-time key, or an environment setting).
+- [ ] Show the level of the signed-in account on the user page, and say in the guide (`jigsaw-guide.md`, nine languages) what a publisher and an admin may do.
+- [ ] Restrict the AI use route (`/jigsaw-users/:id/token-usage`) to the account itself and to admins: the button is only hidden for others now.
+- [ ] Build the **Make packages** page (`/jigsaw/packages/make`, publisher and admin; now a dummy, `make-packages/`), after "Packages" above is decided.

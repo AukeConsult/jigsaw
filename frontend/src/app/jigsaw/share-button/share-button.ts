@@ -17,8 +17,8 @@ import { ShareLinks } from '../share-link';
 export class ShareButton {
   private readonly router = inject(Router);
 
-  /** `menu`: a link of the menu; `button`: a button of a page (the page of a jigsaw), the same sharing */
-  readonly variant = input<'menu' | 'button'>('menu');
+  /** `menu`: a link of the menu; `button`: a button of a page (the page of a jigsaw); `item`: an item of a submenu; the same sharing */
+  readonly variant = input<'menu' | 'button' | 'item'>('menu');
 
   protected readonly open = signal(false);
   protected readonly copied = signal(false);

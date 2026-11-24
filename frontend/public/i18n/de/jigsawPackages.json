@@ -2,5 +2,12 @@
   "title": "Pakete auswählen",
   "intro": "Pakete sind Sammlungen von Bildern zur Auswahl, damit du die spielen kannst, die dir gefallen.",
   "soon": "Diese Seite ist noch nicht fertig. Die Pakete kommen bald.",
-  "back": "Zurück zu den Bildern"
+  "back": "Zurück zu den Bildern",
+  "make": {
+    "tab": "Pakete erstellen",
+    "title": "Ein Paket erstellen",
+    "intro": "Ein Paket ist eine Sammlung von Bildern, aus der andere zum Spielen wählen können. Hier stellt ein Herausgeber eines zusammen.",
+    "soon": "Das ist noch nicht fertig. Pakete erstellen kommt bald.",
+    "back": "Zurück zu deinem Konto"
+  }
 }

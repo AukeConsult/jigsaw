@@ -2,5 +2,12 @@
   "title": "Velg pakker",
   "intro": "Pakker er samlinger av bilder å velge fra, så du kan spille de du liker.",
   "soon": "Denne siden er ikke ferdig ennå. Pakkene kommer snart.",
-  "back": "Tilbake til bildene"
+  "back": "Tilbake til bildene",
+  "make": {
+    "tab": "Lag pakker",
+    "title": "Lag en pakke",
+    "intro": "En pakke er en samling bilder andre kan velge å spille fra. Her setter en utgiver sammen en.",
+    "soon": "Dette er ikke ferdig ennå. Å lage pakker kommer snart.",
+    "back": "Tilbake til kontoen din"
+  }
 }

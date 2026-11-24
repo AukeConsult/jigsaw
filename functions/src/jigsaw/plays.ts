@@ -195,6 +195,8 @@ export interface PlayDeps {
   userOf: (userId: string) => Promise<{ id: string; name: string; firebaseUids?: string[] } | null>;
   /** the time now, in milliseconds (the tests give their own) */
   now?: () => number;
+  /** whether the account that asks may change and delete the rounds of others too (an admin) */
+  mayManage?: (me: string | undefined) => Promise<boolean>;
   /** numbers from 0 up to 1 for the cut of a picture (the tests give their own) */
   random?: () => number;
 }
@@ -225,7 +227,8 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
    */
   const ownRound: express.RequestHandler = async (req, res, next) => {
     const record = await plays.get(idOf(req), String(req.params.playId));
-    if (record && req.get("X-Jigsaw-User") !== record.play.userId) return bad(res, "This round belongs to someone else: you can look at it, but not change it.", 403);
+    const me = req.get("X-Jigsaw-User");
+    if (record && me !== record.play.userId && !(await deps.mayManage?.(me))) return bad(res, "This round belongs to someone else: you can look at it, but not change it.", 403);
     res.locals.round = record?.play; // already read: the pieces of the round are found from it without another read
     next(); // no such round: the handler says so
   };

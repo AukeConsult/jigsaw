@@ -41,5 +41,7 @@
   "startPieces": "Teile",
   "startGo": "Runde starten",
   "startSolved": "gelöst",
-  "choosePieces": "Teile und Schwierigkeit wählst du beim Start einer Runde"
+  "choosePieces": "Teile und Schwierigkeit wählst du beim Start einer Runde",
+  "snapTitle": "Einrast-Abstand",
+  "snapHelp": "Wie nah ein Teil an seinem Platz sein muss, bevor es einrastet. Leicht: schon von weitem. Schwer: erst ganz nah dran."
 }

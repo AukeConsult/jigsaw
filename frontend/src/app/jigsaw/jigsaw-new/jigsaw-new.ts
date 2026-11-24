@@ -85,6 +85,8 @@ export class JigsawNew implements OnDestroy {
   private readonly location = inject(Location);
   /** the jigsaw that is edited (null: a new one is made); a new one that was saved with "Save and analyse with AI" is the one that is edited from then on, in the same page */
   private readonly editIdState = signal<string | null>(inject(ActivatedRoute).snapshot.paramMap.get('id'));
+  /** the kind a link asked for (`/jigsaw/new?kind=picture`, the menu's Add picture): it wins over what was chosen for the last jigsaw */
+  private readonly askedKind = ((kind) => (JigsawKinds.is(kind) ? kind : null))(inject(ActivatedRoute).snapshot.queryParamMap.get('kind'));
   get editId(): string | null {
     return this.editIdState();
   }
@@ -167,8 +169,8 @@ export class JigsawNew implements OnDestroy {
   /** who made the jigsaw: a user chosen from the users (the UID is kept on the jigsaw as its owner, and the user's name is its author) */
   readonly owners = signal<JigsawUserSpec[]>([]);
   readonly ownerUid = signal('');
-  /** who sees the jigsaw: a new one is hidden to begin with (only in the list of its owner's jigsaws) until its owner makes it private or public */
-  readonly visibility = signal<'everyone' | 'owner' | 'hidden'>('hidden');
+  /** who sees the jigsaw: a new one is private to begin with (only its owner, and the players it has) until its owner makes it hidden, or public (a publisher) */
+  readonly visibility = signal<'everyone' | 'owner' | 'hidden'>('owner');
   /** a clock counts how long each round takes */
   readonly timed = signal(true);
   private readonly owner = computed(() => this.owners().find((u) => u.id === this.ownerUid()) ?? null);
@@ -202,6 +204,9 @@ export class JigsawNew implements OnDestroy {
   readonly cut = signal<{ rect: SourceRect; shape: number } | null>(null);
 
   constructor() {
+    effect(() => {
+      if (this.askingName()) setTimeout(() => document.getElementById('jigsaw-name-ask')?.focus()); // the cursor is in the box
+    });
     void this.loadOwners();
     if (this.editId) {
       void this.loadForEdit(this.editId);
@@ -230,7 +235,7 @@ export class JigsawNew implements OnDestroy {
 
   /** The form is filled in with what was chosen for the last jigsaw: the look, the difficulty and the clock, and the size and the number of pieces (worked out again, so they fit). */
   private useDefaults(saved: NewJigsawPreferences): void {
-    this.kind.set(saved.kind ?? 'picture');
+    this.kind.set(this.askedKind ?? saved.kind ?? 'picture');
     this.snapPercent.set(saved.snapPercent);
     this.timed.set(saved.timed);
     this.lineWidth.set(saved.lineWidth);
@@ -365,8 +370,24 @@ export class JigsawNew implements OnDestroy {
   /** the name is missing: said under the name field */
   readonly nameMissing = computed(() => !this.name().trim());
 
+  /** what is wrong besides the name (a missing name is not a reason to turn Save away: it is asked for in a box when Save is pressed) */
+  private readonly problemBesidesName = computed(() => new JigsawSettings(this.settings(undefined, this.name().trim() || this.nameForAi())).error());
+
   /** the problem for the box above the buttons: the missing name is already said under its own field */
-  readonly otherProblem = computed(() => (this.nameMissing() ? '' : this.problem()));
+  readonly otherProblem = computed(() => this.problemBesidesName());
+
+  /** the box that asks for the name is open (Save was pressed with no name), and what is typed in it */
+  readonly askingName = signal(false);
+  readonly nameDraft = signal('');
+
+  /** The name was given in the box: it is the name of the jigsaw, and the jigsaw is saved. */
+  useName(): void {
+    const given = this.nameDraft().trim().slice(0, JIGSAW_MAX_NAME);
+    if (!given) return;
+    this.name.set(given);
+    this.askingName.set(false);
+    void this.save();
+  }
 
   /** the name of the picture file that is kept with the jigsaw: the chosen file's, or else the one the jigsaw had */
   private pictureNameOf(): string {
@@ -384,7 +405,7 @@ export class JigsawNew implements OnDestroy {
    * be saved as long as the picture and the pieces are not touched (the settings, name and defaults change), and a picture is needed only to change those.
    */
   readonly canSave = computed(() => {
-    if (this.saving() || this.problem() || this.loading()) return false;
+    if (this.saving() || this.problemBesidesName() || this.loading()) return false;
     if (!this.editId && !this.ownerUid()) return false; // a new jigsaw needs its author: a user
     if (this.file()) return !!this.cut() && !this.stale();
     return !!this.editId && !this.layoutChanged() && !this.pictureChanged();
@@ -536,7 +557,7 @@ export class JigsawNew implements OnDestroy {
     try {
       const item = await this.service.get(id);
       if (!item) return void (await this.router.navigate(['/'], { replaceUrl: true }));
-      if (!item.ownerUid || item.ownerUid !== this.users.user()?.id) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // only its owner edits a jigsaw, also by its address
+      if (!item.ownerUid || (item.ownerUid !== this.users.user()?.id && !this.users.isAdmin())) return void (await this.router.navigate(['/jigsaw', id], { replaceUrl: true })); // only its owner (or an admin) edits a jigsaw, also by its address
       this.played.set(await this.plays.played(id)); // played: what the rounds share is fixed (see `fixedFields`)
       this.original = item;
       this.fill(item);
@@ -603,6 +624,11 @@ export class JigsawNew implements OnDestroy {
     const file = this.file();
     const cut = this.cut();
     if (!(analyse && !this.editId ? this.canAnalyse() : this.canSave())) return;
+    if (!analyse && this.nameMissing()) {
+      this.nameDraft.set(''); // no name: a box asks for it, and saves when it is given
+      this.askingName.set(true);
+      return;
+    }
     if (this.editId) return this.saveEdit(file, cut);
     if (!file || !cut) return;
     this.error.set('');

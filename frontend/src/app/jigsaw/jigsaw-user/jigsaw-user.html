@@ -120,14 +120,20 @@
       <!-- the lists are not shown while the user is being edited -->
       @if (!editing()) {
       <!-- the two lists of the user, as a switch: the rounds played and the jigsaws made -->
-      <div class="toolbar justify-content-center mt-4 mb-2">
+      <div class="toolbar justify-content-center mt-2 mt-md-4 mb-2">
         <div class="segmented tabs" role="group" [attr.aria-label]="t('jigsawUser.lists') || 'Lists'">
           <input id="tab-rounds" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'rounds'" (change)="tab.set('rounds')">
           <label class="btn" for="tab-rounds"><i class="bi bi-play-circle" aria-hidden="true"></i>{{ t('jigsawUser.yourRounds') || 'Your rounds' }}</label>
           <input id="tab-jigsaws" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'jigsaws'" (change)="tab.set('jigsaws')">
           <label class="btn" for="tab-jigsaws"><i class="bi bi-images" aria-hidden="true"></i>{{ t('jigsawUser.yourJigsaws') || 'Your pictures' }}</label>
-          <input id="tab-ai" type="radio" class="btn-check" name="tab" autocomplete="off" [checked]="tab() === 'ai'" (change)="tab.set('ai')">
-          <label class="btn" for="tab-ai"><i class="bi bi-stars" aria-hidden="true"></i>{{ t('jigsawUser.aiUsage') || 'AI use' }}</label>
+          <!-- the AI use is for an admin only (the page only shows it) -->
+          @if (users.isAdmin()) {
+            <a class="btn" routerLink="/jigsaw/ai-use"><i class="bi bi-stars" aria-hidden="true"></i>{{ t('jigsawUser.aiUsage') || 'AI use' }}</a>
+          }
+          <!-- only a publisher or an admin makes packages (the page only shows it; the packages themselves are not built yet) -->
+          @if (users.mayPublish()) {
+            <a class="btn" routerLink="/jigsaw/packages/make"><i class="bi bi-box-seam" aria-hidden="true"></i>{{ t('jigsawPackages.make.tab') || 'Make packages' }}</a>
+          }
         </div>
       </div>
       @if (tab() === 'rounds') {
@@ -183,48 +189,6 @@
           }
         </ul>
       }
-      } @else if (tab() === 'ai') {
-      <!-- what the AI has used for the account, each call and the sum: for internal use, nothing is billed -->
-      <p class="form-text mt-0 mb-2"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ t('jigsawUser.aiNote') || 'This page is for internal use: it shows how many tokens the AI has used for you. It is not billed.' }}</p>
-      @if (aiUsage() === null) {
-        <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingAi') || 'Looking for the AI use…' }}</div>
-      } @else if (aiFailed()) {
-        <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.aiFailed') || 'Could not read the AI use: reload the page.' }}</div>
-      } @else if (!aiUsage()!.items.length) {
-        <p class="text-body-secondary text-center py-5 mb-0">{{ t('jigsawUser.noAi') || 'The AI has not been used for you yet.' }}</p>
-      } @else {
-        <div class="toolbar-note mb-2">{{ t('jigsawUser.aiTotals', { calls: aiUsage()!.totals.calls, input: aiUsage()!.totals.inputTokens, output: aiUsage()!.totals.outputTokens, total: aiUsage()!.totals.totalTokens }) || aiUsage()!.totals.calls + ' calls, ' + aiUsage()!.totals.inputTokens + ' tokens in, ' + aiUsage()!.totals.outputTokens + ' out, ' + aiUsage()!.totals.totalTokens  }}</div>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle">
-            <thead>
-              <tr>
-                <th>{{ t('jigsawUser.aiDate') || 'Date' }}</th>
-                <th>{{ t('jigsawUser.aiJigsaw') || 'Jigsaw' }}</th>
-                <th>{{ t('jigsawUser.aiModel') || 'Model' }}</th>
-                <th class="text-end">{{ t('jigsawUser.aiIn') || 'In' }}</th>
-                <th class="text-end">{{ t('jigsawUser.aiOut') || 'Out' }}</th>
-                <th class="text-end">{{ t('jigsawUser.aiTotal') || 'Total' }}</th>
-                <th>{{ t('jigsawUser.aiStatus') || 'Status' }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (u of aiUsage()!.items; track u.id) {
-                <tr>
-                  <td class="text-nowrap">{{ u.createdAt | date: 'short' }}</td>
-                  <td>@if (u.jigsawId) { <a [routerLink]="['/jigsaw', u.jigsawId]">{{ jigsawName(u.jigsawId) }}</a> }</td>
-                  <td class="text-nowrap">{{ u.responseModel || u.model }}</td>
-                  <td class="text-end">{{ u.inputTokens }}</td>
-                  <td class="text-end">{{ u.outputTokens }}</td>
-                  <td class="text-end">{{ u.totalTokens }}</td>
-                  <td class="text-nowrap">
-                    @if (u.status === 'ok') { <span class="badge text-bg-success">{{ t('jigsawUser.aiOk') || 'Done' }}</span> } @else { <span class="badge text-bg-warning">{{ t('jigsawUser.aiFailedCall') || 'Failed' }}</span> }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
       } @else {
       <!-- the two ways to make a jigsaw: a button for each, with a line under it that says what it does -->
       <div class="row g-3 mb-3">
@@ -251,10 +215,12 @@
         </div>
       } @else {
         <!-- find and put in order: words in the name, and the order (kept on the device) -->
-        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-          <input type="search" class="form-control form-control-sm w-auto flex-grow-1" name="jigsaw-text" autocomplete="off" [attr.aria-label]="t('jigsawUser.searchJigsaws') || 'Search your pictures'" [attr.placeholder]="t('jigsawUser.searchJigsaws') || 'Search your pictures'"
+        <div class="d-flex flex-nowrap align-items-center gap-2 mb-2">
+          <input type="search" size="1" class="form-control form-control-sm flex-grow-1" name="jigsaw-text" autocomplete="off" [attr.aria-label]="t('jigsawUser.searchJigsaws') || 'Search your pictures'" [attr.placeholder]="t('jigsawUser.searchJigsaws') || 'Search your pictures'"
                  [ngModel]="jigsawText()" (ngModelChange)="jigsawText.set($event)">
-          <label class="d-flex align-items-center gap-2 mb-0">
+          <!-- the order is only for the whole list: while words are typed the matches are what is shown, so the choice of order is not -->
+          @if (!jigsawText().trim()) {
+          <label class="d-flex align-items-center gap-2 mb-0 flex-shrink-0">
             <span class="form-label mb-0">{{ t('jigsawUser.sortBy') || 'Sort' }}</span>
             <select class="form-select form-select-sm w-auto" name="jigsaw-sort" [ngModel]="sort()" (ngModelChange)="sort.set($event)">
               @for (s of sorts; track s) {
@@ -262,6 +228,7 @@
               }
             </select>
           </label>
+          }
         </div>
         <!-- a short filter: all, public, private or hidden -->
         <div class="toolbar mb-2">
@@ -305,7 +272,9 @@
               <div class="mb-1 small">{{ t('jigsawUser.whoSeesThem') || 'Who sees them? Press one:' }}</div>
               <div class="d-flex flex-wrap gap-2 mb-2">
                 @for (v of visibilityChoices; track v.value) {
+                  @if (v.value !== 'everyone' || users.mayPublish()) {
                   <button type="button" class="btn btn-outline-primary bg-body" [disabled]="changingVisibility()" (click)="setVisibilitySelected(v.value)"><i class="bi" [class]="v.icon" aria-hidden="true"></i>{{ t(v.label) || v.english }}</button>
+                  }
                 }
               </div>
               <button type="button" class="btn btn-outline-danger bg-body" (click)="confirmingSelected.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.deleteSelected') || 'Delete the selected' }}</button>
@@ -351,12 +320,14 @@
                   </div>
                 </div>
                 <!-- who sees it, chosen here (it is saved at once); above the link of the row, so a press is not a press on the row -->
-                <div class="round-visibility d-flex flex-wrap column-gap-4 row-gap-1 position-relative z-2" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
+                <div class="round-visibility d-flex flex-nowrap column-gap-2 column-gap-md-4 position-relative z-2" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
                   @for (v of visibilityChoices; track v.value) {
-                    <div class="form-check mb-0">
+                    @if (v.value !== 'everyone' || users.mayPublish() || (item.visibility ?? 'everyone') === 'everyone') {
+                    <div class="form-check mb-0 text-nowrap">
                       <input class="form-check-input" type="radio" [id]="'vis-' + item.id + '-' + v.value" [name]="'vis-' + item.id" [checked]="(item.visibility ?? 'everyone') === v.value" [disabled]="changingVisibilityId() === item.id" (change)="setVisibility(item, v.value)">
                       <label class="form-check-label" [for]="'vis-' + item.id + '-' + v.value"><i class="bi me-1" [class]="v.icon" aria-hidden="true"></i>{{ t(v.label) || v.english }}</label>
                     </div>
+                    }
                   }
                 </div>
                 <div class="round-actions" [class.confirming]="confirmingJigsawId() === item.id">

@@ -20,5 +20,7 @@
   "shareEmail": "E-post",
   "viewing": "Du ser på runden til {{ name }}",
   "toJigsaw": "Vis siden til puslespillet",
-  "home": "Hjem"
+  "home": "Hjem",
+  "addPicture": "Legg til bilde",
+  "more": "Mer"
 }

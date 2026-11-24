@@ -63,7 +63,7 @@ export class JigsawMaker {
       name: nameOfFile(file.name),
       author: owner.name,
       ownerUid: owner.id,
-      visibility: 'hidden', // a jigsaw that is made is hidden to begin with: its owner looks at it, and makes it public when it is good
+      visibility: 'owner', // a jigsaw that is made is private to begin with: its owner looks at it, and makes it public when it is good
       ...(options.timed ? {} : { timed: false }),
       pictureName: file.name.slice(0, JIGSAW_MAX_PICTURE_NAME),
       language: options.language,
@@ -115,7 +115,7 @@ export class JigsawMaker {
       author: owner.name,
       ownerUid: owner.id,
       kind: 'picture',
-      visibility: 'hidden', // as a jigsaw that is made: its owner looks at it, and makes it public when it is good
+      visibility: 'owner', // as a jigsaw that is made: its owner looks at it, and makes it public when it is good
       ...(options.timed ? {} : { timed: false }),
       pictureName: file.name.slice(0, JIGSAW_MAX_PICTURE_NAME),
       language: options.language,

@@ -1,7 +1,8 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { ImageStore, documentExists, pictureType } from "./jigsaw-image";
-import { JIGSAW_USERS, JigsawSetup, JigsawUserSpec, JigsawUsers } from "../models";
+import { JIGSAW_USERS, JigsawSetup, JigsawUserSpec, JigsawUsers, UserLevel, UserLevels } from "../models";
+import type { Levels } from "./user-levels";
 
 // The users of the jigsaws: one document each in the collection `jigsaw-users`, with an id the database makes (the UID, the one a play is kept by), the user name the
 // person chose (the extra, for looking a user up and showing who is who: unique) and a name. There is no sign-in: knowing a user name is enough to play as that user, for
@@ -38,6 +39,11 @@ export interface UserStore {
   remove(id: string): Promise<boolean>;
 }
 
+/** Whether another account is an admin (one that counts: it needs a login). */
+async function hasOtherAdmin(store: UserStore, id: string): Promise<boolean> {
+  return (await store.list()).some((u) => u.id !== id && UserLevels.isAdmin(UserLevels.of(u)));
+}
+
 /** What is attached to a user, so the page can be told whether it may be deleted: the jigsaws it owns and the rounds it has played; `clearFresh` takes away its rounds nobody moved a piece in. */
 export interface UserUse {
   count(userId: string): Promise<{ jigsaws: number; rounds: number }>;
@@ -54,6 +60,8 @@ export interface UserChange {
   username?: string;
   language?: string;
   search?: JigsawSetup;
+  /** set by an admin only (`userLevelRouter`), never by a body that changes a user; `user` takes the kept level away */
+  level?: UserLevel;
 }
 
 /** The collection `jigsaw-users`. */
@@ -95,7 +103,7 @@ export function firestoreUserStore(): UserStore {
         const now = JigsawUsers.logonsOf(doc.data());
         const next = change(now);
         if (!Array.isArray(next)) return next;
-        if (next.length !== now.length || next.some((u, i) => u !== now[i])) tx.update(ref, { firebaseUids: next.length ? next : FieldValue.delete() });
+        if (next.length !== now.length || next.some((u, i) => u !== now[i])) tx.update(ref, next.length ? { firebaseUids: next } : { firebaseUids: FieldValue.delete(), level: FieldValue.delete() }); // an account that is open again has no level: it could be taken by the next login
         return next;
       });
     },
@@ -134,9 +142,10 @@ export function firestoreUserStore(): UserStore {
         if (change.language !== undefined) data.language = change.language;
         if (change.search !== undefined) data.search = change.search;
         if (change.lastUsedAt !== undefined) data.lastUsedAt = change.lastUsedAt;
+        if (change.level !== undefined) data.level = change.level === "user" ? FieldValue.delete() : change.level;
         if (change.pictureAt !== undefined) data.pictureAt = change.pictureAt ?? FieldValue.delete();
         if (Object.keys(data).length) tx.update(ref, data);
-        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}) };
+        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}), ...(change.level !== undefined ? { level: change.level } : {}) };
         if (change.pictureAt !== undefined) {
           if (change.pictureAt) next.pictureAt = change.pictureAt;
           else delete next.pictureAt;
@@ -152,7 +161,7 @@ export function firestoreUserStore(): UserStore {
  * name (404 when there is none: that is how the page finds out whether a user name exists); GET /:id reads a user by its UID; PUT /:id {name?, username?, language?, search?, picture?} changes a user (`search` is how the user looks for jigsaws, kept when Go is pressed on the Find page; an empty e-mail takes it away; 409 when the new user name is taken).
  * GET / lists the users (id, alias, name and when the picture was set), to choose who plays from.
  */
-export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: UserUse, now: () => number = Date.now): express.Router {
+export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: UserUse, now: () => number = Date.now, levels?: Levels): express.Router {
   const router = express.Router();
   const bad = (res: express.Response, error: string, status = 400) => void res.status(status).json({ error });
 
@@ -235,11 +244,16 @@ export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: 
     const user = await store.get(req.params.id);
     if (!user) return bad(res, "No such account.", 404);
     const attached = use ? await use.count(user.id) : { jigsaws: 0, rounds: 0 };
-    const why = JigsawUsers.removeError({ ...attached, logins: JigsawUsers.logonsOf(user).length });
+    // an admin deleting the account of another is not one of its logins and cannot take them away: the logins do not count then; the last admin is not deleted
+    const me = req.get("X-Jigsaw-User");
+    const byAdmin = !!levels && me !== user.id && UserLevels.isAdmin(await levels.of(me));
+    const why = JigsawUsers.removeError({ ...attached, logins: byAdmin ? 0 : JigsawUsers.logonsOf(user).length });
     if (why) return bad(res, why, 409);
+    if (levels && UserLevels.isAdmin(UserLevels.of(user)) && !(await hasOtherAdmin(store, user.id))) return bad(res, UserLevels.changeError("admin", "user", 0), 409);
     await use?.clearFresh(user.id);
     await pictures.remove(user.id);
     await store.remove(user.id);
+    levels?.forget(user.id);
     res.status(204).end();
   });
 

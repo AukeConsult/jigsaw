@@ -50,10 +50,16 @@
     </div>
   }
   @if (!items().length && !loading() && !failed()) {
-    @if (filtered()) {
-      <div class="text-body-secondary">{{ t('jigsawList.noneMatch') || 'No jigsaw matches. Try other choices.' }}</div>
-    } @else {
-      <div class="text-body-secondary">{{ t('jigsawList.none') || 'No jigsaw yet.' }}</div>
-    }
+    <!-- nothing to show: a soft panel in the middle with an icon, instead of a line of small text -->
+    <div class="text-center py-5 px-3 my-3 rounded-3 border bg-body bg-opacity-75 shadow-sm" role="status">
+      @if (filtered()) {
+        <i class="bi bi-search display-4 d-block mb-2 text-primary" aria-hidden="true"></i>
+        <div class="fs-5 fw-semibold">{{ t('jigsawList.noneMatchTitle') || 'No pictures match' }}</div>
+        <div class="text-body-secondary">{{ t('jigsawList.noneMatchHelp') || 'Try other choices.' }}</div>
+      } @else {
+        <i class="bi bi-images display-4 d-block mb-2 text-primary" aria-hidden="true"></i>
+        <div class="fs-5 fw-semibold">{{ t('jigsawList.none') || 'No jigsaw yet.' }}</div>
+      }
+    </div>
   }
 </ng-container>

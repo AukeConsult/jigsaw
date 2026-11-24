@@ -1,9 +1,14 @@
 import { Routes } from '@angular/router';
+import { adminGuard, adminOnlyGuard } from './admin.guard';
+import { AiUse } from './ai-use/ai-use';
+import { JigsawAdmin } from './jigsaw-admin/jigsaw-admin';
 import { JigsawBatch } from './jigsaw-batch/jigsaw-batch';
 import { JigsawFind } from './jigsaw-find/jigsaw-find';
 import { JigsawHome } from './jigsaw-home/jigsaw-home';
 import { JigsawNew } from './jigsaw-new/jigsaw-new';
 import { JigsawPackages } from './jigsaw-packages/jigsaw-packages';
+import { MakePackages } from './make-packages/make-packages';
+import { publisherGuard } from './publisher.guard';
 import { JigsawPage } from './jigsaw-page/jigsaw-page';
 import { JigsawPlay } from './jigsaw-play/jigsaw-play';
 import { JigsawUser } from './jigsaw-user/jigsaw-user';
@@ -15,6 +20,9 @@ import { JigsawShell } from './jigsaw-shell';
  * The jigsaw module, `/jigsaw`: the module the app opens with.
  *  - `/jigsaw`: the front page: what Karins jigsaw is, where to start, and the newest jigsaws.
  *  - `/jigsaw/find`: find a jigsaw: choose what to look for (category, size, difficulty, owner), press Go, and the jigsaws that match are shown.
+ *  - `/jigsaw/admin`: the levels of the accounts (user, publisher, admin), for an admin.
+ *  - `/jigsaw/ai-use`: what the AI has used for the account, for an admin.
+ *  - `/jigsaw/packages/make`: make a package (a dummy for now), for a publisher or an admin.
  *  - `/jigsaw/packages`: select packages: a dummy page for now.
  *  - `/jigsaw/list`: gone; the jigsaws are looked for on the front page (`/`), so an old address goes there.
  *  - `/jigsaw/new`: a new jigsaw: the settings are filled in in the main frame, then saved, and a game of it is started.
@@ -33,6 +41,9 @@ export const JIGSAW_ROUTES: Routes = [
     children: [
       { path: '', component: JigsawHome, title: 'Karins jigsaw' },
       { path: 'find', component: JigsawFind, title: 'Filter pictures' }, // before ':id'
+      { path: 'admin', component: JigsawAdmin, title: 'Account levels', canActivate: [adminGuard] }, // before ':id'
+      { path: 'ai-use', component: AiUse, title: 'AI use', canActivate: [adminOnlyGuard] }, // before ':id'
+      { path: 'packages/make', component: MakePackages, title: 'Make packages', canActivate: [publisherGuard] }, // before ':id'
       { path: 'packages', component: JigsawPackages, title: 'Select packages' }, // before ':id'
       { path: 'list', redirectTo: '/' }, // the list page is gone: what it did is done by the finder on the front page
       { path: 'new', component: JigsawNew, title: 'New jigsaw', canActivate: [userGuard] },

@@ -1,7 +1,6 @@
 <ng-container *transloco="let t">
 <main class="container-fluid page-margin page-max">
   <!-- the same page as the page of a jigsaw: a back link, its top (the picture, the name, the description and the details, as it will look) and, under it, the form -->
-  <div class="mb-2"><a class="link-action" [routerLink]="editId ? ['/jigsaw', editId] : '/'" [replaceUrl]="true"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('jigsawNew.cancel') || 'Cancel' }}</a></div>
   @let ttl = editId ? (isPicture() ? (t('jigsawNew.editPictureTitle') || 'Edit picture') : (t('jigsawNew.editTitle') || 'Edit jigsaw')) : (isPicture() ? (t('jigsawNew.newPictureTitle') || 'New picture') : (t('jigsawNew.newTitle') || 'New jigsaw'));
   <app-jigsaw-header [jigsaw]="draft()" [draft]="true" [showExample]="!isPicture() && !!preview()" [pictureSrc]="preview()" [heading]="ttl" [changeLabel]="file() && !played() ? (t('jigsawNew.changePicture') || 'Change picture') : ''" [chooseLabel]="t('jigsawNew.pickPicture') || 'Choose a picture'" (zoom)="enlarged.set(true)" (choose)="pictureInput.click()">
     <!-- what is made, right under the name: a picture (the person who plays chooses the pieces and the difficulty) or a ready jigsaw (chosen here) -->
@@ -34,7 +33,7 @@
     </div>
     <fieldset draft-top class="mb-0" [disabled]="loading() || saving() || played()">
       <legend class="visually-hidden">{{ t('jigsawNew.kindTitle') || 'What are you making?' }}</legend>
-      <div class="d-flex flex-wrap justify-content-end gap-2">
+      <div class="d-flex flex-column flex-sm-row justify-content-sm-end gap-2">
         <input id="kind-picture" name="kind" class="btn-check" type="radio" autocomplete="off" [checked]="isPicture()" (change)="chooseKind('picture')">
         <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="kind-picture" [title]="t('jigsawNew.kindPictureHelp') || 'People choose the number of pieces and the difficulty when they start a round.'"><i class="bi bi-image me-1" aria-hidden="true"></i>{{ t('jigsawNew.kindPicture') || 'A picture' }}</label>
         <input id="kind-jigsaw" name="kind" class="btn-check" type="radio" autocomplete="off" [checked]="!isPicture()" (change)="chooseKind('jigsaw')">
@@ -221,6 +220,22 @@
   <!-- the picture big: a click or Escape closes it -->
   <div class="picture-zoom" role="dialog" aria-modal="true" [attr.aria-label]="t('jigsawNew.pictureAlt') || 'The picture'" (click)="enlarged.set(false)" (window:keydown.escape)="enlarged.set(false)">
     <img [src]="big" [attr.alt]="t('jigsawNew.pictureAlt') || 'The picture'">
+  </div>
+}
+@if (askingName()) {
+  <!-- Save was pressed with no name: a box over the page asks for it (Enter saves, Escape or Cancel closes it) -->
+  <div class="crop-backdrop" role="dialog" aria-modal="true" [attr.aria-label]="t('jigsawNew.askNameTitle') || 'What is it called?'" (window:keydown.escape)="askingName.set(false)">
+    <div class="row justify-content-center w-100 m-0">
+      <form class="card shadow p-3 col-11 col-sm-8 col-md-6 col-lg-4" (ngSubmit)="useName()">
+        <h2 class="subsection-title mb-1">{{ t('jigsawNew.askNameTitle') || 'What is it called?' }}</h2>
+        <p class="small text-body-secondary mb-2">{{ t('jigsawNew.askNameHelp') || 'Give it a name before it is saved.' }}</p>
+        <input id="jigsaw-name-ask" name="nameAsk" class="form-control mb-3" type="text" [maxlength]="maxName" autocomplete="off" [attr.aria-label]="t('jigsawNew.name') || 'Name'" [placeholder]="t('jigsawNew.namePlaceholder') || 'Name of the jigsaw'" [ngModel]="nameDraft()" (ngModelChange)="nameDraft.set($event)">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-outline-secondary" (click)="askingName.set(false)">{{ t('jigsawNew.cancel') || 'Cancel' }}</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!nameDraft().trim()"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawNew.saveNew') || 'Save' }}</button>
+        </div>
+      </form>
+    </div>
   </div>
 }
 @if (cropping() && file(); as chosen) {

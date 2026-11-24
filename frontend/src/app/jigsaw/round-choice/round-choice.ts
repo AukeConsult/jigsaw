@@ -34,11 +34,18 @@ export class RoundChoice {
   /** the numbers of pieces the person has solved this picture at (not offered again) */
   readonly solved = input<readonly number[]>([]);
   readonly busy = input(false);
+  /** there is a Cancel button (the choice is open on request); without it the choice is simply on the page */
+  readonly cancellable = input(true);
 
   readonly chosen = output<PlayChoice>();
   readonly cancelled = output<void>();
 
-  protected readonly levels = SNAP_LEVELS;
+  /** the difficulties, the easiest first (the order of the pills, and of their colours) */
+  protected readonly levels = [...SNAP_LEVELS].reverse();
+  /** where the pill with this place in a row of `of` is on the scale from easy (0) to hard (1): it gives the pill its colour */
+  protected scale(index: number, of: number): number {
+    return of > 1 ? index / (of - 1) : 0;
+  }
   /** the numbers of pieces offered for the shape of this picture, the smallest first (the key is `columns x rows`) */
   protected readonly options = computed(() => JigsawCut.pieceChoices(this.jigsaw().width, this.jigsaw().height).map((c) => ({ ...c, key: `${c.columns}x${c.rows}`, solved: this.solved().includes(c.count) })));
 

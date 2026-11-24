@@ -41,5 +41,7 @@
   "startPieces": "Bitar",
   "startGo": "Starta ronden",
   "startSolved": "löst",
-  "choosePieces": "Du väljer bitar och svårighetsgrad när du startar en rond"
+  "choosePieces": "Du väljer bitar och svårighetsgrad när du startar en rond",
+  "snapTitle": "Snap-avstånd",
+  "snapHelp": "Hur nära en bit måste vara sin plats innan den klickar på plats. Lätt: långt ifrån. Svår: bara precis intill."
 }

@@ -20,8 +20,8 @@
   "selectPackages": "Velg pakker",
   "kind": "Hva det er",
   "kinds": {
-    "jigsaw": "Ferdig puslespill",
-    "picture": "Bilde"
+    "jigsaw": "Ferdige puslespill",
+    "picture": "Bilder"
   },
   "category": "Kategori",
   "size": "Størrelse",
@@ -77,7 +77,9 @@
   "roundsWhoseOthersTitle": "Bare de andres runder",
   "resetAll": "Nullstill alt",
   "detailsIn": "Vis detaljer i bildevisningen",
-  "viewHelp": "Disse valgene bestemmer hvordan listene med bilder vises. Kort viser hvert bilde som et bildekort, Liste viser ett bilde på hver rad. Detaljer legger til forfatter, kategorier og dato på hvert kort eller hver rad.",
+  "viewHelp": "Slik vises bildene: som kort eller liste, med eller uten detaljer.",
   "choosePieces": "Velg brikker",
-  "choosePiecesTitle": "Antall brikker og vanskelighetsgrad velges når du starter en runde"
+  "choosePiecesTitle": "Antall brikker og vanskelighetsgrad velges når du starter en runde",
+  "noneMatchTitle": "Ingen bilder passer",
+  "noneMatchHelp": "Prøv andre valg."
 }

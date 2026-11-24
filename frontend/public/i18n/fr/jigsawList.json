@@ -20,8 +20,8 @@
   "selectPackages": "Choisir des paquets",
   "kind": "Ce que c'est",
   "kinds": {
-    "jigsaw": "Puzzle prêt",
-    "picture": "Image"
+    "jigsaw": "Puzzles prêts",
+    "picture": "Images"
   },
   "category": "Catégorie",
   "size": "Taille",
@@ -77,7 +77,9 @@
   "roundsWhoseOthersTitle": "Seulement les parties des autres",
   "resetAll": "Tout réinitialiser",
   "detailsIn": "Afficher les détails dans la vue des images",
-  "viewHelp": "Ces choix déterminent comment les listes d'images sont affichées. Cartes montre chaque image comme une carte illustrée, Liste montre une image par ligne. Détails ajoute l'auteur, les catégories et la date à chaque carte ou ligne.",
+  "viewHelp": "Affichage des images : en cartes ou en liste, avec ou sans détails.",
   "choosePieces": "Choisir les pièces",
-  "choosePiecesTitle": "Le nombre de pièces et la difficulté se choisissent au début d’une manche"
+  "choosePiecesTitle": "Le nombre de pièces et la difficulté se choisissent au début d’une manche",
+  "noneMatchTitle": "Aucune image ne correspond",
+  "noneMatchHelp": "Essayez d'autres choix."
 }

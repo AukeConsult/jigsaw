@@ -104,6 +104,8 @@ $fluid-to: 87.5; // 1400px in rem
   --app-nav-green: #198754;
   --app-nav-amber: #d9680a;
   --app-nav-purple: #6f42c1;
+  --app-nav-teal: #0b8fa8;
+  --app-nav-red: #dc3545;
   // the colours of the choices (`.choice-group`): each choice in a row has the next colour, a soft tint when it is not chosen and the full colour when it is. The one place to change them (a style sheet of the app will set them)
   --app-choice-1: #0d6efd;
   --app-choice-2: #198754;
@@ -159,6 +161,10 @@ $fluid-to: 87.5; // 1400px in rem
   --app-z-sidebar: 1010; // the sidebar a small screen opens over the board
   --app-z-helper: 1040;
   --app-z-dialog: 1060;
+
+  // a scale from easy to hard (the pieces and the difficulty of a round, `.btn-scale`): the colour of the easiest and of the hardest, the ones between are mixed
+  --app-scale-easy: var(--bs-success);
+  --app-scale-hard: var(--bs-danger);
 
   // motion
   --app-blink-duration: 0.7s;
@@ -485,6 +491,15 @@ small,
       --bs-btn-active-border-color: color-mix(in srgb, var(--choice) 78%, #000);
       --bs-btn-disabled-color: #fff;
       --bs-btn-disabled-bg: color-mix(in srgb, var(--choice) 55%, transparent);
+      font-weight: 600;
+      box-shadow: 0 0 0 0.125rem color-mix(in srgb, var(--choice) 35%, transparent); // a ring round it, so a chosen one is plain to see among the soft ones
+
+      // a check mark in front of what is chosen: it does not depend on telling one colour from another
+      &::before {
+        content: '\2713';
+        margin-inline-end: 0.3rem;
+        font-weight: 700;
+      }
     }
 
     &:nth-child(6n + 2) { --choice: var(--app-choice-2); }
@@ -742,14 +757,23 @@ app-jigsaw-filter {
     gap: 0.5rem;
     flex-wrap: wrap;
 
+    @include below($bp-md) {
+      gap: 0.25rem;
+    }
+
     > .btn {
       --bs-btn-font-size: var(--app-fs-text);
-      --bs-btn-padding-x: 1rem;
-      --bs-btn-padding-y: 0.5rem;
+      --bs-btn-padding-x: 0.75rem;
+      --bs-btn-padding-y: 0.35rem;
       --bs-btn-hover-bg: var(--bs-tertiary-bg);
       border: var(--bs-border-width) solid var(--bs-border-color);
       border-radius: var(--bs-border-radius);
       background: var(--bs-body-bg);
+
+      @include below($bp-md) {
+        --bs-btn-padding-x: 0.5rem;
+        --bs-btn-padding-y: 0.3rem;
+      }
     }
 
     > .btn-check:checked + .btn {
@@ -782,6 +806,23 @@ app-jigsaw-filter {
     outline: 2px solid rgba(var(--app-primary-rgb), 0.5);
     outline-offset: 2px;
   }
+}
+
+// a choice on a scale from easy to hard as a row of pills (`btn-check` and a `btn btn-scale` label for each): each pill is outlined in its colour on the way from `--app-scale-easy` to
+// `--app-scale-hard` (the page gives each its place on the scale, 0 to 1, as `--scale`), and the chosen one is filled with it
+.btn-scale {
+  --scale: 0;
+  --scale-color: color-mix(in oklch, var(--app-scale-easy), var(--app-scale-hard) calc(var(--scale) * 100%));
+  --bs-btn-color: var(--scale-color);
+  --bs-btn-border-color: var(--scale-color);
+  --bs-btn-hover-color: var(--bs-white);
+  --bs-btn-hover-bg: var(--scale-color);
+  --bs-btn-hover-border-color: var(--scale-color);
+  --bs-btn-active-color: var(--bs-white);
+  --bs-btn-active-bg: var(--scale-color);
+  --bs-btn-active-border-color: var(--scale-color);
+  --bs-btn-disabled-color: var(--scale-color);
+  --bs-btn-disabled-border-color: var(--scale-color);
 }
 
 // the front page: the photo above the text on a phone, the text on the left and the photo on the right from `$bp-front` up
@@ -985,13 +1026,18 @@ app-my-rounds {
   }
 }
 
-/* every page starts where the band's own content does (`container-fluid page-margin`): the same gap all the way round it, at the top, the sides and the bottom (`--app-page-gap`, 1.75rem; on a phone half of it, so the room round the page is not a big share of the screen). A page does not add its own vertical padding */
+/* every page starts where the band's own content does (`container-fluid page-margin`): the same gap all the way round it, at the top, the sides and the bottom (`--app-page-gap`, 1.75rem; on a phone half of it, so the room round the page is not a big share of the screen). A page does not add its own vertical padding. On a phone the gap is small (a narrow screen is wide enough only when the gap is thin), and the same all the way round */
 .page-margin {
   --app-page-gap: 1.75rem;
   padding: var(--app-page-gap);
 
+  // on a phone the gap is small, and the same at the top, the bottom and the sides
+  @include below($bp-md) {
+    --app-page-gap: 0.5rem;
+  }
+
   @include below($bp-sm) {
-    --app-page-gap: 0.875rem;
+    --app-page-gap: 0.375rem;
   }
 }
 
@@ -1146,11 +1192,35 @@ app-my-rounds {
 
   @include below($bp-md) {
     padding: 0.15rem 0.5rem;
+
+    // the page that is open is a filled pill: its words sit a little higher, so they are inside the pill and not on its lower edge
+    &.active .nav-label {
+      position: relative;
+      top: -0.125rem;
+    }
   }
 }
 
 .app-navbar .nav-link[href='/jigsaw/guide'] {
   --nav-accent: var(--app-nav-amber);
+}
+
+// the links at the left of the menu have a colour each too: Find is teal, Add picture green and Admin red
+.app-navbar .nav-link[href='/jigsaw/find'] {
+  --nav-accent: var(--app-nav-teal);
+}
+
+.app-navbar .nav-link[href^='/jigsaw/new'] {
+  --nav-accent: var(--app-nav-green);
+}
+
+.app-navbar .nav-link[href='/jigsaw/admin'] {
+  --nav-accent: var(--app-nav-red);
+}
+
+// the one button of a phone that holds who plays, Help, Share and the language
+.app-navbar #more-menu .bi-three-dots {
+  color: var(--app-nav-green);
 }
 
 .app-navbar .nav-link[href='/jigsaw/user'] {
@@ -1514,6 +1584,12 @@ app-my-rounds {
   min-width: 0;
   margin-left: 1.75rem; // room for the box in the corner
   cursor: pointer;
+
+  // on a phone every gap in the row is tiny: the box, the picture and the text sit close together
+  @include below($bp-md) {
+    gap: 0.3rem;
+    margin-left: 1.45rem;
+  }
 }
 
 .admin-row .round-open .round-info {
@@ -1603,7 +1679,7 @@ app-jigsaw-shell {
 }
 
 // the page: what scrolls (the pages are what is after the menu and the helper bar; the empty outlet is not)
-app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet) {
+app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(.app-banner):not(router-outlet) {
   order: 1;
   flex: 1 1 0;
   min-height: 0;
@@ -1611,6 +1687,13 @@ app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet) {
   scrollbar-gutter: stable; // the room of the scrollbar is kept: the width of the page does not change when the scrollbar comes and goes (a board that measures itself would jump)
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+}
+
+// a thin band over the page (an admin who is in an account: who, and the way back): one line, never the height of the page, before the page in the column
+app-jigsaw-shell > .app-banner {
+  order: 1;
+  flex: 0 0 auto;
+  z-index: var(--app-z-band);
 }
 
 app-jigsaw-shell > .app-navbar {
@@ -1663,7 +1746,7 @@ app-jigsaw-shell > .app-toolbar {
 }
 
 // the pages have the soft pattern behind their frames; the round (the board) is a working frame and has none
-app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(router-outlet):not(app-jigsaw-play) {
+app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(.app-banner):not(router-outlet):not(app-jigsaw-play) {
   background-image: $soft-pattern;
   background-size: $soft-pattern-size;
 }
@@ -2155,9 +2238,13 @@ app-jigsaw-shell > app-jigsaw-play {
 
   --bs-card-border-width: 0; // the form is the page: no frame round it
 
-  @include below($bp-sm) {
+  @include below($bp-md) {
     --bs-card-spacer-x: 0.75rem;
     --bs-card-spacer-y: 0.75rem;
+  }
+
+  @include below($bp-sm) {
+    --bs-card-spacer-x: 0.5rem;
   }
 }
 

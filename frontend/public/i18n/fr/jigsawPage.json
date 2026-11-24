@@ -41,5 +41,7 @@
   "startPieces": "Pièces",
   "startGo": "Commencer la manche",
   "startSolved": "résolu",
-  "choosePieces": "Vous choisissez les pièces et la difficulté au début d’une manche"
+  "choosePieces": "Vous choisissez les pièces et la difficulté au début d’une manche",
+  "snapTitle": "Aimantation",
+  "snapHelp": "À quelle distance de sa place une pièce s'enclenche. Facile : de loin. Difficile : seulement tout près."
 }

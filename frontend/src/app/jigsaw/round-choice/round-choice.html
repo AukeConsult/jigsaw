@@ -2,21 +2,27 @@
   <form class="card card-body mt-3" (submit)="$event.preventDefault(); go()">
     <h2 class="form-section first"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawPage.startTitle') || 'Choose the pieces and the difficulty' }}</h2>
     <div class="row g-3">
-      <div class="col-sm-6">
-        <label class="form-label" for="round-pieces">{{ t('jigsawPage.startPieces') || 'Pieces' }}</label>
-        <select id="round-pieces" name="roundPieces" class="form-select" [ngModel]="key()" (ngModelChange)="setPieces($event)">
-          @for (o of options(); track o.key) {
-            <option [value]="o.key" [disabled]="o.solved" [title]="o.columns + ' × ' + o.rows">{{ o.count }}@if (o.solved) { ({{ t('jigsawPage.startSolved') || 'solved' }}) }</option>
+      <div class="col-12">
+        <!-- the numbers of pieces that fit the shape of the picture, as a row of pills to press; one the person has solved is not offered again (it is shown, and cannot be pressed) -->
+        <div id="round-pieces-label" class="form-label">{{ t('jigsawPage.startPieces') || 'Pieces' }}</div>
+        <div class="d-flex flex-wrap gap-2" role="radiogroup" aria-labelledby="round-pieces-label">
+          @for (o of options(); track o.key; let i = $index) {
+            <input [id]="'round-pieces-' + o.key" name="roundPieces" class="btn-check" type="radio" autocomplete="off" [checked]="key() === o.key" [disabled]="o.solved" (change)="setPieces(o.key)">
+            <label class="btn btn-sm btn-scale rounded-pill text-nowrap" [style.--scale]="scale(i, options().length)" [for]="'round-pieces-' + o.key" [title]="o.columns + ' × ' + o.rows">{{ o.count }}@if (o.solved) { ({{ t('jigsawPage.startSolved') || 'solved' }}) }</label>
           }
-        </select>
+        </div>
       </div>
-      <div class="col-sm-6">
-        <label class="form-label" for="round-difficulty">{{ t('jigsawPage.difficulty') || 'Difficulty' }}</label>
-        <select id="round-difficulty" name="roundDifficulty" class="form-select" [ngModel]="level()" (ngModelChange)="setLevel($event)">
-          @for (l of levels; track l.key) {
-            <option [value]="l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</option>
+      <div class="col-12">
+        <!-- the snap (how close a piece must be to its place before it clicks in; the difficulty of the round) from easy to hard, as a row of pills coloured on the same scale as the pieces -->
+        <div id="round-difficulty-label" class="form-label">{{ t('jigsawPage.snapTitle') || 'Snap' }}</div>
+        <div class="d-flex flex-wrap gap-2" role="radiogroup" aria-labelledby="round-difficulty-label">
+          @for (l of levels; track l.key; let i = $index) {
+            <input [id]="'round-difficulty-' + l.key" name="roundDifficulty" class="btn-check" type="radio" autocomplete="off" [checked]="level() === l.key" (change)="setLevel(l.key)">
+            <label class="btn btn-sm btn-scale rounded-pill text-nowrap" [style.--scale]="scale(i, levels.length)" [for]="'round-difficulty-' + l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</label>
           }
-        </select>
+        </div>
+        <!-- what the three words mean: how far from its place a piece may be and still snap in -->
+        <div class="form-text mt-2">{{ t('jigsawPage.snapHelp') || 'How close a piece must be to its place before it snaps in. Easy: from far away. Hard: only right next to it.' }}</div>
       </div>
     </div>
     <div class="form-check form-switch mt-3">
@@ -25,7 +31,9 @@
     </div>
     <div class="d-flex gap-2 mt-3">
       <button type="submit" class="btn btn-primary" [disabled]="!canStart()"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawPage.startGo') || 'Start the round' }}</button>
-      <button type="button" class="btn btn-outline-secondary" (click)="cancelled.emit()">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+      @if (cancellable()) {
+        <button type="button" class="btn btn-outline-secondary" (click)="cancelled.emit()">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+      }
     </div>
   </form>
 </ng-container>

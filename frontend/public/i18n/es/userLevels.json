@@ -1,0 +1,38 @@
+{
+  "menu": "Admin",
+  "title": "Niveles de las cuentas",
+  "intro": "Elige lo que puede hacer cada cuenta. Un nivel solo cuenta para una cuenta protegida por un inicio de sesión.",
+  "level": {
+    "label": "Nivel",
+    "user": "Usuario",
+    "publisher": "Editor",
+    "admin": "Admin"
+  },
+  "help": {
+    "user": "Juega y crea puzles privados u ocultos.",
+    "publisher": "También hace públicos los puzles.",
+    "admin": "También cambia y borra todo, ve los puzles privados y fija los niveles."
+  },
+  "needsLogin": "No está protegida por un inicio de sesión: solo puede ser usuario.",
+  "you": "Tú",
+  "couldNotSave": "No se pudo guardar el nivel: inténtalo de nuevo.",
+  "couldNotRead": "No se pudieron leer las cuentas.",
+  "publicLocked": "Solo un editor puede hacer público un puzle.",
+  "loading": "Leyendo las cuentas…",
+  "account": {
+    "edit": "Editar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Borrar",
+    "confirmDelete": "¿Borrar esta cuenta para siempre?",
+    "yesDelete": "Sí, borrar",
+    "name": "Nombre",
+    "alias": "Alias"
+  },
+  "into": {
+    "open": "Entrar en esta cuenta",
+    "banner": "Estás usando {{ name }} como admin.",
+    "back": "Volver a {{ name }}",
+    "notAllowed": "Solo un admin puede entrar en una cuenta."
+  }
+}

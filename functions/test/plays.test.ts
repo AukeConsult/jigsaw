@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
 import type { JigsawStore } from "../src/common/jigsaw-list";
 import type { PieceStore } from "../src/jigsaw/jigsaw-pieces";
-import { TEST_KEY_SECRET, memoryPlays, memoryUsers } from "./memory-plays";
+import { TEST_KEY_SECRET, memoryPlays, memoryUsers, PUBLISHER } from "./memory-plays";
 import { JigsawSettings, JigsawCut, JigsawPiece, JigsawPieces, JigsawUsers, PlayPositions, PlaySpec, Plays } from "../src/models";
 import type { JigsawSpec } from "../src/models";
 
@@ -75,7 +75,7 @@ async function setup() {
   const pieces = memoryPieces();
   const plays = memoryPlays();
   let time = 1000;
-  const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: jigsaws, jigsawPieces: pieces, jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo") });
+  const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: jigsaws, jigsawPieces: pieces, jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo") });
   const cut = JigsawCut.cut(200, 150, 50, () => 0.3);
   if ("error" in cut) throw new Error(cut.error);
   const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], storeWidth: cut.storeWidth, snapPercent: 25, lineWidth: 1, lineColor: "#212529", backColor: "#ffffff" };
@@ -327,7 +327,7 @@ describe("a timed jigsaw", () => {
   const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [] };
 
   it("is timed unless it says it is not, and only knows yes and no", async () => {
-    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryJigsaws(), users: memoryUsers("anna"), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: memoryJigsaws(), users: memoryUsers("anna"), plays: memoryPlays() });
     const timed = (await request(app).post("/jigsaw/api/jigsaw").send(settings)).body as JigsawSpec;
     expect(timed.timed).toBeUndefined(); // no word: timed
     const untimed = (await request(app).post("/jigsaw/api/jigsaw").send({ ...settings, timed: false })).body as JigsawSpec;
@@ -341,7 +341,7 @@ describe("a timed jigsaw", () => {
 
 describe("who sees a jigsaw", () => {
   const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [] };
-  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bob"), plays: memoryPlays() });
+  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bob"), plays: memoryPlays() });
 
   it("lists a jigsaw its owner keeps to themselves for the owner only; the others are listed for everyone", async () => {
     const a = app();
@@ -370,7 +370,7 @@ describe("who sees a jigsaw", () => {
 
 describe("deleting a jigsaw", () => {
   const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [] };
-  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bob"), plays: memoryPlays() });
+  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bob"), plays: memoryPlays() });
 
   it("can be done by the owner only, when the jigsaw has an owner", async () => {
     const a = app();
@@ -499,7 +499,7 @@ describe("a jigsaw that has been played", () => {
   it("is kept by the owner rule first: somebody else is told it is not theirs, not that it was played", async () => {
     const jigsaws = memoryJigsaws();
     const plays = memoryPlays();
-    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: jigsaws, jigsawPieces: memoryPieces(), jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo") });
+    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: jigsaws, jigsawPieces: memoryPieces(), jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo") });
     const made = (await request(a).post("/jigsaw/api/jigsaw").send({ name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], ownerUid: "anna" })).body as JigsawSpec;
     await plays.create(made.id, { jigsawId: made.id, userId: "anna", userName: "Anna", status: "active", startedAt: 1, matched: 0, total: 0, storeWidth: 0, overrides: {} }, {});
     expect((await request(a).delete(`/jigsaw/api/jigsaw-pieces/${made.id}`).set("X-Jigsaw-User", "bo")).status).toBe(403);
@@ -521,7 +521,7 @@ describe("a jigsaw only its owner sees", () => {
     const jigsaws = memoryJigsaws();
     const pieces = memoryPieces();
     const plays = memoryPlays();
-    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: jigsaws, jigsawPieces: pieces, jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo", "cy") });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: jigsaws, jigsawPieces: pieces, jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo", "cy") });
     const cut = JigsawCut.cut(200, 150, 50, () => 0.3);
     if ("error" in cut) throw new Error(cut.error);
     const settings = { name: "Secret", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], storeWidth: cut.storeWidth, snapPercent: 25, ownerUid: "anna", visibility: "owner" };
@@ -586,7 +586,7 @@ describe("the positions of a play", () => {
 
 describe("the owner of a jigsaw", () => {
   const settings = { name: "Harbour", width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [] };
-  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bo"), plays: memoryPlays() });
+  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: memoryJigsaws(), users: memoryUsers("anna", "bo"), plays: memoryPlays() });
 
   it("is a user that exists, and the author of the jigsaw is then that user's name", async () => {
     const a = app();
@@ -644,7 +644,7 @@ describe("the owner of a jigsaw", () => {
 });
 
 describe("the users of the jigsaws", () => {
-  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users: memoryUsers("anna") });
+  const app = () => createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, users: memoryUsers("anna") });
 
   it("makes a user with a UID of its own, from a chosen user name and a name", async () => {
     const a = app();
@@ -687,7 +687,7 @@ describe("the users of the jigsaws", () => {
 
   it("changes only what the request says: the name, the alias", async () => {
     const users = memoryUsers("anna", "bo");
-    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users });
+    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, users });
     const named = await request(a).put("/jigsaw/api/jigsaw-users/anna").send({ name: " Anna B " });
     expect(named.body).toMatchObject({ id: "anna", username: "anna", name: "Anna B" });
     const renamed = await request(a).put("/jigsaw/api/jigsaw-users/anna").send({ username: "Anna_B" });
@@ -697,7 +697,7 @@ describe("the users of the jigsaws", () => {
   });
 
   it("refuses a user name that another user has, and a change that says nothing or is not allowed", async () => {
-    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users: memoryUsers("anna", "bob") });
+    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, users: memoryUsers("anna", "bob") });
     const taken = await request(a).put("/jigsaw/api/jigsaw-users/anna").send({ username: "BOB" });
     expect(taken.status).toBe(409);
     expect(taken.body.error).toContain("taken");
@@ -707,13 +707,13 @@ describe("the users of the jigsaws", () => {
   });
 
   it("lists the users by name, to choose who plays from", async () => {
-    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users: memoryUsers("zed", "anna") });
+    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, users: memoryUsers("zed", "anna") });
     await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "karin", name: "karin" });
     const list = await request(a).get("/jigsaw/api/jigsaw-users");
     expect(list.status).toBe(200);
     expect(list.body.map((u: { name: string }) => u.name)).toEqual(["Anna", "karin", "Zed"]);
     for (const user of list.body) expect(Object.keys(user).sort()).toEqual(["createdAt", "id", "language", "name", "username"]);
-    expect((await request(createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users: memoryUsers() })).get("/jigsaw/api/jigsaw-users")).body).toEqual([]);
+    expect((await request(createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, users: memoryUsers() })).get("/jigsaw/api/jigsaw-users")).body).toEqual([]);
   });
 
   it("reads a user an earlier version made (the user name was the id, no username field) with the id as the user name", () => {
@@ -722,7 +722,7 @@ describe("the users of the jigsaws", () => {
   });
 
   it("keeps how the user looks for jigsaws (cards or list, and the filter) when it is said, gives it back, and refuses what is not a setup of the Find page", async () => {
-    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users: memoryUsers() });
+    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, users: memoryUsers() });
     const made = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "ola", name: "Ola" });
     expect("search" in made.body).toBe(false); // none until Go has been pressed
     const search = { view: "list", filter: { text: "harbour", categories: ["recommended", "nature/forest"], sizes: ["small"], difficulties: [], languages: ["nb"], owners: ["u1"] } };
@@ -740,7 +740,7 @@ describe("the users of the jigsaws", () => {
   });
 
   it("has a language: English until the user chooses, chosen when the user is made or changed, and only one of the languages of the app", async () => {
-    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, users: memoryUsers() });
+    const a = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, users: memoryUsers() });
     const made = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "ola", name: "Ola", language: "nb" });
     expect([made.status, made.body.language]).toEqual([201, "nb"]);
     const refused = await request(a).post("/jigsaw/api/jigsaw-users").send({ username: "pia", name: "Pia", language: "xx" });
@@ -760,7 +760,7 @@ describe("the list of jigsaws", () => {
   const body = { name: "Puzzle", width: 800, height: 600, gridSize: 5, gridVisible: true, placed: [] };
 
   it("works like jigsaw-list but keeps its pages in a store of its own", async () => {
-    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: memoryJigsaws(), plays: memoryPlays() });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: memoryJigsaws(), plays: memoryPlays() });
     const made = await request(app).post("/jigsaw/api/jigsaw").send(body);
     expect(made.status).toBe(201);
     expect((await request(app).get("/jigsaw/api/jigsaw")).body.map((c: { name: string }) => c.name)).toEqual(["Puzzle"]);
@@ -778,7 +778,7 @@ describe("the popular jigsaws", () => {
   async function popularApp(rounds: { [name: string]: { moved?: number; fresh?: number } }, extra: Partial<JigsawSpec> & { name?: string } = {}) {
     const jigsaws = memoryJigsaws();
     const plays = memoryPlays();
-    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: jigsaws, jigsawPieces: memoryPieces(), jigsawExists: async () => true, plays, users: memoryUsers("anna", "bo"), now: () => 3000 * DAY });
+    const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: jigsaws, jigsawPieces: memoryPieces(), jigsawExists: async () => true, plays, users: memoryUsers("anna", "bo"), now: () => 3000 * DAY });
     const made: { [name: string]: JigsawSpec } = {};
     for (const [name, n] of Object.entries(rounds)) {
       made[name] = (await request(app).post("/jigsaw/api/jigsaw").send({ name, width: 200, height: 150, gridSize: 50, gridVisible: false, placed: [], ...(name === "Secret" ? extra : {}) })).body as JigsawSpec;

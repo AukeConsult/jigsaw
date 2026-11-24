@@ -1,5 +1,5 @@
 import request from "supertest";
-import { memoryPlays } from "./memory-plays";
+import { memoryPlays, PUBLISHER } from "./memory-plays";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
 import type { JigsawStore } from "../src/common/jigsaw-list";
@@ -58,7 +58,7 @@ describe("the background picture of a jigsaw", () => {
     const images = memoryImages();
     const removedPieces: string[] = [];
     const pieces = { removeAll: async (jigsawId: string) => void removedPieces.push(jigsawId) } as unknown as PieceStore;
-    const app = createJigsawApp({ plays: memoryPlays(), jigsaw: memoryJigsaws(), jigsawImages: images.store, jigsawPieces: pieces, jigsawExists: async (x) => existing.includes(x) });
+    const app = createJigsawApp({ levels: PUBLISHER, plays: memoryPlays(), jigsaw: memoryJigsaws(), jigsawImages: images.store, jigsawPieces: pieces, jigsawExists: async (x) => existing.includes(x) });
     return { ...images, app, removedPieces };
   };
 

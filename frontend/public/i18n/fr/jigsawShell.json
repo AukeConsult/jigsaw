@@ -20,5 +20,7 @@
   "shareEmail": "E-mail",
   "viewing": "Tu regardes la partie jouée par {{ name }}",
   "toJigsaw": "Afficher la page du puzzle",
-  "home": "Accueil"
+  "home": "Accueil",
+  "addPicture": "Ajouter une image",
+  "more": "Plus"
 }

@@ -1,5 +1,6 @@
 import { JigsawFilters, JigsawSetup } from './jigsaw-filter';
 import { DEFAULT_LANGUAGE, JigsawLanguages } from './language';
+import { UserLevel, UserLevels } from './user-level';
 
 // A user of the jigsaws: someone who plays. There is no sign-in yet: a person chooses a user name and a name, and plays as that user (the plays of a jigsaw say which user
 // played them). The users are kept in the collection `jigsaw-users`, one document each, with an id the database makes (the UID, which is what a play is kept by). The user
@@ -39,6 +40,8 @@ export interface JigsawUserSpec {
    * person is signed in with one account at a time); a user with none needs no login, as before. They are changed only by the routes of the logons (`functions/src/logons/`), never by a body from the page.
    */
   firebaseUids?: string[];
+  /** what the account may do beyond playing (`user` when nothing is kept); set only by an admin, never by a body that makes or changes a user; it counts only for an account that needs a login (`UserLevels.of`) */
+  level?: UserLevel;
   /** OUTPUT ONLY, never stored: the user has verified accounts, so it needs a login to be used (the page is told this instead of the accounts) */
   protected?: boolean;
 }
@@ -214,6 +217,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.isSetup(doc.search) ? { search: doc.search } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}) };
+    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.isSetup(doc.search) ? { search: doc.search } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
   }
 }

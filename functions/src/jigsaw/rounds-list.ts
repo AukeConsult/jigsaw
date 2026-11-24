@@ -28,9 +28,9 @@ export function roundsListRouter(plays: PlayStore, deps: RoundsListDeps): expres
   const now = deps.now ?? Date.now;
   const kept = new Map<string, { at: number; list: Promise<ListedRound[]> }>();
 
-  /** The rounds of every user on the jigsaws `me` may see (the same for every view of the list). A hidden jigsaw is not looked at: it is only in the list of its owner. */
+  /** The rounds of every user on the public jigsaws (the same for every view of the list): the front page shows no round on a private or hidden jigsaw, whoever asks (an admin too); those are on the user page. */
   const read = async (me: string): Promise<ListedRound[]> => {
-    const listed = (await deps.jigsaws()).filter((j) => JigsawVisibilities.listed(j.visibility));
+    const listed = (await deps.jigsaws()).filter((j) => !JigsawVisibilities.restricted(j.visibility));
     const seen = await Promise.all(listed.map((j) => deps.canSee(j, me)));
     const visible = listed.filter((_, i) => seen[i]);
     const found: ListedRound[] = [];

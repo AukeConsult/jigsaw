@@ -1,0 +1,45 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  <h1 class="page-title mb-2"><i class="bi bi-stars me-2" aria-hidden="true"></i>{{ t('jigsawUser.aiUsage') || 'AI use' }}</h1>
+    <!-- what the AI has used for the account, each call and the sum: for internal use, nothing is billed -->
+    <p class="form-text mt-0 mb-2"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ t('jigsawUser.aiNote') || 'This page is for internal use: it shows how many tokens the AI has used for you. It is not billed.' }}</p>
+    @if (aiUsage() === null) {
+      <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingAi') || 'Looking for the AI use…' }}</div>
+    } @else if (aiFailed()) {
+      <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.aiFailed') || 'Could not read the AI use: reload the page.' }}</div>
+    } @else if (!aiUsage()!.items.length) {
+      <p class="text-body-secondary text-center py-5 mb-0">{{ t('jigsawUser.noAi') || 'The AI has not been used for you yet.' }}</p>
+    } @else {
+      <div class="toolbar-note mb-2">{{ t('jigsawUser.aiTotals', { calls: aiUsage()!.totals.calls, input: aiUsage()!.totals.inputTokens, output: aiUsage()!.totals.outputTokens, total: aiUsage()!.totals.totalTokens }) || aiUsage()!.totals.calls + ' calls, ' + aiUsage()!.totals.inputTokens + ' tokens in, ' + aiUsage()!.totals.outputTokens + ' out, ' + aiUsage()!.totals.totalTokens  }}</div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>{{ t('jigsawUser.aiDate') || 'Date' }}</th>
+              <th>{{ t('jigsawUser.aiJigsaw') || 'Jigsaw' }}</th>
+              <th>{{ t('jigsawUser.aiModel') || 'Model' }}</th>
+              <th class="text-end">{{ t('jigsawUser.aiIn') || 'In' }}</th>
+              <th class="text-end">{{ t('jigsawUser.aiOut') || 'Out' }}</th>
+              <th class="text-end">{{ t('jigsawUser.aiTotal') || 'Total' }}</th>
+              <th>{{ t('jigsawUser.aiStatus') || 'Status' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of aiUsage()!.items; track u.id) {
+              <tr>
+                <td class="text-nowrap">{{ u.createdAt | date: 'short' }}</td>
+                <td>@if (u.jigsawId) { <a [routerLink]="['/jigsaw', u.jigsawId]">{{ jigsawName(u.jigsawId) }}</a> }</td>
+                <td class="text-nowrap">{{ u.responseModel || u.model }}</td>
+                <td class="text-end">{{ u.inputTokens }}</td>
+                <td class="text-end">{{ u.outputTokens }}</td>
+                <td class="text-end">{{ u.totalTokens }}</td>
+                <td class="text-nowrap">
+                  @if (u.status === 'ok') { <span class="badge text-bg-success">{{ t('jigsawUser.aiOk') || 'Done' }}</span> } @else { <span class="badge text-bg-warning">{{ t('jigsawUser.aiFailedCall') || 'Failed' }}</span> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  <a class="btn btn-outline-primary mt-3" routerLink="/jigsaw/user"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('jigsawPackages.make.back') || 'Back to your account' }}</a>
+</main>

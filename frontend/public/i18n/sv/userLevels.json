@@ -1,0 +1,38 @@
+{
+  "menu": "Admin",
+  "title": "Kontonivåer",
+  "intro": "Välj vad varje konto får göra. En nivå gäller bara ett konto som skyddas av en inloggning.",
+  "level": {
+    "label": "Nivå",
+    "user": "Användare",
+    "publisher": "Utgivare",
+    "admin": "Admin"
+  },
+  "help": {
+    "user": "Spelar och gör privata eller dolda pussel.",
+    "publisher": "Gör också pussel offentliga.",
+    "admin": "Ändrar och tar också bort allt, ser privata pussel och sätter nivåer."
+  },
+  "needsLogin": "Skyddas inte av en inloggning: det kan bara vara användare.",
+  "you": "Du",
+  "couldNotSave": "Kunde inte spara nivån: försök igen.",
+  "couldNotRead": "Kunde inte läsa kontona.",
+  "publicLocked": "Bara en utgivare kan göra ett pussel offentligt.",
+  "loading": "Läser kontona …",
+  "account": {
+    "edit": "Redigera",
+    "save": "Spara",
+    "cancel": "Avbryt",
+    "delete": "Ta bort",
+    "confirmDelete": "Ta bort det här kontot för gott?",
+    "yesDelete": "Ja, ta bort",
+    "name": "Namn",
+    "alias": "Alias"
+  },
+  "into": {
+    "open": "Gå in i det här kontot",
+    "banner": "Du använder {{ name }} som admin.",
+    "back": "Tillbaka till {{ name }}",
+    "notAllowed": "Bara en admin kan gå in i ett konto."
+  }
+}

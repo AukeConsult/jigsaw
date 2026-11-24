@@ -6,7 +6,6 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
 import { readPreference, writePreference } from '../../core/preferences';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AiUsageList, AiUsageService } from '../ai-usage.service';
 import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { CategoryTags } from '../category-tags/category-tags';
 import { JigsawService } from '../jigsaw.service';
@@ -44,7 +43,7 @@ export type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number];
 @Component({
   selector: 'app-jigsaw-user',
   imports: [FormsModule, RouterLink, DatePipe, TranslocoDirective, CategoryTags, UserLogins, MyLogonUsers, AccountAvatar],
-  providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
+  providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPackages')],
   templateUrl: './jigsaw-user.html',
 })
 export class JigsawUser implements OnInit {
@@ -53,7 +52,6 @@ export class JigsawUser implements OnInit {
 
   protected readonly users = inject(JigsawUserService);
   private readonly plays = inject(PlaysService);
-  private readonly aiUsages = inject(AiUsageService);
   protected readonly auth = inject(AuthService);
   private readonly images = inject(JigsawImageService);
   private readonly jigsaws = inject(JigsawService);
@@ -91,18 +89,7 @@ export class JigsawUser implements OnInit {
   readonly noPicture = signal<ReadonlySet<string>>(new Set());
 
   /** which list is shown: the rounds played or the jigsaws made; kept for the session */
-  readonly tab = signal<'rounds' | 'jigsaws' | 'ai'>(readPreference('jigsaw.userTab', 'rounds', (v): v is 'rounds' | 'jigsaws' | 'ai' => v === 'rounds' || v === 'jigsaws' || v === 'ai'));
-
-  /** what the AI has used for the user (null: not read yet) */
-  readonly aiUsage = signal<AiUsageList | null>(null);
-  readonly aiFailed = signal(false);
-
-  /** the names of the jigsaws the AI was used on (read when the list is read: the user may have more jigsaws than the page has read) */
-  private readonly aiNames = signal<Readonly<Record<string, string>>>({});
-  /** the name of a jigsaw in the list of what the AI was used for, else a short form of its id */
-  protected jigsawName(id: string): string {
-    return this.aiNames()[id] ?? this.mine()?.find((j) => j.id === id)?.name ?? id.slice(0, 6);
-  }
+  readonly tab = signal<'rounds' | 'jigsaws'>(readPreference('jigsaw.userTab', 'rounds', (v): v is 'rounds' | 'jigsaws' => v === 'rounds' || v === 'jigsaws'));
 
   /** the person was sent here after signing in to protect the user: the edit form is opened, at the list of the logins */
   private readonly showLogins = inject(ActivatedRoute).snapshot.queryParamMap.get('logins') === '1';
@@ -129,13 +116,6 @@ export class JigsawUser implements OnInit {
       this.games.set(null);
       this.gamesFailed.set(false);
       if (me) void this.loadGames(me.id);
-    });
-    // what the AI used for the user is read in the same way
-    effect(() => {
-      const me = this.users.user();
-      this.aiUsage.set(null);
-      this.aiFailed.set(false);
-      if (me) void this.loadAiUsage(me.id);
     });
     // the words are used a moment after the last key, so the list is not asked for at every key
     effect((onCleanup) => {
@@ -396,20 +376,6 @@ export class JigsawUser implements OnInit {
       this.games.update((all) => (all ?? []).filter((g) => g.jigsaw.id !== item.id));
     } catch {
       this.error.set(tr('jigsawUser.jigsawNotDeleted', 'Could not delete the jigsaw: try again.'));
-    }
-  }
-
-  private async loadAiUsage(userId: string): Promise<void> {
-    try {
-      const list = await this.aiUsages.ofUser(userId);
-      const ids = [...new Set(list.items.flatMap((u) => (u.jigsawId ? [u.jigsawId] : [])))];
-      const named = await Promise.all(ids.map((id) => this.jigsaws.get(id).then((j) => [id, j?.name] as const).catch(() => [id, undefined] as const)));
-      if (this.users.user()?.id !== userId) return;
-      this.aiNames.set(Object.fromEntries(named.flatMap(([id, name]) => (name ? [[id, name]] : []))));
-      this.aiUsage.set(list);
-    } catch {
-      this.aiFailed.set(true);
-      this.aiUsage.set({ items: [], totals: { calls: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0, unbilledTokens: 0 } });
     }
   }
 

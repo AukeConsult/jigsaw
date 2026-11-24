@@ -41,5 +41,7 @@
   "startPieces": "Brikker",
   "startGo": "Start runden",
   "startSolved": "løst",
-  "choosePieces": "Du vælger brikker og sværhedsgrad, når du starter en runde"
+  "choosePieces": "Du vælger brikker og sværhedsgrad, når du starter en runde",
+  "snapTitle": "Snap-afstand",
+  "snapHelp": "Hvor tæt en brik skal være på sin plads, før den klikker på plads. Let: langt væk. Svær: kun lige ved siden af."
 }

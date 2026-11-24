@@ -1,0 +1,49 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  <h1 class="page-title mb-2"><i class="bi bi-shield-lock me-2" aria-hidden="true"></i>{{ t('userLevels.title') || 'Account levels' }}</h1>
+  <p class="text-body-secondary">{{ t('userLevels.intro') || 'Choose what each account may do. A level counts only for an account that is protected by a login.' }}</p>
+  <ul class="small text-body-secondary mb-3">
+    @for (l of levels; track l) {
+      <li><strong>{{ t('userLevels.level.' + l) || l }}:</strong> {{ t('userLevels.help.' + l) || '' }}</li>
+    }
+  </ul>
+  @if (error()) { <div class="alert alert-danger" role="alert">{{ error() }}</div> }
+  @if (accounts(); as list) {
+    <ul class="list-group">
+      @for (a of list; track a.id + '-' + rev()) {
+        <li class="list-group-item d-flex flex-wrap align-items-center gap-2">
+          <app-account-avatar [id]="a.id" [at]="a.pictureAt" />
+          @if (editing() === a.id) {
+          <form class="flex-grow-1 d-flex flex-wrap gap-2" (ngSubmit)="saveEdit(a)">
+            <input class="form-control form-control-sm w-auto" name="name" [attr.aria-label]="t('userLevels.account.name') || 'Name'" [ngModel]="nameText()" (ngModelChange)="nameText.set($event)">
+            <input class="form-control form-control-sm w-auto" name="alias" [attr.aria-label]="t('userLevels.account.alias') || 'Alias'" [ngModel]="aliasText()" (ngModelChange)="aliasText.set($event)">
+            <button type="submit" class="btn btn-sm btn-primary" [disabled]="saving() !== null">{{ t('userLevels.account.save') || 'Save' }}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editing.set(null)">{{ t('userLevels.account.cancel') || 'Cancel' }}</button>
+          </form>
+          } @else {
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ a.name }} @if (a.id === users.user()?.id) { <span class="badge text-bg-secondary">{{ t('userLevels.you') || 'You' }}</span> }</div>
+            <div class="small text-body-secondary">{{ a.username }}</div>
+            @if (!a.protected) { <div class="small text-warning-emphasis"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ t('userLevels.needsLogin') || 'Not protected by a login: the level has no effect yet.' }}</div> }
+          </div>
+          }
+          @if (confirming() === a.id) {
+            <span class="small">{{ t('userLevels.account.confirmDelete') || 'Delete this account for good?' }}</span>
+            <button type="button" class="btn btn-sm btn-danger" [disabled]="saving() !== null" (click)="remove(a)">{{ t('userLevels.account.yesDelete') || 'Yes, delete' }}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirming.set(null)">{{ t('userLevels.account.cancel') || 'Cancel' }}</button>
+          } @else {
+            @if (a.id !== users.user()?.id && users.isAdmin()) {
+              <button type="button" class="btn btn-sm btn-outline-primary" [attr.aria-label]="t('userLevels.into.open') || 'Go into this account'" [title]="t('userLevels.into.open') || 'Go into this account'" (click)="open(a)"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i></button>
+            }
+            <button type="button" class="btn btn-sm btn-outline-secondary" [attr.aria-label]="t('userLevels.account.edit') || 'Edit'" [title]="t('userLevels.account.edit') || 'Edit'" (click)="startEdit(a)"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-sm btn-outline-danger" [attr.aria-label]="t('userLevels.account.delete') || 'Delete'" [title]="t('userLevels.account.delete') || 'Delete'" (click)="confirming.set(a.id); editing.set(null)"><i class="bi bi-trash" aria-hidden="true"></i></button>
+          }
+          <select class="form-select form-select-sm w-auto" [attr.aria-label]="t('userLevels.level.label') || 'Level'" [ngModel]="levelOf(a)" [disabled]="saving() !== null" (ngModelChange)="choose(a, $event)">
+            @for (l of levels; track l) { <option [value]="l" [disabled]="!a.protected && l !== 'user'">{{ t('userLevels.level.' + l) || l }}</option> }
+          </select>
+        </li>
+      }
+    </ul>
+  } @else if (!error()) {
+    <div class="text-body-secondary" role="status">{{ t('userLevels.loading') || 'Reading the accounts…' }}</div>
+  }
+</main>

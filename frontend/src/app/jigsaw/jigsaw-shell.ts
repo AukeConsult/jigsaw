@@ -1,6 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../core/language.service';
 import { LabelFit } from '../core/label-fit';
@@ -13,7 +13,7 @@ import { ShareButton } from './share-button/share-button';
 @Component({
   selector: 'app-jigsaw-shell',
   imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, ShareButton, LabelFit],
-  providers: [provideTranslocoScope('jigsawShell')],
+  providers: [provideTranslocoScope('jigsawShell'), provideTranslocoScope('userLevels')],
   template: `
     <ng-container *transloco="let t">
     <ng-template #helper let-sfx>
@@ -67,13 +67,22 @@ import { ShareButton } from './share-button/share-button';
           <li class="nav-item">
             <a class="nav-link" routerLink="/jigsaw/find" routerLinkActive="active" [title]="t('jigsawShell.find') || 'Find a jigsaw'"><i class="bi bi-search me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.find') || 'Find' }}</span></a>
           </li>
+          <li class="nav-item">
+            <!-- a direct way to make a new picture: the form of a new jigsaw, as a picture -->
+            <a class="nav-link" routerLink="/jigsaw/new" [queryParams]="{ kind: 'picture' }" routerLinkActive="active" [title]="t('jigsawShell.addPicture') || 'Add picture'"><i class="bi bi-plus-circle me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.addPicture') || 'Add picture' }}</span></a>
+          </li>
+          @if (users.mayOpenLevels()) {
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/jigsaw/admin" routerLinkActive="active" [title]="t('userLevels.title') || 'Account levels'"><i class="bi bi-shield-lock me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('userLevels.menu') || 'Admin' }}</span></a>
+            </li>
+          }
         </ul>
         @if (tools.active()) {
           <!-- on a wide screen the helper is in the menu; on a narrow one it is its own bar at the top of the page (below) -->
           <div class="d-none d-xl-block"><ng-container *ngTemplateOutlet="helper; context: { $implicit: '' }" /></div>
         }
         <!-- who plays and the language: always at the right end of the menu -->
-        <div class="d-flex align-items-center gap-2 ms-auto order-1">
+        <div class="d-none d-md-flex align-items-center gap-2 ms-auto order-1">
           <ul class="navbar-nav flex-shrink-0">
             <li class="nav-item"><app-share-button /></li>
             <li class="nav-item">
@@ -105,8 +114,51 @@ import { ShareButton } from './share-button/share-button';
             }
           </div>
         </div>
+        <!-- on a phone the right end is one button: a submenu with who plays, Help, Share and the language (the bar has no room for each of them) -->
+        <div class="d-md-none ms-auto order-1 position-relative">
+          <button id="more-menu" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center px-2 py-1" aria-haspopup="menu" [attr.aria-expanded]="moreOpen()"
+                  [attr.aria-label]="t('jigsawShell.more') || 'More'" [title]="t('jigsawShell.more') || 'More'" (click)="toggleMore($event)">
+            <i class="bi bi-three-dots fs-5" aria-hidden="true"></i>
+          </button>
+          @if (moreOpen()) {
+            <ul class="dropdown-menu language-menu show" role="menu" [style.top.px]="moreTop()" [style.bottom.px]="moreBottom()" [attr.aria-label]="t('jigsawShell.more') || 'More'">
+              <li role="none">
+                <a class="dropdown-item d-flex align-items-center gap-2 text-nowrap" role="menuitem" routerLink="/jigsaw/user" (click)="moreOpen.set(false)"><i class="bi bi-person-circle" aria-hidden="true"></i>{{ users.user()?.name ?? (t('jigsawShell.whoPlays') || 'Who plays?') }}</a>
+              </li>
+              <li role="none">
+                <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/jigsaw/guide" (click)="moreOpen.set(false)"><i class="bi bi-book" aria-hidden="true"></i>{{ t('jigsawShell.guide') || 'Help' }}</a>
+              </li>
+              <li role="none"><app-share-button variant="item" /></li>
+              <li role="none"><hr class="dropdown-divider"></li>
+              <!-- the language: one row that shows the language in use, and opens the list of languages one step down -->
+              <li role="none">
+                <button type="button" class="dropdown-item d-flex align-items-center gap-2" role="menuitem" aria-haspopup="menu" [attr.aria-expanded]="moreLanguages()" (click)="moreLanguages.set(!moreLanguages())">
+                  <img class="flag" [src]="'flags/' + current().code + '.svg'" alt="" width="24" height="16">{{ current().name }}<i class="bi ms-auto" [class.bi-chevron-down]="!moreLanguages()" [class.bi-chevron-up]="moreLanguages()" aria-hidden="true"></i>
+                </button>
+              </li>
+              @if (moreLanguages()) {
+                @for (l of languages; track l.code) {
+                  <li role="none">
+                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 ps-4" role="menuitemradio" [attr.aria-checked]="l.code === language.lang()" [class.active]="l.code === language.lang()" [attr.aria-label]="(t('jigsawShell.language') || 'Language') + ': ' + l.name" (click)="chooseLanguage(l.code); moreOpen.set(false)">
+                      <img class="flag" [src]="'flags/' + l.code + '.svg'" alt="" width="24" height="16">{{ l.name }}
+                    </button>
+                  </li>
+                }
+              }
+            </ul>
+          }
+        </div>
       </div>
     </nav>
+    </ng-container>
+    <ng-container *transloco="let t">
+    @if (users.admin(); as admin) {
+      <!-- an admin is in an account: everything is done as that account; the way back is here -->
+      <div class="app-banner alert alert-warning rounded-0 border-0 border-bottom m-0 py-1 px-2 small d-flex flex-wrap align-items-center justify-content-center gap-2" role="status">
+        <span><i class="bi bi-person-gear me-1" aria-hidden="true"></i>{{ t('userLevels.into.banner', { name: users.user()?.name }) || 'You are using ' + users.user()?.name + ' as an admin.' }}</span>
+        <button type="button" class="btn btn-sm btn-outline-dark" (click)="backToAdmin()">{{ t('userLevels.into.back', { name: admin.name }) || 'Back to ' + admin.name }}</button>
+      </div>
+    }
     </ng-container>
     <router-outlet />
   `,
@@ -115,6 +167,13 @@ export class JigsawShell {
   protected readonly tools = inject(JigsawHelper);
   protected readonly users = inject(JigsawUserService);
   protected readonly language = inject(LanguageService);
+  private readonly router = inject(Router);
+
+  /** The admin comes out of the account they went into, and is back on the page of the accounts. */
+  protected async backToAdmin(): Promise<void> {
+    await this.users.backToAdmin();
+    await this.router.navigate(['/jigsaw/admin']);
+  }
   protected readonly languages = LANGUAGES;
   /** the list of languages is open */
   protected readonly languageOpen = signal(false);
@@ -132,6 +191,23 @@ export class JigsawShell {
     this.languageOpen.set(!this.languageOpen());
   }
 
+  /** the submenu of a phone (who plays, Help, Share and the language) is open, and where its list starts (the same as for the languages) */
+  protected readonly moreOpen = signal(false);
+  protected readonly moreTop = signal<number | null>(48);
+  protected readonly moreBottom = signal<number | null>(null);
+  /** the list of languages inside the submenu is open (one step down; closed each time the submenu is opened) */
+  protected readonly moreLanguages = signal(false);
+
+  protected toggleMore(event: MouseEvent): void {
+    const button = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const below = button.top < window.innerHeight / 2;
+    this.moreTop.set(below ? Math.round(button.bottom) + 4 : null);
+    this.moreBottom.set(below ? null : Math.round(window.innerHeight - button.top) + 4);
+    this.languageOpen.set(false);
+    this.moreLanguages.set(false);
+    this.moreOpen.set(!this.moreOpen());
+  }
+
   protected chooseLanguage(code: string): void {
     void this.users.changeLanguage(code); // shown at once, and kept as the language of the user
     this.languageOpen.set(false);
@@ -141,6 +217,7 @@ export class JigsawShell {
   @HostListener('document:click', ['$event'])
   closeLanguages(event: MouseEvent): void {
     if (this.languageOpen() && !(event.target as Element | null)?.closest?.('#language, .dropdown-menu')) this.languageOpen.set(false);
+    if (this.moreOpen() && !(event.target as Element | null)?.closest?.('#more-menu, .dropdown-menu')) this.moreOpen.set(false);
   }
 
   constructor() {

@@ -1,0 +1,38 @@
+{
+  "menu": "Ylläpito",
+  "title": "Tilien tasot",
+  "intro": "Valitse, mitä kukin tili saa tehdä. Taso vaikuttaa vain tiliin, jota kirjautuminen suojaa.",
+  "level": {
+    "label": "Taso",
+    "user": "Käyttäjä",
+    "publisher": "Julkaisija",
+    "admin": "Ylläpitäjä"
+  },
+  "help": {
+    "user": "Pelaa ja tekee yksityisiä tai piilotettuja palapelejä.",
+    "publisher": "Tekee palapelejä myös julkisiksi.",
+    "admin": "Muokkaa ja poistaa myös kaiken, näkee yksityiset palapelit ja asettaa tasoja."
+  },
+  "needsLogin": "Kirjautuminen ei suojaa tiliä: se voi olla vain käyttäjä.",
+  "you": "Sinä",
+  "couldNotSave": "Tason tallennus epäonnistui: yritä uudelleen.",
+  "couldNotRead": "Tilejä ei voitu lukea.",
+  "publicLocked": "Vain julkaisija voi tehdä palapelistä julkisen.",
+  "loading": "Luetaan tilejä …",
+  "account": {
+    "edit": "Muokkaa",
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "delete": "Poista",
+    "confirmDelete": "Poistetaanko tämä tili lopullisesti?",
+    "yesDelete": "Kyllä, poista",
+    "name": "Nimi",
+    "alias": "Alias"
+  },
+  "into": {
+    "open": "Siirry tähän tiliin",
+    "banner": "Käytät tiliä {{ name }} ylläpitäjänä.",
+    "back": "Takaisin tiliin {{ name }}",
+    "notAllowed": "Vain ylläpitäjä voi siirtyä tiliin."
+  }
+}

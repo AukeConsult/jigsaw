@@ -1,0 +1,38 @@
+{
+  "menu": "Admin",
+  "title": "Kontoniveauer",
+  "intro": "Vælg, hvad hver konto må. Et niveau gælder kun for en konto, der er beskyttet af et login.",
+  "level": {
+    "label": "Niveau",
+    "user": "Bruger",
+    "publisher": "Udgiver",
+    "admin": "Admin"
+  },
+  "help": {
+    "user": "Spiller og laver private eller skjulte puslespil.",
+    "publisher": "Gør også puslespil offentlige.",
+    "admin": "Ændrer og sletter også alt, ser private puslespil og sætter niveauer."
+  },
+  "needsLogin": "Ikke beskyttet af et login: den kan kun være bruger.",
+  "you": "Dig",
+  "couldNotSave": "Kunne ikke gemme niveauet: prøv igen.",
+  "couldNotRead": "Kunne ikke læse kontoerne.",
+  "publicLocked": "Kun en udgiver kan gøre et puslespil offentligt.",
+  "loading": "Læser kontoerne …",
+  "account": {
+    "edit": "Rediger",
+    "save": "Gem",
+    "cancel": "Annuller",
+    "delete": "Slet",
+    "confirmDelete": "Slette denne konto for altid?",
+    "yesDelete": "Ja, slet",
+    "name": "Navn",
+    "alias": "Alias"
+  },
+  "into": {
+    "open": "Gå ind i denne konto",
+    "banner": "Du bruger {{ name }} som admin.",
+    "back": "Tilbage til {{ name }}",
+    "notAllowed": "Kun en admin kan gå ind i en konto."
+  }
+}

@@ -20,5 +20,7 @@
   "shareEmail": "E-Mail",
   "viewing": "Du siehst dir die Runde von {{ name }} an",
   "toJigsaw": "Seite des Puzzles anzeigen",
-  "home": "Startseite"
+  "home": "Startseite",
+  "addPicture": "Bild hinzufügen",
+  "more": "Mehr"
 }

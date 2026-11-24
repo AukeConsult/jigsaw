@@ -77,5 +77,7 @@
   "kindPictureHelp": "People choose the number of pieces and the difficulty when they start a round.",
   "kindJigsaw": "A ready jigsaw",
   "kindJigsawHelp": "You choose the number of pieces and the difficulty now.",
-  "pictureAlt": "The picture"
+  "pictureAlt": "The picture",
+  "askNameTitle": "What is it called?",
+  "askNameHelp": "Give it a name before it is saved."
 }

@@ -41,5 +41,7 @@
   "startPieces": "Piezas",
   "startGo": "Empezar la ronda",
   "startSolved": "resuelto",
-  "choosePieces": "Eliges las piezas y la dificultad al empezar una ronda"
+  "choosePieces": "Eliges las piezas y la dificultad al empezar una ronda",
+  "snapTitle": "Imán",
+  "snapHelp": "A qué distancia de su sitio encaja una pieza. Fácil: desde lejos. Difícil: solo muy cerca."
 }

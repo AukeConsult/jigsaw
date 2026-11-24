@@ -20,8 +20,8 @@
   "selectPackages": "Elegir paquetes",
   "kind": "Qué es",
   "kinds": {
-    "jigsaw": "Puzle hecho",
-    "picture": "Imagen"
+    "jigsaw": "Puzles hechos",
+    "picture": "Imágenes"
   },
   "category": "Categoría",
   "size": "Tamaño",
@@ -77,7 +77,9 @@
   "roundsWhoseOthersTitle": "Solo las partidas de otros",
   "resetAll": "Restablecer todo",
   "detailsIn": "Mostrar detalles en la vista de imágenes",
-  "viewHelp": "Estas opciones definen cómo se muestran las listas de imágenes. Tarjetas muestra cada imagen como una tarjeta con imagen, Lista muestra una imagen por fila. Detalles añade el autor, las categorías y la fecha a cada tarjeta o fila.",
+  "viewHelp": "Cómo se muestran las imágenes: como tarjetas o lista, con o sin detalles.",
   "choosePieces": "Elige piezas",
-  "choosePiecesTitle": "El número de piezas y la dificultad se eligen al empezar una ronda"
+  "choosePiecesTitle": "El número de piezas y la dificultad se eligen al empezar una ronda",
+  "noneMatchTitle": "Ninguna imagen coincide",
+  "noneMatchHelp": "Prueba otras opciones."
 }

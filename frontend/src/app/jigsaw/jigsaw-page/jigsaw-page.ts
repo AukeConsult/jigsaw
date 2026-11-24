@@ -55,11 +55,11 @@ export class JigsawPage implements OnInit {
     }
   }
 
-  /** only the owner account may edit and delete the jigsaw (the buttons are not shown to anybody else) */
+  /** only the owner account, or an admin, may edit and delete the jigsaw (the buttons are not shown to anybody else) */
   readonly mayChange = computed(() => {
     const me = this.users.acting();
     const owner = this.item()?.ownerUid;
-    return !!me && !!owner && owner === me.id;
+    return !!me && !!owner && (owner === me.id || this.users.isAdmin());
   });
 
   /** The jigsaw is deleted for good (its pieces, picture and rounds go too), and the person goes to the list. */
@@ -91,8 +91,16 @@ export class JigsawPage implements OnInit {
 
   /** the entry is only a picture: a round is cut as the person chooses */
   protected readonly isPicture = computed(() => JigsawKinds.isPicture(this.item() ?? {}));
-  /** the choice of pieces and difficulty is open */
-  readonly choosing = signal(false);
+  /** the round of the user that is going (a picture that has none shows the choice of pieces and difficulty on the page, instead of a button) */
+  private readonly unfinishedMine = computed(() => {
+    const me = this.users.acting();
+    return me ? this.games().find((g) => g.userId === me.id && g.status !== 'solved') : undefined;
+  });
+  /** the choice of the pieces and the difficulty is on the page itself: a picture that nobody plays on yet for the user, and that the person may start a round of (public, or their own) */
+  protected readonly choosingNow = computed(() => {
+    const it = this.item();
+    return this.isPicture() && !this.unfinishedMine() && !!it && (!it.visibility || it.visibility === 'everyone' || this.mayChange());
+  });
   /** the numbers of pieces the user who plays has solved this picture at */
   protected readonly solvedSizes = computed(() => {
     const me = this.users.acting();
@@ -111,7 +119,7 @@ export class JigsawPage implements OnInit {
     if (this.busy()) return;
     this.error.set('');
     const unfinished = this.games().find((g) => g.userId === me.id && g.status !== 'solved');
-    if (!unfinished && this.isPicture()) return void this.choosing.set(true); // a picture is cut in the round: the person chooses the pieces and the difficulty first
+    if (!unfinished && this.isPicture()) return; // a picture is cut in the round: the choice of the pieces and the difficulty is on the page, it starts the round
     await this.begin(me.id, unfinished);
   }
 
@@ -135,6 +143,7 @@ export class JigsawPage implements OnInit {
   async startChosen(choice: PlayChoice): Promise<void> {
     const me = this.users.acting();
     if (me) await this.begin(me.id, undefined, choice);
+    else await this.play(); // nobody who can play yet: the person chooses an account or signs in first, and comes back to this page
   }
 
   async removeGame(game: PlaySpec): Promise<void> {

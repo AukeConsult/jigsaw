@@ -45,9 +45,15 @@ export class JigsawFilterBar {
   /** the ticked categories that have sub-categories to tick from, in the order they are shown */
   protected readonly withSubs = computed(() => this.categories.filter((c) => c.subs.length && JigsawFilters.isChosen(this.filter(), 'categories', c.key)));
 
-  /** Whether a choice is shown: it is one of the `fields`, owners only when there are some to tick from, and languages only when there are some. */
+  /** Ready jigsaws can be among what is found: no kind is ticked, or the ready jigsaw is. Only a ready jigsaw has a size and a difficulty of its own (a picture is cut, and its difficulty chosen, in each round). */
+  private readonly jigsawsSelectable = computed(() => {
+    const kinds = this.filter().kinds ?? [];
+    return !kinds.length || kinds.includes('jigsaw');
+  });
+
+  /** Whether a choice is shown: it is one of the `fields`, owners only when there are some to tick from, languages only when there are some, and the size and the difficulty only while ready jigsaws can be found. */
   protected shows(field: JigsawFilterField): boolean {
-    return this.fields().includes(field) && (field !== 'owners' || this.owners().length > 0) && (field !== 'languages' || this.languages().length > 0);
+    return this.fields().includes(field) && (field !== 'owners' || this.owners().length > 0) && (field !== 'languages' || this.languages().length > 0) && ((field !== 'sizes' && field !== 'difficulties') || this.jigsawsSelectable());
   }
 
   /** how many jigsaws a choice gives, as it is shown beside it (nothing until they are counted) */
@@ -66,6 +72,9 @@ export class JigsawFilterBar {
 
   /** Ticks the value, or takes it away when it is ticked. */
   protected toggle(field: TickedField, value: string): void {
-    this.filter.set(JigsawFilters.toggled(this.filter(), field, value));
+    const next = JigsawFilters.toggled(this.filter(), field, value);
+    // the size and the difficulty are for ready jigsaws: when only pictures are asked for they are not shown, so what was ticked in them is taken away (it would filter, unseen)
+    const onlyPictures = field === 'kinds' && next.kinds.length > 0 && !next.kinds.includes('jigsaw');
+    this.filter.set(onlyPictures ? { ...next, sizes: [], difficulties: [] } : next);
   }
 }

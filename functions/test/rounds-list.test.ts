@@ -133,44 +133,38 @@ describe("GET /jigsaw/api/jigsaw-rounds", () => {
     for (const bad of ["?page=0", "?limit=51", "?whose=me", "?status=done", "?sort=name"]) expect((await get(bad, "u1")).status).toBe(400);
   });
 
-  it("gives the rounds of everybody, the person's own too, the one worked on last first, never a round nobody moved a piece in, never a hidden jigsaw's", async () => {
+  it("gives the rounds of everybody, the person's own too, the one worked on last first, never a round nobody moved a piece in, never one on a private or hidden jigsaw", async () => {
     const { get } = await setup();
     const res = await get("", "u1");
     expect(res.status).toBe(200);
-    expect(ids(res.body)).toEqual(["pub-aaaaaaaa/u1", "pub-aaaaaaaa/u3", "noclock-bbbbb/u3", "priv-cccccccc/u2", "pub-aaaaaaaa/u2"]);
-    expect(res.body).toMatchObject({ total: 5, hasMore: false });
+    expect(ids(res.body)).toEqual(["pub-aaaaaaaa/u1", "pub-aaaaaaaa/u3", "noclock-bbbbb/u3", "pub-aaaaaaaa/u2"]);
+    expect(res.body).toMatchObject({ total: 4, hasMore: false });
   });
 
   it("keeps only the person's own rounds (mine), or only the others'", async () => {
     const { get } = await setup();
     expect(ids((await get("?whose=mine", "u1")).body)).toEqual(["pub-aaaaaaaa/u1"]);
-    expect(ids((await get("?whose=others", "u1")).body)).toEqual(["pub-aaaaaaaa/u3", "noclock-bbbbb/u3", "priv-cccccccc/u2", "pub-aaaaaaaa/u2"]);
+    expect(ids((await get("?whose=others", "u1")).body)).toEqual(["pub-aaaaaaaa/u3", "noclock-bbbbb/u3", "pub-aaaaaaaa/u2"]);
     expect(ids((await get("?whose=mine", "u3")).body)).toEqual(["pub-aaaaaaaa/u3", "noclock-bbbbb/u3"]);
     expect(ids((await get("?whose=mine", "u4")).body)).toEqual([]);
   });
 
-  it("does not show the rounds on a private jigsaw to somebody who is not its owner and has no round on it", async () => {
-    const { get } = await setup();
-    expect(ids((await get("", "u3")).body)).toEqual(["pub-aaaaaaaa/u1", "pub-aaaaaaaa/u3", "noclock-bbbbb/u3", "pub-aaaaaaaa/u2"]); // not u2's round on the private jigsaw
-    expect(ids((await get("", "u4")).body)).toEqual(["pub-aaaaaaaa/u1", "pub-aaaaaaaa/u3", "noclock-bbbbb/u3", "pub-aaaaaaaa/u2"]);
-  });
-
-  it("shows the rounds on a private jigsaw to a player who has a round on it, theirs and the others'", async () => {
+  it("shows only the rounds on public jigsaws: none on a private or hidden one, whoever asks (its owner, its players and an admin too); those are on the user page", async () => {
     const { get, round } = await setup();
     await round("priv-cccccccc", "u4", { updatedAt: 100 });
-    const all = ids((await get("", "u4")).body);
-    expect(all).toContain("priv-cccccccc/u2");
-    expect(all).toContain("priv-cccccccc/u4");
-    expect(ids((await get("?whose=mine", "u4")).body)).toEqual(["priv-cccccccc/u4"]);
+    const everyone = ["pub-aaaaaaaa/u1", "pub-aaaaaaaa/u3", "noclock-bbbbb/u3", "pub-aaaaaaaa/u2"];
+    for (const asking of ["u1", "u2", "u3", "u4"]) expect(ids((await get("", asking)).body).filter((r) => !r.startsWith("priv-") && !r.startsWith("hid-"))).toEqual(ids((await get("", asking)).body)); // none of them
+    expect(ids((await get("", "u1")).body)).toEqual(everyone);
+    expect(ids((await get("?whose=mine", "u4")).body)).toEqual([]); // u4 has a round on the private one only
+    expect(ids((await get("?whose=mine", "u2")).body)).toEqual(["pub-aaaaaaaa/u2"]); // u2's rounds on the private and the hidden one are not here
   });
 
-  it("says which jigsaw has no clock, and gives the key of the pictures only for a private jigsaw the person may see", async () => {
+  it("says which jigsaw has no clock, and gives no key of the pictures: a jigsaw here is a public one", async () => {
     const { get } = await setup();
     const items = (await get("", "u1")).body.items as ListedRound[];
     const of = (id: string) => items.find((r) => r.jigsaw.id === id)!.jigsaw;
     expect(of("noclock-bbbbb")).toMatchObject({ timed: false });
     expect(of("pub-aaaaaaaa")).not.toHaveProperty("timed");
-    expect(of("priv-cccccccc").imageKey).toMatch(/^\d+\.[A-Za-z0-9_-]{22}$/);
     expect(of("pub-aaaaaaaa")).not.toHaveProperty("imageKey");
   });
 
@@ -179,7 +173,7 @@ describe("GET /jigsaw/api/jigsaw-rounds", () => {
     const finished = (await get("?status=finished", "u1")).body;
     expect(ids(finished)).toEqual(["pub-aaaaaaaa/u3"]);
     expect(finished).toMatchObject({ total: 1, hasMore: false });
-    expect(ids((await get("?status=ongoing", "u1")).body)).toEqual(["pub-aaaaaaaa/u1", "noclock-bbbbb/u3", "priv-cccccccc/u2", "pub-aaaaaaaa/u2"]);
+    expect(ids((await get("?status=ongoing", "u1")).body)).toEqual(["pub-aaaaaaaa/u1", "noclock-bbbbb/u3", "pub-aaaaaaaa/u2"]);
     expect(ids((await get("?whose=mine&status=ongoing", "u1")).body)).toEqual(["pub-aaaaaaaa/u1"]);
     expect(ids((await get("?whose=mine&status=finished", "u1")).body)).toEqual([]);
     expect(ids((await get("?whose=others&status=finished", "u1")).body)).toEqual(["pub-aaaaaaaa/u3"]);
@@ -187,8 +181,8 @@ describe("GET /jigsaw/api/jigsaw-rounds", () => {
 
   it("puts the rounds in order of the player's name, or of how far they are", async () => {
     const { get } = await setup();
-    expect(ids((await get("?sort=user", "u1")).body)).toEqual(["pub-aaaaaaaa/u1", "priv-cccccccc/u2", "pub-aaaaaaaa/u2", "pub-aaaaaaaa/u3", "noclock-bbbbb/u3"]);
-    expect(ids((await get("?sort=progress", "u1")).body)).toEqual(["pub-aaaaaaaa/u3", "pub-aaaaaaaa/u2", "pub-aaaaaaaa/u1", "noclock-bbbbb/u3", "priv-cccccccc/u2"]);
+    expect(ids((await get("?sort=user", "u1")).body)).toEqual(["pub-aaaaaaaa/u1", "pub-aaaaaaaa/u2", "pub-aaaaaaaa/u3", "noclock-bbbbb/u3"]);
+    expect(ids((await get("?sort=progress", "u1")).body)).toEqual(["pub-aaaaaaaa/u3", "pub-aaaaaaaa/u2", "pub-aaaaaaaa/u1", "noclock-bbbbb/u3"]);
   });
 
   it("pages the list that was asked for, in its order, with the same total on every page", async () => {
@@ -197,7 +191,7 @@ describe("GET /jigsaw/api/jigsaw-rounds", () => {
     const first = (await get(`${view}&limit=2`, "u1")).body;
     const second = (await get(`${view}&limit=2&page=2`, "u1")).body;
     expect([...ids(first), ...ids(second)]).toEqual(ids((await get(view, "u1")).body));
-    expect([first.total, second.total, first.hasMore, second.hasMore]).toEqual([4, 4, true, false]);
+    expect([first.total, second.total, first.hasMore, second.hasMore]).toEqual([3, 3, true, false]);
   });
 
   it("has nothing to show when nobody has played", async () => {

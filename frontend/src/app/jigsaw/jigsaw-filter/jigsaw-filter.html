@@ -6,7 +6,7 @@
       <legend class="form-label">{{ t('jigsawList.kind') || 'Type' }}</legend>
       <div class="choice-group">
         @for (k of kinds; track k) {
-          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('kinds', k)" [class.btn-outline-secondary]="!chosen('kinds', k)" [attr.aria-pressed]="chosen('kinds', k)" (click)="toggle('kinds', k)"><i class="bi" [class]="k === 'picture' ? 'bi-image' : 'bi-puzzle'" aria-hidden="true"></i> {{ t('jigsawList.kinds.' + k) || k }}<span class="choice-count">{{ count('kinds', k) }}</span></button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('kinds', k)" [class.btn-outline-secondary]="!chosen('kinds', k)" [attr.aria-pressed]="chosen('kinds', k)" (click)="toggle('kinds', k)"><i class="bi" [class]="k === 'picture' ? 'bi-image' : 'bi-puzzle'" aria-hidden="true"></i> {{ t('jigsawList.kinds.' + k) || k }}@if (chosen('kinds', k)) {<span class="choice-count">{{ count('kinds', k) }}</span>}</button>
         }
       </div>
     </fieldset>
@@ -16,7 +16,7 @@
       <legend class="form-label">{{ t('jigsawList.category') || 'Category' }}</legend>
       <div class="choice-group">
         @for (c of categories; track c.key) {
-          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('categories', c.key)" [class.btn-outline-secondary]="!chosen('categories', c.key)" [attr.aria-pressed]="chosen('categories', c.key)" [disabled]="!canChoose('categories', c.key)" (click)="toggle('categories', c.key)"><i class="bi" [class]="c.icon" aria-hidden="true"></i> {{ t('jigsawCategories.name.' + c.key) || c.name }}<span class="choice-count">{{ count('categories', c.key) }}</span></button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('categories', c.key)" [class.btn-outline-secondary]="!chosen('categories', c.key)" [attr.aria-pressed]="chosen('categories', c.key)" [disabled]="!canChoose('categories', c.key)" (click)="toggle('categories', c.key)"><i class="bi" [class]="c.icon" aria-hidden="true"></i> {{ t('jigsawCategories.name.' + c.key) || c.name }}@if (chosen('categories', c.key)) {<span class="choice-count">{{ count('categories', c.key) }}</span>}</button>
         }
       </div>
     </fieldset>
@@ -26,7 +26,7 @@
         <legend class="small text-body-secondary mb-1">{{ t('jigsawCategories.subOf', { name: t('jigsawCategories.name.' + c.key) || c.name }) || (t('jigsawCategories.name.' + c.key) || c.name) + ': more exactly (optional)' }}</legend>
         <div class="choice-group">
           @for (s of c.subs; track s.key) {
-            <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('categories', s.key)" [class.btn-outline-secondary]="!chosen('categories', s.key)" [attr.aria-pressed]="chosen('categories', s.key)" [disabled]="!canChoose('categories', s.key)" (click)="toggle('categories', s.key)">{{ t('jigsawCategories.name.' + s.key) || s.name }}<span class="choice-count">{{ count('categories', s.key) }}</span></button>
+            <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('categories', s.key)" [class.btn-outline-secondary]="!chosen('categories', s.key)" [attr.aria-pressed]="chosen('categories', s.key)" [disabled]="!canChoose('categories', s.key)" (click)="toggle('categories', s.key)">{{ t('jigsawCategories.name.' + s.key) || s.name }}@if (chosen('categories', s.key)) {<span class="choice-count">{{ count('categories', s.key) }}</span>}</button>
           }
         </div>
       </fieldset>
@@ -37,7 +37,7 @@
       <legend class="form-label">{{ t('jigsawList.language') || 'Language' }}</legend>
       <div class="choice-group">
         @for (l of languages(); track l.code) {
-          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('languages', l.code)" [class.btn-outline-secondary]="!chosen('languages', l.code)" [attr.aria-pressed]="chosen('languages', l.code)" (click)="toggle('languages', l.code)">{{ l.name }}<span class="choice-count">{{ count('languages', l.code) }}</span></button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('languages', l.code)" [class.btn-outline-secondary]="!chosen('languages', l.code)" [attr.aria-pressed]="chosen('languages', l.code)" (click)="toggle('languages', l.code)">{{ l.name }}@if (chosen('languages', l.code)) {<span class="choice-count">{{ count('languages', l.code) }}</span>}</button>
         }
       </div>
     </fieldset>
@@ -47,7 +47,7 @@
       <legend class="form-label">{{ t('jigsawList.size') || 'Size' }}</legend>
       <div class="choice-group">
         @for (s of sizes; track s.key) {
-          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('sizes', s.key)" [class.btn-outline-secondary]="!chosen('sizes', s.key)" [attr.aria-pressed]="chosen('sizes', s.key)" (click)="toggle('sizes', s.key)">{{ t('jigsawList.sizes.' + s.key) || s.key }}<span class="choice-count">{{ count('sizes', s.key) }}</span></button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('sizes', s.key)" [class.btn-outline-secondary]="!chosen('sizes', s.key)" [attr.aria-pressed]="chosen('sizes', s.key)" (click)="toggle('sizes', s.key)">{{ t('jigsawList.sizes.' + s.key) || s.key }}@if (chosen('sizes', s.key)) {<span class="choice-count">{{ count('sizes', s.key) }}</span>}</button>
         }
       </div>
     </fieldset>
@@ -57,7 +57,7 @@
       <legend class="form-label">{{ t('jigsawList.difficulty') || 'Difficulty' }}</legend>
       <div class="choice-group">
         @for (d of difficulties; track d.key) {
-          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('difficulties', d.key)" [class.btn-outline-secondary]="!chosen('difficulties', d.key)" [attr.aria-pressed]="chosen('difficulties', d.key)" (click)="toggle('difficulties', d.key)">{{ t('jigsawLevels.snap.' + d.key) || d.key }}<span class="choice-count">{{ count('difficulties', d.key) }}</span></button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('difficulties', d.key)" [class.btn-outline-secondary]="!chosen('difficulties', d.key)" [attr.aria-pressed]="chosen('difficulties', d.key)" (click)="toggle('difficulties', d.key)">{{ t('jigsawLevels.snap.' + d.key) || d.key }}@if (chosen('difficulties', d.key)) {<span class="choice-count">{{ count('difficulties', d.key) }}</span>}</button>
         }
       </div>
     </fieldset>
@@ -68,7 +68,7 @@
       <legend class="form-label">{{ t('jigsawList.motive') || 'Motive difficulty' }}</legend>
       <div class="choice-group">
         @for (m of motives; track m.key) {
-          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('motives', m.key)" [class.btn-outline-secondary]="!chosen('motives', m.key)" [attr.aria-pressed]="chosen('motives', m.key)" (click)="toggle('motives', m.key)">{{ t('jigsawLevels.motive.' + m.key) || m.name }}<span class="choice-count">{{ count('motives', m.key) }}</span></button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('motives', m.key)" [class.btn-outline-secondary]="!chosen('motives', m.key)" [attr.aria-pressed]="chosen('motives', m.key)" (click)="toggle('motives', m.key)">{{ t('jigsawLevels.motive.' + m.key) || m.name }}@if (chosen('motives', m.key)) {<span class="choice-count">{{ count('motives', m.key) }}</span>}</button>
         }
       </div>
     </fieldset>
@@ -78,7 +78,7 @@
       <legend class="form-label">{{ t('jigsawList.owner') || 'Made by' }} <span class="text-body-secondary">{{ t('jigsawList.ownersHelp', { max: maxOwners }) || '(choose one or more)' }}</span></legend>
       <div class="choice-group">
         @for (u of owners(); track u.id) {
-          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('owners', u.id)" [class.btn-outline-secondary]="!chosen('owners', u.id)" [attr.aria-pressed]="chosen('owners', u.id)" [disabled]="!canChoose('owners', u.id)" (click)="toggle('owners', u.id)">{{ u.id === noOwner ? (t('jigsawList.noOwner') || 'No owner') : u.name }}<span class="choice-count">{{ u.count }}</span></button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('owners', u.id)" [class.btn-outline-secondary]="!chosen('owners', u.id)" [attr.aria-pressed]="chosen('owners', u.id)" [disabled]="!canChoose('owners', u.id)" (click)="toggle('owners', u.id)">{{ u.id === noOwner ? (t('jigsawList.noOwner') || 'No owner') : u.name }}@if (chosen('owners', u.id)) {<span class="choice-count">{{ u.count }}</span>}</button>
         }
       </div>
     </fieldset>

@@ -25,6 +25,6 @@
         <span class="text-body-secondary">&nbsp;</span>
       }
     </div>
-    <div class="mb-3 d-flex flex-wrap gap-2"><button type="button" class="btn btn-primary btn-main" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button><button type="button" class="btn btn-outline-danger btn-main" [disabled]="!chosen()" (click)="resetAll()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.resetAll') || 'Reset all' }}</button></div>
+    <div class="mb-3 d-flex flex-wrap gap-2"><button type="button" class="btn btn-primary" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button><button type="button" class="btn btn-outline-danger" [disabled]="!chosen()" (click)="resetAll()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.resetAll') || 'Reset all' }}</button></div>
   </div>
 </main>

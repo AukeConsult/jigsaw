@@ -3,7 +3,7 @@
 
 /** `jigsaw`: a ready jigsaw (what a document that says nothing is); `picture`: only a picture, cut anew in each round. */
 export type JigsawKind = 'jigsaw' | 'picture';
-export const JIGSAW_KINDS: readonly JigsawKind[] = ['jigsaw', 'picture'];
+export const JIGSAW_KINDS: readonly JigsawKind[] = ['picture', 'jigsaw'];
 
 /** How wide the stored picture of a picture entry is to begin with, in pixels (its height follows the shape of the picture). */
 export const PICTURE_DEFAULT_WIDTH = 1200;

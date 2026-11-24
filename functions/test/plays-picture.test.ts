@@ -1,7 +1,7 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
-import { TEST_KEY_SECRET, memoryJigsaws, memoryPieces, memoryPlays, memoryUsers } from "./memory-plays";
+import { TEST_KEY_SECRET, memoryJigsaws, memoryPieces, memoryPlays, memoryUsers, PUBLISHER } from "./memory-plays";
 import { JigsawCut, JigsawIndex, JigsawPiece, JigsawPieces, JigsawSearch, PlaySpec } from "../src/models";
 import type { JigsawSpec, JigsawSummary } from "../src/models";
 
@@ -18,7 +18,7 @@ async function setup() {
   const jigsaws = memoryJigsaws();
   const pieces = memoryPieces();
   const plays = memoryPlays();
-  const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, jigsaw: jigsaws, jigsawPieces: pieces, jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo"), random: seeded() });
+  const app = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsaw: jigsaws, jigsawPieces: pieces, jigsawExists: async (id) => (await jigsaws.list()).some((j) => j.id === id), plays, users: memoryUsers("anna", "bo"), random: seeded() });
   const picture = (await request(app).post("/jigsaw/api/jigsaw").send({ name: "Harbour picture", kind: "picture", width: 1200, height: 800, gridSize: 0, gridVisible: false, placed: [] })).body as JigsawSpec;
   const cut = JigsawCut.cut(200, 150, 50, () => 0.3);
   if ("error" in cut) throw new Error(cut.error);
@@ -202,7 +202,7 @@ describe("the AI classification of a picture entry", () => {
     };
     const images = { async put() {}, async get() { return { data: Buffer.from("x"), mime: "image/jpeg", etag: "e" }; }, async remove() {} };
     const classifier = { classify: async () => ({ categories: ["nature"], name: "River", description: "A river." }) };
-    const app = createJigsawApp({ jigsaw: store as never, jigsawImages: images, classifier, plays: memoryPlays(), users: memoryUsers("anna") });
+    const app = createJigsawApp({ levels: PUBLISHER, jigsaw: store as never, jigsawImages: images, classifier, plays: memoryPlays(), users: memoryUsers("anna") });
     const res = await request(app).post("/jigsaw/api/jigsaw/jigsaw-9/classify?apply=true").set("X-Jigsaw-User", "anna");
     expect(res.status).toBe(200);
     expect(updates[0]).toMatchObject({ kind: "picture", name: "River", gridSize: 0, gridVisible: false, placed: [] });

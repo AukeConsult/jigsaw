@@ -1,0 +1,7 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  <h1 class="page-title mb-2"><i class="bi bi-box-seam me-2" aria-hidden="true"></i>{{ t('jigsawPackages.make.title') || 'Make a package' }}</h1>
+  <p class="text-body-secondary">{{ t('jigsawPackages.make.intro') || 'A package is a collection of pictures that others can choose to play from. Here a publisher puts one together.' }}</p>
+  <!-- a dummy for now: it only says so -->
+  <div class="alert alert-info" role="status"><i class="bi bi-hourglass-split me-2" aria-hidden="true"></i>{{ t('jigsawPackages.make.soon') || 'This is not ready yet. Making packages will be here soon.' }}</div>
+  <a class="btn btn-outline-primary" routerLink="/jigsaw/user"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('jigsawPackages.make.back') || 'Back to your account' }}</a>
+</main>

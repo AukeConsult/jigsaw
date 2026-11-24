@@ -20,5 +20,7 @@
   "shareEmail": "E-mail",
   "viewing": "You are looking at the round of {{ name }}",
   "toJigsaw": "Show the page of the jigsaw",
-  "home": "Home"
+  "home": "Home",
+  "addPicture": "Add picture",
+  "more": "More"
 }
