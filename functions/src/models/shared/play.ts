@@ -21,12 +21,10 @@ export const PLAY_MAX_ELAPSED_MS = 30 * 24 * 60 * 60 * 1000;
 /** The longest id of a user. */
 export const PLAY_MAX_USER_ID = 128;
 
-/** The settings a play may choose for itself: the look (the line and the colours). Nothing else, ever (see `Plays.overridesError`). */
+/** The settings a play may have of its own: the look (the line and the colours), never anything else. Nothing writes them now (see `TODO.md`, "Future account settings"); a round that has them keeps them. */
 export const PLAY_OVERRIDE_KEYS = ['lineWidth', 'lineColor', 'backColor'] as const;
 export type PlayOverrideKey = (typeof PLAY_OVERRIDE_KEYS)[number];
 export type PlayOverrides = Partial<Pick<JigsawSpec, PlayOverrideKey>>;
-/** What a request that changes the settings of a play says: a value sets that setting for the play, null takes the choice away (the jigsaw's default is used again). */
-export type PlayOverridesChange = { [K in PlayOverrideKey]?: NonNullable<JigsawSpec[K]> | null };
 
 export type PlayStatus = 'active' | 'solved';
 
@@ -106,28 +104,6 @@ export class Plays {
   static userIdError(value: unknown): string {
     if (typeof value !== 'string' || !/^[A-Za-z0-9_.:-]+$/.test(value) || value.length > PLAY_MAX_USER_ID) return 'A play needs the id of its account (letters, digits and _ . : -).';
     return '';
-  }
-
-  /** The reason a change of the settings of a play is not allowed, or ''. Only the look can be chosen; anything else (the difficulty, the size, the picture, the pieces) is refused. */
-  static overridesError(value: unknown): string {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return 'Send the settings as an object.';
-    for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
-      if (!(PLAY_OVERRIDE_KEYS as readonly string[]).includes(key)) return `A play can not change "${key}": only the look (the line and the colours) can be chosen for a play.`;
-      if (v === null) continue;
-      if (key === 'lineWidth' && !(typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= JigsawSettings.MAX_LINE_WIDTH)) return `The line must be a whole number of pixels from 0 to ${JigsawSettings.MAX_LINE_WIDTH}.`;
-      if ((key === 'lineColor' || key === 'backColor') && !(typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v))) return `The ${key === 'lineColor' ? 'line' : 'background'} colour must be written as #rrggbb.`;
-    }
-    return '';
-  }
-
-  /** The settings of a play after a change that was checked (`overridesError` is ''): a value is set, null takes the choice away. */
-  static changed(overrides: PlayOverrides, change: PlayOverridesChange): PlayOverrides {
-    const next: Record<string, unknown> = { ...overrides };
-    for (const [key, v] of Object.entries(change)) {
-      if (v === null) delete next[key];
-      else if (v !== undefined) next[key] = typeof v === 'string' ? v.toLowerCase() : v;
-    }
-    return next as PlayOverrides;
   }
 
   /** The settings a play is played with. */

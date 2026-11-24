@@ -2,10 +2,8 @@ import { Component, DestroyRef, ElementRef, HostListener, OnDestroy, afterNextRe
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr, translationsLoaded } from '../../core/i18n';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Autosave } from '../../core/autosave';
 import { isWideScreen, onAnyScroll } from '../../core/theme';
 import { JigsawBoard } from '../../board/jigsaw-board/jigsaw-board';
-import { LINE_LEVELS, lineLevelOf } from '../line-level';
 import { SNAP_LEVELS, snapLevelOf } from '../snap-level';
 import { JigsawHelper } from '../jigsaw-helper';
 import { JigsawImageService } from '../jigsaw-image.service';
@@ -18,7 +16,7 @@ import { JigsawSettings, JigsawSpec } from '../../models/shared/jigsaw-settings'
 import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
 import { PlacedObject } from '../../models/shared/placed';
-import { PlayOverrides, PlaySpec } from '../../models/shared/play';
+import { PlaySpec } from '../../models/shared/play';
 
 /**
  * Playing one game of a jigsaw (`/jigsaw/:id/play/:playId`): the pieces in their store beside the picture, the sidebar with how far the game has come, and the
@@ -70,15 +68,10 @@ export class JigsawPlay implements OnDestroy {
 
   /** the difficulty, the jigsaw's own (not a choice of a round): how close to its own grid point a piece has to be dropped to click into place, in percent of the grid size (0: never) */
   readonly snapPercent = signal(JigsawSettings.DEFAULT_SNAP_PERCENT);
-  /** the line round each piece: how thick in pixels, and what colour (#rrggbb), and the background colour of the picture area */
+  /** the look the round is drawn with: the line round each piece (how thick in pixels, and what colour, #rrggbb) and the background colour of the picture area; read from the round, there is no choice of them on the page (see `TODO.md`) */
   readonly lineWidth = signal(JigsawSettings.DEFAULT_LINE_WIDTH);
   readonly lineColor = signal(JigsawSettings.DEFAULT_LINE_COLOR);
   readonly backColor = signal(JigsawSettings.DEFAULT_BACK_COLOR);
-  /** what this game has chosen for itself (the rest is the jigsaw's): only this is sent when it is saved */
-  private readonly own = signal<PlayOverrides>({});
-  /** the thicknesses of the line to choose from, in words, and the one the line is closest to */
-  readonly lineLevels = LINE_LEVELS;
-  readonly lineLevel = computed(() => lineLevelOf(this.lineWidth()));
   /** the difficulty in words (it is shown, not chosen: it belongs to the jigsaw) */
   private readonly loadedTick = translationsLoaded();
   readonly levelLabel = computed(() => {
@@ -86,24 +79,6 @@ export class JigsawPlay implements OnDestroy {
     const level = SNAP_LEVELS.find((l) => l.key === snapLevelOf(this.snapPercent()));
     return level ? tr('jigsawLevels.snap.' + level.key, level.label) : '';
   });
-
-  chooseLine(width: number): void {
-    if (this.viewOnly()) return;
-    this.lineWidth.set(width);
-    this.own.update((o) => ({ ...o, lineWidth: width }));
-  }
-
-  chooseLineColor(color: string): void {
-    if (this.viewOnly()) return;
-    this.lineColor.set(color);
-    this.own.update((o) => ({ ...o, lineColor: color }));
-  }
-
-  chooseBackColor(color: string): void {
-    if (this.viewOnly()) return;
-    this.backColor.set(color);
-    this.own.update((o) => ({ ...o, backColor: color }));
-  }
 
   readonly width = computed(() => this.item()?.width ?? 0);
   readonly height = computed(() => this.item()?.height ?? 0);
@@ -131,19 +106,6 @@ export class JigsawPlay implements OnDestroy {
 
   /** keeps where the pieces are in the database, a pause after the last move (the id it works with is the game's) */
   readonly pieceSync = new PieceSync({ jigsawId: () => (this.viewOnly() ? null : this.playId || null), pieces: () => this.pieces(), api: this.syncApi }); // another player's round is never saved from here (no id: nothing is sent)
-
-  /** what the game chooses for itself is saved with the game, a pause after the last change */
-  private readonly autosave = new Autosave<PlayOverrides, { id: string }>({
-    input: () => this.own(),
-    invalid: () => (this.play() ? '' : 'loading'),
-    create: () => Promise.reject(new Error('A game is started from the page of the jigsaw.')),
-    update: async (playId, input) => {
-      const saved = await this.plays.saveSettings(this.jigsawId, playId, input);
-      return { id: saved.play.id };
-    },
-    saved: () => undefined,
-  });
-  readonly saveState = this.autosave.state;
 
   /** how long the round has been played, in milliseconds: counted while the round is open on the screen (the page is shown), it is the user's own and it is not solved */
   readonly elapsedMs = signal(0);
@@ -196,10 +158,8 @@ export class JigsawPlay implements OnDestroy {
       this.lineWidth.set(detail.settings.lineWidth);
       this.lineColor.set(detail.settings.lineColor);
       this.backColor.set(detail.settings.backColor);
-      this.own.set({ ...detail.play.overrides });
       this.placed.set([...jigsaw.placed.filter((p) => !p.piece), ...detail.pieces.map((p) => JigsawPieces.toPlaced(p))]);
       this.pieceSync.markSaved(detail.pieces);
-      this.autosave.markSaved(this.playId); // reading is not a change
       this.elapsedMs.set(detail.play.elapsedMs ?? 0);
       this.timeSaved = this.elapsedMs();
       this.lastTick = 0;
@@ -274,7 +234,6 @@ export class JigsawPlay implements OnDestroy {
     this.tools.viewing.set(null);
     this.tools.open(''); // no jigsaw: the switches are not saved for the next one
     this.saveTimeNow();
-    this.autosave.destroy();
     this.pieceSync.destroy();
   }
 
@@ -301,7 +260,6 @@ export class JigsawPlay implements OnDestroy {
     }
     // nothing of this game is saved any more: what waited to be saved has nowhere to go
     this.pieceSync.markSaved([]);
-    this.autosave.markSaved(null);
     this.timeSaved = this.elapsedMs(); // the round is gone: nothing of its time is saved
     await this.router.navigate(['/jigsaw', this.jigsawId]);
   }

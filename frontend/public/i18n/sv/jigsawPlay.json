@@ -28,8 +28,6 @@
   "deleteRound": "Ta bort omgången",
   "cheat": "Fusk",
   "cheatHelp": "(hjälp att hitta bitar)",
-  "notSaved": "Inte sparat: inställningarna är inte tillåtna",
-  "couldNotSave": "Kunde inte spara, försöker igen",
   "couldNotDelete": "Kunde inte ta bort omgången: försök igen.",
   "couldNotStart": "Kunde inte nollställa omgången: försök igen.",
   "openJigsaw": "Öppna pusslets sida"

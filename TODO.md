@@ -14,15 +14,18 @@ What was taken out of the sidebar of a round (`jigsaw-play.html`, the row of thr
 
 What is still in the code, kept on purpose for the account settings (they have no screen now):
 
-- `JigsawPlay` (`jigsaw-play.ts`): the signals `lineWidth`, `lineColor` and `backColor` (the board is drawn with them), the choices `chooseLine`, `chooseLineColor` and `chooseBackColor`, and `lineLevels` and `lineLevel`; what a round has chosen for itself is saved as `PlayOverrides` (the jigsaw's own values are the default).
+- `JigsawPlay` (`jigsaw-play.ts`): the signals `lineWidth`, `lineColor` and `backColor` (the board is drawn with them; they are read from what the round is played with, `detail.settings`, and nothing on the page changes them).
+- `line-level.ts`: `LINE_LEVELS` and `lineLevelOf` (the thicknesses of the line in words), not used by any page now.
 - The texts in the nine languages: `jigsawPlay.line`, `lineTitle`, `colour`, `colourTitle`, `back`, `backTitle`, and `jigsawLevels.line.*`.
-- The model: `lineWidth`, `lineColor` and `backColor` on the jigsaw and on a round (`JigsawSpec`, `PlaySpec`).
+- The model: `lineWidth`, `lineColor` and `backColor` on the jigsaw, and a round's `overrides` of them (`PlayOverrides`, read by `Plays.effective`; nothing writes them).
+
+What was taken out because it had no way in from the screen: the choices `chooseLine`, `chooseLineColor` and `chooseBackColor`, the autosave of a round's choice, `PlaysService.saveSettings`, the route `PATCH /:playId/settings` and `Plays.overridesError` / `Plays.changed` (with the banner and texts `notSaved` and `couldNotSave`). Write them again for the account if a round-level choice is wanted.
 
 To do:
 
 - [ ] Add the three fields to the account settings, with the same texts, kept per account.
 - [ ] Decide what an account's choice means for a round that has chosen for itself (the round's own choice, the account's, or the jigsaw's), and write it in `docs/guide/rounds-and-plays.md`.
-- [ ] Use the account's choice when a round is drawn (`jigsaw-play.ts`), and remove what is left of the round-level choice if it is not needed.
+- [ ] Use the account's choice when a round is drawn (`jigsaw-play.ts`), and remove what is left of the round-level choice (`overrides`, `PlayOverrides`, `Plays.effective`) if it is not needed.
 - [ ] Remember the choice on the device too (`readPreference`/`writePreference`, rule 12 in `CLAUDE.md`), so it is there before the account is read.
 
 ## Style sheets

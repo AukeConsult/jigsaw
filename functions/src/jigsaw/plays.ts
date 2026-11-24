@@ -4,8 +4,7 @@ import { documentExists } from "./jigsaw-image";
 import { PieceStore } from "./jigsaw-pieces";
 import { JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays } from "../models";
 
-// The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`. A play can only
-// choose the look (see `Plays.overridesError`); the difficulty, the size, the picture and the pieces are the jigsaw's.
+// The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`.
 
 /** The most plays of one jigsaw that are listed for a user. */
 const LIST_LIMIT = 100;
@@ -205,7 +204,6 @@ export interface PlayDeps {
  *  GET /summary: {played}, whether anyone has started a game of it. GET ?userId=: its plays (of that user), newest first. POST {userId}: starts a play for the user with that UID (the play keeps the UID and the name of the user) (the pieces are scattered).
  *  GET: the plays of all the users can be read (a round of another player can be looked at). Changing or deleting a round needs the header `X-Jigsaw-User` to be its player (403 otherwise).
  *  GET /:playId: the play, the settings it is played with, and the pieces as it has them (without the graphics).
- *  PATCH /:playId/settings {overrides}: the look this play chooses (the line and the colours; null takes a choice away); anything else, the difficulty too, is refused (400).
  *  PATCH /:playId/positions {moves, storeWidth?, elapsedMs?}: where pieces are now (how wide the store of this game has grown to, and how long it has been played: that only grows); how many are in place and whether the game is solved follows from that. DELETE /:playId.
  */
 export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
@@ -327,17 +325,6 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (failed) return bad(res, failed, 409);
     if (!saved) return bad(res, "No such play.", 404);
     res.json({ matched: saved.play.matched, total: saved.play.total, status: saved.play.status });
-  });
-
-  router.patch("/:playId/settings", ownRound, async (req, res) => {
-    const jigsaw = await jigsawOf(req, res);
-    if (!jigsaw) return;
-    const change = (req.body as { overrides?: unknown } | undefined)?.overrides;
-    const error = Plays.overridesError(change);
-    if (error) return bad(res, error);
-    const saved = await plays.update(jigsaw.id, req.params.playId, (cur) => ({ ...cur, play: { ...cur.play, overrides: Plays.changed(cur.play.overrides, change as never) } }));
-    if (!saved) return bad(res, "No such play.", 404);
-    res.json({ play: Plays.publicOf(saved.play), settings: Plays.effective(jigsaw, saved.play) });
   });
 
   router.patch("/:playId/positions", ownRound, async (req, res) => {

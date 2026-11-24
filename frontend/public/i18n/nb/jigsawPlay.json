@@ -28,8 +28,6 @@
   "deleteRound": "Slett runden",
   "cheat": "Juks",
   "cheatHelp": "(hjelp til å finne brikker)",
-  "notSaved": "Ikke lagret: innstillingene er ikke tillatt",
-  "couldNotSave": "Kunne ikke lagre, prøver igjen",
   "couldNotDelete": "Kunne ikke slette runden: prøv igjen.",
   "couldNotStart": "Kunne ikke nullstille runden: prøv igjen.",
   "openJigsaw": "Åpne siden til puslespillet"

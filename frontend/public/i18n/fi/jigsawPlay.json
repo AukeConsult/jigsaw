@@ -28,8 +28,6 @@
   "deleteRound": "Poista kierros",
   "cheat": "Huijaa",
   "cheatHelp": "(auta etsimään paloja)",
-  "notSaved": "Ei tallennettu: asetukset eivät ole sallittuja",
-  "couldNotSave": "Tallennus ei onnistunut, yritetään uudelleen",
   "couldNotDelete": "Kierrosta ei voitu poistaa: yritä uudelleen.",
   "couldNotStart": "Kierrosta ei voitu nollata: yritä uudelleen.",
   "openJigsaw": "Avaa palapelin sivu"

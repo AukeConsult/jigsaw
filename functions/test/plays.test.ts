@@ -86,25 +86,11 @@ async function setup() {
 
 const piece = (col: number, row: number, extra: Partial<JigsawPiece> = {}): JigsawPiece => ({ id: `piece-${col}-${row}`, number: row * 4 + col + 1, col, row, top: 0, right: 0, bottom: 0, left: 0, size: 50, centerX: 0, centerY: 0, layer: 1, matched: false, ...extra });
 
-describe("what a play can choose", () => {
-  it("is only the difficulty and the look: anything about the size, the picture or the pieces is refused", () => {
-    for (const key of ["snapPercent", "width", "height", "gridSize", "storeWidth", "name", "author", "pictureName", "picture", "placed", "pieces", "frameWidth", "gridVisible"]) {
-      expect(Plays.overridesError({ [key]: 1 })).toContain("can not change");
-    }
-    expect(Plays.overridesError({ lineWidth: 3, lineColor: "#aabbcc", backColor: "#112233" })).toBe("");
-    expect(Plays.overridesError({ lineWidth: null, backColor: null })).toBe("");
-  });
-
-  it("is checked: the difficulty 0 to 100, the line 0 to 6, colours as #rrggbb", () => {
-    for (const bad of [{ lineWidth: 7 }, { lineWidth: "2" }, { lineColor: "red" }, { backColor: "#fff" }]) expect(Plays.overridesError(bad)).not.toBe("");
-    for (const bad of [null, "x", [], 5]) expect(Plays.overridesError(bad)).toContain("object");
-  });
-
+describe("the settings a play is played with", () => {
   it("is the play's own choice, else the jigsaw's, else the model's", () => {
     const jigsaw = { snapPercent: 10, lineWidth: undefined, lineColor: "#000000", backColor: undefined };
     expect(Plays.effective(jigsaw, { overrides: {} })).toEqual({ snapPercent: 10, lineWidth: JigsawSettings.DEFAULT_LINE_WIDTH, lineColor: "#000000", backColor: JigsawSettings.DEFAULT_BACK_COLOR });
     expect(Plays.effective(jigsaw, { overrides: { lineColor: "#ffffff" } })).toMatchObject({ snapPercent: 10, lineColor: "#ffffff" }); // the difficulty is the jigsaw's
-    expect(Plays.changed({ lineColor: "#112233", lineWidth: 2 }, { lineColor: null, backColor: "#AABBCC" })).toEqual({ lineWidth: 2, backColor: "#aabbcc" });
   });
 });
 
@@ -199,21 +185,21 @@ describe("the plays of a jigsaw", () => {
     expect((await request(app).post(`/jigsaw/api/jigsaw/${made.id}/plays`).send({ userId: "anna" })).status).toBe(409);
   });
 
-  it("keeps the settings a play chooses to that play, and refuses anything about size, picture or pieces", async () => {
-    const { app, made } = await setup();
-    const play = (await started(app, made.id, { userId: "anna" }));
-    const other = (await started(app, made.id, { userId: "bo" }));
-    const url = (p: PlaySpec) => `/jigsaw/api/jigsaw/${made.id}/plays/${p.id}/settings`;
-    const set = await anna(app).patch(url(play)).send({ overrides: { lineWidth: 3, backColor: "#AABBCC" } });
-    expect(set.status).toBe(200);
-    expect(set.body.settings).toMatchObject({ snapPercent: 25, backColor: "#aabbcc", lineWidth: 3 });
+  it("plays with the look a round already has of its own, and the other rounds with the jigsaw's", async () => {
+    const { app, plays, made } = await setup();
+    const play = await started(app, made.id, { userId: "anna" });
+    const other = await started(app, made.id, { userId: "bo" });
+    await plays.update(made.id, play.id, (cur) => ({ ...cur, play: { ...cur.play, overrides: { lineWidth: 3, backColor: "#aabbcc" } } }));
+    const mine = (await request(app).get(`/jigsaw/api/jigsaw/${made.id}/plays/${play.id}`)).body;
+    expect(mine.settings).toMatchObject({ snapPercent: 25, backColor: "#aabbcc", lineWidth: 3 });
+    expect(mine.play.overrides).toEqual({ lineWidth: 3, backColor: "#aabbcc" });
     expect((await request(app).get(`/jigsaw/api/jigsaw/${made.id}/plays/${other.id}`)).body.settings).toMatchObject({ snapPercent: 25, backColor: "#ffffff" });
-    const back = await anna(app).patch(url(play)).send({ overrides: { backColor: null } });
-    expect(back.body.settings.backColor).toBe("#ffffff");
-    for (const bad of [{ width: 500 }, { gridSize: 10 }, { picture: "x" }, { pieces: [] }, { snapPercent: 40 }]) { // the difficulty is not a choice of a round
-      expect((await anna(app).patch(url(play)).send({ overrides: bad })).status).toBe(400);
-    }
-    expect((await request(app).get(`/jigsaw/api/jigsaw/${made.id}`)).status).toBeLessThan(500);
+  });
+
+  it("has no route to change the settings of a round: the look is not a choice of a round", async () => {
+    const { app, made } = await setup();
+    const play = await started(app, made.id, { userId: "anna" });
+    expect((await anna(app).patch(`/jigsaw/api/jigsaw/${made.id}/plays/${play.id}/settings`).send({ overrides: { lineWidth: 3 } })).status).toBe(404);
   });
 
   it("lets only the owner take away all the rounds, which makes the jigsaw editable again", async () => {
@@ -441,7 +427,6 @@ describe("rounds of other players", () => {
       const agent = (r: request.Test) => (who === undefined ? r : r.set("X-Jigsaw-User", who));
       for (const res of [
         await agent(request(app).patch(`${url}/positions`).send(move)),
-        await agent(request(app).patch(`${url}/settings`).send({ overrides: { lineWidth: 3 } })),
         await agent(request(app).delete(url)),
       ]) {
         expect(res.status).toBe(403);

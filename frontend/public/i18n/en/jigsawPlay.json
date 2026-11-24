@@ -28,8 +28,6 @@
   "deleteRound": "Delete round",
   "cheat": "Cheat",
   "cheatHelp": "(help find pieces)",
-  "notSaved": "Not saved: the settings are not allowed",
-  "couldNotSave": "Could not save, trying again",
   "couldNotDelete": "Could not delete the round: try again.",
   "couldNotStart": "Could not reset the round: try again.",
   "openJigsaw": "Open the page of the jigsaw"

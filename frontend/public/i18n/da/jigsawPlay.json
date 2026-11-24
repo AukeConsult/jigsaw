@@ -28,8 +28,6 @@
   "deleteRound": "Slet runden",
   "cheat": "Snyd",
   "cheatHelp": "(hjælp til at finde brikker)",
-  "notSaved": "Ikke gemt: indstillingerne er ikke tilladt",
-  "couldNotSave": "Kunne ikke gemme, prøver igen",
   "couldNotDelete": "Kunne ikke slette runden: prøv igen.",
   "couldNotStart": "Kunne ikke nulstille runden: prøv igen.",
   "openJigsaw": "Åbn puslespillets side"

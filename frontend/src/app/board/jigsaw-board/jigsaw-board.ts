@@ -176,7 +176,11 @@ export class JigsawBoard {
     const grid = pieceGrid(this.width(), this.height(), this.gridSize()); // the border is also known from where the cell is, not only from the flat sides the piece has
     return new Set(this.placed().filter((p) => p.piece && !JigsawPieces.isBorder(p.piece, grid)).map((p) => p.id));
   });
-  /** the pieces that lie in the store frame and are shown (not hidden by "only corner and edge pieces"): the ones that are collected */
+  /**
+   * the pieces that lie in the store (by their middle) and are shown (not hidden by "only corner and edge pieces"): the ones that are collected. This is deliberately not `belongsToStore` (rule 3,
+   * whole inside): the first scatter of a round, made without knowing the width of a slice, leaves pieces over the edge of a slice that no pointer can put there, so by rule 3 they are free pieces;
+   * a click on the scroller (and the Edges switch) still has to gather them, or they would stay lying over the frame for ever. It only runs when the person asks.
+   */
   readonly storePieceIds = computed(() => {
     const store = this.store();
     const hidden = this.hiddenIds();
@@ -602,7 +606,11 @@ export class JigsawBoard {
   private readonly anchorPrefs = signal<readonly string[]>([]);
   /** for every object, the one that stands for its group: pieces that stick together are one piece, so where the group is shown is decided by one of them */
   private readonly groupAnchors = computed(() => this.puzzle().groupAnchors(this.anchorPrefs()));
-  /** whether a piece is in the store frame: beside the picture the whole of it is inside what the frame shows (in a later slice it is, as the slices are cut from the store); below the picture its middle is */
+  /**
+   * whether a piece is in the store frame (rule 3): beside the picture the whole of it is inside what the frame shows (in a later slice it is, as the slices are cut from the store); below the picture its middle is.
+   * This is the rule as it is told of a stored place; `areaPoint` tells the same rule of the pointer (the half piece it keeps from the sides of the frame), because a drop has to be turned into a place
+   * before there is a piece to ask. The two cannot be one function (screen pixels and a scrolled, sliced store), so `scripts/board-scroller-membership.js` drops a piece at many points and says if they differ.
+   */
   private belongsToStore(item: { left: number; top: number; centerX: number; object: { width: number } }): boolean {
     const store = this.store();
     if (!store) return false;
@@ -655,29 +663,11 @@ export class JigsawBoard {
   /** the drawn objects by id (a piece of a group looks up the piece that stands for the group) */
   private readonly viewById = computed(() => new Map(this.view().map((v) => [v.p.id, v] as const)));
 
-  /** a new object whenever anything that decides where a piece is drawn changes (the store scrolls, the window, the free space ...): the places worked out before are good until then */
-  private readonly placeKey = computed(() => ({
-    store: this.store(), zone: this.zone(), scroll: this.storeScroll(), scrollX: this.storeScrollX(), viewHeight: this.storeViewHeight(), frameWidth: this.storeFrameWidth(), stacked: this.stacked(),
-    slices: this.sliceCount(), sliceWidth: this.sliceWidth(), sliceStride: this.sliceStride(), bandStride: this.bandStride(), bandHeight: this.bandHeight(), width: this.width(), height: this.height(),
-    grid: this.gridSize(), gutter: this.gutter(), frameExtra: this.frameExtra(), stripExtra: this.stripExtra(),
-  }));
-  private placed_ = new Map<string, { v: BoardView; anchor: BoardView | undefined; key: object; result: ReturnType<JigsawBoard['place']> }>();
-  /** where every piece is drawn, by id: worked out again only for the pieces that changed (or all of them when the store scrolls and the like), not for every piece at every move */
-  protected readonly placements = computed(() => {
-    const key = this.placeKey();
-    const byId = this.viewById();
-    const kept = new Map<string, { v: BoardView; anchor: BoardView | undefined; key: object; result: ReturnType<JigsawBoard['place']> }>();
-    const out = new Map<string, ReturnType<JigsawBoard['place']>>();
-    for (const v of this.view()) {
-      const anchor = v.anchor && v.anchor !== v.p.id ? byId.get(v.anchor) : undefined;
-      const before = this.placed_.get(v.p.id);
-      const found = before && before.v === v && before.anchor === anchor && before.key === key ? before : { v, anchor, key, result: this.place(v) };
-      kept.set(v.p.id, found);
-      out.set(v.p.id, found.result);
-    }
-    this.placed_ = kept;
-    return out;
-  });
+  /**
+   * where every piece is drawn, by id (see `place`): worked out again for all the pieces whenever anything `place` reads changes. It takes about half a millisecond for 800 pieces, so it is not kept piece by piece:
+   * a list of what it reads, to know when a kept place is stale, was left out of date once and the pieces were drawn at old places after a resize
+   */
+  protected readonly placements = computed(() => new Map(this.view().map((v) => [v.p.id, this.place(v)] as const)));
 
   /** how many pieces the picture is cut into across and down (a piece of the jigsaw shows its own part of the picture) */
   readonly pieceGrid = computed(() => pieceGrid(this.width(), this.height(), this.gridSize()));
@@ -878,6 +868,7 @@ export class JigsawBoard {
     const inner = this.storeInner()?.nativeElement;
     if (store && inner) {
       const frame = (inner.parentElement as HTMLElement).getBoundingClientRect();
+      // (rule 3 for the pointer, the same as `belongsToStore` for a place: keep the two alike, `scripts/board-scroller-membership.js` checks them)
       // a piece (its middle) is in the store below the top edge of the frame by half a piece: a piece in the store is whole inside it, so higher up it is a free piece, and it follows the pointer all the way
       // (beside the picture only while the store is not scrolled: scrolled, a piece can lie partly over the top edge of what the frame shows)
       const top = frame.top + (piece && (this.stacked() || this.storeScroll() === 0) ? (this.gridSize() / 2) * this.scale() : 0);

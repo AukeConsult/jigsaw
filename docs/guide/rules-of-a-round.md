@@ -17,7 +17,7 @@ The **yellow** working area (where the pieces are drawn), the **blue** board (th
 
 1. **Free in yellow:** a piece moves freely inside the yellow area and settles anywhere; only the edges of the yellow area limit it (not the blue area, the scroller or the gaps). A small margin lies round the yellow area, and the picture has a margin of 8 px at its top and left, which a piece may enter.
 2. **Snap only in blue, only to the grid:** a piece (or a group) clicks to its own place or exactly beside a neighbour only when its middle is inside the picture area; outside it nothing clicks.
-3. **Pink only when whole inside:** a piece belongs to the scroller only when the whole of it is inside what the scroller shows; partly inside, it is a free piece lying over it.
+3. **Pink only when whole inside:** a piece belongs to the scroller only when the whole of it is inside what the scroller shows; partly inside, it is a free piece lying over it. (Along the way the scroller scrolls, only the store's own length counts, so a piece may hang over the visible edge there. Gathering the scroller by a click, and the Edges switch, take the pieces whose middle is in it, so the pieces the first scatter left over the edge of a slice are gathered too.)
 4. **Yellow above its surroundings:** the working area is over the bars, and every menu, popup, sidebar and dialog is over it (z-index bands, rule 13 in `CLAUDE.md`).
 5. **Order of a view:** first find the yellow area, then place the blue board in it, and last the pink scroller.
 6. **The yellow area never goes below the footer**, and is always as high as is left down to it; it is measured again whenever the screen, a bar or the footer changes size.

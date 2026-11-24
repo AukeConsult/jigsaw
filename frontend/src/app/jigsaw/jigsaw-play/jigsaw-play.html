@@ -74,13 +74,6 @@
             <label class="form-check-label" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>{{ t('jigsawPlay.cheat') || 'Cheat' }} <span class="text-body-secondary">{{ t('jigsawPlay.cheatHelp') || '(help find pieces)' }}</span></label>
           </div>
         }
-
-        <!-- saving is automatic: only a problem is said -->
-        @if (saveState() === 'failed' || saveState() === 'invalid') {
-          <div class="small text-danger" role="alert">
-            @if (saveState() === 'invalid') { {{ t('jigsawPlay.notSaved') || 'Not saved: the settings are not allowed' }} } @else { {{ t('jigsawPlay.couldNotSave') || 'Could not save, trying again' }} }
-          </div>
-        }
         </aside>
       </div>
 

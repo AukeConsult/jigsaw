@@ -28,8 +28,6 @@
   "deleteRound": "Runde löschen",
   "cheat": "Schummeln",
   "cheatHelp": "(hilft beim Finden der Teile)",
-  "notSaved": "Nicht gespeichert: Die Einstellungen sind nicht erlaubt",
-  "couldNotSave": "Speichern nicht möglich, neuer Versuch",
   "couldNotDelete": "Die Runde konnte nicht gelöscht werden: Versuch es noch einmal.",
   "couldNotStart": "Die Runde konnte nicht zurückgesetzt werden: versuche es noch einmal.",
   "openJigsaw": "Seite des Puzzles öffnen"

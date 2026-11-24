@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { JigsawUserService } from './jigsaw-user.service';
 import { JigsawPiece, PieceMove } from '../models/shared/jigsaw';
-import { PlayChoice, PlayOverrides, PlaySettings, PlaySpec } from '../models/shared/play';
+import { PlayChoice, PlaySettings, PlaySpec } from '../models/shared/play';
 import { ListedRoundsPage, RoundsView } from '../models/shared/rounds-list';
 
 /** A play as it is opened: the play, the settings it is played with, and the pieces of the jigsaw as this play has them. */
@@ -74,11 +74,6 @@ export class PlaysService {
 
   get(jigsawId: string, playId: string): Promise<PlayDetail> {
     return firstValueFrom(this.http.get<PlayDetail>(this.one(jigsawId, playId)));
-  }
-
-  /** the difficulty and look this play chooses (a value sets it, null takes the choice away) */
-  saveSettings(jigsawId: string, playId: string, overrides: { [K in keyof PlayOverrides]: PlayOverrides[K] | null }): Promise<{ play: PlaySpec; settings: PlaySettings }> {
-    return firstValueFrom(this.http.patch<{ play: PlaySpec; settings: PlaySettings }>(`${this.one(jigsawId, playId)}/settings`, { overrides }, { headers: this.whoAsks() }));
   }
 
   /** where pieces are now (and how wide the store has grown to) */
