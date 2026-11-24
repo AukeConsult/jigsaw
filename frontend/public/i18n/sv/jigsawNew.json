@@ -54,8 +54,6 @@
   "visibilityHelp": "Offentlig: i allas listor. Privat: bara ägaren och spelarna ser det. Dold: bara i listan över dina egna pussel, inte på startsidan eller i andra listor.",
   "timed": "Tidtagning",
   "timedHelp": "En klocka mäter hur lång tid varje omgång tar.",
-  "sectionSize": "Storlek och bitar",
-  "sectionPlay": "Spel och utseende",
   "description": "Beskrivning",
   "optional": "(valfritt)",
   "descriptionPlaceholder": "En plats, en dag, ett minne…",

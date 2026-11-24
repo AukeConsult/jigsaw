@@ -54,8 +54,6 @@
   "visibilityHelp": "Public : dans les listes de tous. Privé : seuls son propriétaire et ses joueurs le voient. Masqué : seulement dans la liste de vos propres puzzles, pas sur la page d'accueil ni dans d'autres listes.",
   "timed": "Chronométré",
   "timedHelp": "Un chrono mesure la durée de chaque partie.",
-  "sectionSize": "Taille et pièces",
-  "sectionPlay": "Jeu et apparence",
   "description": "Description",
   "optional": "(facultatif)",
   "descriptionPlaceholder": "Un lieu, un jour, un souvenir…",

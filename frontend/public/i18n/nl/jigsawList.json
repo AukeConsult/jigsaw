@@ -1,5 +1,4 @@
 {
-  "title": "Alle afbeeldingen",
   "view": "Weergave",
   "list": "Lijst",
   "cards": "Kaarten",
@@ -42,8 +41,6 @@
   "matchOne": "{{ count }} afbeelding past",
   "matchMany": "{{ count }} afbeeldingen passen",
   "ownersHelp": "(kies er een of meer, maximaal {{ max }})",
-  "searchLabel": "Zoeken",
-  "searchPlaceholder": "Woorden in de naam, bij de maker of in de beschrijving",
   "language": "Taal",
   "noOwner": "Geen eigenaar",
   "loading": "De afbeeldingen worden opgehaald …",

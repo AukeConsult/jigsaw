@@ -1,5 +1,4 @@
 {
-  "title": "Kaikki kuvat",
   "view": "Näkymä",
   "list": "Lista",
   "cards": "Kortit",
@@ -42,8 +41,6 @@
   "matchOne": "{{ count }} kuva vastaa",
   "matchMany": "{{ count }} kuvaa vastaa",
   "ownersHelp": "(valitse yksi tai useampi, enintään {{ max }})",
-  "searchLabel": "Haku",
-  "searchPlaceholder": "Sanoja nimessä, tekijässä tai kuvauksessa",
   "language": "Kieli",
   "noOwner": "Ei omistajaa",
   "loading": "Haetaan kuvia …",

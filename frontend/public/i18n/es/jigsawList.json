@@ -1,5 +1,4 @@
 {
-  "title": "Todas las imágenes",
   "view": "Vista",
   "list": "Lista",
   "cards": "Tarjetas",
@@ -42,8 +41,6 @@
   "matchOne": "{{ count }} imagen coincide",
   "matchMany": "{{ count }} imágenes coinciden",
   "ownersHelp": "(elige uno o más, hasta {{ max }})",
-  "searchLabel": "Búsqueda",
-  "searchPlaceholder": "Palabras del nombre, del autor o de la descripción",
   "language": "Idioma",
   "noOwner": "Sin propietario",
   "loading": "Obteniendo las imágenes …",

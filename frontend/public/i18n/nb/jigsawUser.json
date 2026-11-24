@@ -1,6 +1,5 @@
 {
   "title": "Hvem spiller?",
-  "youPlayAs": "Aktiv konto:",
   "edit": "Endre",
   "chooseAnother": "Velg en annen konto",
   "usernameLabel": "Kontoalias",
@@ -50,7 +49,6 @@
   "yesDeleteSelected": "Ja, slett {{ count }}",
   "deleting": "Sletter …",
   "someNotDeleted": "Kunne ikke slette {{ count }} av puslespillene: prøv igjen.",
-  "setVisibility": "Hvem ser det …",
   "visibilityEveryone": "Offentlig",
   "visibilityOwner": "Privat",
   "visibilityHidden": "Skjult",

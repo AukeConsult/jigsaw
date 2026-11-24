@@ -54,8 +54,6 @@
   "visibilityHelp": "Öffentlich: in den Listen aller. Privat: nur der Besitzer und seine Spieler sehen es. Versteckt: nur in der Liste deiner eigenen Puzzle, nicht auf der Startseite oder in anderen Listen.",
   "timed": "Mit Zeitmessung",
   "timedHelp": "Eine Uhr misst, wie lange jede Runde dauert.",
-  "sectionSize": "Größe und Teile",
-  "sectionPlay": "Spiel und Aussehen",
   "description": "Beschreibung",
   "optional": "(freiwillig)",
   "descriptionPlaceholder": "Ein Ort, ein Tag, eine Erinnerung…",

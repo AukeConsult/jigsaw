@@ -600,6 +600,21 @@ describe("pieces that stick together", () => {
   });
 
   describe("when it is dropped", () => {
+    it("pieces that click to each other also click to the grid when together they are within range of their own places", () => {
+      const d = world(mk(2, 1, 130, 83), mk(3, 1, 187, 80)); // 2 is 5 px right and 8 down of its place (125, 75), 3 is dropped by it
+      const dropped = d.dropPieces(["piece-3-1"], 12.5);
+      expect(at(dropped, "piece-2-1")).toEqual([125, 75]);
+      expect(at(dropped, "piece-3-1")).toEqual([175, 75]);
+      expect(dropped.isFixed(["piece-3-1"])).toBe(true); // on its place: fixed
+    });
+
+    it("pieces that click to each other stay where they are when they are not within range of their own places", () => {
+      const d = world(mk(2, 1, 150, 83), mk(3, 1, 207, 80)); // 25 px off their places: only the one click
+      const dropped = d.dropPieces(["piece-3-1"], 12.5);
+      expect(at(dropped, "piece-2-1")).toEqual([150, 83]);
+      expect(at(dropped, "piece-3-1")).toEqual([200, 83]);
+    });
+
     it("a piece dropped close to where it fits a neighbour moves exactly there and sticks to it", () => {
       const d = world(mk(2, 1, 400, 300), mk(3, 1, 462, 311)); // 12 px and 11 px from fitting
       const dropped = d.dropPieces(["piece-3-1"], 25);

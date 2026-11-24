@@ -1,5 +1,4 @@
 {
-  "title": "Toutes les images",
   "view": "Affichage",
   "list": "Liste",
   "cards": "Cartes",
@@ -42,8 +41,6 @@
   "matchOne": "{{ count }} image correspond",
   "matchMany": "{{ count }} images correspondent",
   "ownersHelp": "(choisissez-en un ou plusieurs, jusqu'à {{ max }})",
-  "searchLabel": "Recherche",
-  "searchPlaceholder": "Mots du nom, de l'auteur ou de la description",
   "language": "Langue",
   "noOwner": "Sans propriétaire",
   "loading": "Chargement des images …",

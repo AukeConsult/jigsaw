@@ -1,5 +1,4 @@
 {
-  "title": "Alla bilder",
   "view": "Visning",
   "list": "Lista",
   "cards": "Kort",
@@ -42,8 +41,6 @@
   "matchOne": "{{ count }} bild passar",
   "matchMany": "{{ count }} bilder passar",
   "ownersHelp": "(välj en eller flera, upp till {{ max }})",
-  "searchLabel": "Sök",
-  "searchPlaceholder": "Ord i namnet, hos upphovspersonen eller i beskrivningen",
   "language": "Språk",
   "noOwner": "Ingen ägare",
   "loading": "Hämtar bilderna …",

@@ -54,8 +54,6 @@
   "visibilityHelp": "Julkinen: kaikkien listoilla. Yksityinen: vain omistaja ja pelaajat näkevät sen. Piilotettu: vain omien palapelien listalla, ei etusivulla eikä muilla listoilla.",
   "timed": "Ajastettu",
   "timedHelp": "Kello mittaa, kuinka kauan kukin kierros kestää.",
-  "sectionSize": "Koko ja palat",
-  "sectionPlay": "Peli ja ulkoasu",
   "description": "Kuvaus",
   "optional": "(valinnainen)",
   "descriptionPlaceholder": "Paikka, päivä, muisto…",

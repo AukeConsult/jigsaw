@@ -54,8 +54,6 @@
   "visibilityHelp": "Offentlig: i listene til alle. Privat: bare eieren og spillerne ser det. Skjult: bare i listen over dine egne puslespill, ikke på forsiden eller i andre lister.",
   "timed": "Tidtaking",
   "timedHelp": "En klokke måler hvor lang tid hver runde tar.",
-  "sectionSize": "Størrelse og brikker",
-  "sectionPlay": "Spill og utseende",
   "description": "Beskrivelse",
   "optional": "(valgfritt)",
   "descriptionPlaceholder": "Et sted, en dag, et minne…",

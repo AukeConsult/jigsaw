@@ -1,6 +1,5 @@
 {
   "title": "¿Quién juega?",
-  "youPlayAs": "Cuenta activa:",
   "edit": "Editar",
   "chooseAnother": "Elegir otra cuenta",
   "usernameLabel": "Alias de la cuenta",
@@ -50,7 +49,6 @@
   "yesDeleteSelected": "Sí, borrar {{ count }}",
   "deleting": "Borrando…",
   "someNotDeleted": "No se pudieron borrar {{ count }} de los puzles: inténtalo de nuevo.",
-  "setVisibility": "Quién lo ve…",
   "visibilityEveryone": "Público",
   "visibilityOwner": "Privado",
   "visibilityHidden": "Oculto",

@@ -1,6 +1,5 @@
 {
   "title": "Who plays?",
-  "youPlayAs": "Active account:",
   "edit": "Edit",
   "chooseAnother": "Choose another account",
   "usernameLabel": "Account alias",
@@ -50,7 +49,6 @@
   "yesDeleteSelected": "Yes, delete {{ count }}",
   "deleting": "Deleting…",
   "someNotDeleted": "Could not delete {{ count }} of the jigsaws: try again.",
-  "setVisibility": "Who sees it…",
   "visibilityEveryone": "Public",
   "visibilityOwner": "Private",
   "visibilityHidden": "Hidden",

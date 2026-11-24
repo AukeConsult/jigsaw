@@ -1,5 +1,4 @@
 {
-  "title": "All pictures",
   "view": "View",
   "list": "List",
   "cards": "Cards",
@@ -42,8 +41,6 @@
   "matchOne": "{{ count }} picture matches",
   "matchMany": "{{ count }} pictures match",
   "ownersHelp": "(choose one or more, up to {{ max }})",
-  "searchLabel": "Search",
-  "searchPlaceholder": "Words in the name, the author or the description",
   "language": "Language",
   "noOwner": "No owner",
   "loading": "Fetching the pictures…",

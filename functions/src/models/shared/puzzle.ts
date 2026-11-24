@@ -272,7 +272,7 @@ export class Puzzle {
    * Jigsaw pieces that are dropped: each group of pieces that stick together (see `stuckGroup`) that was dropped clicks into place when it comes close
    * enough, within `range` pixels, of one of two things: its own grid point (the home of a piece in it, see `PlacedFigure.home`), or the place where a
    * piece in it fits a neighbour that is not in the group (so the group sticks to it). The whole group moves by the smallest of these steps, so the
-   * piece is exactly there, and the groups that now fit each other stick together. Only pieces are looked at, and only when they are dropped, not while
+   * piece is exactly there, and the groups that now fit each other stick together; and when what it clicked to is within `range` of its own place as a whole, it clicks to the grid too. Only pieces are looked at, and only when they are dropped, not while
    * they are moved. `range` 0 (or less) means nothing clicks. Nothing changes (the same puzzle) when nothing is near enough. With `within` (the picture area) a group only clicks when the middle of
    * one of its pieces is inside it: outside it (the free space, the store) a piece settles where it is dropped.
    */
@@ -290,6 +290,12 @@ export class Puzzle {
       };
       if (within && !group.some(inside)) continue;
       puzzle = puzzle.snapGroup(group, range);
+      // what it has clicked to is now one group with it: if that whole group is within `range` of its own place, it clicks there too, so pieces that stick to each other do not stay a little off the grid
+      const joined = puzzle.stuckGroup([id]);
+      if (joined.length > group.length) {
+        for (const member of joined) done.add(member);
+        puzzle = puzzle.snapGroup(joined, range);
+      }
     }
     return puzzle.settled(); // the pieces that are fixed now go to the bottom
   }

@@ -1,5 +1,4 @@
 {
-  "title": "Alle Bilder",
   "view": "Ansicht",
   "list": "Liste",
   "cards": "Karten",
@@ -42,8 +41,6 @@
   "matchOne": "{{ count }} Bild passt",
   "matchMany": "{{ count }} Bilder passen",
   "ownersHelp": "(wähle einen oder mehrere, bis zu {{ max }})",
-  "searchLabel": "Suche",
-  "searchPlaceholder": "Wörter im Namen, beim Autor oder in der Beschreibung",
   "language": "Sprache",
   "noOwner": "Kein Besitzer",
   "loading": "Die Bilder werden geholt …",

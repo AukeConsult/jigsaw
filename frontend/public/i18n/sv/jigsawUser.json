@@ -1,6 +1,5 @@
 {
   "title": "Vem spelar?",
-  "youPlayAs": "Aktivt konto:",
   "edit": "Ändra",
   "chooseAnother": "Välj ett annat konto",
   "usernameLabel": "Kontoalias",
@@ -50,7 +49,6 @@
   "yesDeleteSelected": "Ja, ta bort {{ count }}",
   "deleting": "Tar bort …",
   "someNotDeleted": "Kunde inte ta bort {{ count }} av pusslen: försök igen.",
-  "setVisibility": "Vem ser det …",
   "visibilityEveryone": "Offentlig",
   "visibilityOwner": "Privat",
   "visibilityHidden": "Dold",

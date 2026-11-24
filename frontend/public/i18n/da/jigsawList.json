@@ -1,5 +1,4 @@
 {
-  "title": "Alle billeder",
   "view": "Visning",
   "list": "Liste",
   "cards": "Kort",
@@ -42,8 +41,6 @@
   "matchOne": "{{ count }} billede passer",
   "matchMany": "{{ count }} billeder passer",
   "ownersHelp": "(vælg en eller flere, op til {{ max }})",
-  "searchLabel": "Søg",
-  "searchPlaceholder": "Ord i navnet, hos skaberen eller i beskrivelsen",
   "language": "Sprog",
   "noOwner": "Ingen ejer",
   "loading": "Henter billederne …",

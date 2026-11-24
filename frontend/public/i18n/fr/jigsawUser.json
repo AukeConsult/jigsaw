@@ -1,6 +1,5 @@
 {
   "title": "Qui joue ?",
-  "youPlayAs": "Compte actif :",
   "edit": "Modifier",
   "chooseAnother": "Choisir un autre compte",
   "usernameLabel": "Alias du compte",
@@ -50,7 +49,6 @@
   "yesDeleteSelected": "Oui, supprimer {{ count }}",
   "deleting": "Suppression…",
   "someNotDeleted": "Impossible de supprimer {{ count }} des puzzles : réessayez.",
-  "setVisibility": "Qui le voit…",
   "visibilityEveryone": "Public",
   "visibilityOwner": "Privé",
   "visibilityHidden": "Masqué",

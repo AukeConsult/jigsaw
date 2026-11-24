@@ -54,8 +54,6 @@
   "visibilityHelp": "Public: in the lists of everyone. Private: only its owner and its players see it. Hidden: only in the list of your own jigsaws, not on the front page or in any other list.",
   "timed": "Timed",
   "timedHelp": "A clock counts how long each round takes.",
-  "sectionSize": "Size and pieces",
-  "sectionPlay": "Play and look",
   "description": "Description",
   "optional": "(optional)",
   "descriptionPlaceholder": "A place, a day, a memory…",

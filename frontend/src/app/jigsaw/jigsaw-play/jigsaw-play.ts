@@ -125,7 +125,6 @@ export class JigsawPlay implements OnDestroy {
 
   /** where the moves of pieces are saved: the positions of this game */
   private readonly syncApi: PieceSyncApi = {
-    replace: () => Promise.reject(new Error('The pieces of a jigsaw are cut when the jigsaw is made.')),
     move: (playId, moves) => this.plays.move(this.jigsawId, playId, moves),
     moveWhileLeaving: (playId, moves) => this.plays.moveWhileLeaving(this.jigsawId, playId, moves),
   };
@@ -218,20 +217,24 @@ export class JigsawPlay implements OnDestroy {
     this.sidebarHeight.set(Math.max(200, Math.floor(window.innerHeight - top)));
   }
 
-  /** the page is closed: the moves of pieces that wait are saved now */
-  @HostListener('window:pagehide')
-  pageClosed(): void {
+  /** what waits is saved now: the moves of pieces and the time played (the page is closed or hidden and may not come back) */
+  private saveBeforeLeaving(): void {
     this.pieceSync.leaving();
     this.saveTimeNow();
   }
 
-  /** the page is hidden (another tab, the phone is locked, the app is left): the same, the page may not come back */
+  /** the page is closed */
+  @HostListener('window:pagehide')
+  pageClosed(): void {
+    this.saveBeforeLeaving();
+  }
+
+  /** the page is hidden (another tab, the phone is locked, the app is left): the same, the page may not come back; and when it is shown again the clock starts from now */
   @HostListener('document:visibilitychange')
   pageHidden(): void {
     if (document.visibilityState === 'hidden') {
       this.tickClock(); // the time up to now counts; the clock stops while the page is hidden
-      this.pieceSync.leaving();
-      this.saveTimeNow();
+      this.saveBeforeLeaving();
     } else {
       this.lastTick = 0;
     }

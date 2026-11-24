@@ -1,6 +1,5 @@
 {
   "title": "Kuka pelaa?",
-  "youPlayAs": "Aktiivinen tili:",
   "edit": "Muokkaa",
   "chooseAnother": "Valitse toinen tili",
   "usernameLabel": "Tilin alias",
@@ -50,7 +49,6 @@
   "yesDeleteSelected": "Kyllä, poista {{ count }}",
   "deleting": "Poistetaan …",
   "someNotDeleted": "{{ count }} palapeliä ei voitu poistaa: yritä uudelleen.",
-  "setVisibility": "Kuka näkee …",
   "visibilityEveryone": "Julkinen",
   "visibilityOwner": "Yksityinen",
   "visibilityHidden": "Piilotettu",

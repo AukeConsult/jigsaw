@@ -1,6 +1,5 @@
 {
   "title": "Wie speelt?",
-  "youPlayAs": "Actief account:",
   "edit": "Bewerken",
   "chooseAnother": "Een ander account kiezen",
   "usernameLabel": "Accountalias",
@@ -50,7 +49,6 @@
   "yesDeleteSelected": "Ja, {{ count }} verwijderen",
   "deleting": "Bezig met verwijderen…",
   "someNotDeleted": "{{ count }} van de puzzels kon niet worden verwijderd: probeer het opnieuw.",
-  "setVisibility": "Wie ziet het …",
   "visibilityEveryone": "Openbaar",
   "visibilityOwner": "Privé",
   "visibilityHidden": "Verborgen",
