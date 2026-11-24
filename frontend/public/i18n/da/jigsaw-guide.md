@@ -2,14 +2,19 @@ Gør et hvilket som helst billede til et puslespil og læg det på skærmen. Alt
 
 ## Spil
 
-1. Tryk på et billede på forsiden. Vælg antal brikker og tryk på **Start runden**.
+1. Tryk på et billede på forsiden. Vælg antal **Brikker** (fra 20 til 1000), hvor let en brik klikker på plads (**Snap-afstand**: **Let**, **Middel** eller **Svær**) og, hvis du vil, **Tidtagning**. Tryk derefter på **Start runden**.
 2. Træk brikkerne fra rammen ved siden af billedet (under billedet på en lille skærm) hen på billedet.
 3. Slip en brik tæt på sin plads, så klikker den på plads. Brikker, der passer sammen, hænger sammen.
-4. **Billede** viser hele billedet i en lille ramme, og **Kanter** viser kun kantbrikkerne. I sidepanelet (**Detaljer** på en lille skærm) finder du **Nulstil runden** og **Slet runden**.
+4. **Billede** viser hele billedet i en lille ramme, og **Kanter** viser kun kantbrikkerne, så du kan bygge rammen først. I sidepanelet (**Detaljer** på en lille skærm) finder du **Nulstil runden** og **Slet runden**.
+
+Point kommer senere.
 
 ## Lav dit eget
 
-Tryk på **Tilføj billede** i menuen, giv det et navn, vælg et billede og tryk på **Gem**. Under **Flere valg** vælger du, hvem der ser det (**Offentlig** / **Privat** / **Skjult**).
+* Tryk på **Tilføj billede** i menuen, giv det et navn, vælg et billede og tryk på **Gem**.
+* Et billede, du tilføjer, er **Privat**: kun du ser det.
+* For at gøre billeder **Offentlig**, så alle kan spille dem, skal du godkendes som **Udgiver**: send en e-mail til [karinauke2@gmail.com](mailto:karinauke2@gmail.com) og bed om det.
+* Du kan også dele et privat billede med venner: alle, der får linket, kan spille det.
 
 ## Runder
 

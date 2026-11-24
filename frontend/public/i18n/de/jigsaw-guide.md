@@ -2,14 +2,19 @@ Mach aus jedem Bild ein Puzzle und leg es auf dem Bildschirm zusammen. Alles wir
 
 ## Spielen
 
-1. Tippe auf der Startseite auf ein Bild. Wähle die Anzahl der Teile und tippe auf **Runde starten**.
+1. Tippe auf der Startseite auf ein Bild. Wähle die Anzahl der **Teile** (von 20 bis 1000), wie leicht ein Teil einrastet (**Einrast-Abstand**: **Leicht**, **Mittel** oder **Schwer**) und, wenn du magst, **Mit Zeitmessung**. Tippe dann auf **Runde starten**.
 2. Zieh die Teile aus dem Rahmen neben dem Bild (auf einem kleinen Bildschirm darunter) auf das Bild.
 3. Lass ein Teil nahe an seinem Platz los, dann rastet es ein. Teile, die zusammenpassen, bleiben zusammen.
-4. **Bild** zeigt das ganze Bild in einem kleinen Rahmen, **Ränder** zeigt nur die Randteile. In der Seitenleiste (auf einem kleinen Bildschirm **Details**) findest du **Runde zurücksetzen** und **Runde löschen**.
+4. **Bild** zeigt das ganze Bild in einem kleinen Rahmen, **Ränder** zeigt nur die Randteile, damit du zuerst den Rahmen legen kannst. In der Seitenleiste (auf einem kleinen Bildschirm **Details**) findest du **Runde zurücksetzen** und **Runde löschen**.
+
+Punkte kommen später.
 
 ## Mach dein eigenes
 
-Tippe im Menü auf **Bild hinzufügen**, gib einen Namen ein, wähle ein Bild und tippe auf **Speichern**. Unter **Weitere Optionen** wählst du, wer es sieht (**Öffentlich** / **Privat** / **Versteckt**).
+* Tippe im Menü auf **Bild hinzufügen**, gib einen Namen ein, wähle ein Bild und tippe auf **Speichern**.
+* Ein Bild, das du hinzufügst, ist **Privat**: nur du siehst es.
+* Damit Bilder **Öffentlich** sind und alle sie spielen können, musst du als **Herausgeber** freigegeben werden: Schick eine E-Mail an [karinauke2@gmail.com](mailto:karinauke2@gmail.com) und bitte darum.
+* Du kannst ein privates Bild auch mit Freunden teilen: Jeder, der den Link bekommt, kann es spielen.
 
 ## Runden
 

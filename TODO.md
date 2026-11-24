@@ -66,6 +66,21 @@ To do:
 - [ ] Restrict the AI use route (`/jigsaw-users/:id/token-usage`) to the account itself and to admins: the button is only hidden for others now.
 - [ ] Build the **Make packages** page (`/jigsaw/packages/make`, publisher and admin; now a dummy, `make-packages/`), after "Packages" above is decided.
 
+## Private pictures shared by link
+
+A user makes private pictures (the default for a new picture; only a publisher or an admin makes one public). Today a private picture is opened and played only by its owner (and an admin, and a player who already has a round on it): `docs/guide/jigsaws-and-sharing.md`, the table of public, private and hidden.
+
+Decided: later a private picture can also be played by **anybody who gets its link**, so a person can make a picture for themselves and their friends without being a publisher. What is left:
+
+- The link carries a secret that lets the page and the API open that one private picture, its picture file and a round on it (the same idea as the key for the pictures of a private jigsaw, `view-key.ts`, but handed out in the link; it must never be kept in clear, and the owner can make a new link, which stops the old one).
+- The routes that answer 404 to anybody but the owner (`app.ts`, `plays.ts`, `image-access.ts`) accept the link, and a round of a person with the link is theirs (a private round, not in any list).
+- The Share button of the page of a private picture shares that link (now it shares the address of the page, which only its owner can open).
+- The help (`frontend/public/i18n/<language>/jigsaw-guide.md`, the nine languages, the section about making your own picture) already says that anybody who gets the link can play a private picture: **this is not built yet, so the help must not go live before it is** (or take that sentence out of the nine until it is).
+
+## Scores
+
+Playing a round will later give a **score**. Now a round has only the pieces matched and, for a timed jigsaw, the time played (`play.ts`: `Plays`, `PlaySpec`). What is left: decide how a score is worked out (the number of pieces, the snap level, the time), keep it with the round, and show it in the lists of rounds. The help says "Scores will come later" in the section about playing (`frontend/public/i18n/<language>/jigsaw-guide.md`): change it when scores are built.
+
 ## News and offers
 
 The front page has an area for news and offers under the steps of the welcome: the component `app-news` (`jigsaw/news/`), a dummy that says there is nothing new. What a news item or an offer is, who writes it, where it is kept and who sees it is not decided yet.
