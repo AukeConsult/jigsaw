@@ -48,7 +48,7 @@ function run(title, program, args, options = {}) {
 }
 
 /** The newest makeappx.exe / signtool.exe of the Windows SDK, or null. */
-function sdkTool(name) {
+export function sdkTool(name) {
   const bin = join(process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)", "Windows Kits", "10", "bin");
   if (!existsSync(bin)) return null;
   const versions = readdirSync(bin).filter((v) => /^10\./.test(v)).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));

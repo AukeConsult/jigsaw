@@ -1,11 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, effect, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { version } from '../../environments/version';
 import { LanguageService } from '../core/language.service';
 import { renderMarkdown } from '../core/markdown';
+import { DocumentTabs } from './document-tabs';
 
 /**
  * A user guide, shown from its Markdown file: the guide of the language chosen (`i18n/<language>/<name>`), else the English one. Which guide is in the route data
@@ -13,15 +14,11 @@ import { renderMarkdown } from '../core/markdown';
  */
 @Component({
   selector: 'app-guide-page',
-  imports: [TranslocoDirective, RouterLink, RouterLinkActive],
+  imports: [TranslocoDirective, DocumentTabs],
   providers: [provideTranslocoScope('guide')],
   template: `
     <main class="container-fluid page-margin" *transloco="let t">
-      <!-- the two documents: the user guide and the about page -->
-      <nav class="toolbar guide mx-auto mb-3 justify-content-center" [attr.aria-label]="t('guide.documents') || 'Documents'">
-        <a class="link-action large" routerLink="/jigsaw/guide" routerLinkActive="fw-semibold"><i class="bi bi-book" aria-hidden="true"></i>{{ t('guide.tabGuide') || 'Help' }}</a>
-        <a class="link-action large" routerLink="/jigsaw/about" routerLinkActive="fw-semibold"><i class="bi bi-info-circle" aria-hidden="true"></i>{{ t('guide.tabAbout') || 'About' }}</a>
-      </nav>
+      <app-document-tabs />
       <article class="guide mx-auto" aria-label="Help">
         @if (failed()) {
           <div class="alert alert-danger py-2 small" role="alert">{{ t('guide.failed') || 'Could not load the help.' }}</div>

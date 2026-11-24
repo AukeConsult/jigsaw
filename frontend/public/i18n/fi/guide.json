@@ -5,5 +5,6 @@
   "tabAbout": "Tietoa",
   "documents": "Asiakirjat",
   "version": "Versio",
-  "devBuild": "kehitysversio"
+  "devBuild": "kehitysversio",
+  "tabInstall": "Asenna"
 }

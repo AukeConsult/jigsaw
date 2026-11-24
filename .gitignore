@@ -36,4 +36,5 @@ client-wrappers/windows/publish/
 client-wrappers/windows/installer/output/
 client-wrappers/windows/msix/output/
 *.keystore
+*.pfx
 *.jks

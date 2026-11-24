@@ -1,0 +1,46 @@
+{
+  "title": "Get the app",
+  "intro": "Karins jigsaw works in any browser. You can also have it as an app on your phone, tablet or computer.",
+  "alreadyInApp": "You are already using the app.",
+  "notReady": "This download is not ready yet.",
+  "android": {
+    "title": "Android phone or tablet",
+    "download": "Download for Android",
+    "step1": "Open the downloaded file KarinsJigsaw.apk.",
+    "step2": "If Android asks, allow installing from this source (it asks once).",
+    "step3": "Press Install, then open Karins jigsaw.",
+    "note": "The app is not from Google Play, so Android may warn you. That is expected: choose to install anyway."
+  },
+  "windows": {
+    "title": "Windows computer",
+    "download": "Download for Windows",
+    "step1": "Run the downloaded file KarinsJigsawSetup.exe.",
+    "step2": "If Windows says it protected your PC, press More info and then Run anyway.",
+    "step3": "Open Karins jigsaw from the Start menu.",
+    "note": "Needs Windows 10 or 11."
+  },
+  "ios": {
+    "title": "iPhone and iPad",
+    "step1": "Open this page in Safari (not inside another app).",
+    "step2": "Press the Share button (the square with an arrow pointing up).",
+    "step3": "Scroll down and choose Add to Home Screen.",
+    "step4": "Press Add. The Karins jigsaw icon is now on your home screen.",
+    "note": "On an iPhone or iPad only Safari can add a website to the home screen."
+  },
+  "browser": {
+    "title": "Install from the browser (Chrome and Edge)",
+    "chrome": "Chrome: press the install icon at the right end of the address bar, or open the menu (three dots) and choose Install Karins jigsaw (on Android: Install app).",
+    "edge": "Edge: press the install icon at the right end of the address bar, or open the menu (three dots) and choose Apps, then Install this site as an app.",
+    "note": "The menus differ a little between versions. Look for Install."
+  },
+  "share": {
+    "title": "Tell others",
+    "text": "Share this page with friends who would like the app."
+  },
+  "hint": {
+    "android": "Get Karins jigsaw as an Android app",
+    "windows": "Get Karins jigsaw as a Windows app",
+    "ios": "Put Karins jigsaw on your home screen",
+    "close": "Close"
+  }
+}

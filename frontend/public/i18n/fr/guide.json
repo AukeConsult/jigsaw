@@ -5,5 +5,6 @@
   "tabAbout": "À propos",
   "documents": "Documents",
   "version": "Version",
-  "devBuild": "version de développement"
+  "devBuild": "version de développement",
+  "tabInstall": "Installer"
 }

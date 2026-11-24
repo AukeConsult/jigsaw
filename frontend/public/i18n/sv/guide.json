@@ -5,5 +5,6 @@
   "tabAbout": "Om",
   "documents": "Dokument",
   "version": "Version",
-  "devBuild": "utvecklingsbygge"
+  "devBuild": "utvecklingsbygge",
+  "tabInstall": "Installera"
 }

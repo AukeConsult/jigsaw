@@ -1,0 +1,46 @@
+{
+  "title": "Hanki sovellus",
+  "intro": "Karins jigsaw toimii kaikilla selaimilla. Voit pitää sen myös sovelluksena puhelimessa, tabletissa tai tietokoneessa.",
+  "alreadyInApp": "Käytät jo sovellusta.",
+  "notReady": "Tämä lataus ei ole vielä valmis.",
+  "android": {
+    "title": "Android-puhelin tai -tabletti",
+    "download": "Lataa Androidille",
+    "step1": "Avaa ladattu tiedosto KarinsJigsaw.apk.",
+    "step2": "Jos Android kysyy, salli asennus tästä lähteestä (se kysyy kerran).",
+    "step3": "Paina Asenna ja avaa sitten Karins jigsaw.",
+    "note": "Sovellus ei ole Google Playsta, joten Android voi varoittaa. Se on odotettua: valitse asenna silti."
+  },
+  "windows": {
+    "title": "Windows-tietokone",
+    "download": "Lataa Windowsille",
+    "step1": "Suorita ladattu tiedosto KarinsJigsawSetup.exe.",
+    "step2": "Jos Windows kertoo suojanneensa tietokoneesi, paina Lisätietoja ja sitten Suorita silti.",
+    "step3": "Avaa Karins jigsaw Käynnistä-valikosta.",
+    "note": "Vaatii Windows 10:n tai 11:n."
+  },
+  "ios": {
+    "title": "iPhone ja iPad",
+    "step1": "Avaa tämä sivu Safarissa (ei toisen sovelluksen sisällä).",
+    "step2": "Paina Jaa-painiketta (neliö, jossa on ylöspäin osoittava nuoli).",
+    "step3": "Vieritä alas ja valitse Lisää Koti-valikkoon.",
+    "step4": "Paina Lisää. Karins jigsaw -kuvake on nyt Koti-valikossasi.",
+    "note": "iPhonessa ja iPadissa vain Safari voi lisätä verkkosivun Koti-valikkoon."
+  },
+  "browser": {
+    "title": "Asenna selaimesta (Chrome ja Edge)",
+    "chrome": "Chrome: paina osoiterivin oikeassa reunassa olevaa asennuskuvaketta tai avaa valikko (kolme pistettä) ja valitse Asenna Karins jigsaw (Androidissa: Asenna sovellus).",
+    "edge": "Edge: paina osoiterivin oikeassa reunassa olevaa asennuskuvaketta tai avaa valikko (kolme pistettä) ja valitse Sovellukset ja sitten Asenna tämä sivusto sovelluksena.",
+    "note": "Valikot vaihtelevat hieman versioiden välillä. Etsi Asenna."
+  },
+  "share": {
+    "title": "Kerro muille",
+    "text": "Jaa tämä sivu ystäville, jotka haluavat sovelluksen."
+  },
+  "hint": {
+    "android": "Hanki Karins jigsaw Android-sovelluksena",
+    "windows": "Hanki Karins jigsaw Windows-sovelluksena",
+    "ios": "Lisää Karins jigsaw Koti-valikkoon",
+    "close": "Sulje"
+  }
+}

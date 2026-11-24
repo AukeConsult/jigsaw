@@ -1,0 +1,46 @@
+{
+  "title": "Obtener la app",
+  "intro": "Karins jigsaw funciona en cualquier navegador. También puedes tenerlo como app en tu móvil, tableta u ordenador.",
+  "alreadyInApp": "Ya estás usando la app.",
+  "notReady": "Esta descarga aún no está lista.",
+  "android": {
+    "title": "Móvil o tableta Android",
+    "download": "Descargar para Android",
+    "step1": "Abre el archivo descargado KarinsJigsaw.apk.",
+    "step2": "Si Android lo pide, permite la instalación desde esta fuente (lo pide una vez).",
+    "step3": "Pulsa Instalar y luego abre Karins jigsaw.",
+    "note": "La app no es de Google Play, así que Android puede avisarte. Es normal: elige instalar de todos modos."
+  },
+  "windows": {
+    "title": "Ordenador con Windows",
+    "download": "Descargar para Windows",
+    "step1": "Ejecuta el archivo descargado KarinsJigsawSetup.exe.",
+    "step2": "Si Windows dice que ha protegido tu PC, pulsa Más información y luego Ejecutar de todas formas.",
+    "step3": "Abre Karins jigsaw desde el menú Inicio.",
+    "note": "Requiere Windows 10 u 11."
+  },
+  "ios": {
+    "title": "iPhone y iPad",
+    "step1": "Abre esta página en Safari (no dentro de otra app).",
+    "step2": "Pulsa el botón Compartir (el cuadrado con una flecha hacia arriba).",
+    "step3": "Desplázate hacia abajo y elige Añadir a pantalla de inicio.",
+    "step4": "Pulsa Añadir. El icono de Karins jigsaw ya está en tu pantalla de inicio.",
+    "note": "En iPhone y iPad solo Safari puede añadir un sitio web a la pantalla de inicio."
+  },
+  "browser": {
+    "title": "Instalar desde el navegador (Chrome y Edge)",
+    "chrome": "Chrome: pulsa el icono de instalación al final de la barra de direcciones, o abre el menú (tres puntos) y elige Instalar Karins jigsaw (en Android: Instalar aplicación).",
+    "edge": "Edge: pulsa el icono de instalación al final de la barra de direcciones, o abre el menú (tres puntos) y elige Aplicaciones y luego Instalar este sitio como una aplicación.",
+    "note": "Los menús cambian un poco entre versiones. Busca Instalar."
+  },
+  "share": {
+    "title": "Cuéntaselo a otros",
+    "text": "Comparte esta página con amigos que quieran la app."
+  },
+  "hint": {
+    "android": "Obtén Karins jigsaw como app de Android",
+    "windows": "Obtén Karins jigsaw como app de Windows",
+    "ios": "Pon Karins jigsaw en tu pantalla de inicio",
+    "close": "Cerrar"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "title": "Skaffa appen",
+  "intro": "Karins jigsaw fungerar i alla webbläsare. Du kan också ha den som app på telefonen, surfplattan eller datorn.",
+  "alreadyInApp": "Du använder redan appen.",
+  "notReady": "Den här nedladdningen är inte klar än.",
+  "android": {
+    "title": "Android-telefon eller surfplatta",
+    "download": "Ladda ner för Android",
+    "step1": "Öppna den nedladdade filen KarinsJigsaw.apk.",
+    "step2": "Om Android frågar, tillåt installation från den här källan (den frågar en gång).",
+    "step3": "Tryck på Installera och öppna sedan Karins jigsaw.",
+    "note": "Appen kommer inte från Google Play, så Android kan varna dig. Det är väntat: välj att installera ändå."
+  },
+  "windows": {
+    "title": "Windows-dator",
+    "download": "Ladda ner för Windows",
+    "step1": "Kör den nedladdade filen KarinsJigsawSetup.exe.",
+    "step2": "Om Windows säger att det skyddat din dator, tryck på Mer information och sedan Kör ändå.",
+    "step3": "Öppna Karins jigsaw från Start-menyn.",
+    "note": "Kräver Windows 10 eller 11."
+  },
+  "ios": {
+    "title": "iPhone och iPad",
+    "step1": "Öppna den här sidan i Safari (inte inuti en annan app).",
+    "step2": "Tryck på Dela-knappen (fyrkanten med en pil uppåt).",
+    "step3": "Bläddra ner och välj Lägg till på hemskärmen.",
+    "step4": "Tryck på Lägg till. Ikonen för Karins jigsaw finns nu på hemskärmen.",
+    "note": "På iPhone och iPad är det bara Safari som kan lägga till en webbplats på hemskärmen."
+  },
+  "browser": {
+    "title": "Installera från webbläsaren (Chrome och Edge)",
+    "chrome": "Chrome: tryck på installationsikonen längst till höger i adressfältet, eller öppna menyn (tre punkter) och välj Installera Karins jigsaw (på Android: Installera app).",
+    "edge": "Edge: tryck på installationsikonen längst till höger i adressfältet, eller öppna menyn (tre punkter) och välj Appar och sedan Installera den här webbplatsen som en app.",
+    "note": "Menyerna skiljer sig lite mellan versioner. Leta efter Installera."
+  },
+  "share": {
+    "title": "Berätta för andra",
+    "text": "Dela den här sidan med vänner som vill ha appen."
+  },
+  "hint": {
+    "android": "Skaffa Karins jigsaw som Android-app",
+    "windows": "Skaffa Karins jigsaw som Windows-app",
+    "ios": "Lägg Karins jigsaw på hemskärmen",
+    "close": "Stäng"
+  }
+}

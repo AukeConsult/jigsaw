@@ -52,6 +52,7 @@ export const JIGSAW_ROUTES: Routes = [
       { path: 'user/new', component: JigsawUser, title: 'What is your name?' }, // the form of a new account: only here, never as the first thing on /jigsaw/user
       { path: 'guide', component: GuidePage, title: 'Help', data: { guide: 'jigsaw-guide.md' } }, // before ':id'
       { path: 'about', component: GuidePage, title: 'About', data: { guide: 'jigsaw-about.md' } }, // before ':id'
+      { path: 'install', redirectTo: '/install' }, // how to get the app is at /install; before ':id'
       { path: ':id/edit', component: JigsawNew, title: 'Edit jigsaw', canActivate: [userGuard] },
       { path: ':id/play/:playId', component: JigsawPlay, title: 'Karins jigsaw', canActivate: [userGuard] },
       { path: ':id', component: JigsawPage, title: 'Karins jigsaw' }, // anybody may look at a jigsaw; an account is asked for when a round is entered

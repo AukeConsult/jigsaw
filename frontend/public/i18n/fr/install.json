@@ -1,0 +1,46 @@
+{
+  "title": "Obtenir l’appli",
+  "intro": "Karins jigsaw fonctionne dans tous les navigateurs. Vous pouvez aussi l’avoir comme appli sur votre téléphone, votre tablette ou votre ordinateur.",
+  "alreadyInApp": "Vous utilisez déjà l’appli.",
+  "notReady": "Ce téléchargement n’est pas encore prêt.",
+  "android": {
+    "title": "Téléphone ou tablette Android",
+    "download": "Télécharger pour Android",
+    "step1": "Ouvrez le fichier téléchargé KarinsJigsaw.apk.",
+    "step2": "Si Android le demande, autorisez l’installation depuis cette source (il ne le demande qu’une fois).",
+    "step3": "Appuyez sur Installer, puis ouvrez Karins jigsaw.",
+    "note": "L’appli ne vient pas de Google Play, donc Android peut vous avertir. C’est normal : choisissez d’installer quand même."
+  },
+  "windows": {
+    "title": "Ordinateur Windows",
+    "download": "Télécharger pour Windows",
+    "step1": "Lancez le fichier téléchargé KarinsJigsawSetup.exe.",
+    "step2": "Si Windows indique qu’il a protégé votre PC, cliquez sur Informations complémentaires puis sur Exécuter quand même.",
+    "step3": "Ouvrez Karins jigsaw depuis le menu Démarrer.",
+    "note": "Nécessite Windows 10 ou 11."
+  },
+  "ios": {
+    "title": "iPhone et iPad",
+    "step1": "Ouvrez cette page dans Safari (pas dans une autre appli).",
+    "step2": "Appuyez sur le bouton Partager (le carré avec une flèche vers le haut).",
+    "step3": "Faites défiler et choisissez Sur l’écran d’accueil.",
+    "step4": "Appuyez sur Ajouter. L’icône de Karins jigsaw est maintenant sur votre écran d’accueil.",
+    "note": "Sur iPhone et iPad, seul Safari peut ajouter un site à l’écran d’accueil."
+  },
+  "browser": {
+    "title": "Installer depuis le navigateur (Chrome et Edge)",
+    "chrome": "Chrome : cliquez sur l’icône d’installation à droite de la barre d’adresse, ou ouvrez le menu (trois points) et choisissez Installer Karins jigsaw (sur Android : Installer l’appli).",
+    "edge": "Edge : cliquez sur l’icône d’installation à droite de la barre d’adresse, ou ouvrez le menu (trois points) et choisissez Applications, puis Installer ce site en tant qu’application.",
+    "note": "Les menus diffèrent un peu selon les versions. Cherchez Installer."
+  },
+  "share": {
+    "title": "En parler aux autres",
+    "text": "Partagez cette page avec des amis qui voudraient l’appli."
+  },
+  "hint": {
+    "android": "Obtenir Karins jigsaw comme appli Android",
+    "windows": "Obtenir Karins jigsaw comme appli Windows",
+    "ios": "Mettre Karins jigsaw sur l’écran d’accueil",
+    "close": "Fermer"
+  }
+}

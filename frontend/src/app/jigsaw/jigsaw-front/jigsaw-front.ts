@@ -4,6 +4,7 @@ import { isBoolean, readPreference, writePreference } from '../../core/preferenc
 import { scrollParent } from '../../core/theme';
 import { JigsawFilter, JigsawFilters } from '../../models/shared/jigsaw-filter';
 import { JigsawFinder } from '../jigsaw-finder/jigsaw-finder';
+import { InstallHint } from '../install-hint/install-hint';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { MyRounds } from '../my-rounds/my-rounds';
 import { AllRounds } from '../all-rounds/all-rounds';
@@ -14,7 +15,7 @@ import { StartWelcome } from '../start-welcome/start-welcome';
 /** The new front page, at `/`: a welcome that fades away (`app-start-welcome`), the user's open rounds, and the finder, where the jigsaws are looked for and picked. The older front page stays at `/jigsaw`. */
 @Component({
   selector: 'app-jigsaw-front',
-  imports: [TranslocoDirective, JigsawFinder, MyRounds, AllRounds, StartWelcome, QuickFilters],
+  imports: [TranslocoDirective, InstallHint, JigsawFinder, MyRounds, AllRounds, StartWelcome, QuickFilters],
   host: { class: 'd-block', '(document:click)': 'toTop($event)' },
   providers: [provideTranslocoScope('jigsawHome'), provideTranslocoScope('jigsawList')],
   templateUrl: './jigsaw-front.html',

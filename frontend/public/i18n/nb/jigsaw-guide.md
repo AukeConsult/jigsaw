@@ -1,51 +1,21 @@
-Lag et puslespill av et hvilket som helst bilde og legg det sammen på skjermen. Alt lagres av seg selv, så du kan slutte og komme tilbake når som helst.
-
-## Hvem spiller
-
-* Første gang blir du spurt **Hva heter du?** Skriv navnet ditt og trykk **Begynn å spille**. Har du spilt før, trykk **Jeg har spilt før** og så navnet ditt i listen.
-* Det er ikke noe passord foreløpig, så hvem som helst kan velge hvilken som helst bruker.
-* Trykk på navnet ditt i menyen for å se **Rundene dine**, for å trykke **Endre**, eller for å trykke **Velg en annen bruker**.
-
-## Lag et puslespill
-
-1. Trykk **Lag et puslespill** i velkomsten på forsiden, eller trykk på navnet ditt i menyen og så knappen for et nytt puslespill.
-2. Skriv et **Navn** og velg et **Bilde**. Et vindu åpnes: dra bildet for å finne den delen du vil ha, zoom, og trykk **Bruk dette utsnittet**.
-3. Velg **Størrelse** og antall **Brikker** (opptil 1000). Størrelsen justeres litt så brikkene passer nøyaktig.
-4. Velg **Vanskelighetsgrad** og om det skal ha **Tidtaking**. Under **Flere valg** kan du også endre språk, kategorier, utseende, hvem som har laget det og hvem som ser det.
-5. Trykk **Lagre** (eller **Lagre og analyser med KI**, som også lar KI sette kategorier, navn og beskrivelse). Siden til det nye puslespillet åpnes: start en runde derfra.
-
-**Et bilde eller et ferdig puslespill:** øverst i skjemaet velger du hva du lager. Et **bilde** (det første valget) lagres bare med bildet: den som spiller velger antall brikker og vanskelighetsgrad når en runde startes, så det samme bildet kan spilles i ulike størrelser (et bilde du har løst med ett antall brikker, kan fortsatt spilles med et annet). For et bilde utgår **Størrelse og brikker** og **Vanskelighetsgrad**. Et **ferdig puslespill** har brikker og vanskelighetsgrad valgt av deg, som over.
+Gjør et hvilket som helst bilde om til et puslespill og legg det sammen på skjermen. Alt lagres av seg selv, så du kan stoppe og komme tilbake når som helst.
 
 ## Spill
 
-* Dra brikkene fra rammen ved siden av bildet (under det på en liten skjerm) til bildet. En brikke blir liggende der du slipper den.
-* Slipp en brikke nær riktig plass, så **klikker den på plass**: den blinker og enheten vibrerer.
-* Brikker som passer sammen **henger sammen** og flyttes som én. Hold inne **Shift** for å dra én brikke løs. Dra en ramme på det tomme området for å velge flere brikker.
-* Sidestolpen viser hvor mange brikker som er på plass (**På plass:**). Der kan du endre utseendet på runden din, trykke **Ny runde** eller **Slett runden** (du blir spurt først), og bruke **Juks** for å se nummeret på hver plass.
-* **Vanskelighetsgrad** hører til puslespillet og er den samme i hver runde: jo lettere, jo lenger unna kan en brikke være og likevel klikke på plass.
-* Et puslespill med **Tidtaking** har en klokke, som går mens din egen runde er åpen.
+1. Trykk på et bilde på forsiden. Velg antall brikker og trykk **Start runden**.
+2. Dra brikkene fra rammen ved siden av bildet (under bildet på en liten skjerm) til bildet.
+3. Slipp en brikke nær plassen sin, så klikker den på plass. Brikker som passer sammen, henger sammen.
+4. **Bilde** viser hele bildet i en liten ramme, og **Kanter** viser bare kantbrikkene. I sidefeltet (**Detaljer** på en liten skjerm) finner du **Nullstill runden** og **Slett runden**.
 
-## Hjelp til å legge
+## Lag ditt eget
 
-* **Bilde** viser hele bildet i en liten ramme. Dra rammen for å flytte den, og hjørnet for å endre størrelsen.
-* **Kanter** skjuler brikkene fra innsiden, så du kan legge kanten først.
-* Klikk på det tomme området i rammen med brikkene, så samles brikkene øverst slik at du finner dem.
+Trykk **Legg til bilde** i menyen, gi det et navn, velg et bilde og trykk **Lagre**. Under **Flere valg** velger du hvem som ser det (**Offentlig** / **Privat** / **Skjult**).
 
 ## Runder
 
-* Ett spill av et puslespill er en **runde**. Siden til et puslespill viser rundene til alle; dine er merket **Din** og står først.
-* Trykk **Fortsett** for å gå videre med en av dine, **Begynn å spille** for å starte en til, eller **Slett** for å fjerne en av dine (du blir spurt først).
-* Trykk **Se** for å se en annen spillers runde. Du kan aldri endre den, men du kan starte din egen.
-* En runde teller først når du har flyttet en brikke i den. Åpner du bare et puslespill og går tilbake, står det ingen runde i listen.
-* **Utfordre en venn:** gjør puslespillet **Tidtaking** og be vennen din spille en runde av det også. Tiden for hver runde står i listen, så du kan se hvem som er raskest.
+* Ett spill er en runde. **Fortsett** fortsetter på din egen; **Se** viser runden til en annen spiller, som du ikke kan endre.
+* Trykk på navnet ditt i menyen (**Hvem spiller?** hvis du ikke har valgt) for å se rundene og bildene dine. Der finner du også **Velg en annen konto**.
 
-## Rediger eller slett et puslespill
+## Info
 
-* Trykk **Rediger** på siden til et puslespill. Så lenge ingen har spilt det, kan alt endres. Når noen har spilt det, er bilde, størrelse, brikker, vanskelighetsgrad og tidtaking faste, men navn, beskrivelse, laget av, hvem som ser det og utseende kan fortsatt endres.
-* **Slett** fjerner puslespillet og alle rundene for godt. Bare eieren ser den, og du blir spurt først.
-
-## Små skjermer
-
-* På mobil og nettbrett ligger menyen nederst, og hjelpene (klokke, **Bilde**, **Kanter**, **Detaljer**) ligger øverst mens du spiller.
-* Trykk **Detaljer** for å åpne sidestolpen, og klikk et annet sted for å lukke den.
-* Brikkene venter i en stripe under bildet: rull den sidelengs med pilene eller fingeren.
+**Info** i menyen har denne hjelpen, **Del** og **Installer appen**.

@@ -4,6 +4,7 @@
 //   npm run windows:release -- --no-msix       the same without the MSIX package (see scripts/windows-msix.mjs)
 // 1. dotnet publish   -> client-wrappers/windows/publish/KarinsJigsaw.exe (self-contained, no .NET needed to run it)
 // 2. Inno Setup (ISCC) -> client-wrappers/windows/installer/output/KarinsJigsawSetup.exe
+//    Both the program and the installer are signed when a certificate is set up (SF_SIGN_PFX in .env, see windows-sign.mjs); without one they stay unsigned and Windows says "Publisher: Unknown".
 // 3. copy             -> frontend/public/installs/KarinsJigsawSetup.exe
 // 3b. MSIX package    -> client-wrappers/windows/msix/output/KarinsJigsaw.msix (not put on the website; a problem here only warns)
 // 4. npm run deploy:hosting -> the website, with the new installer on the Install page (the installer is git-ignored: this has to run on THIS computer)
@@ -13,6 +14,7 @@ import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildMsix } from "./windows-msix.mjs";
+import { signFile } from "./windows-sign.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const publishFolder = join(root, "client-wrappers", "windows", "publish");
@@ -36,6 +38,8 @@ run("1/4 Build the app", "dotnet", [
   "-p:PublishSingleFile=true", "-p:IncludeNativeLibrariesForSelfExtract=true", "-o", publishFolder,
 ]);
 
+signFile(join(publishFolder, "KarinsJigsaw.exe")); // the program inside the installer is signed too
+
 const programFiles = [process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)", process.env.ProgramFiles ?? "C:\\Program Files", join(process.env.LOCALAPPDATA ?? "", "Programs")];
 const iscc = programFiles.map((folder) => join(folder, "Inno Setup 6", "ISCC.exe")).find((path) => existsSync(path));
 if (!iscc) {
@@ -43,6 +47,7 @@ if (!iscc) {
   process.exit(1);
 }
 run("2/4 Pack the installer", iscc, [join(root, "client-wrappers", "windows", "installer", "KarinsJigsaw.iss")]);
+signFile(installer);
 
 /**
  * Copies a file, and tries again for a while when Windows says it is busy (EBUSY / EPERM / EACCES): the virus scanner opens a freshly made .exe, and a dev server

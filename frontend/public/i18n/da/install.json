@@ -1,0 +1,46 @@
+{
+  "title": "Hent appen",
+  "intro": "Karins jigsaw virker i alle browsere. Du kan også have den som app på telefonen, tabletten eller computeren.",
+  "alreadyInApp": "Du bruger allerede appen.",
+  "notReady": "Denne download er ikke klar endnu.",
+  "android": {
+    "title": "Android-telefon eller -tablet",
+    "download": "Hent til Android",
+    "step1": "Åbn den hentede fil KarinsJigsaw.apk.",
+    "step2": "Hvis Android spørger, så tillad installation fra denne kilde (den spørger én gang).",
+    "step3": "Tryk på Installer, og åbn derefter Karins jigsaw.",
+    "note": "Appen kommer ikke fra Google Play, så Android kan advare dig. Det er forventet: vælg at installere alligevel."
+  },
+  "windows": {
+    "title": "Windows-computer",
+    "download": "Hent til Windows",
+    "step1": "Kør den hentede fil KarinsJigsawSetup.exe.",
+    "step2": "Hvis Windows siger, at det har beskyttet din pc, så tryk på Flere oplysninger og derefter Kør alligevel.",
+    "step3": "Åbn Karins jigsaw fra Start-menuen.",
+    "note": "Kræver Windows 10 eller 11."
+  },
+  "ios": {
+    "title": "iPhone og iPad",
+    "step1": "Åbn denne side i Safari (ikke inde i en anden app).",
+    "step2": "Tryk på knappen Del (firkanten med en pil op).",
+    "step3": "Rul ned og vælg Føj til hjemmeskærm.",
+    "step4": "Tryk på Tilføj. Ikonet for Karins jigsaw ligger nu på hjemmeskærmen.",
+    "note": "På iPhone og iPad er det kun Safari, der kan føje en hjemmeside til hjemmeskærmen."
+  },
+  "browser": {
+    "title": "Installer fra browseren (Chrome og Edge)",
+    "chrome": "Chrome: tryk på installationsikonet yderst til højre i adressefeltet, eller åbn menuen (tre prikker) og vælg Installer Karins jigsaw (på Android: Installer app).",
+    "edge": "Edge: tryk på installationsikonet yderst til højre i adressefeltet, eller åbn menuen (tre prikker) og vælg Apps og derefter Installer dette websted som en app.",
+    "note": "Menuerne er lidt forskellige mellem versioner. Se efter Installer."
+  },
+  "share": {
+    "title": "Fortæl det til andre",
+    "text": "Del denne side med venner, der gerne vil have appen."
+  },
+  "hint": {
+    "android": "Hent Karins jigsaw som Android-app",
+    "windows": "Hent Karins jigsaw som Windows-app",
+    "ios": "Læg Karins jigsaw på hjemmeskærmen",
+    "close": "Luk"
+  }
+}

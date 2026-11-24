@@ -6,6 +6,7 @@ import { LANGUAGES, LanguageService } from '../core/language.service';
 import { LabelFit } from '../core/label-fit';
 import { WelcomeTime } from '../core/welcome-time';
 import { JigsawHelper } from './jigsaw-helper';
+import { isInApp } from '../core/platform';
 import { JigsawUserService } from './jigsaw-user.service';
 import { ShareButton } from './share-button/share-button';
 
@@ -82,9 +83,21 @@ import { ShareButton } from './share-button/share-button';
         <!-- who plays and the language: always at the right end of the menu -->
         <div class="d-none d-md-flex align-items-center gap-2 ms-auto order-1">
           <ul class="navbar-nav flex-shrink-0">
-            <li class="nav-item"><app-share-button /></li>
-            <li class="nav-item">
-            <a class="nav-link" routerLink="/jigsaw/guide" routerLinkActive="active" [title]="t('jigsawShell.guide') || 'Help'"><i class="bi bi-book me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.guide') || 'Help' }}</span></a>
+            <li class="nav-item position-relative">
+              <!-- Info: the help, the about page, sharing and how to get the app, in one list (on a phone it is a row of the submenu) -->
+              <a id="info-menu" class="nav-link text-nowrap" href="#" role="button" aria-haspopup="menu" [attr.aria-expanded]="infoOpen()" [title]="t('jigsawShell.info') || 'Info'" (click)="$event.preventDefault(); toggleInfo($event)">
+                <i class="bi bi-info-circle me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.info') || 'Info' }}</span>
+              </a>
+              @if (infoOpen()) {
+                <ul class="dropdown-menu language-menu show" role="menu" [style.top.px]="infoTop()" [style.bottom.px]="infoBottom()" [attr.aria-label]="t('jigsawShell.info') || 'Info'">
+                  <li role="none"><a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/jigsaw/guide" (click)="infoOpen.set(false)"><i class="bi bi-book" aria-hidden="true"></i>{{ t('jigsawShell.guide') || 'Help' }}</a></li>
+                  <li role="none"><a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/jigsaw/about" (click)="infoOpen.set(false)"><i class="bi bi-heart" aria-hidden="true"></i>{{ t('jigsawShell.about') || 'About' }}</a></li>
+                  <li role="none"><app-share-button variant="item" /></li>
+                  @if (!inApp) {
+                    <li role="none"><a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/install" (click)="infoOpen.set(false)"><i class="bi bi-download" aria-hidden="true"></i>{{ t('jigsawShell.installApp') || 'Install the app' }}</a></li>
+                  }
+                </ul>
+              }
             </li>
             <li class="nav-item">
               <!-- the welcome of the front page, brought back (and its counting started again) -->
@@ -121,7 +134,7 @@ import { ShareButton } from './share-button/share-button';
             }
           </div>
         </div>
-        <!-- on a phone the right end is one button: a submenu with who plays, Help, Share and the language (the bar has no room for each of them) -->
+        <!-- on a phone the right end is one button: a submenu with who plays, Info (help, about, share, install) and the language (the bar has no room for each of them) -->
         <div class="d-md-none ms-auto order-1 position-relative">
           <button id="more-menu" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center px-2 py-1" aria-haspopup="menu" [attr.aria-expanded]="moreOpen()"
                   [attr.aria-label]="t('jigsawShell.more') || 'More'" [title]="t('jigsawShell.more') || 'More'" (click)="toggleMore($event)">
@@ -133,8 +146,19 @@ import { ShareButton } from './share-button/share-button';
                 <a class="dropdown-item d-flex align-items-center gap-2 text-nowrap" role="menuitem" routerLink="/jigsaw/user" (click)="moreOpen.set(false)"><i class="bi bi-person-circle" aria-hidden="true"></i>{{ users.user()?.name ?? (t('jigsawShell.whoPlays') || 'Who plays?') }}</a>
               </li>
               <li role="none">
-                <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/jigsaw/guide" (click)="moreOpen.set(false)"><i class="bi bi-book" aria-hidden="true"></i>{{ t('jigsawShell.guide') || 'Help' }}</a>
+                <!-- Info: one row that opens its list one step down (the same as the language) -->
+                <button type="button" class="dropdown-item d-flex align-items-center gap-2" role="menuitem" aria-haspopup="menu" [attr.aria-expanded]="moreInfo()" (click)="moreInfo.set(!moreInfo())">
+                  <i class="bi bi-info-circle" aria-hidden="true"></i>{{ t('jigsawShell.info') || 'Info' }}<i class="bi ms-auto" [class.bi-chevron-down]="!moreInfo()" [class.bi-chevron-up]="moreInfo()" aria-hidden="true"></i>
+                </button>
               </li>
+              @if (moreInfo()) {
+                <li role="none"><a class="dropdown-item d-flex align-items-center gap-2 ps-4" role="menuitem" routerLink="/jigsaw/guide" (click)="moreOpen.set(false)"><i class="bi bi-book" aria-hidden="true"></i>{{ t('jigsawShell.guide') || 'Help' }}</a></li>
+                <li role="none"><a class="dropdown-item d-flex align-items-center gap-2 ps-4" role="menuitem" routerLink="/jigsaw/about" (click)="moreOpen.set(false)"><i class="bi bi-heart" aria-hidden="true"></i>{{ t('jigsawShell.about') || 'About' }}</a></li>
+                <li role="none" class="ps-3"><app-share-button variant="item" /></li>
+                @if (!inApp) {
+                  <li role="none"><a class="dropdown-item d-flex align-items-center gap-2 ps-4" role="menuitem" routerLink="/install" (click)="moreOpen.set(false)"><i class="bi bi-download" aria-hidden="true"></i>{{ t('jigsawShell.installApp') || 'Install the app' }}</a></li>
+                }
+              }
               <li role="none">
                 <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" href="/" (click)="showWelcome($event); moreOpen.set(false)"><i class="bi bi-house-heart" aria-hidden="true"></i>{{ t('jigsawShell.fromMe') || 'From me' }}</a>
               </li>
@@ -143,7 +167,6 @@ import { ShareButton } from './share-button/share-button';
                   <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/jigsaw/admin" (click)="moreOpen.set(false)"><i class="bi bi-shield-lock" aria-hidden="true"></i>{{ t('userLevels.menu') || 'Admin' }}</a>
                 </li>
               }
-              <li role="none"><app-share-button variant="item" /></li>
               <li role="none"><hr class="dropdown-divider"></li>
               <!-- the language: one row that shows the language in use, and opens the list of languages one step down -->
               <li role="none">
@@ -212,6 +235,7 @@ export class JigsawShell {
     const below = button.top < window.innerHeight / 2;
     this.languageTop.set(below ? Math.round(button.bottom) + 4 : null);
     this.languageBottom.set(below ? null : Math.round(window.innerHeight - button.top) + 4);
+    this.infoOpen.set(false);
     this.languageOpen.set(!this.languageOpen());
   }
 
@@ -221,6 +245,24 @@ export class JigsawShell {
   protected readonly moreBottom = signal<number | null>(null);
   /** the list of languages inside the submenu is open (one step down; closed each time the submenu is opened) */
   protected readonly moreLanguages = signal(false);
+  /** the Info rows inside the submenu are open (one step down; closed each time the submenu is opened) */
+  protected readonly moreInfo = signal(false);
+
+  /** the app is already an app (Android, Windows, or put on the home screen): there is nothing to install, so the way to the install page is not shown */
+  protected readonly inApp = isInApp();
+  /** the Info list of the menu (a wide screen) is open, and where it starts (the same as for the languages) */
+  protected readonly infoOpen = signal(false);
+  protected readonly infoTop = signal<number | null>(48);
+  protected readonly infoBottom = signal<number | null>(null);
+
+  protected toggleInfo(event: MouseEvent): void {
+    const button = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const below = button.top < window.innerHeight / 2;
+    this.infoTop.set(below ? Math.round(button.bottom) + 4 : null);
+    this.infoBottom.set(below ? null : Math.round(window.innerHeight - button.top) + 4);
+    this.languageOpen.set(false);
+    this.infoOpen.set(!this.infoOpen());
+  }
 
   protected toggleMore(event: MouseEvent): void {
     const button = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -229,6 +271,7 @@ export class JigsawShell {
     this.moreBottom.set(below ? null : Math.round(window.innerHeight - button.top) + 4);
     this.languageOpen.set(false);
     this.moreLanguages.set(false);
+    this.moreInfo.set(false);
     this.moreOpen.set(!this.moreOpen());
   }
 
@@ -241,6 +284,7 @@ export class JigsawShell {
   @HostListener('document:click', ['$event'])
   closeLanguages(event: MouseEvent): void {
     if (this.languageOpen() && !(event.target as Element | null)?.closest?.('#language, .dropdown-menu')) this.languageOpen.set(false);
+    if (this.infoOpen() && !(event.target as Element | null)?.closest?.('#info-menu, .dropdown-menu')) this.infoOpen.set(false);
     if (this.moreOpen() && !(event.target as Element | null)?.closest?.('#more-menu, .dropdown-menu')) this.moreOpen.set(false);
   }
 

@@ -1,0 +1,46 @@
+{
+  "title": "App holen",
+  "intro": "Karins jigsaw funktioniert in jedem Browser. Du kannst es auch als App auf Handy, Tablet oder Computer haben.",
+  "alreadyInApp": "Du nutzt bereits die App.",
+  "notReady": "Dieser Download ist noch nicht fertig.",
+  "android": {
+    "title": "Android-Handy oder -Tablet",
+    "download": "Für Android herunterladen",
+    "step1": "Öffne die heruntergeladene Datei KarinsJigsaw.apk.",
+    "step2": "Wenn Android fragt, erlaube die Installation aus dieser Quelle (es fragt einmal).",
+    "step3": "Tippe auf Installieren und öffne dann Karins jigsaw.",
+    "note": "Die App kommt nicht aus Google Play, deshalb kann Android warnen. Das ist normal: wähle, trotzdem zu installieren."
+  },
+  "windows": {
+    "title": "Windows-Computer",
+    "download": "Für Windows herunterladen",
+    "step1": "Führe die heruntergeladene Datei KarinsJigsawSetup.exe aus.",
+    "step2": "Wenn Windows meldet, dass es deinen PC geschützt hat, klicke auf Weitere Informationen und dann auf Trotzdem ausführen.",
+    "step3": "Öffne Karins jigsaw im Startmenü.",
+    "note": "Benötigt Windows 10 oder 11."
+  },
+  "ios": {
+    "title": "iPhone und iPad",
+    "step1": "Öffne diese Seite in Safari (nicht innerhalb einer anderen App).",
+    "step2": "Tippe auf die Teilen-Taste (das Quadrat mit dem Pfeil nach oben).",
+    "step3": "Scrolle nach unten und wähle Zum Home-Bildschirm.",
+    "step4": "Tippe auf Hinzufügen. Das Symbol von Karins jigsaw ist jetzt auf deinem Home-Bildschirm.",
+    "note": "Auf iPhone und iPad kann nur Safari eine Website zum Home-Bildschirm hinzufügen."
+  },
+  "browser": {
+    "title": "Über den Browser installieren (Chrome und Edge)",
+    "chrome": "Chrome: klicke auf das Installationssymbol am rechten Ende der Adressleiste oder öffne das Menü (drei Punkte) und wähle Karins jigsaw installieren (auf Android: App installieren).",
+    "edge": "Edge: klicke auf das Installationssymbol am rechten Ende der Adressleiste oder öffne das Menü (drei Punkte) und wähle Apps und dann Diese Website als App installieren.",
+    "note": "Die Menüs unterscheiden sich je nach Version etwas. Suche nach Installieren."
+  },
+  "share": {
+    "title": "Anderen Bescheid sagen",
+    "text": "Teile diese Seite mit Freunden, die die App haben möchten."
+  },
+  "hint": {
+    "android": "Karins jigsaw als Android-App holen",
+    "windows": "Karins jigsaw als Windows-App holen",
+    "ios": "Karins jigsaw auf den Home-Bildschirm legen",
+    "close": "Schließen"
+  }
+}

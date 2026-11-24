@@ -1,0 +1,46 @@
+{
+  "title": "De app downloaden",
+  "intro": "Karins jigsaw werkt in elke browser. Je kunt het ook als app hebben op je telefoon, tablet of computer.",
+  "alreadyInApp": "Je gebruikt de app al.",
+  "notReady": "Deze download is nog niet klaar.",
+  "android": {
+    "title": "Android-telefoon of -tablet",
+    "download": "Downloaden voor Android",
+    "step1": "Open het gedownloade bestand KarinsJigsaw.apk.",
+    "step2": "Als Android erom vraagt, sta installatie vanuit deze bron toe (het vraagt één keer).",
+    "step3": "Tik op Installeren en open daarna Karins jigsaw.",
+    "note": "De app komt niet uit Google Play, dus Android kan waarschuwen. Dat is normaal: kies om toch te installeren."
+  },
+  "windows": {
+    "title": "Windows-computer",
+    "download": "Downloaden voor Windows",
+    "step1": "Voer het gedownloade bestand KarinsJigsawSetup.exe uit.",
+    "step2": "Als Windows meldt dat het je pc heeft beschermd, kies Meer informatie en daarna Toch uitvoeren.",
+    "step3": "Open Karins jigsaw via het Startmenu.",
+    "note": "Vereist Windows 10 of 11."
+  },
+  "ios": {
+    "title": "iPhone en iPad",
+    "step1": "Open deze pagina in Safari (niet in een andere app).",
+    "step2": "Tik op de knop Deel (het vierkant met een pijl omhoog).",
+    "step3": "Scroll omlaag en kies Zet op beginscherm.",
+    "step4": "Tik op Voeg toe. Het pictogram van Karins jigsaw staat nu op je beginscherm.",
+    "note": "Op iPhone en iPad kan alleen Safari een website aan het beginscherm toevoegen."
+  },
+  "browser": {
+    "title": "Installeren via de browser (Chrome en Edge)",
+    "chrome": "Chrome: klik op het installatiepictogram rechts in de adresbalk, of open het menu (drie puntjes) en kies Karins jigsaw installeren (op Android: App installeren).",
+    "edge": "Edge: klik op het installatiepictogram rechts in de adresbalk, of open het menu (drie puntjes) en kies Apps en daarna Deze site als app installeren.",
+    "note": "De menu’s verschillen een beetje per versie. Zoek naar Installeren."
+  },
+  "share": {
+    "title": "Vertel het anderen",
+    "text": "Deel deze pagina met vrienden die de app willen."
+  },
+  "hint": {
+    "android": "Download Karins jigsaw als Android-app",
+    "windows": "Download Karins jigsaw als Windows-app",
+    "ios": "Zet Karins jigsaw op je beginscherm",
+    "close": "Sluiten"
+  }
+}
