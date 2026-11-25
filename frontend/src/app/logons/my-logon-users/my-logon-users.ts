@@ -29,7 +29,7 @@ export class MyLogonUsers {
   protected readonly auth = inject(AuthService);
   private readonly users = inject(JigsawUserService);
   private readonly logons = inject(LogonsService);
-  private readonly landing = inject(LogonLanding);
+  protected readonly landing = inject(LogonLanding);
   /** why the person was sent here, when they were (`?logon=`): the user they had belongs to other logins (`wrong`) or needs a login (`needlogin`); it is read as the address changes, since the page may already be open */
   protected readonly notice = toSignal(inject(ActivatedRoute).queryParamMap.pipe(map((q) => q.get('logon'))), { initialValue: null });
 

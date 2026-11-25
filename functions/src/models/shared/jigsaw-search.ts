@@ -118,6 +118,10 @@ export interface MineAnswer {
   counts: { all: number; everyone: number; owner: number; hidden: number };
 }
 
+/** Who sees a jigsaw, as a filter asks for it: public (everybody) or private (only the owner and the players). A hidden jigsaw is neither: it is only found when no choice is made. */
+export const FILTER_VISIBILITIES = ['public', 'private'] as const;
+export type FilterVisibility = (typeof FILTER_VISIBILITIES)[number];
+
 /** How many jigsaws there are for each choice a filter has, the way the person would see it with the other choices made: what to tick, and how many each tick would give. */
 export interface JigsawFacets {
   /** how many jigsaws match everything that is chosen */
@@ -159,6 +163,8 @@ export interface JigsawQuery {
   favorites?: true;
   /** only the jigsaws the user who asks has solved (a round of theirs is solved; the route finds them) */
   solved?: true;
+  /** who sees the jigsaws: public, private, or both (any of them; the route has already left out the ones the person may not find) */
+  visibilities?: FilterVisibility[];
   sort: SearchSort;
   limit: number;
   /** from 1 */
@@ -174,7 +180,7 @@ export class JigsawSearch {
       if (v === undefined || v === '') return undefined;
       return typeof v === 'string' ? v : { error: `${name} must be text.` };
     };
-    const names = ['kinds', 'categories', 'sizes', 'difficulties', 'motives', 'languages', 'owners', 'text', 'favorites', 'solved', 'sort', 'limit', 'page'] as const;
+    const names = ['kinds', 'categories', 'sizes', 'difficulties', 'motives', 'languages', 'owners', 'text', 'favorites', 'solved', 'visibilities', 'sort', 'limit', 'page'] as const;
     const fields = Object.fromEntries(names.map((n) => [n, text(n)])) as Record<string, string | undefined | { error: string }>;
     for (const v of Object.values(fields)) if (v && typeof v === 'object') return v;
     const f = fields as Partial<Record<(typeof names)[number], string>>;
@@ -200,6 +206,8 @@ export class JigsawSearch {
     if (!Array.isArray(languages)) return languages;
     const owners = list(f.owners, 'owners', (x) => x === NO_OWNER || (x.length > 0 && x.length <= 60 && !/[/\s~]/.test(x)), SEARCH_MAX_OWNERS);
     if (!Array.isArray(owners)) return owners;
+    const visibilities = list(f.visibilities, 'visibilities', (x) => FILTER_VISIBILITIES.some((v) => v === x), FILTER_VISIBILITIES.length);
+    if (!Array.isArray(visibilities)) return visibilities;
     const words = (f.text ?? '').trim().replace(/\s+/g, ' ');
     if (words.length > SEARCH_MAX_TEXT) return { error: `The text can be at most ${SEARCH_MAX_TEXT} characters.` };
     if (f.favorites !== undefined && f.favorites !== 'true' && f.favorites !== '1') return { error: 'The favorites must be true.' };
@@ -226,6 +234,7 @@ export class JigsawSearch {
         ...(words ? { text: words } : {}),
         ...(f.favorites !== undefined ? { favorites: true as const } : {}),
         ...(f.solved !== undefined ? { solved: true as const } : {}),
+        ...(visibilities.length ? { visibilities: visibilities as FilterVisibility[] } : {}),
         sort: (f.sort as SearchSort | undefined) ?? 'new',
         limit: limit === -1 ? SEARCH_PAGE : limit,
         page: page === -1 ? 1 : page,
@@ -244,8 +253,15 @@ export class JigsawSearch {
       (!query.motives?.length || (!!index.motive && query.motives.includes(index.motive))) &&
       (!query.languages?.length || query.languages.includes(index.language)) &&
       (!query.owners?.length || query.owners.includes(jigsaw.ownerUid ?? NO_OWNER)) &&
+      (!query.visibilities?.length || JigsawSearch.isAmong(jigsaw, query.visibilities)) &&
       JigsawSearch.hasWords(jigsaw, query.text)
     );
+  }
+
+  /** Whether the jigsaw is one of these: public (everybody sees it) or private (only the owner and the players); a hidden jigsaw is neither. */
+  static isAmong(jigsaw: Pick<JigsawSummary, 'visibility'>, visibilities: readonly FilterVisibility[]): boolean {
+    const seen = jigsaw.visibility ?? 'everyone';
+    return (seen === 'everyone' && visibilities.includes('public')) || (seen === 'owner' && visibilities.includes('private'));
   }
 
   /** Whether every word of the text is in the name, the author or the description of the jigsaw (a part of a word is enough, case does not matter); no text matches all. */

@@ -104,7 +104,7 @@
               }
               <div class="toolbar justify-content-end">
                 @if (item.jigsaw) {
-                  <a class="link-action" [routerLink]="['/jigsaw', item.jigsaw.id]">{{ t('jigsawBatch.open') || 'Open' }}</a>
+                  <a class="link-action" [routerLink]="openRoute(item.jigsaw.id)">{{ t('jigsawBatch.open') || 'Open' }}</a>
                 }
                 @if (item.state === 'waiting' || item.state === 'failed') {
                   <button type="button" class="link-action danger" (click)="remove(item)">{{ t('jigsawBatch.remove') || 'Take away' }}</button>
@@ -120,7 +120,7 @@
   @if (finished()) {
     <div class="alert alert-success py-2" role="status">
       {{ t('jigsawBatch.summary', { made: made(), classified: classified(), failed: failed() }) || made() + ' made, ' + classified() + ' classified by the AI, ' + failed() + ' failed.' }}
-      <a routerLink="/jigsaw/user">{{ t('jigsawBatch.yourJigsaws') || 'Your pictures' }}</a>
+      <a [routerLink]="picturesRoute()">{{ t('jigsawBatch.yourJigsaws') || 'Your pictures' }}</a>
     </div>
   }
 
@@ -139,6 +139,6 @@
         <button type="button" class="btn btn-outline-secondary" (click)="clear()">{{ t('jigsawBatch.clear') || 'Clear the list' }}</button>
       }
     }
-    <a class="link-action" routerLink="/jigsaw/user">{{ t('jigsawBatch.back') || 'Back' }}</a>
+    <a class="link-action" [routerLink]="picturesRoute()">{{ t('jigsawBatch.back') || 'Back' }}</a>
   </div>
 </main>

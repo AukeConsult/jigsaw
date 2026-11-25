@@ -540,3 +540,33 @@ describe("the route of one user's jigsaws", () => {
     expect((await mineOf("?limit=500", "u1")).status).toBe(400);
   });
 });
+
+describe("public and private: who sees the jigsaws that are looked for", () => {
+  const some = [
+    summary(jigsaw("open", { createdAt: 3, ownerUid: "u1", categories: ["nature"] })),
+    summary(jigsaw("secret", { createdAt: 2, ownerUid: "u1", visibility: "owner", categories: ["nature"] })),
+    summary(jigsaw("tucked", { createdAt: 1, ownerUid: "u1", visibility: "hidden" })),
+  ];
+
+  it("is asked for in an address as a list of public and private, and nothing else is allowed", () => {
+    expect(JigsawSearch.parse({ visibilities: "private" })).toMatchObject({ query: { visibilities: ["private"] } });
+    expect(JigsawSearch.parse({ visibilities: "public,private" })).toMatchObject({ query: { visibilities: ["public", "private"] } });
+    expect(JigsawSearch.parse({})).not.toHaveProperty("query.visibilities");
+    expect(JigsawSearch.parse({ visibilities: "hidden" })).toHaveProperty("error");
+  });
+
+  it("matches the public ones, the private ones, or either (the hidden ones only when no choice is made), together with the other choices", () => {
+    const found = (over: Partial<JigsawQuery>) => ids(some.filter((j) => JigsawSearch.matches(j, query(over))));
+    expect(found({ visibilities: ["private"] })).toEqual(["secret"]);
+    expect(found({ visibilities: ["public"] })).toEqual(["open"]);
+    expect(found({ visibilities: ["public", "private"] })).toEqual(["open", "secret"]);
+    expect(found({ visibilities: ["private"], categories: ["family"] })).toEqual([]);
+    expect(found({})).toEqual(["open", "secret", "tucked"]);
+  });
+
+  it("narrows the counts like the other choices: the total is the private ones that match", () => {
+    expect(JigsawSearch.facets(some, query({ visibilities: ["private"] })).total).toBe(1);
+    expect(JigsawSearch.facets(some, query({ visibilities: ["private"] })).categories).toEqual({ nature: 1 });
+    expect(JigsawSearch.facets(some, query()).total).toBe(3);
+  });
+});

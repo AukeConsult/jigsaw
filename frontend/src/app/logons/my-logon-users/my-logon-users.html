@@ -6,7 +6,7 @@
   }
   @if (!auth.user()) {
     <!-- without a login signed in it is only the way to one -->
-    <a class="btn btn-outline-primary w-100 mb-3" routerLink="/login" [queryParams]="{ next: '/jigsaw/user' }"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>{{ t('logons.myUsers.signInLink') || 'Log on with a verified account' }}</a>
+    <a class="btn btn-outline-primary w-100 mb-3" routerLink="/login" [queryParams]="{ next: landing.here() }"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>{{ t('logons.myUsers.signInLink') || 'Log on with a verified account' }}</a>
   } @else {
     <div class="border rounded p-3 mb-3">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">

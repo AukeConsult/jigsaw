@@ -1,0 +1,41 @@
+<ng-container *transloco="let t">
+  @let item = jigsaw();
+  <div class="card h-100">
+    <!-- the picture, with Play over its bottom right corner -->
+    <div class="position-relative">
+      <button type="button" class="d-block w-100 p-0 border-0 bg-transparent" (click)="show()" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
+        <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
+          @if (!noPicture()) {
+            <img class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
+          }
+        </div>
+      </button>
+      @if (isSolved()) {
+        <!-- solved by the user: a small green check in the top right corner of the picture (left of the heart when there is one) -->
+        <span class="solved-mark position-absolute top-0 m-1" [class.with-heart]="favorites.available()" [title]="t('play.solvedByYou') || 'You have solved this'" role="img" [attr.aria-label]="t('play.solvedByYou') || 'You have solved this'"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+      }
+      @if (favorites.available()) {
+        <!-- a small heart over the top right corner of the picture: tick it to have the jigsaw as a favorite -->
+        <button type="button" class="btn btn-overlay position-absolute top-0 end-0 m-1" [class.is-favorite]="favorite()" [attr.aria-pressed]="favorite()"
+                [title]="favorite() ? (t('play.removeFavorite') || 'Remove from favorites') : (t('play.addFavorite') || 'Add to favorites')"
+                [attr.aria-label]="favorite() ? (t('play.removeFavorite') || 'Remove from favorites') : (t('play.addFavorite') || 'Add to favorites')" (click)="toggleFavorite($event)">
+          <i class="bi" [class.bi-heart]="!favorite()" [class.bi-heart-fill]="favorite()" aria-hidden="true"></i>
+        </button>
+      }
+      <button type="button" class="btn btn-overlay position-absolute bottom-0 end-0 m-1" (click)="show()" [title]="t('play.play') || 'Show the jigsaw'" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></button>
+    </div>
+    <div class="card-body p-2 text-break">
+      <button type="button" class="card-name text-name text-decoration-none p-0 border-0 bg-transparent text-start" (click)="show()">{{ item.name }}</button>@if (item.timed !== false) {<i class="bi bi-stopwatch tiny ms-1 text-body-secondary" [title]="t('play.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tiny ms-1 text-body-secondary" [title]="t('play.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tiny ms-1 text-body-secondary" [title]="t('play.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      <!-- what every card tells: how many pieces and how hard (the words are in the tooltips) -->
+      <div class="text-body-secondary tiny">
+        @if (isPicture()) {
+          <!-- a picture is cut in each round: the pieces and the difficulty are chosen when the round starts -->
+          <span class="text-nowrap" [title]="t('play.choosePiecesTitle') || 'The number of pieces and the difficulty are chosen when you start a round'"><i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('play.choosePieces') || 'Choose pieces' }}</span>
+        } @else {
+          <span class="text-nowrap" [title]="t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}</span>
+          <span class="ms-2 text-nowrap" [title]="t('play.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('play.snap.' + level()) || level() }}</span>
+        }
+      </div>
+    </div>
+  </div>
+</ng-container>

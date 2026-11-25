@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { JigsawFilters, SEARCH_MAX_CATEGORIES, SEARCH_MAX_OWNERS, SEARCH_MAX_TEXT } from "../src/models";
+import { JigsawFilters, JigsawUsers, SEARCH_MAX_CATEGORIES, SEARCH_MAX_OWNERS, SEARCH_MAX_TEXT } from "../src/models";
 import type { JigsawFilter } from "../src/models";
 
 const on = (over: Partial<JigsawFilter>): JigsawFilter => ({ ...JigsawFilters.empty(), ...over });
 
 describe("a filter of jigsaws", () => {
   it("asks for everything when it is empty, and is on when any choice is made", () => {
-    expect(JigsawFilters.empty()).toEqual({ text: "", kinds: [], categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [] });
+    expect(JigsawFilters.empty()).toEqual({ text: "", kinds: [], categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [], visibilities: [] });
     expect(JigsawFilters.isOn(JigsawFilters.empty())).toBe(false);
     expect(JigsawFilters.isOn(on({ text: "  " }))).toBe(false); // no words
     expect(JigsawFilters.isOn(on({ text: "harbour" }))).toBe(true);
@@ -112,5 +112,78 @@ describe("a filter of jigsaws", () => {
     });
     expect(JigsawFilters.query(on({ text: "   " }))).toEqual({ page: 1 });
     expect(JigsawFilters.query(on({ favorites: true }))).toEqual({ favorites: true, page: 1 });
+  });
+});
+
+describe("a filter with categories added (what was just made is not left out of it)", () => {
+  it("is left as it is when no category is chosen: it looks at every category already", () => {
+    const empty = JigsawFilters.empty();
+    expect(JigsawFilters.withCategories(empty, ["nature"])).toBe(empty);
+  });
+
+  it("adds the categories that are not chosen, and not again the ones that are", () => {
+    const chosen = on({ categories: ["animals"] });
+    expect([...JigsawFilters.withCategories(chosen, ["nature", "animals"]).categories].sort()).toEqual(["animals", "nature"]);
+  });
+
+  it("does not add a sub-category whose category is chosen already", () => {
+    const chosen = on({ categories: ["nature"] });
+    expect(JigsawFilters.withCategories(chosen, ["nature/forest"])).toBe(chosen);
+  });
+
+  it("does not add a category there is no room for, or one that is not a category", () => {
+    const full = on({ categories: ["nature"] });
+    expect(JigsawFilters.withCategories(full, ["not-a-category"])).toBe(full);
+  });
+});
+
+describe("the filter of the list kept with a user", () => {
+  it("is kept as a change when it is a filter, only with the known fields", () => {
+    const filter = on({ categories: ["nature"], languages: ["nb"] });
+    expect(JigsawUsers.change({ listFilter: { ...filter, extra: 1 } })).toEqual({ change: { listFilter: filter } });
+  });
+
+  it("is refused when it is not a filter", () => {
+    expect(JigsawUsers.change({ listFilter: { text: "" } })).toHaveProperty("error");
+    expect(JigsawUsers.change({ listFilter: "all" })).toHaveProperty("error");
+  });
+
+  it("is read back from what is stored, and left out when what is stored is not a filter", () => {
+    const filter = on({ owners: ["u1"], favorites: true });
+    expect(JigsawUsers.fromStored("u", { username: "u", name: "U", listFilter: filter }).listFilter).toEqual(filter);
+    expect(JigsawUsers.fromStored("u", { username: "u", name: "U", listFilter: { text: 1 } as never })).not.toHaveProperty("listFilter");
+  });
+});
+
+describe("who sees the jigsaws, a choice of a filter: public, private, or both", () => {
+  it("is a choice like the others: on when one is chosen, and asked for in the query only then", () => {
+    expect(JigsawFilters.isOn(on({ visibilities: ["private"] }))).toBe(true);
+    expect(JigsawFilters.query(on({ visibilities: ["public", "private"] }))).toEqual({ visibilities: ["public", "private"], page: 1 });
+    expect(JigsawFilters.query(on({}))).toEqual({ page: 1 });
+  });
+
+  it("is ticked and taken away like the others, and only public and private can be ticked", () => {
+    const one = JigsawFilters.toggled(on({}), "visibilities", "private");
+    expect(one.visibilities).toEqual(["private"]);
+    expect(JigsawFilters.toggled(one, "visibilities", "public").visibilities).toEqual(["private", "public"]);
+    expect(JigsawFilters.toggled(one, "visibilities", "private").visibilities).toEqual([]);
+    expect(JigsawFilters.toggled(on({}), "visibilities", "hidden").visibilities).toEqual([]);
+  });
+
+  it("gets the visibility of a new picture added, unless none is chosen (every picture is shown then) or it is chosen already", () => {
+    const empty = on({});
+    expect(JigsawFilters.withVisibility(empty, "private")).toBe(empty);
+    const publicOnly = on({ visibilities: ["public"] });
+    expect(JigsawFilters.withVisibility(publicOnly, "private").visibilities).toEqual(["public", "private"]);
+    const both = on({ visibilities: ["public", "private"] });
+    expect(JigsawFilters.withVisibility(both, "private")).toBe(both);
+  });
+
+  it("is a filter that is allowed with none (one kept before it was there), and is always kept as a list", () => {
+    const old = { ...on({}) } as Partial<JigsawFilter>;
+    delete old.visibilities;
+    expect(JigsawFilters.is(old)).toBe(true);
+    expect(JigsawFilters.is(on({ visibilities: ["secret" as never] }))).toBe(false);
+    expect(JigsawFilters.stored(old as JigsawFilter).visibilities).toEqual([]);
   });
 });

@@ -75,12 +75,14 @@
   "roundsWhoseAllTitle": "Die Runden aller",
   "roundsWhoseMineTitle": "Nur meine Runden",
   "roundsWhoseOthersTitle": "Nur die Runden der anderen",
-  "resetAll": "Alles zurücksetzen",
   "detailsIn": "Details in der Bildansicht anzeigen",
   "viewHelp": "So werden die Bilder gezeigt: als Karten oder Liste, mit oder ohne Details.",
   "choosePieces": "Teile wählen",
   "choosePiecesTitle": "Anzahl der Teile und Schwierigkeit wählst du beim Start einer Runde",
   "noneMatchTitle": "Kein Bild passt",
   "noneMatchHelp": "Versuche andere Auswahlen.",
-  "roundsNoneHelp": "Wähle ein Bild, um die erste zu starten."
+  "roundsNoneHelp": "Wähle ein Bild, um die erste zu starten.",
+  "private": "Privat",
+  "access": "Öffentlich oder privat",
+  "public": "Öffentlich"
 }

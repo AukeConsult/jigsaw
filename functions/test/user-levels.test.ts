@@ -10,7 +10,7 @@ import { TEST_KEY_SECRET, memoryImages, memoryJigsaws, memoryPieces, memoryPlays
 // login may act as it, and only an admin sets levels. No test calls Firebase: tokens are fakes.
 
 const tokenOf = (uid: string): LogonToken => ({ uid, email: `${uid}@example.com`, email_verified: true, firebase: { sign_in_provider: "google.com" } });
-const KNOWN: Record<string, LogonToken> = { boss: tokenOf("fb-boss"), pub: tokenOf("fb-pub"), plain: tokenOf("fb-plain"), boss2: tokenOf("fb-boss2") };
+const KNOWN: Record<string, LogonToken> = { boss: tokenOf("fb-boss"), pub: tokenOf("fb-pub"), plain: tokenOf("fb-plain"), boss2: tokenOf("fb-boss2"), stranger: tokenOf("fb-stranger") };
 const verifier: TokenVerifier = {
   async verify(idToken) {
     const token = KNOWN[idToken];
@@ -325,49 +325,73 @@ describe("an account with no verified login", () => {
   });
 });
 
-describe("an admin going into an account", () => {
-  /** a read that is the account's own: it is never answered for nobody (the lists are, for an account that is not signed in) */
-  const OWN = "/jigsaw-users/plain/plays";
-  /** the header `X-Jigsaw-Admin` names the admin account; the token is the admin's own login */
-  const into = async (as: string, admin: string | undefined, token: string | undefined, method: "get" | "put" | "post" | "delete" = "get", path = "/jigsaw") => {
+describe("an admin acts as another account with nothing but the admin's own login (the Bearer token)", () => {
+  /** `as` is the account the call acts as (`X-Jigsaw-User`), `token` is the login that comes: there is no other key */
+  const act = async (as: string, token: string | undefined, method: "get" | "put" | "post" | "delete" = "get", path = "/jigsaw-users/plain/plays") => {
     const { call, make, settings } = await setup();
     const owned = (await make("plain", "plain", { visibility: "owner" })).body as JigsawSpec;
-    const r = call(method, path.replace(":id", owned.id), as, token);
-    if (admin) r.set("X-Jigsaw-Admin", admin);
-    return { r, owned, settings, call };
+    return { r: call(method, path, as, token), owned, settings, call };
   };
 
   it("acts as the account, without its login: sees its private jigsaws, changes and deletes them", async () => {
-    const { r, owned, settings, call } = await into("plain", "boss", "boss");
-    expect((await r).body.map((j: JigsawSpec) => j.id)).toContain(owned.id); // its list, with its private jigsaw
+    const { r, owned, settings, call } = await act("plain", "boss", "get", "/jigsaw");
+    expect((await r).body.map((j: JigsawSpec) => j.id)).toContain(owned.id); // the list of that account, with its own private jigsaw (the admin's own list is another thing, see the front page test)
     const change = { ...settings, name: "Edited as plain", ownerUid: "plain", visibility: "owner" };
-    expect((await call("put", `/jigsaw/${owned.id}`, "plain", "boss").set("X-Jigsaw-Admin", "boss").send(change)).status).toBe(200);
-    expect((await call("get", `/jigsaw/${owned.id}`, "plain", "boss").set("X-Jigsaw-Admin", "boss")).body.name).toBe("Edited as plain");
-    expect((await call("delete", `/jigsaw/${owned.id}`, "plain", "boss").set("X-Jigsaw-Admin", "boss")).status).toBe(204);
+    expect((await call("get", `/jigsaw/${owned.id}`, "plain", "boss")).status).toBe(200); // and the page of it, by its address
+    expect((await call("put", `/jigsaw/${owned.id}`, "plain", "boss").send(change)).status).toBe(200);
+    expect((await call("get", `/jigsaw/${owned.id}`, "plain", "boss")).body.name).toBe("Edited as plain");
+    expect((await call("delete", `/jigsaw/${owned.id}`, "plain", "boss")).status).toBe(204);
   });
 
-  it("is only for an admin who is signed in as that admin: not for anybody else, with no token, or with another admin's token", async () => {
-    expect((await (await into("plain", "pub", "pub", "get", OWN)).r).status).toBe(403); // a publisher says it is an admin
-    expect((await (await into("plain", "plain", "plain", "get", OWN)).r).status).toBe(200); // itself: its own login, as always
-    expect((await (await into("plain", "boss", undefined, "get", OWN)).r).status).toBe(401); // no token
-    expect((await (await into("plain", "boss", "pub", "get", OWN)).r).status).toBe(403); // the token of another account
-    expect((await (await into("plain", "free", "pub", "get", OWN)).r).status).toBe(403); // an admin on paper that needs no login
-    expect((await (await into("plain", "nobody", "boss", "get", OWN)).r).status).toBe(403); // no such admin
-    expect((await (await into("plain", "boss2", "boss", "get", OWN)).r).status).toBe(403); // the login of boss is not boss2's
+  it("is only for a login that is an admin's: not another account's, not no login, not an admin on paper", async () => {
+    expect((await (await act("plain", "pub")).r).status).toBe(403); // the login of a publisher
+    expect((await (await act("plain", "plain")).r).status).toBe(200); // its own login, as always
+    expect((await (await act("plain", undefined)).r).status).toBe(401); // no login
+    expect((await (await act("plain", "boss2")).r).status).toBe(200); // another admin's login is an admin's too
+    expect((await (await act("boss", "pub")).r).status).toBe(403); // a publisher cannot act as an admin
   });
 
-  it("does not open the logins of the account", async () => {
-    const { r } = await into("plain", "boss", "boss", "get", "/jigsaw-users/plain/logons");
-    expect((await r).status).toBe(403);
-    const code = await into("plain", "boss", "boss", "post", "/jigsaw-users/plain/logons/codes");
-    expect((await code.r).status).toBe(403);
+  it("does not open the logins of the account, even to an admin's login", async () => {
+    expect((await (await act("plain", "boss", "get", "/jigsaw-users/plain/logons")).r).status).toBe(403);
+    expect((await (await act("plain", "boss", "post", "/jigsaw-users/plain/logons/codes")).r).status).toBe(403);
+  });
+
+  it("changes and deletes the accounts of others, the same way", async () => {
+    const { call, users } = await setup();
+    expect((await call("put", "/jigsaw-users/plain", "pub", "pub").send({ name: "By a publisher" })).status).toBe(403);
+    expect((await call("put", "/jigsaw-users/plain", "boss", "boss").send({ name: "Renamed", username: "renamed" })).status).toBe(200);
+    expect((await users.get("plain"))?.name).toBe("Renamed");
+    expect((await call("delete", "/jigsaw-users/plain", "boss", "boss")).status).toBe(204);
+  });
+
+  it("is accepted on every call and on every item, also a call that names no account at all", async () => {
+    const { call, make, settings, users } = await setup();
+    const secret = (await make("plain", "plain", { visibility: "owner" })).body as JigsawSpec;
+    const open = (await make("pub", "pub")).body as JigsawSpec;
+    // no `X-Jigsaw-User` at all: the login is what counts
+    expect((await call("get", `/jigsaw/${secret.id}`, undefined, "boss")).status).toBe(200); // another's private jigsaw
+    expect((await call("put", `/jigsaw/${open.id}`, undefined, "boss").send({ ...settings, ownerUid: "pub", name: "By an admin login" })).status).toBe(200);
+    expect((await call("put", "/jigsaw-users/plain", undefined, "boss").send({ name: "Renamed with no header" })).status).toBe(200);
+    expect((await call("put", "/jigsaw-levels/pub", undefined, "boss").send({ level: "user" })).status).toBe(200);
+    expect((await call("delete", `/jigsaw/${secret.id}`, undefined, "boss")).status).toBe(204);
+    expect((await users.get("plain"))?.name).toBe("Renamed with no header");
+    // the same calls with a login that is no admin's: nothing of it
+    expect((await call("put", "/jigsaw-levels/pub", undefined, "pub").send({ level: "admin" })).status).toBe(403);
+    expect((await call("delete", `/jigsaw/${open.id}`, undefined, "plain")).status).toBe(403);
+  });
+
+  it("has nothing else to carry: a call that says it is an admin in a header of its own is no more than a call without it", async () => {
+    const { call } = await setup();
+    // the old extra header is not known any more: only the login counts, so it grants nothing to a login that is no admin's
+    expect((await call("put", "/jigsaw-users/plain", "plain", "pub").set("X-Jigsaw-Admin", "boss").send({ name: "No" })).status).toBe(403);
+    expect((await call("put", "/jigsaw-users/plain", "plain", "plain").set("X-Jigsaw-Admin", "nobody").send({ name: "Own" })).status).toBe(200); // the account's own login, whatever header comes
   });
 });
 
 describe("an admin in an account has the rights of an admin there", () => {
   const inside = async (account: string) => {
     const { call, make, settings, users } = await setup();
-    const asAdmin = (method: "get" | "put" | "post" | "delete", path: string) => call(method, path, account, "boss").set("X-Jigsaw-Admin", "boss");
+    const asAdmin = (method: "get" | "put" | "post" | "delete", path: string) => call(method, path, account, "boss"); // the admin's own login is all that comes
     return { asAdmin, call, make, settings, users };
   };
 
@@ -392,12 +416,38 @@ describe("an admin in an account has the rights of an admin there", () => {
     expect((await users.get("pub"))?.level).toBeUndefined();
   });
 
-  it("is only for the call that says so: the account has no such rights otherwise, and the next call of anybody is not helped", async () => {
+  it("is only for the login of an admin: the account has no such rights with its own login", async () => {
     const { call, make } = await inside("plain");
     const theirs = (await make("pub", "pub", { visibility: "owner" })).body as JigsawSpec;
     expect((await call("get", `/jigsaw/${theirs.id}`, "plain", "plain")).status).toBe(404);
     expect((await call("put", "/jigsaw-levels/pub", "plain", "plain").send({ level: "user" })).status).toBe(403);
-    expect((await call("get", `/jigsaw/${theirs.id}`, "plain", "plain").set("X-Jigsaw-Admin", "pub")).status).toBe(404); // a publisher cannot say it is an admin
+  });
+});
+
+describe("another account of an admin's own login", () => {
+  it("is the person's own account, with its own level: no admin rights there (choosing it is not going into somebody else's account)", async () => {
+    const { call, make, settings, users } = await setup();
+    await users.changeLogons("plain", () => ["fb-plain", "fb-boss"]); // the admin's login is verified for `plain` too
+    const theirs = (await make("pub", "pub", { visibility: "owner" })).body as JigsawSpec;
+    const own = { ...settings, ownerUid: "plain" };
+    expect((await call("post", "/jigsaw", "plain", "boss").send(own)).status).toBe(403); // a plain account cannot make a public jigsaw
+    expect((await call("get", `/jigsaw/${theirs.id}`, "plain", "boss")).status).toBe(404); // nor see another's private one
+    expect((await call("put", "/jigsaw-levels/pub", "plain", "boss").send({ level: "user" })).status).toBe(403); // nor set levels
+    expect((await call("post", "/jigsaw", "boss", "boss").send({ ...settings, ownerUid: "boss" })).status).toBe(201); // the admin account of the same login is still an admin
+    expect((await call("post", "/jigsaw", "free", "boss").send({ ...settings, ownerUid: "free" })).status).toBe(201); // and going into an account the login is not verified for is too
+  });
+});
+
+describe("the page knows an admin's login from the session", () => {
+  it("tells the level of each account the login is verified for, so the page knows the login is an admin's: nothing is stored", async () => {
+    const { call } = await setup();
+    const admin = await call("get", "/session", undefined, "boss");
+    expect(admin.status).toBe(200);
+    expect(admin.body.users).toEqual([expect.objectContaining({ id: "boss", level: "admin" })]);
+    const publisher = await call("get", "/session", undefined, "pub");
+    expect(publisher.body.users).toEqual([expect.objectContaining({ id: "pub", level: "publisher" })]);
+    const plain = await call("get", "/session", undefined, "plain");
+    expect(plain.body.users[0]).not.toHaveProperty("level"); // a user: nothing kept
   });
 });
 
@@ -431,5 +481,65 @@ describe("an account that has just been made an admin", () => {
     expect(made.status).toBe(200);
     expect((await rename()).status).toBe(200); // now an admin: at once, not after the gate has forgotten the old answer
     expect((await users.get("other"))?.name).toBe("Renamed");
+  });
+});
+
+describe("an admin's login cannot leak (every way I could think of to get admin rights without being an admin)", () => {
+  const rename = (call: Awaited<ReturnType<typeof setup>>["call"], as: string | undefined, token: string | undefined) => call("put", "/jigsaw-users/plain", as, token).send({ name: "Taken" });
+
+  it("is refused at once when the admin is demoted, or the login is taken off the admin account (nothing is kept)", async () => {
+    const { call, users } = await setup();
+    expect((await rename(call, "plain", "boss2")).status).toBe(200); // boss2 is an admin
+    await users.update("boss2", { level: "user" }); // demoted (by hand in the store, as another instance of the function would see it)
+    expect((await rename(call, "plain", "boss2")).status).toBe(403);
+    await users.update("boss2", { level: "admin" });
+    expect((await rename(call, "plain", "boss2")).status).toBe(200);
+    await users.changeLogons("boss2", () => []); // the login is taken off: the account is open again and has no level
+    expect((await rename(call, "plain", "boss2")).status).toBe(403);
+  });
+
+  it("is not given by a login that is verified for no account, a login that is no admin's, a bad token, or no token", async () => {
+    const { call } = await setup();
+    expect((await rename(call, "plain", "stranger")).status).toBe(403); // a good login, verified for nobody
+    expect((await rename(call, "plain", "pub")).status).toBe(403); // a publisher's login
+    expect((await rename(call, "plain", "not-a-token")).status).toBe(401); // a bad token is no token
+    expect((await rename(call, "plain", undefined)).status).toBe(401);
+    expect((await rename(call, undefined, "stranger")).status).toBe(403); // no account named: the account is in the address
+  });
+
+  it("is not given by anything the client says about itself: no header makes a call an admin's", async () => {
+    const { call } = await setup();
+    for (const claim of [{ "X-Jigsaw-Admin": "boss" }, { "X-Jigsaw-Level": "admin" }, { "X-Jigsaw-Role": "admin" }, { "X-Admin": "true" }]) {
+      expect((await rename(call, "plain", "stranger").set(claim)).status).toBe(403);
+      expect((await rename(call, "plain", "pub").set(claim)).status).toBe(403);
+    }
+    expect((await call("put", "/jigsaw-levels/pub", "pub", "pub").set({ "X-Jigsaw-Admin": "boss" }).send({ level: "admin" })).status).toBe(403);
+    expect((await call("put", "/jigsaw-users/boss", "pub", "pub").send({ name: "Taken" })).status).toBe(403); // not by acting as the admin account either
+  });
+
+  it("does not open the logins of any account, so no admin login can be added to an account that is not its own", async () => {
+    const { call } = await setup();
+    for (const [method, path] of [["get", "/jigsaw-users/plain/logons"], ["put", "/jigsaw-users/plain/logons"], ["post", "/jigsaw-users/plain/logons/codes"], ["delete", "/jigsaw-users/plain/logons/ref"]] as const) {
+      expect((await call(method, path, "plain", "boss")).status).toBe(403);
+    }
+  });
+
+  it("is never kept between calls: an admin's call and another's, at the same moment and one after the other, do not touch each other", async () => {
+    const { call, make } = await setup();
+    const secret = (await make("plain", "plain", { visibility: "owner" })).body as JigsawSpec;
+    const calls = Array.from({ length: 24 }, (_, i) => (i % 2 === 0 ? call("get", `/jigsaw/${secret.id}`, "pub", "boss") : call("get", `/jigsaw/${secret.id}`, "pub", "pub")));
+    const answers = (await Promise.all(calls)).map((r) => r.status);
+    answers.forEach((status, i) => expect(status).toBe(i % 2 === 0 ? 200 : 404)); // an admin's login sees it, the publisher's login does not, whatever the order
+    expect((await call("get", `/jigsaw/${secret.id}`, "pub", "pub")).status).toBe(404); // and after all of them
+  });
+
+  it("never lets a call through when the database cannot say whether the login is an admin's (503)", async () => {
+    const users = memoryUsers("plain", "other");
+    await users.changeLogons("plain", () => ["fb-plain"]);
+    const down = { ...users, linkedTo: async () => { throw new Error("the database is not there"); } };
+    const app = createJigsawApp({ users: down, plays: memoryPlays(), jigsaw: memoryJigsaws(), viewKeySecret: TEST_KEY_SECRET, logons: { verifier, accounts, directory } });
+    const res = await request(app).put("/jigsaw/api/jigsaw-users/plain").set("X-Jigsaw-User", "plain").set("Authorization", "Bearer boss").send({ name: "Taken" });
+    expect(res.status).toBe(503);
+    expect((await users.get("plain"))?.name).toBe("Plain");
   });
 });

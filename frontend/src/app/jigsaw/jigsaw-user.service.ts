@@ -2,11 +2,10 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { tr } from '../core/i18n';
-import { ADMIN_KEY } from '../core/user-header.interceptor';
 import { AuthService } from '../logons/auth.service';
 import { LanguageService } from '../core/language.service';
 import { environment } from '../../environments/environment';
-import { JigsawSetup } from '../models/shared/jigsaw-filter';
+import { JigsawFilter, JigsawSetup } from '../models/shared/jigsaw-filter';
 import { JigsawUserSpec, JigsawUsers } from '../models/shared/jigsaw-user';
 import { UserLevel, UserLevels } from '../models/shared/user-level';
 import { FRONT_FINDER_KEY, hasFinderPreferences, readFinderPreferences, writeFinderPreferences } from './jigsaw-finder/finder-preferences';
@@ -42,8 +41,21 @@ export class JigsawUserService {
     const user = this.user();
     return user && (this.admin() || JigsawUsers.mayAct(user, this.auth.user()?.uid)) ? user : null; // an admin who has gone into the account acts as it with their own login
   });
-  /** The admin who has gone into the account that plays (null: nobody has): kept for this tab only, so a new tab, or a browser that is closed, is back to the login the account needs. */
-  readonly admin = signal<{ id: string; name: string } | null>(this.readAdmin());
+  /**
+   * The account of the signed-in login that is a real admin (null: the login is no admin's, or nobody is signed in). The key of an admin is the login itself: the Bearer token that every call carries, and the server
+   * sees from it that the login is verified for an admin account (`createGate`). The page knows the same from the session (`AuthService.linked`, each account with its level). Nothing is stored or cleaned up.
+   */
+  private readonly adminAccount = computed(() => this.auth.linked().find((u) => UserLevels.isAdmin(UserLevels.of({ level: u.level, protected: true }))) ?? null);
+  /**
+   * The admin who is in the account that plays (null: nobody is): the login is an admin's and the account that plays is **not one this login is verified for**. An account that the login is verified for is the person's own, so choosing it
+   * (also another account of the same login) is not going into somebody's account: it has its own level, and there is no band and no way back. Only an admin who goes into an account that is not theirs (`openAs`) is "in" it.
+   * Worked out each time from what is true now.
+   */
+  readonly admin = computed(() => {
+    const account = this.adminAccount();
+    const me = this.user();
+    return account && me && account.id !== me.id && !this.auth.linked().some((u) => u.id === me.id) ? { id: account.id, name: account.name } : null;
+  });
   /** What the user who plays may do beyond playing (`UserLevels.of`: it counts only for an account that needs a login). Only for what the page shows: the server decides what is allowed. */
   readonly level = computed<UserLevel>(() => (this.admin() ? 'admin' : UserLevels.of(this.user()))); // an admin who is in an account has the rights of an admin there
   readonly mayPublish = computed(() => UserLevels.mayPublish(this.level()));
@@ -61,25 +73,6 @@ export class JigsawUserService {
     } catch {
       this.noAdmin.set(false);
     }
-  }
-
-  private readAdmin(): { id: string; name: string } | null {
-    try {
-      const kept = JSON.parse(sessionStorage.getItem(ADMIN_KEY) ?? 'null') as { id?: unknown; name?: unknown } | null;
-      return typeof kept?.id === 'string' && typeof kept.name === 'string' ? { id: kept.id, name: kept.name } : null;
-    } catch {
-      return null;
-    }
-  }
-
-  private keepAdmin(admin: { id: string; name: string } | null): void {
-    try {
-      if (admin) sessionStorage.setItem(ADMIN_KEY, JSON.stringify(admin));
-      else sessionStorage.removeItem(ADMIN_KEY);
-    } catch {
-      /* no storage: the admin is not kept */
-    }
-    this.admin.set(admin);
   }
 
   private url(id: string): string {
@@ -178,16 +171,14 @@ export class JigsawUserService {
 
   /**
    * An admin goes into an account: from now on the app is that account (its jigsaws, rounds and settings, seen and changed as it), with no login of its own; the calls say who the admin is
-   * (`X-Jigsaw-Admin`) and the server lets the admin's login act as the account, except for the account's logins. The reason when it is not allowed, or ''.
+   * (the Bearer token of the admin's own login, which every call carries) and the server lets that login act as the account, except for the account's logins. The reason when it is not allowed, or ''.
    */
   async openAs(id: string): Promise<string> {
-    const me = this.user();
-    const origin = this.admin() ?? (me && this.isAdmin() ? { id: me.id, name: me.name } : null); // an admin who is in an account goes into another as the same admin
-    if (!me || !origin || origin.id === id || me.id === id) return tr('userLevels.into.notAllowed', 'Only an admin can go into an account.');
+    // only a login that is an admin's goes into an account; nothing is kept for it: the page plays as the account, and every call carries the admin's own login
+    if (!this.adminAccount() || this.user()?.id === id) return tr('userLevels.into.notAllowed', 'Only an admin can go into an account.');
     try {
       const account = await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
       this.emptyFinder();
-      this.keepAdmin(origin);
       this.remember(account.id);
       this.user.set(account);
       this.loaded = Promise.resolve(account);
@@ -201,7 +192,6 @@ export class JigsawUserService {
   async backToAdmin(): Promise<string> {
     const admin = this.admin();
     if (!admin) return '';
-    this.keepAdmin(null);
     this.emptyFinder();
     return this.selectById(admin.id);
   }
@@ -212,6 +202,7 @@ export class JigsawUserService {
       const user = await firstValueFrom(this.http.put<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-levels/${encodeURIComponent(id)}`, { level }));
       if (user.id === this.user()?.id) this.user.set(user); // an admin who changes their own level is told at once
       void this.readNoAdmin(); // the first admin may have been made
+      void this.auth.loadLinked(); // the levels of the accounts of this login: a login that has just become an admin's is one at once
       return { user };
     } catch (err) {
       return { error: reasonOf(err) };
@@ -260,7 +251,7 @@ export class JigsawUserService {
    * Changes the user who plays: only what is given (an e-mail address that is null is taken away; the address is private and is never read back). The reason when it could
    * not be changed (the user name is taken, a field is not allowed).
    */
-  async update(change: { name?: string; username?: string; language?: string; search?: JigsawSetup; picture?: string | null }): Promise<string> {
+  async update(change: { name?: string; username?: string; language?: string; search?: JigsawSetup; listFilter?: JigsawFilter; picture?: string | null }): Promise<string> {
     const me = this.user();
     if (!me) return tr('jigsawUser.chooseFirst', 'Choose an account first.');
     try {
@@ -285,6 +276,11 @@ export class JigsawUserService {
     if (this.user()) await this.update({ search });
   }
 
+  /** What the app's picture list is filtered by is kept with the user, so it is the same on every device. Nothing is kept for nobody; a failure is not told (the device keeps it). */
+  async saveListFilter(listFilter: JigsawFilter): Promise<void> {
+    if (this.user()) await this.update({ listFilter });
+  }
+
   /** Deletes a user for good; the server only does it when nothing is attached to it (no jigsaws, no rounds played, no other login), and says why when not. Lets the user go when it was the one playing. */
   async remove(id: string): Promise<void> {
     await firstValueFrom(this.http.delete(this.url(id)));
@@ -293,7 +289,6 @@ export class JigsawUserService {
 
   /** Stops playing as this user (the user stays in the database). */
   leave(): void {
-    this.keepAdmin(null);
     this.emptyFinder();
     this.remember(null);
     this.user.set(null);
@@ -310,7 +305,6 @@ export class JigsawUserService {
 
   private choose(user: JigsawUserSpec): void {
     if (this.user()?.id !== user.id) this.emptyFinder();
-    this.keepAdmin(null); // an account that is chosen is used with its own login
     this.remember(user.id);
     // the account was chosen: the lists put it first the next time (a failure is not worth telling the person about)
     void firstValueFrom(this.http.post(`${this.url(user.id)}/used`, {})).catch(() => undefined);

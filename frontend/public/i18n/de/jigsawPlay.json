@@ -30,5 +30,7 @@
   "cheatHelp": "(hilft beim Finden der Teile)",
   "couldNotDelete": "Die Runde konnte nicht gelöscht werden: Versuch es noch einmal.",
   "couldNotStart": "Die Runde konnte nicht zurückgesetzt werden: versuche es noch einmal.",
-  "openJigsaw": "Seite des Puzzles öffnen"
+  "openJigsaw": "Seite des Puzzles öffnen",
+  "finishedTitle": "Geschafft!",
+  "finishedTime": "Zeit: {{ time }}"
 }

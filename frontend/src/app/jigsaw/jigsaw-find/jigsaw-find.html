@@ -7,8 +7,6 @@
       <span class="spinner-border spinner-border-sm text-primary" [class.invisible]="!slow()" [attr.aria-hidden]="!slow()" role="status"><span class="visually-hidden">{{ t('jigsawList.loading') || 'Fetching the jigsaws…' }}</span></span>
     </div>
     <div class="d-flex gap-2">
-      <!-- Reset all: a button that can be seen, there as soon as something is chosen -->
-      <button type="button" class="btn btn-outline-danger" [disabled]="!chosen()" (click)="resetAll()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.resetAll') || 'Reset all' }}</button>
       <button type="button" class="btn btn-primary" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button>
     </div>
   </div>
@@ -16,16 +14,6 @@
   <div class="card card-body">
     <app-view-switch [(view)]="view" idPrefix="find-view" />
     <app-jigsaw-filter [(filter)]="filter" [facets]="facets()" idPrefix="find" />
-    <!-- how many jigsaws match what is chosen, counted at each choice; none: it is said, and Go waits -->
-    <div class="my-2" role="status">
-      @if (count() === 0) {
-        <span class="text-danger">{{ t('jigsawList.noneToList') || 'No jigsaws to list. Try other choices.' }}</span>
-      } @else if (count() !== null) {
-        <span class="text-body-secondary">{{ (count() === 1 ? t('jigsawList.matchOne', { count: count() }) : t('jigsawList.matchMany', { count: count() })) || count() + (count() === 1 ? ' jigsaw matches' : ' jigsaws match') }}</span>
-      } @else {
-        <span class="text-body-secondary">&nbsp;</span>
-      }
-    </div>
-    <div class="mb-3 d-flex flex-wrap gap-2"><button type="button" class="btn btn-primary" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button><button type="button" class="btn btn-outline-danger" [disabled]="!chosen()" (click)="resetAll()"><i class="bi bi-x-circle" aria-hidden="true"></i>{{ t('jigsawList.resetAll') || 'Reset all' }}</button></div>
+    <div class="mb-3 d-flex flex-wrap gap-2"><button type="button" class="btn btn-primary" [disabled]="count() === 0" (click)="go()"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawList.go') || 'Go' }}</button></div>
   </div>
 </main>

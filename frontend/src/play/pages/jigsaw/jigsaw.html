@@ -1,0 +1,47 @@
+<ng-container *transloco="let t">
+  @switch (opened()) {
+    @case ('opening') {
+      <main class="container-fluid page-margin text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
+    }
+    @case ('logon') {
+      <main class="container-fluid page-margin page-max">
+        <div class="text-center py-5 px-3 my-3 rounded-3 border bg-body bg-opacity-75 shadow-sm" role="status">
+          <i class="bi bi-person-circle icon-xl d-block mb-2 text-primary" aria-hidden="true"></i>
+          <div class="subsection-title">{{ t('play.puzzelLogon') || 'Log on to put the puzzle together.' }}</div>
+          <a class="btn btn-primary mt-3" routerLink="/play/account">{{ t('play.logon') || 'Logon' }}</a>
+        </div>
+      </main>
+    }
+    @default {
+      @switch (round.status()) {
+        @case ('loading') {
+          <main class="container-fluid page-margin text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
+        }
+        @case ('missing') {
+          <main class="container-fluid page-margin">
+            <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
+          </main>
+        }
+        @case ('failed') {
+          <main class="container-fluid page-margin">
+            <div class="alert alert-danger" role="alert">{{ t('jigsawPlay.couldNotOpen') || 'Could not open the jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
+          </main>
+        }
+        @case ('ready') {
+          <!-- the puzzle fills the screen and does not scroll: the details beside the board on a wide screen, and over the board on a small one (the same frame as the website's round); the switch Details of the menu of the helper shows them and hides them -->
+          <div class="jigsaw-play" [class.show-areas]="round.debug()">
+            <app-puzzel-banner />
+            <div class="jigsaw-side" [class.d-none]="!view.details()">
+              <aside class="jigsaw-sidebar p-3" [class.is-open]="view.details()" [attr.aria-label]="t('play.puzzelDetails') || 'Details'">
+                <app-puzzel-details [inApp]="true" (deleted)="onDeleted()" (own)="onOwn($event)" />
+              </aside>
+            </div>
+            <div class="jigsaw-main">
+              <app-puzzel-board />
+            </div>
+          </div>
+        }
+      }
+    }
+  }
+</ng-container>

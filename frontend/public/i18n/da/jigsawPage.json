@@ -37,7 +37,7 @@
   "couldNotResetRounds": "Kunne ikke slette runderne: kun ejeren kan.",
   "youSolvedIt": "Du har løst dette puslespil",
   "roundProtected": "Låst: startet med et login på kontoen",
-  "startTitle": "Vælg brikker og sværhedsgrad",
+  "startTitle": "Vælg brikker og sværhedsgrad til at lægge puslespillet",
   "startPieces": "Brikker",
   "startGo": "Start runden",
   "startSolved": "løst",

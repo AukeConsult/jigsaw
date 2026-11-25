@@ -106,8 +106,8 @@
   @if (!items().length && !loading() && !failed()) {
     <!-- nothing to show: a soft panel in the middle with an icon, like the empty list of pictures -->
     <div class="text-center py-5 px-3 my-3 rounded-3 border bg-body bg-opacity-75 shadow-sm" role="status">
-      <i class="bi bi-puzzle display-4 d-block mb-2 text-primary" aria-hidden="true"></i>
-      <div class="fs-5 fw-semibold">{{ t('jigsawList.roundsNone') || 'No round has been played yet.' }}</div>
+      <i class="bi bi-puzzle icon-xl d-block mb-2 text-primary" aria-hidden="true"></i>
+      <div class="subsection-title">{{ t('jigsawList.roundsNone') || 'No round has been played yet.' }}</div>
       <div class="text-body-secondary">{{ t('jigsawList.roundsNoneHelp') || 'Pick a picture to start the first one.' }}</div>
     </div>
   }

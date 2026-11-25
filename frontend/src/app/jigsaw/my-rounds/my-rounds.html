@@ -3,30 +3,7 @@
     <!-- the band is Karin's welcome (for a minute after the app is opened, when no round is going; or when Welcome in the menu was pressed). On a wide screen: the jigsaws that are almost put together (one after the other), the welcome in the middle, and Karin's picture with her note under it; on a narrow one the welcome is under the jigsaws -->
     <section class="my-rounds welcome-band position-relative bg-body-tertiary border" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
       <div class="container pt-3 pb-2 pb-lg-5 px-4">
-        <div class="welcome-grid">
-          <div class="welcome-art" aria-hidden="true" [style.--welcome-art-h]="textHeight() ? textHeight() + 'px' : null">
-            @for (src of art; track src; let i = $index) {
-              <img [src]="src" alt="" [class.on]="artIndex() === i">
-            }
-          </div>
-          <div class="welcome-text" #welcomeText>
-            <h2 class="subsection-title mt-0 mb-1">{{ t('jigsawHome.welcome') || 'Welcome' }}</h2>
-            <p class="text-body-secondary mb-1">{{ t('jigsawHome.welcomeIntro') || 'Enjoy my jigsaws, play them and have fun, or use your own picture to make your own.' }}</p>
-            <!-- the first steps, for somebody who has not played yet -->
-            <!-- the three steps, as bullets with an icon each: easy to see at a glance -->
-            <ul class="list-unstyled mb-0 d-grid gap-2">
-              <li class="d-flex gap-2 align-items-start"><i class="bi bi-hand-index-thumb-fill text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('jigsawHome.step1') || 'Pick a jigsaw below and press it.' }}</span></li>
-              <li class="d-flex gap-2 align-items-start"><i class="bi bi-arrows-move text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('jigsawHome.step2') || 'Drag the pieces to where they belong.' }}</span></li>
-              <li class="d-flex gap-2 align-items-start"><i class="bi bi-plus-circle-fill text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('jigsawHome.step3') || 'Want your own? Make one from a picture:' }} <a class="link-inline fw-semibold" routerLink="/jigsaw/new">{{ t('jigsawHome.makeOwn') || 'Make a jigsaw' }}</a></span></li>
-            </ul>
-          </div>
-          <!-- news and offers: its own row under the picture and the text, from the left edge over to Karin's picture -->
-          <app-news class="welcome-news" />
-          <div class="welcome-karin">
-            <img class="welcome-photo rounded-3 shadow-sm" src="images/front.jpg" width="510" height="815" [attr.alt]="t('jigsawHome.imageAlt') || 'Karin with a colourful parasol on a fort terrace'">
-            <p class="welcome-note text-body-secondary fst-italic small mb-0 mt-1"><i class="bi bi-heart-fill text-danger" aria-hidden="true"></i> {{ t('jigsawHome.note') || 'I love making jigsaws and puzzles, and I hope you will love my system too.' }} <span class="text-nowrap">&mdash; Karin</span></p>
-          </div>
-        </div>
+        <app-welcome />
       </div>
       <!-- Hide: takes the welcome away at once (until the app is opened again, or From me in the menu is pressed). Under the text on a narrow screen, so it never lies over it; in the lower right corner on a wide one -->
       <div class="welcome-hide">
@@ -35,19 +12,21 @@
     </section>
   }
   @if (mine().length) {
-    <section class="my-rounds ongoing" [class.folded]="folded()" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
+    <section class="my-rounds ongoing" [class.folded]="folded() && !inApp()" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
       <div class="band-inner">
-        <!-- the heading is a badge on the middle of the band's top border (half over it); pressed, it folds the band to the badge and opens it again -->
+        <!-- (the app has no badge: its menu has the switch that shows the band and takes it away) the heading is a badge on the middle of the band's top border (half over it); pressed, it folds the band to the badge and opens it again -->
+        @if (!inApp()) {
         <h2 class="position-absolute top-0 start-50 translate-middle m-0 z-1">
           <button type="button" class="badge band-badge rounded-pill" [attr.aria-expanded]="!folded()" [title]="folded() ? (t('jigsawHome.showBand') || 'Show') : (t('jigsawHome.hideBand') || 'Hide')" (click)="toggleFolded()">
             {{ t('jigsawHome.continue') || 'Ongoing' }}<i class="bi ms-1" [class]="folded() ? 'bi-chevron-down' : 'bi-chevron-up'" aria-hidden="true"></i>
           </button>
         </h2>
-        @if (!folded()) {
+        }
+        @if (inApp() || !folded()) {
         <div class="position-relative">
           <div #row class="card-row" (scroll)="update()">
             @for (item of mine(); track item.game.play.id) {
-              <app-jigsaw-card [jigsaw]="item.jigsaw" [pictureOnly]="true" [route]="['/jigsaw', item.jigsaw.id, 'play', item.game.play.id]">
+              <app-jigsaw-card [jigsaw]="item.jigsaw" [pictureOnly]="true" [route]="routeOf(item.jigsaw.id, item.game.play.id)">
                 <!-- when the round was started and the time played, under the picture -->
                 <div class="tiny text-body-secondary mt-1 d-none d-lg-block">
                   <span [title]="t('jigsawHome.started') || 'Started'"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ item.game.play.startedAt | date: 'MMM d, HH:mm' }}</span>

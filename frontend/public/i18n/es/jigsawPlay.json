@@ -30,5 +30,7 @@
   "cheatHelp": "(ayuda para encontrar piezas)",
   "couldNotDelete": "No se pudo eliminar la partida: inténtalo de nuevo.",
   "couldNotStart": "No se pudo reiniciar la partida: inténtalo de nuevo.",
-  "openJigsaw": "Abrir la página del puzle"
+  "openJigsaw": "Abrir la página del puzle",
+  "finishedTitle": "¡Terminado!",
+  "finishedTime": "Tiempo: {{ time }}"
 }

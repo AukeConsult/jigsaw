@@ -2,7 +2,7 @@ import { JigsawCategories } from './category';
 import { JIGSAW_KINDS, JigsawKind, JigsawKinds } from './jigsaw-kind';
 import { JigsawLanguages, JIGSAW_LANGUAGES } from './language';
 import { JigsawMotives, MotiveLevel } from './motive';
-import { DIFFICULTIES, Difficulty, JigsawQuery, NO_OWNER, SEARCH_MAX_CATEGORIES, SEARCH_MAX_OWNERS, SEARCH_MAX_TEXT, SIZE_CLASSES, SizeClass } from './jigsaw-search';
+import { DIFFICULTIES, Difficulty, FILTER_VISIBILITIES, FilterVisibility, JigsawQuery, NO_OWNER, SEARCH_MAX_CATEGORIES, SEARCH_MAX_OWNERS, SEARCH_MAX_TEXT, SIZE_CLASSES, SizeClass } from './jigsaw-search';
 
 /** What a person has chosen to look for on a page (a filter of jigsaws): a list that is empty is "all". Each list means "any of these", and the lists together "and". The choices a page remembers, and what the search is asked. */
 export interface JigsawFilter {
@@ -20,6 +20,8 @@ export interface JigsawFilter {
   languages: string[];
   /** the users (UIDs) who made the jigsaws */
   owners: string[];
+  /** who sees them: public, private, or both (none chosen is all of them) */
+  visibilities: FilterVisibility[];
   /** only the jigsaws the user has ticked as favorites (left out when it is not) */
   favorites?: true;
   /** only the jigsaws the user has solved (left out when it is not) */
@@ -34,22 +36,22 @@ export interface JigsawSetup {
 
 /** The parts of a filter, in the order a page shows them. */
 export type JigsawFilterField = keyof JigsawFilter;
-export const JIGSAW_FILTER_FIELDS: readonly JigsawFilterField[] = ['text', 'kinds', 'categories', 'sizes', 'difficulties', 'motives', 'languages', 'owners', 'favorites', 'solved'];
+export const JIGSAW_FILTER_FIELDS: readonly JigsawFilterField[] = ['text', 'kinds', 'categories', 'sizes', 'difficulties', 'motives', 'languages', 'owners', 'visibilities', 'favorites', 'solved'];
 
 /** The lists of a filter that are chosen by ticking, with what can be ticked in each and the most that can be. */
 type TickedField = Exclude<JigsawFilterField, 'text' | 'favorites' | 'solved'>;
-const MOST: Record<TickedField, number> = { kinds: JIGSAW_KINDS.length, categories: SEARCH_MAX_CATEGORIES, sizes: SIZE_CLASSES.length, difficulties: DIFFICULTIES.length, motives: JigsawMotives.keys().length, languages: JIGSAW_LANGUAGES.length, owners: SEARCH_MAX_OWNERS };
+const MOST: Record<TickedField, number> = { kinds: JIGSAW_KINDS.length, categories: SEARCH_MAX_CATEGORIES, sizes: SIZE_CLASSES.length, difficulties: DIFFICULTIES.length, motives: JigsawMotives.keys().length, languages: JIGSAW_LANGUAGES.length, owners: SEARCH_MAX_OWNERS, visibilities: FILTER_VISIBILITIES.length };
 
 /** The rules of a filter of jigsaws: one place, so every page that has one (and its remembered choice) agrees. A filter is never changed: a choice gives a new one. */
 export class JigsawFilters {
   /** The filter that asks for everything. */
   static empty(): JigsawFilter {
-    return { text: '', kinds: [], categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [] };
+    return { text: '', kinds: [], categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [], visibilities: [] };
   }
 
   /** Whether any choice is made. */
   static isOn(filter: JigsawFilter): boolean {
-    return filter.text.trim() !== '' || filter.kinds.length > 0 || filter.categories.length > 0 || filter.sizes.length > 0 || filter.difficulties.length > 0 || filter.motives.length > 0 || filter.languages.length > 0 || filter.owners.length > 0 || filter.favorites === true || filter.solved === true;
+    return filter.text.trim() !== '' || filter.kinds.length > 0 || filter.categories.length > 0 || filter.sizes.length > 0 || filter.difficulties.length > 0 || filter.motives.length > 0 || filter.languages.length > 0 || filter.owners.length > 0 || filter.favorites === true || filter.solved === true || (filter.visibilities?.length ?? 0) > 0;
   }
 
   /** The filter with this text (the words are trimmed, and not longer than a search takes). */
@@ -73,7 +75,7 @@ export class JigsawFilters {
    */
   static toggled(filter: JigsawFilter, field: TickedField, value: string): JigsawFilter {
     if (field === 'categories') return { ...filter, categories: JigsawCategories.toggled(filter.categories, value, MOST.categories) };
-    const allowed = field === 'kinds' ? JigsawKinds.is(value) : field === 'sizes' ? SIZE_CLASSES.some((s) => s.key === value) : field === 'difficulties' ? DIFFICULTIES.some((d) => d.key === value) : field === 'motives' ? JigsawMotives.is(value) : field === 'languages' ? JigsawLanguages.is(value) : value.length > 0;
+    const allowed = field === 'kinds' ? JigsawKinds.is(value) : field === 'sizes' ? SIZE_CLASSES.some((s) => s.key === value) : field === 'difficulties' ? DIFFICULTIES.some((d) => d.key === value) : field === 'motives' ? JigsawMotives.is(value) : field === 'languages' ? JigsawLanguages.is(value) : field === 'visibilities' ? FILTER_VISIBILITIES.some((v) => v === value) : value.length > 0;
     if (!allowed) return filter;
     const now = filter[field] as string[];
     if (now.includes(value)) return { ...filter, [field]: now.filter((v) => v !== value) };
@@ -96,8 +98,32 @@ export class JigsawFilters {
       list(f.languages, MOST.languages, (k) => JigsawLanguages.is(k)) &&
       list(f.owners, MOST.owners, id) &&
       (f.favorites === undefined || f.favorites === true) &&
-      (f.solved === undefined || f.solved === true)
+      (f.solved === undefined || f.solved === true) &&
+      list(f.visibilities ?? [], MOST.visibilities, (v) => FILTER_VISIBILITIES.some((x) => x === v)) // a filter kept before it has none
     );
+  }
+
+  /** The filter as it is kept: only the known fields (a filter that was kept before the kinds or the motives had none gets them), and the two switches only when they are on. */
+  static stored(filter: JigsawFilter): JigsawFilter {
+    return { text: filter.text, kinds: filter.kinds ?? [], categories: filter.categories, sizes: filter.sizes, difficulties: filter.difficulties, motives: filter.motives ?? [], languages: filter.languages, owners: filter.owners, visibilities: filter.visibilities ?? [], ...(filter.favorites ? { favorites: true } : {}), ...(filter.solved ? { solved: true } : {}) };
+  }
+
+  /**
+   * The filter with these categories added, so what was just made is not left out of it. A filter with no category chosen looks at every category, so it is left as it is (adding one would narrow it); a category (or a
+   * sub-category) that is chosen already, or whose category is chosen on its own (all of it is meant), is not added again; one that there is no room for is left out.
+   */
+  static withCategories(filter: JigsawFilter, categories: readonly string[]): JigsawFilter {
+    if (!filter.categories.length) return filter;
+    return categories.reduce((now, key) => (JigsawFilters.isChosen(now, 'categories', key) || now.categories.some((k) => key.startsWith(`${k}/`)) || !JigsawFilters.canChoose(now, 'categories', key) ? now : JigsawFilters.toggled(now, 'categories', key)), filter);
+  }
+
+  /**
+   * The filter with this visibility added, so a picture that was just made (private to begin with) is not left out of it. Nothing is chosen: every picture is shown already, so it is left as it is (adding one would narrow it);
+   * it is chosen already: as it is.
+   */
+  static withVisibility(filter: JigsawFilter, visibility: FilterVisibility): JigsawFilter {
+    const now = filter.visibilities ?? [];
+    return !now.length || now.includes(visibility) ? filter : { ...filter, visibilities: [...now, visibility] };
   }
 
   /** Whether this is a setup as the model has it (checked when it is kept with a user, and when it is read from a device). */
@@ -117,6 +143,7 @@ export class JigsawFilters {
       ...(filter.motives.length ? { motives: filter.motives } : {}),
       ...(filter.languages.length ? { languages: filter.languages } : {}),
       ...(filter.owners.length ? { owners: filter.owners } : {}),
+      ...(filter.visibilities?.length ? { visibilities: filter.visibilities } : {}),
       ...(text ? { text } : {}),
       ...(filter.favorites ? { favorites: true as const } : {}),
       ...(filter.solved ? { solved: true as const } : {}),

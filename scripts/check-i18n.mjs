@@ -19,7 +19,7 @@ const walk = (dir) => readdirSync(dir).flatMap((n) => { const p = join(dir, n); 
 const en = load('en'); const enKeys = new Set(Object.values(en).flatMap((s) => [...s]));
 let problems = 0;
 const used = new Map();
-for (const file of walk(join(root, 'src/app')).filter((f) => /\.(ts|html)$/.test(f) && !f.endsWith('.spec.ts'))) {
+for (const file of [...walk(join(root, 'src/app')), ...walk(join(root, 'src/play'))].filter((f) => /\.(ts|html)$/.test(f) && !f.endsWith('.spec.ts'))) {
   const text = readFileSync(file, 'utf8');
   for (const m of text.matchAll(/\b(?:tx?|tr)\(\s*'([A-Za-z][\w.-]*\.[\w.-]+)'(?!\s*\+)/g)) { if (!used.has(m[1])) used.set(m[1], relative(root, file)); }
 }

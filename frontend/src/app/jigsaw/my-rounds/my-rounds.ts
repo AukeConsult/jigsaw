@@ -1,6 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, ElementRef, computed, effect, inject, output, signal, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, ElementRef, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { isBoolean, readPreference, writePreference } from '../../core/preferences';
 import { WelcomeTime } from '../../core/welcome-time';
@@ -10,15 +9,14 @@ import { Plays } from '../../models/shared/play';
 import { clockOf } from '../duration';
 import { JigsawCard } from '../jigsaw-card/jigsaw-card';
 import { JigsawService } from '../jigsaw.service';
-import { News } from '../news/news';
+import { Welcome } from '../welcome/welcome';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
-import { WELCOME_ART } from '../welcome-art';
 
-/** A band stuck to the top of the page with the user's rounds that are not solved: the picture of each (press it to go straight on with the round), and under it, in tiny text, when it was started and the time played. Scrolls sideways; shows nothing when there are no rounds. */
+/** A band stuck to the top of the page with the user's rounds that are not solved (with `inApp`, the same band in the app, with no welcome): the picture of each (press it to go straight on with the round), and under it, in tiny text, when it was started and the time played. Scrolls sideways; shows nothing when there are no rounds. */
 @Component({
   selector: 'app-my-rounds',
-  imports: [DatePipe, RouterLink, TranslocoDirective, JigsawCard, News],
+  imports: [DatePipe, TranslocoDirective, JigsawCard, Welcome],
   providers: [provideTranslocoScope('jigsawHome')],
   templateUrl: './my-rounds.html',
   host: { '(window:resize)': 'update()' },
@@ -49,14 +47,18 @@ export class MyRounds {
     this.welcomeTime.hide();
   }
 
-  protected readonly welcome = computed(() => this.welcomeTime.visible() && (this.going()?.length === 0 || this.welcomeTime.forced())); // for a minute after the app is opened; also with a round going when Welcome in the menu was pressed (`WelcomeTime`)
+  /** the app's band: only the rounds that are going (no welcome, no news, and no badge to fold it: the menu of the helper has the switch that shows the band and takes it away), and a round opens the puzzle of the app, `/play/jigsaw/:id`, where the round that is going is gone on with */
+  readonly inApp = input(false);
+
+  /** where a round opens: the page of the round in the website, or the puzzle of the app */
+  protected routeOf(jigsawId: string, playId: string): string[] {
+    return this.inApp() ? ['/play/jigsaw', jigsawId] : ['/jigsaw', jigsawId, 'play', playId];
+  }
+
+  protected readonly welcome = computed(() => !this.inApp() && this.welcomeTime.visible() && (this.going()?.length === 0 || this.welcomeTime.forced())); // for a minute after the app is opened; also with a round going when Welcome in the menu was pressed (`WelcomeTime`)
 
   /** the rounds are read (also when there are none, nobody is chosen, or they could not be read): the page waits for this before it asks for the jigsaws, so the band is there first and nothing below it jumps */
   readonly loaded = output<void>();
-
-  /** the pictures of the welcome band (jigsaws almost put together), and which one is shown: they follow each other, round and round, every few seconds */
-  protected readonly art = WELCOME_ART;
-  protected readonly artIndex = signal(0);
 
   /** the band is folded to its badge (kept on the device, so it stays as the person left it): only the heading is left, and a press on it opens the band again */
   protected readonly folded = signal(readPreference('jigsaw.roundsFolded', false, isBoolean));
@@ -68,26 +70,11 @@ export class MyRounds {
 
   protected readonly clock = clockOf;
   private readonly row = viewChild<ElementRef<HTMLElement>>('row');
-  /** the text of the welcome (the title, the line and the three steps): the pictures of the almost finished jigsaws are as high as it, so their bottom edge is the bottom edge of the last step */
-  private readonly welcomeText = viewChild<ElementRef<HTMLElement>>('welcomeText');
-  protected readonly textHeight = signal<number | null>(null);
   protected readonly canBack = signal(false);
   protected readonly canForward = signal(false);
 
   constructor() {
-    effect((onCleanup) => {
-      const el = this.welcomeText()?.nativeElement;
-      if (!el) return;
-      const watch = new ResizeObserver(() => this.textHeight.set(Math.round(el.getBoundingClientRect().height)));
-      watch.observe(el);
-      onCleanup(() => watch.disconnect());
-    });
     void this.readRounds();
-    // round robin between the pictures (not for a person who has asked for less movement)
-    if (this.art.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const timer = setInterval(() => this.artIndex.update((i) => (i + 1) % this.art.length), 5000);
-      inject(DestroyRef).onDestroy(() => clearInterval(timer));
-    }
     // the buttons are worked out again when the row is drawn or its cards change, and when the window is resized
     effect(() => {
       this.mine();

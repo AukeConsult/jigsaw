@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
@@ -54,7 +54,7 @@ export interface BatchItem {
 }
 
 /**
- * Many jigsaws at once (`/jigsaw/batch`, from the page of the user): how many pieces and how hard, then many pictures chosen from the computer at one time. Each picture is made into a
+ * Many jigsaws at once (`/jigsaw/batch`, from the page of the user; the app frames the same component at `/play/mine/many` with `inApp`, for a publisher or an admin): how many pieces and how hard, then many pictures chosen from the computer at one time. Each picture is made into a
  * jigsaw (cut to its shape and cut into pieces, `JigsawMaker`) one after the other, and the AI is asked for its categories, name and description, which are put on the jigsaw. The
  * owner is the user who plays. A picture that could not be made says why, the others go on; the AI failing leaves the jigsaw made.
  */
@@ -65,6 +65,11 @@ export interface BatchItem {
   templateUrl: './jigsaw-batch.html',
 })
 export class JigsawBatch implements OnDestroy {
+  /** the app's page frames it: a made jigsaw opens in the app's puzzle (`/play/jigsaw/:id`) and the way back is the user's pictures there */
+  readonly inApp = input(false);
+  protected readonly openRoute = (id: string): string[] => (this.inApp() ? ['/play/jigsaw', id] : ['/jigsaw', id]);
+  protected readonly picturesRoute = computed(() => (this.inApp() ? '/play/mine/pictures' : '/jigsaw/user'));
+
   private readonly maker = inject(JigsawMaker);
   private readonly jigsaws = inject(JigsawService);
   private readonly users = inject(JigsawUserService);

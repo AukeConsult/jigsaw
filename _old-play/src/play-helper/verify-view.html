@@ -1,0 +1,81 @@
+<ng-container *transloco="let t">
+  @let me = users.user();
+  @if (me) {
+    <h2 class="fs-5 d-flex align-items-center gap-2"><i class="bi bi-shield-lock" aria-hidden="true"></i>{{ t('play.verify.title') || 'Sign-ins' }}</h2>
+    @if (!auth.user()) {
+      <p class="alert alert-warning d-flex gap-2 py-2" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{{ t('play.verify.openNoLogin') || 'This account is not locked. Anyone who picks it can play with it.' }}</span></p>
+      <button type="button" class="btn btn-outline-primary" (click)="lock()"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> {{ t('play.verify.signIn') || 'Lock this account' }}</button>
+    } @else if (!me.protected) {
+      <p class="alert alert-warning d-flex gap-2 py-2 mb-3" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{{ t('play.verify.openSignedIn') || 'This account is not locked. Anyone who picks it can play with it. Lock it with your sign-in, and only your sign-ins can use it.' }}</span></p>
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <span><i class="bi bi-person-check me-1" aria-hidden="true"></i>{{ t('play.verify.signedInAs') || 'Signed in as' }} <strong class="text-break">{{ who() }}</strong></span>
+        <button type="button" class="link-action" [disabled]="busy()" (click)="signOut()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>{{ t('play.verify.signOut') || 'Sign out' }}</button>
+      </div>
+      <!-- this account is not verified for any login: verify it with the login that is signed in, or sign in with another one -->
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="protect()"><i class="bi bi-shield-check" aria-hidden="true"></i> {{ t('play.verify.protect') || 'Lock this account with my sign-in' }}</button>
+        <button type="button" class="btn btn-outline-primary" [disabled]="busy()" (click)="otherLogin()"><i class="bi bi-arrow-left-right" aria-hidden="true"></i> {{ t('play.verify.otherLogin') || 'Use another sign-in' }}</button>
+      </div>
+    } @else {
+      <p class="text-body-secondary">{{ t('play.verify.onlyThese') || 'This account is locked. Only these sign-ins can use it, one at a time.' }}</p>
+      @if (items()?.length === 1) {
+        <!-- one sign-in only: if it is lost, so is the account -->
+        <p class="form-text">{{ t('play.verify.lockoutHint') || 'Add a second sign-in, so you cannot lose this account.' }}</p>
+      }
+      @if (items() === null) {
+        <div class="text-body-secondary" role="status">{{ t('play.verify.loading') || 'Looking for the sign-ins…' }}</div>
+      } @else {
+        <ul class="list-group mb-3">
+          @for (item of items(); track item.ref) {
+            <li class="list-group-item d-flex align-items-center gap-2 flex-wrap">
+              <!-- the picture of the account, or an icon for the kind of login; then the name, with the address under it -->
+              @if (item.photoURL && !broken().has(item.ref)) {
+                <img class="rounded-circle object-fit-cover flex-shrink-0" [src]="item.photoURL" width="32" height="32" alt="" referrerpolicy="no-referrer" (error)="lacksPicture(item.ref)">
+              } @else {
+                <i class="bi icon-md text-primary flex-shrink-0" [class]="iconOf(item.provider)" aria-hidden="true"></i>
+              }
+              <span class="flex-grow-1 min-w-0">
+                <strong class="d-block text-break">{{ item.name || item.email || item.phone || (t('play.verify.unknown') || 'Unknown sign-in') }}</strong>
+                @if (item.name && (item.email || item.phone)) {
+                  <span class="d-block small text-body-secondary text-break">{{ item.email || item.phone }}</span>
+                }
+              </span>
+              @if (item.you) {
+                <span class="badge text-bg-primary">{{ t('play.verify.you') || 'This sign-in' }}</span>
+              }
+              @if (confirming() === item.ref) {
+                @if (items()!.length === 1) {
+                  <span class="small text-body-secondary w-100">{{ t('play.verify.lastWarning') || 'This is the last sign-in. The account will be open to anyone again.' }}</span>
+                }
+                <span class="toolbar">
+                  <button type="button" class="link-action danger" [disabled]="busy()" (click)="remove(item.ref)">{{ t('play.verify.confirmRemove') || 'Yes, remove' }}</button>
+                  <button type="button" class="link-action" (click)="confirming.set(null)">{{ t('play.verify.cancel') || 'Cancel' }}</button>
+                </span>
+              } @else {
+                <button type="button" class="link-action danger" (click)="confirming.set(item.ref)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('play.verify.remove') || 'Remove' }}</button>
+              }
+            </li>
+          }
+        </ul>
+        @if (items()!.length >= max()) {
+          <p class="form-text">{{ t('play.verify.atMost', { max: max() }) || 'At most ' + max() + ' sign-ins.' }}</p>
+        } @else {
+          <button type="button" class="btn btn-outline-primary" [disabled]="busy()" (click)="makeCode()"><i class="bi bi-plus-lg" aria-hidden="true"></i> {{ t('play.verify.addAnother') || 'Add another sign-in' }}</button>
+        }
+      }
+      @if (code(); as c) {
+        <div class="alert alert-info mt-3 mb-0" role="status">
+          <p class="mb-2">{{ t('play.verify.codeIntro', { username: me.username }) || 'With the other sign-in, open this page and type the alias ' + me.username + ' and this code:' }}</p>
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <strong class="font-monospace user-select-all">{{ c.code }}</strong>
+            <button type="button" class="link-action" (click)="copy()"><i class="bi" [class.bi-clipboard]="!copied()" [class.bi-clipboard-check]="copied()" aria-hidden="true"></i>{{ copied() ? (t('play.verify.copied') || 'Copied') : (t('play.verify.copy') || 'Copy') }}</button>
+          </div>
+          <p class="form-text mb-0 mt-2">{{ t('play.verify.codeValid', { minutes: minutes }) || 'It works once, for ' + minutes + ' minutes.' }}</p>
+        </div>
+      }
+    }
+    @if (error()) {
+      <div class="alert alert-warning py-2 small mt-3" role="alert">{{ error() }}</div>
+    }
+  }
+</ng-container>

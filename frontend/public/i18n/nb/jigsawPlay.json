@@ -30,5 +30,7 @@
   "cheatHelp": "(hjelp til å finne brikker)",
   "couldNotDelete": "Kunne ikke slette runden: prøv igjen.",
   "couldNotStart": "Kunne ikke nullstille runden: prøv igjen.",
-  "openJigsaw": "Åpne siden til puslespillet"
+  "openJigsaw": "Åpne siden til puslespillet",
+  "finishedTitle": "Ferdig!",
+  "finishedTime": "Tid: {{ time }}"
 }

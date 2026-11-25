@@ -12,6 +12,7 @@ import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
 import { PlaysService } from '../plays.service';
+import { SIZE_PRESETS } from '../size-presets';
 import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../snap-level';
 import { JigsawExample } from '../jigsaw-example/jigsaw-example';
 import { CategoryPicker } from '../category-picker/category-picker';
@@ -96,15 +97,7 @@ export class JigsawNew implements OnDestroy {
   readonly loading = signal(!!this.editId);
 
   /** the standard shapes to choose from (the picture area is then made a whole number of pieces wide and high, which can differ a little) */
-  readonly sizePresets = [
-    { key: 'standard', label: 'Standard 4:3 (800 × 600)', width: 800, height: 600 },
-    { key: 'photo', label: 'Photo 3:2 (900 × 600)', width: 900, height: 600 },
-    { key: 'wide', label: 'Wide 16:9 (960 × 540)', width: 960, height: 540 },
-    { key: 'square', label: 'Square 1:1 (700 × 700)', width: 700, height: 700 },
-    { key: 'portrait', label: 'Portrait 3:4 (600 × 800)', width: 600, height: 800 },
-    { key: 'panorama', label: 'Panorama 3:1 (1200 × 400)', width: 1200, height: 400 },
-    { key: 'large', label: 'Large 4:3 (1200 × 900)', width: 1200, height: 900 },
-  ] as const;
+  readonly sizePresets = SIZE_PRESETS;
   /** the size as the person asked for it (the picture area itself is made a whole number of pieces wide and high, which can differ a little) */
   private readonly asked = signal({ width: 800, height: 600 });
   /** the standard numbers of pieces to choose from: whole columns and rows in the shape of the picture area (see `JigsawCut.pieceChoices`) */

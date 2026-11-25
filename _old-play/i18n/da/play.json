@@ -1,0 +1,26 @@
+{
+  "jigsaws": "Billeder",
+  "loading": "Henter billederne …",
+  "loadFailed": "Kunne ikke indlæse billederne.",
+  "more": "Vis flere",
+  "none": "Intet billede endnu.",
+  "playName": "Vis {{ name }}",
+  "play": "Vis billedet",
+  "solvedByYou": "Du har løst denne",
+  "addFavorite": "Føj til favoritter",
+  "removeFavorite": "Fjern fra favoritter",
+  "timed": "Tidtagning",
+  "hiddenNote": "Skjult: kun i listen over dine billeder",
+  "onlyYou": "Kun du ser det",
+  "piecesShort": "{{ count }} brikker",
+  "difficulty": "Sværhedsgrad",
+  "choosePieces": "Vælg brikker",
+  "choosePiecesTitle": "Antal brikker og sværhedsgrad vælges, når du starter en runde",
+  "snap": {
+    "hard": "Svær",
+    "medium": "Middel",
+    "easy": "Let"
+  },
+  "helper": "Hjælper",
+  "helperMain": "Dette er hjælperen på hovedsiden. Den er kun en prøve indtil videre."
+}

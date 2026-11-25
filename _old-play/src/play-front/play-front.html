@@ -1,0 +1,8 @@
+<main class="container-fluid page-margin" *transloco="let t">
+  <!-- all the jigsaws, the newest first -->
+  <section class="mb-4" [attr.aria-label]="t('play.jigsaws') || 'Jigsaws'">
+    <!-- everybody knows these are jigsaws: the heading is only for a screen reader -->
+    <h2 class="visually-hidden">{{ t('play.jigsaws') || 'Jigsaws' }}</h2>
+    <play-cards />
+  </section>
+</main>

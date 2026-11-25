@@ -75,12 +75,14 @@
   "roundsWhoseAllTitle": "Alles runder",
   "roundsWhoseMineTitle": "Bare mine runder",
   "roundsWhoseOthersTitle": "Bare de andres runder",
-  "resetAll": "Nullstill alt",
   "detailsIn": "Vis detaljer i bildevisningen",
   "viewHelp": "Slik vises bildene: som kort eller liste, med eller uten detaljer.",
   "choosePieces": "Velg brikker",
   "choosePiecesTitle": "Antall brikker og vanskelighetsgrad velges når du starter en runde",
   "noneMatchTitle": "Ingen bilder passer",
   "noneMatchHelp": "Prøv andre valg.",
-  "roundsNoneHelp": "Velg et bilde for å starte den første."
+  "roundsNoneHelp": "Velg et bilde for å starte den første.",
+  "private": "Privat",
+  "access": "Offentlig eller privat",
+  "public": "Offentlig"
 }

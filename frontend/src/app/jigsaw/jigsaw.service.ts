@@ -19,6 +19,7 @@ export interface JigsawSearchRequest {
   owners?: string[] | null;
   favorites?: true | null;
   solved?: true | null;
+  visibilities?: string[] | null;
   text?: string | null;
   sort?: SearchSort;
   limit?: number;

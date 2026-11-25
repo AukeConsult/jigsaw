@@ -1,0 +1,26 @@
+{
+  "jigsaws": "Afbeeldingen",
+  "loading": "De afbeeldingen worden opgehaald …",
+  "loadFailed": "De afbeeldingen konden niet worden geladen.",
+  "more": "Meer tonen",
+  "none": "Nog geen afbeelding.",
+  "playName": "{{ name }} tonen",
+  "play": "Afbeelding tonen",
+  "solvedByYou": "Je hebt deze opgelost",
+  "addFavorite": "Aan favorieten toevoegen",
+  "removeFavorite": "Uit favorieten verwijderen",
+  "timed": "Met tijdmeting",
+  "hiddenNote": "Verborgen: alleen in je lijst met afbeeldingen",
+  "onlyYou": "Alleen jij ziet hem",
+  "piecesShort": "{{ count }} stukjes",
+  "difficulty": "Moeilijkheid",
+  "choosePieces": "Kies stukjes",
+  "choosePiecesTitle": "Het aantal stukjes en de moeilijkheid kies je als je een ronde start",
+  "snap": {
+    "hard": "Moeilijk",
+    "medium": "Middel",
+    "easy": "Makkelijk"
+  },
+  "helper": "Helper",
+  "helperMain": "Dit is de helper van de hoofdpagina. Hij is voorlopig alleen een voorbeeld."
+}

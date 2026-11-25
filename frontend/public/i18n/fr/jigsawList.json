@@ -75,12 +75,14 @@
   "roundsWhoseAllTitle": "Les parties de tous",
   "roundsWhoseMineTitle": "Seulement mes parties",
   "roundsWhoseOthersTitle": "Seulement les parties des autres",
-  "resetAll": "Tout réinitialiser",
   "detailsIn": "Afficher les détails dans la vue des images",
   "viewHelp": "Affichage des images : en cartes ou en liste, avec ou sans détails.",
   "choosePieces": "Choisir les pièces",
   "choosePiecesTitle": "Le nombre de pièces et la difficulté se choisissent au début d’une manche",
   "noneMatchTitle": "Aucune image ne correspond",
   "noneMatchHelp": "Essayez d'autres choix.",
-  "roundsNoneHelp": "Choisissez une image pour commencer la première."
+  "roundsNoneHelp": "Choisissez une image pour commencer la première.",
+  "private": "Privé",
+  "access": "Public ou privé",
+  "public": "Public"
 }

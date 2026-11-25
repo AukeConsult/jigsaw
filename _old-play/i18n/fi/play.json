@@ -1,0 +1,26 @@
+{
+  "jigsaws": "Kuvat",
+  "loading": "Haetaan kuvia …",
+  "loadFailed": "Kuvia ei voitu ladata.",
+  "more": "Näytä lisää",
+  "none": "Ei vielä yhtään kuvaa.",
+  "playName": "Näytä {{ name }}",
+  "play": "Näytä kuva",
+  "solvedByYou": "Olet ratkaissut tämän",
+  "addFavorite": "Lisää suosikkeihin",
+  "removeFavorite": "Poista suosikeista",
+  "timed": "Ajastettu",
+  "hiddenNote": "Piilotettu: vain omien kuvien listalla",
+  "onlyYou": "Vain sinä näet sen",
+  "piecesShort": "{{ count }} palaa",
+  "difficulty": "Vaikeustaso",
+  "choosePieces": "Valitse palat",
+  "choosePiecesTitle": "Palojen määrä ja vaikeustaso valitaan kierrosta aloitettaessa",
+  "snap": {
+    "hard": "Vaikea",
+    "medium": "Keskitaso",
+    "easy": "Helppo"
+  },
+  "helper": "Apuri",
+  "helperMain": "Tämä on pääsivun apuri. Se on toistaiseksi vain esimerkki."
+}

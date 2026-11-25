@@ -3,7 +3,7 @@
   <div class="round-body">
     <div class="round-info">
       <!-- pressing anywhere on the row (but Delete) goes on with the round, or looks at it: the link covers the row -->
-      <a class="stretched-link" tabindex="-1" aria-hidden="true" [routerLink]="['/jigsaw', jigsawId(), 'play', g.id]"></a>
+      <a class="stretched-link" tabindex="-1" aria-hidden="true" [routerLink]="link()" [queryParams]="query()"></a>
       <div class="d-flex align-items-center gap-1 flex-wrap">
         @if (mine()) {
           <span class="badge text-bg-dark"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.yours') || 'Yours' }}</span>
@@ -26,7 +26,7 @@
         <button type="button" class="link-action danger" (click)="confirming.set(false); remove.emit()">{{ t('jigsawPage.yesDelete') || 'Yes, delete' }}</button>
         <button type="button" class="link-action" (click)="confirming.set(false)">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
       } @else {
-        <a class="link-action text-nowrap" [routerLink]="['/jigsaw', jigsawId(), 'play', g.id]" [title]="mine() && g.status !== 'solved' ? (t('jigsawPage.continue') || 'Continue') : (t('jigsawPage.look') || 'Look')">
+        <a class="link-action text-nowrap" [routerLink]="link()" [queryParams]="query()" [title]="mine() && g.status !== 'solved' ? (t('jigsawPage.continue') || 'Continue') : (t('jigsawPage.look') || 'Look')">
           <i class="bi" [class.bi-play-fill]="mine() && g.status !== 'solved'" [class.bi-eye]="!mine() || g.status === 'solved'" aria-hidden="true"></i><span class="round-action-text">@if (mine() && g.status !== 'solved') { {{ t('jigsawPage.continue') || 'Continue' }} } @else { {{ t('jigsawPage.look') || 'Look' }} }</span>
         </a>
         @if (mine()) {

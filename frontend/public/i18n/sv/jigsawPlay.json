@@ -30,5 +30,7 @@
   "cheatHelp": "(hjälp att hitta bitar)",
   "couldNotDelete": "Kunde inte ta bort omgången: försök igen.",
   "couldNotStart": "Kunde inte nollställa omgången: försök igen.",
-  "openJigsaw": "Öppna pusslets sida"
+  "openJigsaw": "Öppna pusslets sida",
+  "finishedTitle": "Klart!",
+  "finishedTime": "Tid: {{ time }}"
 }

@@ -1,4 +1,4 @@
-import { JigsawFilters, JigsawSetup } from './jigsaw-filter';
+import { JigsawFilter, JigsawFilters, JigsawSetup } from './jigsaw-filter';
 import { DEFAULT_LANGUAGE, JigsawLanguages } from './language';
 import { UserLevel, UserLevels } from './user-level';
 
@@ -26,6 +26,8 @@ export interface JigsawUserSpec {
   language: string;
   /** how the user looks for jigsaws (the Find page: cards or list, and the filter), kept when Go is pressed, so it is the same on every device; none until Go has been pressed */
   search?: JigsawSetup;
+  /** what the app's picture list is filtered by (the preferences of the app), kept with the user so it is the same on every device; none until the user has chosen something */
+  listFilter?: JigsawFilter;
   /** milliseconds since 1970 */
   createdAt: number;
   /** when somebody last chose to play as this account (milliseconds since 1970): the accounts are listed with the one used last first; an account never chosen since this was kept has none */
@@ -133,9 +135,9 @@ export class JigsawUsers {
    * What a change of a user is, from a request: only the fields that are there are changed; an empty e-mail address (or null) takes the address away. The change as it is
    * to be made, or the reason it is not allowed.
    */
-  static change(input: { name?: unknown; username?: unknown; language?: unknown; search?: unknown; picture?: unknown } | null | undefined): { change: { name?: string; username?: string; language?: string; search?: JigsawSetup; picture?: string | null } } | { error: string } {
+  static change(input: { name?: unknown; username?: unknown; language?: unknown; search?: unknown; listFilter?: unknown; picture?: unknown } | null | undefined): { change: { name?: string; username?: string; language?: string; search?: JigsawSetup; listFilter?: JigsawFilter; picture?: string | null } } | { error: string } {
     const body = input ?? {};
-    const change: { name?: string; username?: string; language?: string; search?: JigsawSetup; picture?: string | null } = {};
+    const change: { name?: string; username?: string; language?: string; search?: JigsawSetup; listFilter?: JigsawFilter; picture?: string | null } = {};
     if (body.picture !== undefined) {
       const error = JigsawUsers.pictureError(body.picture);
       if (error) return { error };
@@ -159,7 +161,11 @@ export class JigsawUsers {
       if (!JigsawFilters.isSetup(body.search)) return { error: 'The search is not one the Find page makes.' };
       change.search = { view: body.search.view, filter: body.search.filter };
     }
-    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture or the search.' };
+    if (body.listFilter !== undefined) {
+      if (!JigsawFilters.is(body.listFilter)) return { error: 'The filter of the list is not one the preferences make.' };
+      change.listFilter = JigsawFilters.stored(body.listFilter);
+    }
+    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture, the search or the filter of the list.' };
   }
 
   /** The order of the accounts in a list: the one used last first; those never used after those that were, newest made first; then by name. */
@@ -217,6 +223,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.isSetup(doc.search) ? { search: doc.search } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
+    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.isSetup(doc.search) ? { search: doc.search } : {}), ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
   }
 }

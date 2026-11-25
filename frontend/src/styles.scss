@@ -14,7 +14,7 @@ $bp-lg: 992px;
 $bp-xl: 1200px;
 // the soft colour pattern behind the pages: little puzzle pieces in the colours of the logo on a quiet wash (the frames of lists and of work, the cards and the forms, keep their own plain background)
 $soft-pattern: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><g fill-opacity='.11'><path transform='translate(10 14) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%230d6efd'/><path transform='translate(96 22) rotate(28) scale(.42)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%2320c997'/><path transform='translate(40 96) rotate(-18) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%23198754'/><path transform='translate(112 100) rotate(75) scale(.4)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%23fd7e14'/></g></svg>"), linear-gradient(120deg, rgba(13, 110, 253, 0.07), rgba(32, 201, 151, 0.08) 55%, rgba(253, 126, 20, 0.07));
-$soft-pattern-size: 150px 150px, auto;
+$soft-pattern-size: 9.375rem 9.375rem, auto; // 150 px at the normal text size
 // the same little pieces, in white (for a band with a tinted wash under it)
 $white-pieces: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><g fill-opacity='.85'><path transform='translate(10 14) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(96 22) rotate(28) scale(.42)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(40 96) rotate(-18) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(112 100) rotate(75) scale(.4)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/></g></svg>");
 // the front page puts the text beside the photo from this width (Bootstrap has no breakpoint here, so the page has its own classes below)
@@ -68,9 +68,9 @@ $fluid-to: 87.5; // 1400px in rem
   --app-fs-heading: #{fluid(1.125, 1.5)}; // a part of a page (h2, h3 and under), the line under a title, the name in the header, an icon beside a heading
   --app-fs-text: #{fluid(1, 1.125)}; // the text, what is typed in the fields, and the main button (not under 1rem: a smaller field makes a phone zoom in)
   --app-fs-small: #{fluid(0.8125, 0.9375)}; // labels and the help under a field, notes, the text of every button
-  --app-fs-compact: #{fluid(0.6875, 0.9375)}; // not one of the five: the name on a card, smaller than `small` on a phone (11 px) and the same as it on a wide screen (class `.card-name`)
+  --app-fs-compact: #{fluid(0.75, 0.9375)}; // not one of the five: the name on a card, smaller than `small` on a phone (12 px) and the same as it on a wide screen (class `.card-name`)
   --app-fs-band: #{fluid(0.8125, 1.125)}; // not one of the five: the heading badge of a band (Ongoing): from the size of `small` on a phone to 18 px on a wide screen, so it follows the screen
-  --app-fs-tiny: #{fluid(0.5625, 0.58)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`)
+  --app-fs-tiny: #{fluid(0.6875, 0.8125)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`): 11 px on a phone, 13 px on a big screen
   // the buttons: the text of every button is `--app-fs-small` (the main one `--app-fs-text`); what makes them three sizes is the room round the text, in em, so it
   // follows the text size and a button keeps its shape whatever size the text has
   --app-btn-pad-y: 0.4em;
@@ -136,6 +136,7 @@ $fluid-to: 87.5; // 1400px in rem
 
   // sizes
   --app-sidebar-width: 17rem;
+  --app-page-max: 75rem; // the widest a page gets (1200 px at the normal text size), in the middle: the same for every page of the app
   --app-form-width: 40rem;
   // who sees a jigsaw, as a soft see-through background of its row: hidden grey, private blue, public green
   --app-vis-hidden-bg: rgba(108, 117, 125, 0.14);
@@ -143,7 +144,7 @@ $fluid-to: 87.5; // 1400px in rem
   --app-vis-public-bg: rgba(25, 135, 84, 0.1);
   --app-form-width-wide: 56rem; // a form page with lists in it (the page of the user)
   --app-list-width: 48rem;
-  --app-grip-size: 28px; // the corner that sizes the helper picture
+  --app-grip-size: 1.75rem; // the corner that sizes the helper picture
   --app-tile-gap: 0.25rem;
   --app-navbar-height: 3.5rem; // the menu at the top of a wide screen: what a band stuck under it leaves room for
 
@@ -160,6 +161,7 @@ $fluid-to: 87.5; // 1400px in rem
   --app-z-overlay: 1000; // a menu or a popup that opens from a bar, over the play
   --app-z-sidebar: 1010; // the sidebar a small screen opens over the board
   --app-z-helper: 1040;
+  --app-z-play-frame: 1100; // the frame of the app (`.play-frame`) that lies over the page and shows the helper: the highest layer, over the dialogs (1060) and Bootstrap's toasts (1090) too
   --app-z-dialog: 1060;
 
   // a scale from easy to hard (the pieces and the difficulty of a round, `.btn-scale`): the colour of the easiest and of the hardest, the ones between are mixed
@@ -193,7 +195,7 @@ $fluid-to: 87.5; // 1400px in rem
     --app-btn-sm-pad-y: 0.5em;
     --app-btn-pad-y: 0.6em;
     --app-btn-main-pad-y: 0.7em;
-    --app-grip-size: 28px;
+    --app-grip-size: 1.75rem;
   }
 }
 
@@ -344,7 +346,7 @@ small,
 // the Find page is at most 1200 px wide and in the middle, so the choices are not spread over a wide screen
 .find-page,
 .page-max {
-  max-width: 1200px; // a page does not stretch over a very wide screen: it stays in the middle
+  max-width: var(--app-page-max); // a page does not stretch over a very wide screen: it stays in the middle
   margin-inline: auto;
 }
 
@@ -384,6 +386,134 @@ small,
   --bs-btn-active-bg: rgba(var(--bs-emphasis-color-rgb), 0.85);
   --bs-btn-border-width: 0;
   line-height: 1;
+}
+
+.play-helper {
+  // the menu follows the screen like the text does: the text is the normal size (`.menu-style`) and the room round it is in `em` of it (the first row too: the logo and the arrow), so every entry keeps its shape at every size
+  .list-group {
+    --bs-list-group-item-padding-y: 0.5em;
+    --bs-list-group-item-padding-x: 1em;
+  }
+
+  .brand-item {
+    padding-block: 0.5em;
+    padding-inline: 1em 0;
+    // the header of the menu has the look of the welcome band: little white puzzle pieces on a light wash in the colours of the logo, so it is seen over any picture
+    background-image: $white-pieces, linear-gradient(120deg, #dbe9ff, #d9f5ec 55%, #fff1cc);
+    background-size: 9.375rem 9.375rem, auto;
+    border-bottom-color: color-mix(in srgb, var(--app-primary) 30%, transparent);
+  }
+
+  // the two little buttons at the right end of the first row (the arrow into the corner, and the arrow that folds the menu): close together, both the same
+  .brand-fold {
+    padding-block: 0;
+    padding-inline: 0.5em;
+  }
+
+  .brand-fold:last-child {
+    padding-right: 0.6em;
+  }
+
+  // a helper (`Helper`, the class every helper extends) in the frame: in the bottom right corner until it is dragged; the press of a finger drags it, the page does not scroll
+  position: absolute;
+  right: 1rem;
+  bottom: calc(1rem + 1.75 * var(--app-fs-title) + 0.5rem); // just above the Info button (`.play-info-button`, 1.75 title sizes high) in the same corner
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  &.dragging {
+    cursor: grabbing;
+  }
+
+  .brand-row {
+    cursor: pointer; // the rest of the first row, beside the logo, opens and folds the menu
+  }
+}
+
+// The main page of the app is the one thing that scrolls: the window itself never does (see `html, body` below), so `play-main` fills the screen and scrolls, with the page that is open in it, and every page of the app can be longer than the screen.
+// The frame that shows the helper is fixed over it, so the helper stays where it is when the page scrolls.
+// The puzzle page is the exception: it does not scroll, it is as big as the screen (`play-jigsaw`), and the board fills what the details leave.
+play-main {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+
+  // the same soft pattern behind the pages as the website has (`app-jigsaw-shell`): the pages have it behind their frames; the puzzle is a working frame and has none
+  background-image: $soft-pattern;
+  background-size: $soft-pattern-size;
+
+  &:has(play-jigsaw) {
+    overflow-y: hidden;
+    background-image: none;
+  }
+}
+
+play-jigsaw {
+  display: block;
+  height: 100dvh;
+}
+
+// the band on top of a puzzle that is finished lies over the top of the puzzle (the board is not moved by it), over the play
+app-puzzel-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--app-z-overlay);
+}
+
+play-jigsaw .jigsaw-play {
+  height: 100%;
+}
+
+@include from($bp-xl) {
+  play-jigsaw .jigsaw-sidebar {
+    height: 100%; // the details beside the board are as high as the screen and scroll in themselves
+  }
+}
+
+.play-frame {
+  // the frame of the app: it covers the page, over everything on it, takes no clicks itself (only what it shows does) and shows the helper
+  position: fixed;
+  inset: 0;
+  z-index: var(--app-z-play-frame);
+  pointer-events: none;
+  > * {
+    pointer-events: auto;
+  }
+}
+
+.play-info-button {
+  // the Info button in the bottom right corner of the frame of the app: a round button over the page, sized from the title size (`em`), so it follows the screen like the text does
+  font-size: var(--app-fs-title);
+  width: 1.75em;
+  height: 1.75em;
+  // see-through, with a thicker border (it stays see-through when the pointer is over it, only the border and the icon are seen)
+  --bs-btn-border-width: 0.125rem;
+  --bs-btn-bg: transparent;
+  --bs-btn-hover-bg: transparent;
+  --bs-btn-active-bg: transparent;
+  // white, with a thin dark line on both sides of the border and a dark glow on the icon, so it is seen over a light picture and over a dark one
+  --bs-btn-color: var(--bs-white);
+  --bs-btn-border-color: var(--bs-white);
+  --bs-btn-hover-color: var(--bs-white);
+  --bs-btn-hover-border-color: var(--bs-white);
+  --bs-btn-active-color: var(--bs-white);
+  --bs-btn-active-border-color: var(--bs-white);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 0 0.08em #000, 0 0 0.08em #000, 0 0 0.16em #000; // a dark outline round the white icon
+  backdrop-filter: blur(1px) brightness(0.85); // a little darker and softer behind it, still see-through
+}
+
+// the form of a picture is the page: the card round its header (the picture, the name) has no outer border, as the other forms of the app have none (`.form-card`)
+play-picture-form app-jigsaw-header > .card {
+  --bs-card-border-width: 0;
+}
+
+.guide-full .guide {
+  max-width: none; // the app's info pages use the whole width of their page (`.page-max`)
 }
 
 .input-px {
@@ -1076,7 +1206,7 @@ app-my-rounds {
   border: 1px solid transparent;
   // inside: white pieces over a light tint of the border's colours (a solid wash, so the band is not see-through when it is stuck over the list); the full gradient is only seen in the border
   background-image: $white-pieces, linear-gradient(120deg, #dbe9ff, #d9f5ec 55%, #fff1cc), linear-gradient(120deg, #0d6efd, #20c997 50%, #ffc107);
-  background-size: 150px 150px, auto, auto;
+  background-size: 9.375rem 9.375rem, auto, auto;
   background-origin: border-box;
   background-clip: padding-box, padding-box, border-box;
 }
@@ -1327,7 +1457,7 @@ app-my-rounds {
   flex-basis: 100%;
 }
 
-@media (min-width: 992px) {
+@media (min-width: $bp-lg) {
   .jigsaw-helper-bar {
     order: 0;
     flex-basis: auto;
@@ -1350,6 +1480,18 @@ app-my-rounds {
   padding-block: 0;
 }
 
+// the mark that follows the screen (`scaled`, from the heading size, in `em`), so the logo and the house on its corner keep their shape at every size: in the helper of the app, and the same in a line of text that shows it (the welcome)
+.brand-lockup.scaled {
+  .brand-mark {
+    font-size: calc(var(--app-fs-heading) * 1.75);
+  }
+
+  .brand-logo {
+    width: 1em;
+    height: 1em;
+  }
+}
+
 .brand-lockup {
   .brand-logo {
     width: 2rem;
@@ -1370,7 +1512,7 @@ app-my-rounds {
     border-radius: 50%;
     background: var(--bs-tertiary-bg);
     color: var(--bs-primary);
-    font-size: 0.7rem;
+    font-size: var(--app-fs-tiny);
     line-height: 1;
   }
 
@@ -1438,7 +1580,7 @@ app-my-rounds {
     border-radius: 50%;
     background: var(--app-primary);
     color: #fff;
-    font-size: 0.75rem;
+    font-size: var(--app-fs-tiny);
     transition: transform 0.2s;
   }
 
@@ -1631,6 +1773,10 @@ app-my-rounds {
   font-size: var(--app-fs-heading);
 }
 
+.icon-xl {
+  font-size: calc(var(--app-fs-title) * 1.75); // a big icon over a message (nothing here, no match): from the title size, so it follows the screen like the text does
+}
+
 // ---- small helpers (Bootstrap has `pe-none`, `pe-auto` and `user-select-none`) ---------------------------------------------------------------------
 // a picture is never picked up and dragged away with the mouse (on the cards, the rows, the jigsaw page and the board); a click on it still works
 img {
@@ -1721,6 +1867,15 @@ app-jigsaw-shell > .app-banner {
   z-index: var(--app-z-band);
 }
 
+// the same band in the app lies over the top of the page (fixed: the page is the one that scrolls, and a puzzle is as big as the screen)
+play-main > .app-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--app-z-bar);
+}
+
 app-jigsaw-shell > .app-navbar {
   order: 0;
   flex: 0 0 auto;
@@ -1740,7 +1895,7 @@ app-jigsaw-shell > .app-navbar {
   .brand-home {
     right: -0.25rem;
     bottom: -0.2rem;
-    font-size: 0.55rem;
+    font-size: var(--app-fs-tiny);
   }
 }
 
@@ -2090,7 +2245,7 @@ app-jigsaw-shell > app-jigsaw-play {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  padding: 0 3px 2px 0;
+  padding: 0 0.1875rem 0.125rem 0;
   color: var(--bs-white);
   font-size: var(--app-fs-small);
   line-height: 1;
@@ -2261,6 +2416,10 @@ app-jigsaw-shell > app-jigsaw-play {
     max-width: var(--app-form-width-wide);
   }
 
+  &.full {
+    max-width: none; // as wide as its page (the app's pages are at most `.page-max` wide)
+  }
+
   --bs-card-border-width: 0; // the form is the page: no frame round it
 
   @include below($bp-md) {
@@ -2373,12 +2532,18 @@ app-jigsaw-shell > app-jigsaw-play {
   }
 }
 
-// for test and debug: with the Cheat switch on, the three areas of a round are drawn with a dotted line of their own colour (`.show-areas` is on `.jigsaw-play`): the area the pieces are drawn in (yellow), the picture area
+// for test and debug: with the Cheat switch on, the working area (`.board-root`) has a yellow border and the three areas of a round are drawn with a dotted line of their own colour (`.show-areas` is on `.jigsaw-play`): the area the pieces are drawn in (yellow), the picture area
 // (blue) and the store frame, the scroller (pink). Outlines, so nothing moves
 .show-areas {
   --app-area-picture: color-mix(in srgb, #0d6efd 55%, transparent);
   --app-area-store: color-mix(in srgb, #d63384 55%, transparent);
   --app-area-layer: color-mix(in srgb, #ffc107 55%, transparent);
+
+  // the working area itself (`.board-root`, the frame the pieces move in and the board lies in, yellow in the rules of the board) has a plain yellow border, drawn inside it
+  .board-root {
+    outline: 2px solid #ffc107;
+    outline-offset: -2px;
+  }
 
   .store-scroller,
   .pieces-layer {

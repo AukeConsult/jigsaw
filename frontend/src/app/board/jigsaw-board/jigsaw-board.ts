@@ -12,7 +12,7 @@ import { FREE_SPACE_COLUMNS_MAX, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSetting
 import { Puzzle } from '../../models/shared/puzzle';
 import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
 import { Box, Point } from '../../models/shared/geometry';
-import { AREA_MARGIN_PX, PlacedObject } from '../../models/shared/placed'; // the margin round the picture on the pieces area: a piece may go into it (the model), and the board draws it (the `p-2` of `.scale-content` in `jigsaw-board.html`, 0.5rem, at the top and the left, and at the bottom when the store is below)
+import { areaMargin, PlacedObject } from '../../models/shared/placed'; // the margin round the picture on the pieces area: a piece may go into it (the model), and the board draws it (the padding of `.scale-content` in `jigsaw-board.html`, `margin`, at the top and the left, at the right when there is no store beside the picture, and at the bottom when the store is not below)
 
 /** Grid points closer than this are not numbered: the numbers would run into each other. */
 const MIN_NUMBERED_STEP_PX = 20;
@@ -330,7 +330,9 @@ export class JigsawBoard {
   /** how far the store frame is scrolled, in pixels */
   readonly storeScroll = signal(0);
   /** how high the store frame is on the page */
-  readonly storeViewHeight = computed(() => (this.stacked() ? this.stripHeight() : this.areaHeight() ? Math.floor(((this.areaHeight() ?? 0) - 2 * ROOT_PADDING_PX) / this.scale() - 2 * AREA_MARGIN_PX) : this.height()));
+  /** the margin round the picture on the pieces area, in stored pixels (it is scaled with the area): relative to the size of the picture (`areaMargin`), the same number the model and the layout work with */
+  protected readonly margin = computed(() => areaMargin(this.width(), this.height()));
+  readonly storeViewHeight = computed(() => (this.stacked() ? this.stripHeight() : this.areaHeight() ? Math.floor(((this.areaHeight() ?? 0) - 2 * ROOT_PADDING_PX) / this.scale() - 2 * this.margin()) : this.height()));
   /**
    * How high the strip of the store is below the picture, in stored pixels: all that is left of the area under the picture, down to the bottom of the screen, and at
    * least `STACKED_STORE_ROWS` grid steps. The store is shown in bands as high as this, so when the window changes size the pieces are spread over the bands again.
@@ -349,9 +351,9 @@ export class JigsawBoard {
     const store = this.store();
     // as wide as what is drawn: the picture and the store frame, side by side or one above the other
     // beside the picture the store frame is narrow (`storeFrameWidth`) and counted: the picture gets all the room that is left; below it the frame is not counted: it takes the room below, and scrolls sideways
-    const wide = store && !this.stacked() ? AREA_MARGIN_PX + this.width() + this.gutter() + this.storeFrameWidth() : this.width() + 2 * AREA_MARGIN_PX;
+    const wide = store && !this.stacked() ? this.margin() + this.width() + this.gutter() + this.storeFrameWidth() : this.width() + 2 * this.margin();
     const share = 1;
-    const high = this.height() + 2 * AREA_MARGIN_PX;
+    const high = this.height() + 2 * this.margin();
     if (!room || !(room.width > 0) || !(wide > 0)) return 1;
     const left = (this.areaHeight() ?? 0) - 2 * ROOT_PADDING_PX; // the height the area has, when it fills the screen
     const below = this.stacked() ? (this.gridSize() || STORE_MIN_HEIGHT_PX) + this.stripHeight() : 0; // the strip of the store below the picture needs room too
@@ -377,11 +379,11 @@ export class JigsawBoard {
       // the layer of the pieces is the whole area, also the free space under the strip, where a piece can be put anywhere
       // the working area fills the screen down to the footer (and is never lower than what is in it: the picture, a step, the strip of the store); the strip lies against its bottom edge (`stripExtra`)
       const shown = this.areaHeight() ? ((this.areaHeight() ?? 0) - 2 * ROOT_PADDING_PX) / this.scale() : 0;
-      return { width: 2 * AREA_MARGIN_PX + this.storeFrameWidth(), height: Math.max(shown, AREA_MARGIN_PX + this.height() + this.gridSize() + this.storeViewHeight()) };
+      return { width: 2 * this.margin() + this.storeFrameWidth(), height: Math.max(shown, this.margin() + this.height() + this.gridSize() + this.storeViewHeight()) };
     }
     return {
-      width: (store ? AREA_MARGIN_PX : 2 * AREA_MARGIN_PX) + this.width() + this.gutter() + (store ? this.storeFrameWidth() + this.frameExtra() : 0),
-      height: 2 * AREA_MARGIN_PX + Math.max(this.height(), this.storeViewHeight()),
+      width: (store ? this.margin() : 2 * this.margin()) + this.width() + this.gutter() + (store ? this.storeFrameWidth() + this.frameExtra() : 0),
+      height: 2 * this.margin() + Math.max(this.height(), this.storeViewHeight()),
     };
   });
 
@@ -392,7 +394,7 @@ export class JigsawBoard {
     if (!store) return 0;
     if (!room) return store.width + STORE_SCROLLBAR_PX;
     // below the picture the frame is as wide as the room; beside it, it goes on to the right edge of the area (the room that is left of the picture, minus the padding)
-    if (this.stacked()) return Math.max(STORE_MIN_HEIGHT_PX, Math.floor(room.width / this.scale() - 2 * AREA_MARGIN_PX));
+    if (this.stacked()) return Math.max(STORE_MIN_HEIGHT_PX, Math.floor(room.width / this.scale() - 2 * this.margin()));
     // beside the picture: a few pieces wide, the scroll bar included (what the picture does not take is the picture's: the scale is fitted to it)
     return Math.floor(STORE_MAX_PIECES_ACROSS * this.gridSize()) + STORE_SCROLLBAR_PX; // no least width: with small pieces a least width would be more pieces across
   });
@@ -400,7 +402,7 @@ export class JigsawBoard {
   protected readonly frameExtra = computed(() => {
     const room = this.room();
     if (!room || !this.store() || this.stacked()) return 0;
-    return Math.max(0, Math.floor(room.width / this.scale() - AREA_MARGIN_PX - this.width() - this.gutter() - this.storeFrameWidth()));
+    return Math.max(0, Math.floor(room.width / this.scale() - this.margin() - this.width() - this.gutter() - this.storeFrameWidth()));
   });
   /**
    * The free space beside the picture, as a place for pieces. With the store below the picture, the picture is often drawn smaller than the width of the screen (its height decides how
@@ -434,8 +436,8 @@ export class JigsawBoard {
     return {
       left, origin, width, columns, column, stride, height, base: JigsawSettings.freeSpaceTop(this.height(), this.gridSize()),
       // how much of a column is on the screen: all of it below the picture; beside it the room the board has (a column is a little higher than the picture, and the board is not)
-      shown: stacked ? height : Math.min(height, Math.max(1, this.overlay().height - 2 * AREA_MARGIN_PX)),
-      frameLeft: AREA_MARGIN_PX + origin, frameTop: AREA_MARGIN_PX,
+      shown: stacked ? height : Math.min(height, Math.max(1, this.overlay().height - 2 * this.margin())),
+      frameLeft: this.margin() + origin, frameTop: this.margin(),
     };
   });
 
@@ -444,7 +446,7 @@ export class JigsawBoard {
   /** below the picture: how far the strip of the store is moved down, to the bottom edge of the working area, which fills the screen down to the footer (what is between the picture and the strip is free space); 0 elsewhere */
   protected readonly stripExtra = computed(() => {
     if (!this.store() || !this.stacked() || !this.areaHeight()) return 0;
-    return Math.max(0, Math.floor(this.overlay().height - (AREA_MARGIN_PX + this.height() + this.gridSize() + this.storeViewHeight())));
+    return Math.max(0, Math.floor(this.overlay().height - (this.margin() + this.height() + this.gridSize() + this.storeViewHeight())));
   });
   /** how far the store frame is scrolled sideways, in pixels (below the picture it scrolls only sideways) */
   readonly storeScrollX = signal(0);
@@ -557,7 +559,7 @@ export class JigsawBoard {
       const k = Math.min(zone.columns - 1, Math.max(0, Math.floor((v.top + size / 2 - zone.base) / zone.height))); // the column of the free space it is in: the next one is drawn further across
       return { shift: -(zone.frameLeft + k * zone.stride), shiftY: zone.base + k * zone.height - zone.frameTop, clip: null, hidden: false };
     }
-    if (!store || !v.inStore) return { shift: -AREA_MARGIN_PX, shiftY: -AREA_MARGIN_PX, clip: null, hidden: false }; // not in the store: on the board, where the area's padding ends; nothing of the store frame (its margin, how far it was moved) is used for it
+    if (!store || !v.inStore) return { shift: -this.margin(), shiftY: -this.margin(), clip: null, hidden: false }; // not in the store: on the board, where the area's padding ends; nothing of the store frame (its margin, how far it was moved) is used for it
     const reach = Math.ceil(size * TAB_REACH);
     const scroll = this.storeScroll();
     const shown = this.storeViewHeight(); // the height of what the frame shows
@@ -582,8 +584,8 @@ export class JigsawBoard {
     const cutLeft = scrollX > 0 || stacked ? Math.max(0, -across) : 0;
     const cutRight = Math.max(0, across + size - shownAcross);
     const sideReach = reach + size;
-    const frameLeft = stacked ? AREA_MARGIN_PX : AREA_MARGIN_PX + this.width() + this.gutter() + this.frameExtra(); // the frame is beside the picture area, a small gap from it, or below it
-    const frameTop = stacked ? AREA_MARGIN_PX + this.height() + this.gridSize() + this.stripExtra() : AREA_MARGIN_PX;
+    const frameLeft = stacked ? this.margin() : this.margin() + this.width() + this.gutter() + this.frameExtra(); // the frame is beside the picture area, a small gap from it, or below it
+    const frameTop = stacked ? this.margin() + this.height() + this.gridSize() + this.stripExtra() : this.margin();
     return {
       shift: v.left - (frameLeft + across),
       shiftY: v.top - (frameTop + top),
@@ -624,15 +626,15 @@ export class JigsawBoard {
       for (let k = 0; k < zone.columns; k++) {
         const top = zone.base + k * zone.height;
         const last = k === zone.columns - 1;
-        confined = confined.confine({ left: 0, top, width: store.left, height: last ? extent.height - top : zone.height }, { left: 0, top: top - AREA_MARGIN_PX, width: last ? zone.width - k * zone.stride : zone.column, height: zone.shown + 2 * AREA_MARGIN_PX });
+        confined = confined.confine({ left: 0, top, width: store.left, height: last ? extent.height - top : zone.height }, { left: 0, top: top - this.margin(), width: last ? zone.width - k * zone.stride : zone.column, height: zone.shown + 2 * this.margin() });
       }
       return confined;
     }
     // the store is below the picture and there is no room beside it (a narrow window): a free piece lies anywhere on the working area, over the strip of the store too (it is in the strip only when the whole of it is): only the edges of the area limit it
     if (this.stacked()) {
-      const right = Math.min(store.left, this.overlay().width - AREA_MARGIN_PX);
-      const bottom = this.overlay().height - AREA_MARGIN_PX;
-      return settled.confine({ left: -AREA_MARGIN_PX, top: this.height(), width: store.left + AREA_MARGIN_PX, height: extent.height }, { left: -AREA_MARGIN_PX, top: -AREA_MARGIN_PX, width: right + AREA_MARGIN_PX, height: bottom + AREA_MARGIN_PX });
+      const right = Math.min(store.left, this.overlay().width - this.margin());
+      const bottom = this.overlay().height - this.margin();
+      return settled.confine({ left: -this.margin(), top: this.height(), width: store.left + this.margin(), height: extent.height }, { left: -this.margin(), top: -this.margin(), width: right + this.margin(), height: bottom + this.margin() });
     }
     return settled;
   }
@@ -944,16 +946,16 @@ export class JigsawBoard {
       // the middle of a piece is at least half a piece from the edges of the free space (the same as `confine` keeps it), so the place the pointer gives is where the piece stays: no pull back, no flicker
       const half = this.gridSize() / 2;
       const u = Math.min(Math.max((event.clientX - rect.left) / this.scale() - zone.origin, half), zone.width - half); // how far across the free space, over all its columns
-      const v = Math.min(Math.max((event.clientY - rect.top) / this.scale(), half - AREA_MARGIN_PX), zone.shown + AREA_MARGIN_PX - half); // from the top edge of the working area (the padding above the picture) to its bottom edge
+      const v = Math.min(Math.max((event.clientY - rect.top) / this.scale(), half - this.margin()), zone.shown + this.margin() - half); // from the top edge of the working area (the padding above the picture) to its bottom edge
       const k = Math.min(zone.columns - 1, Math.max(0, Math.floor((u - half) / zone.stride))); // the column the pointer is over
       return { x: u - k * zone.stride, y: zone.base + k * zone.height + v };
     }
     const area = this.root().nativeElement.getBoundingClientRect();
     // below the picture the store strip is not beside it: the area is as wide as the picture, and with the free space beside it as wide as to where that begins (so a piece goes on without a jump from the one to the other)
-    const reach = store && !this.stacked() ? (piece ? this.overlay().width - AREA_MARGIN_PX - this.gridSize() / 2 : store.left) : zone ? zone.left : piece && store ? Math.min(store.left, this.overlay().width - AREA_MARGIN_PX) - this.gridSize() / 2 : this.width(); // beside the picture a free piece goes anywhere on the board, over the store frame too (it belongs to the frame only when it is whole inside)
+    const reach = store && !this.stacked() ? (piece ? this.overlay().width - this.margin() - this.gridSize() / 2 : store.left) : zone ? zone.left : piece && store ? Math.min(store.left, this.overlay().width - this.margin()) - this.gridSize() / 2 : this.width(); // beside the picture a free piece goes anywhere on the board, over the store frame too (it belongs to the frame only when it is whole inside)
     // a piece goes anywhere on the area, down to the bottom of the screen; with the free space beside the picture, the places under the picture are that space (below), so the picture area ends at the picture
-    const lowest = zone ? zone.base - 1 : Math.max(this.height(), (area.bottom - ROOT_PADDING_PX - rect.top) / this.scale() - AREA_MARGIN_PX);
-    return { x: Math.min(Math.max((event.clientX - rect.left) / this.scale(), -AREA_MARGIN_PX), reach), y: Math.min(Math.max((event.clientY - rect.top) / this.scale(), -AREA_MARGIN_PX), lowest) };
+    const lowest = zone ? zone.base - 1 : Math.max(this.height(), (area.bottom - ROOT_PADDING_PX - rect.top) / this.scale() - this.margin());
+    return { x: Math.min(Math.max((event.clientX - rect.left) / this.scale(), -this.margin()), reach), y: Math.min(Math.max((event.clientY - rect.top) / this.scale(), -this.margin()), lowest) };
   }
 
   /** What is held: its drawn elements, and where it is on the screen now. */

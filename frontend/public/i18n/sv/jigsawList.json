@@ -75,12 +75,14 @@
   "roundsWhoseAllTitle": "Allas omgångar",
   "roundsWhoseMineTitle": "Bara mina omgångar",
   "roundsWhoseOthersTitle": "Bara de andras omgångar",
-  "resetAll": "Nollställ allt",
   "detailsIn": "Visa detaljer i bildvyn",
   "viewHelp": "Så visas bilderna: som kort eller lista, med eller utan detaljer.",
   "choosePieces": "Välj bitar",
   "choosePiecesTitle": "Antal bitar och svårighetsgrad väljs när du startar en rond",
   "noneMatchTitle": "Inga bilder passar",
   "noneMatchHelp": "Prova andra val.",
-  "roundsNoneHelp": "Välj en bild för att starta den första."
+  "roundsNoneHelp": "Välj en bild för att starta den första.",
+  "private": "Privat",
+  "access": "Offentlig eller privat",
+  "public": "Offentlig"
 }

@@ -75,12 +75,14 @@
   "roundsWhoseAllTitle": "Kaikkien kierrokset",
   "roundsWhoseMineTitle": "Vain omat kierrokseni",
   "roundsWhoseOthersTitle": "Vain muiden kierrokset",
-  "resetAll": "Nollaa kaikki",
   "detailsIn": "Näytä tiedot kuvanäkymässä",
   "viewHelp": "Kuvien näyttötapa: korteina tai luettelona, tiedoilla tai ilman.",
   "choosePieces": "Valitse palat",
   "choosePiecesTitle": "Palojen määrä ja vaikeustaso valitaan kierrosta aloitettaessa",
   "noneMatchTitle": "Yksikään kuva ei täsmää",
   "noneMatchHelp": "Kokeile muita valintoja.",
-  "roundsNoneHelp": "Valitse kuva aloittaaksesi ensimmäisen."
+  "roundsNoneHelp": "Valitse kuva aloittaaksesi ensimmäisen.",
+  "private": "Yksityinen",
+  "access": "Julkinen vai yksityinen",
+  "public": "Julkinen"
 }

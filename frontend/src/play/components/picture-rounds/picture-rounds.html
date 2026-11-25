@@ -1,0 +1,20 @@
+<ng-container *transloco="let t">
+  <h2 class="subsection-title">{{ t('play.roundsOfPicture') || 'Rounds of this picture' }}</h2>
+  @if (failed()) {
+    <div class="alert alert-warning py-2 small" role="alert">{{ t('play.roundsFailed') || 'Could not read the rounds: try again.' }}</div>
+  }
+  @if (games() === null) {
+    <div class="text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</div>
+  } @else if (!games()!.length) {
+    <div class="text-center py-4 px-3 rounded-3 border bg-body bg-opacity-75" role="status">
+      <i class="bi bi-play-circle icon-xl d-block mb-1 text-primary" aria-hidden="true"></i>
+      <div class="fw-semibold">{{ t('play.noPictureRounds') || 'No rounds have been played of this picture yet.' }}</div>
+    </div>
+  } @else {
+    <ul class="list-group">
+      @for (game of games(); track game.id) {
+        <app-round-row [game]="game" [jigsawId]="jigsawId()" [timed]="timed() && game.timed !== false" [mine]="isMine(game)" [inApp]="true" (remove)="remove(game)" />
+      }
+    </ul>
+  }
+</ng-container>

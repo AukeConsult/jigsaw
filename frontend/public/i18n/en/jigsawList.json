@@ -75,12 +75,14 @@
   "roundsWhoseAllTitle": "The rounds of everybody",
   "roundsWhoseMineTitle": "Only my rounds",
   "roundsWhoseOthersTitle": "Only the rounds of the others",
-  "resetAll": "Reset all",
   "detailsIn": "Show details in the picture view",
   "viewHelp": "How the pictures are shown: as cards or a list, with or without details.",
   "choosePieces": "Choose pieces",
   "choosePiecesTitle": "The number of pieces and the difficulty are chosen when you start a round",
   "noneMatchTitle": "No pictures match",
   "noneMatchHelp": "Try other choices.",
-  "roundsNoneHelp": "Pick a picture to start the first one."
+  "roundsNoneHelp": "Pick a picture to start the first one.",
+  "private": "Private",
+  "access": "Public or private",
+  "public": "Public"
 }

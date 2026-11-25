@@ -30,5 +30,7 @@
   "cheatHelp": "(auta etsimään paloja)",
   "couldNotDelete": "Kierrosta ei voitu poistaa: yritä uudelleen.",
   "couldNotStart": "Kierrosta ei voitu nollata: yritä uudelleen.",
-  "openJigsaw": "Avaa palapelin sivu"
+  "openJigsaw": "Avaa palapelin sivu",
+  "finishedTitle": "Valmis!",
+  "finishedTime": "Aika: {{ time }}"
 }

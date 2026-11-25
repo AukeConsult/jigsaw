@@ -75,12 +75,14 @@
   "roundsWhoseAllTitle": "De rondes van iedereen",
   "roundsWhoseMineTitle": "Alleen mijn rondes",
   "roundsWhoseOthersTitle": "Alleen de rondes van anderen",
-  "resetAll": "Alles resetten",
   "detailsIn": "Details tonen in de afbeeldingsweergave",
   "viewHelp": "Zo worden de afbeeldingen getoond: als kaarten of lijst, met of zonder details.",
   "choosePieces": "Kies stukjes",
   "choosePiecesTitle": "Het aantal stukjes en de moeilijkheid kies je als je een ronde start",
   "noneMatchTitle": "Geen afbeelding past",
   "noneMatchHelp": "Probeer andere keuzes.",
-  "roundsNoneHelp": "Kies een afbeelding om de eerste te starten."
+  "roundsNoneHelp": "Kies een afbeelding om de eerste te starten.",
+  "private": "Privé",
+  "access": "Openbaar of privé",
+  "public": "Openbaar"
 }

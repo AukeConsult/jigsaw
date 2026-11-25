@@ -37,7 +37,7 @@
   "couldNotResetRounds": "Kunde inte ta bort rundorna: bara ägaren kan.",
   "youSolvedIt": "Du har löst det här pusslet",
   "roundProtected": "Låst: startad med en inloggning på kontot",
-  "startTitle": "Välj bitar och svårighetsgrad",
+  "startTitle": "Välj bitar och svårighetsgrad för att lägga pusslet",
   "startPieces": "Bitar",
   "startGo": "Starta ronden",
   "startSolved": "löst",

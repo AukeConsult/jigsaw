@@ -1,0 +1,65 @@
+<ng-container *transloco="let t">
+  @if (me(); as me) {
+    <form class="vstack gap-2" (submit)="$event.preventDefault()">
+      <h2 class="fs-5 d-flex align-items-center gap-2 mb-0"><i class="bi bi-person" aria-hidden="true"></i>{{ t('play.edit.sectionWho') || 'Who you are' }}</h2>
+      <div>
+        <label class="form-label" for="play-edit-username">{{ t('play.edit.usernameLabel') || 'Account alias' }}</label>
+        <input id="play-edit-username" name="username" class="form-control text-input" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
+               [value]="edit.username()" (input)="edit.onUsernameTyped($any($event.target).value)">
+        @if (edit.usernameCheck() === 'free') {
+          <div class="form-text text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('play.edit.usernameFree') || 'Free: nobody else has this alias.' }}</div>
+        } @else if (edit.usernameCheck() === 'taken') {
+          <div class="form-text text-danger"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>{{ t('play.edit.usernameTaken') || 'Taken: somebody else has this alias.' }}</div>
+        }
+        <div class="form-text">{{ t('play.edit.usernameHelpEdit', { min: usernameMin, max: usernameMax }) || usernameMin + ' to ' + usernameMax + ' characters. Nobody else can have the same. Your rounds stay yours when you change it.' }}</div>
+      </div>
+      <div>
+        <label class="form-label" for="play-edit-name">{{ t('play.edit.accountName') || 'Account name' }}</label>
+        <input id="play-edit-name" name="name" class="form-control text-input-name" type="text" [attr.maxlength]="nameMax" required [value]="edit.name()" (input)="edit.name.set($any($event.target).value)">
+      </div>
+      <div>
+        <label class="form-label" for="play-edit-picture">{{ t('play.edit.pictureLabel') || 'Picture' }} <span class="text-body-secondary">{{ t('play.edit.optional') || '(optional)' }}</span></label>
+        <div class="d-flex align-items-center gap-3">
+          <!-- what the account will have: the new picture, none, or the one it has; pressing it chooses a file (the file field itself is never shown); the plus on it says so, and it is not there once there is a picture -->
+          <button type="button" class="avatar-upload" [title]="t('play.edit.pictureLabel') || 'Picture'" [attr.aria-label]="t('play.edit.pictureLabel') || 'Picture'" (click)="pictureFile.click()">
+            @if (edit.picture(); as chosen) {
+              <img class="rounded-circle object-fit-cover" [src]="chosen" width="48" height="48" alt="">
+            } @else if (edit.picture() === undefined) {
+              <app-account-avatar [id]="me.id" [at]="me.pictureAt" size="lg" />
+            } @else {
+              <app-account-avatar [id]="me.id" size="lg" />
+            }
+            @if (!edit.picture() && !(edit.picture() === undefined && me.pictureAt)) {
+              <span class="avatar-plus" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
+            }
+          </button>
+          <input #pictureFile id="play-edit-picture" name="picture" class="d-none" type="file" accept="image/*" (change)="edit.onPicture($event)">
+          @if (edit.picture() || (edit.picture() === undefined && me.pictureAt)) {
+            <button type="button" class="link-action text-nowrap" (click)="edit.picture.set(null)"><i class="bi bi-x-lg" aria-hidden="true"></i>{{ t('play.edit.pictureRemove') || 'Remove' }}</button>
+          }
+        </div>
+        @if (edit.pictureFailed()) {
+          <div class="form-text text-danger">{{ t('play.edit.pictureFailed') || 'That file could not be used as a picture.' }}</div>
+        } @else {
+          <div class="form-text">{{ t('play.edit.pictureHelp') || 'A small picture shown with your account. It is cut square and made small.' }}</div>
+        }
+      </div>
+      <div>
+        <label class="form-label" for="play-edit-language">{{ t('play.edit.language') || 'Language' }}</label>
+        <select id="play-edit-language" name="language" class="form-select" [value]="edit.language()" (change)="edit.language.set($any($event.target).value)">
+          @for (l of languages; track l.code) {
+            <option [value]="l.code" [selected]="l.code === edit.language()">{{ l.name }}</option>
+          }
+        </select>
+        <div class="form-text">{{ t('play.edit.languageHelp') || 'The language the app is shown in for you, and the default language for the names and descriptions of your jigsaws.' }}</div>
+      </div>
+      @if (edit.error()) {
+        <div class="alert alert-warning py-2 small mb-0" role="alert">{{ edit.error() }}</div>
+      }
+      <!-- there is no Save: every change is saved by itself a moment after the last one; Close saves what is waiting and closes the form -->
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary" [disabled]="edit.busy()" (click)="edit.close()">{{ t('play.edit.close') || 'Close' }}</button>
+      </div>
+    </form>
+  }
+</ng-container>

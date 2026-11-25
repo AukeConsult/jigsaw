@@ -1,0 +1,26 @@
+{
+  "jigsaws": "Images",
+  "loading": "Chargement des images …",
+  "loadFailed": "Impossible de charger les images.",
+  "more": "Afficher plus",
+  "none": "Aucune image pour le moment.",
+  "playName": "Voir {{ name }}",
+  "play": "Voir l'image",
+  "solvedByYou": "Tu as résolu celui-ci",
+  "addFavorite": "Ajouter aux favoris",
+  "removeFavorite": "Retirer des favoris",
+  "timed": "Chronométré",
+  "hiddenNote": "Masqué : seulement dans votre liste d'images",
+  "onlyYou": "Toi seul le vois",
+  "piecesShort": "{{ count }} pièces",
+  "difficulty": "Difficulté",
+  "choosePieces": "Choisir les pièces",
+  "choosePiecesTitle": "Le nombre de pièces et la difficulté se choisissent au début d’une manche",
+  "snap": {
+    "hard": "Difficile",
+    "medium": "Moyen",
+    "easy": "Facile"
+  },
+  "helper": "Assistant",
+  "helperMain": "Voici l'assistant de la page principale. Ce n'est qu'un exemple pour l'instant."
+}

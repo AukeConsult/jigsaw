@@ -1,0 +1,210 @@
+<div class="vstack gap-2" *transloco="let t">
+  <!-- with an account that plays, the title is that account (the question "Who plays?" is only for a person who has not chosen yet), with the badge that says it is the active one -->
+  @if (users.user(); as me) {
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <app-account-avatar [id]="me.id" [at]="me.pictureAt" size="lg" />
+        <!-- the name, and under it the alias in small letters: several accounts can have the same name, and the alias tells which of them plays -->
+        <span class="d-flex flex-column">
+          <strong class="text-break">{{ me.name }}</strong>
+          <span class="small text-body-secondary text-break">{{ me.username }}</span>
+        </span>
+        <span class="badge text-bg-success fw-normal">{{ t('play.account.activeBadge') || 'Active' }}</span>
+      </div>
+      <span class="toolbar">
+        <!-- a switch: pressed it opens the form of the account, and pressed again it closes it (what is waiting is saved first) -->
+        <button type="button" class="link-action" [class.fw-semibold]="edit.editing()" [attr.aria-pressed]="edit.editing()" (click)="edit.toggle()"><i class="bi" [class.bi-pencil]="!edit.editing()" [class.bi-pencil-fill]="edit.editing()" aria-hidden="true"></i>{{ t('play.account.editAccount') || 'Edit account' }}</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="leave()"><i class="bi bi-arrow-left-right" aria-hidden="true"></i> {{ t('play.account.chooseAnother') || 'Choose another account' }}</button>
+        <button type="button" class="link-action" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>{{ t('play.account.logout') || 'Sign out' }}</button>
+      </span>
+    </div>
+    <!-- what the links do, in plain words -->
+    <p class="form-text mt-0 mb-0">{{ t('play.account.userActionsHelp') || 'Edit changes your alias, your account name and your language. Choose another account switches to somebody else: your rounds and jigsaws stay yours.' }}</p>
+    @if (!me.protected) {
+      <!-- an account nobody has locked: anybody who knows the alias can play and change it -->
+      <div class="alert alert-warning d-flex gap-2 py-2 mb-0" role="alert">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        <span>{{ t('play.account.openWarning') || 'This account is not verified. Anybody who knows its alias can play as it, change it or delete it. Sign in and lock it to make it yours.' }}</span>
+      </div>
+    }
+  } @else if (!ready()) {
+    <!-- the accounts are being read: nothing to choose from yet (the form of a new account must not show for a moment first) -->
+    <div class="text-body-secondary" role="status">{{ t('play.account.lookingUsers') || 'Looking for the accounts…' }}</div>
+  } @else {
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <h2 class="fs-5 d-flex align-items-center gap-2 mb-0">
+        <i class="bi bi-person-circle text-primary" aria-hidden="true"></i>
+        {{ mode() === 'start' ? (t('play.account.startTitle') || 'What is your name?') : (t('play.account.title') || 'Who plays?') }}
+      </h2>
+      @if (mode() === 'start') {
+        <!-- the way back to the accounts: a person who came here by mistake must not have to look for it -->
+        <button type="button" class="link-action" (click)="mode.set('choose'); startError.set('')"><i class="bi bi-person-check" aria-hidden="true"></i>{{ auth.user() ? (t('play.account.showOthers') || 'Show other accounts') : (t('play.account.backToList') || 'Back to the accounts') }}</button>
+      }
+    </div>
+
+    @if (blocked(); as b) {
+      <!-- an account the person chose but is not verified for: said, and nothing was switched -->
+      <div class="alert alert-warning py-2 small mb-0" role="alert">
+        <p class="mb-1">{{ b.signedIn ? (t('play.account.notVerified', { name: b.name }) || b.name + ' is locked to other sign-ins. You are signed in with another sign-in, so you cannot play with it. Sign in with the right one, or use a link code.') : (t('play.account.needsLoginSignedOut', { name: b.name }) || b.name + ' is locked. Sign in with one of its sign-ins to play with it.') }}</p>
+        <p class="mb-1 fw-semibold"><i class="bi bi-key me-1" aria-hidden="true"></i>{{ t('play.account.codeHowTo') || 'No access? Do this:' }}</p>
+        <ol class="mb-0 ps-4">
+          <li>{{ t('play.account.codeStep1') || 'Ask someone who can use this account to open it.' }}</li>
+          <li>{{ t('play.account.codeStep2') || 'They press Edit, then Add another sign-in. A code shows.' }}</li>
+          <li>{{ t('play.account.codeStep3', { username: b.username }) || 'Press "I have a link code" here, and type the alias ' + b.username + ' and the code.' }}</li>
+        </ol>
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" (click)="state.openLogon()"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> {{ t('play.account.signInAction') || 'Sign in' }}</button>
+      </div>
+    }
+
+    @if (!auth.user()) {
+      <!-- without a login signed in it is only the way to one -->
+      <button type="button" class="btn btn-outline-primary w-100" (click)="state.openLogon()"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> {{ t('play.account.signInLink') || 'Log on with a verified account' }}</button>
+    } @else {
+      <!-- a person who is signed in: the accounts their login is verified for, to play as one, make a new one, delete one or add the login to one with a code -->
+      <div class="border rounded p-2">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+          <span class="text-body-secondary"><i class="bi bi-person-check me-1" aria-hidden="true"></i>{{ t('play.account.signedInAs') || 'Signed in as' }} <strong class="text-break">{{ who() }}</strong></span>
+          <button type="button" class="link-action" [disabled]="busy()" (click)="signOut()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>{{ t('play.account.signOut') || 'Sign out' }}</button>
+        </div>
+        @if (auth.linked().length) {
+          <p class="subsection-title mb-2">{{ t('play.account.yourUsers') || 'Accounts of this sign-in' }}</p>
+          <div class="list-group mb-2">
+            @for (u of auth.linked(); track u.id) {
+              <div class="list-group-item p-0 d-flex align-items-stretch">
+                <button type="button" class="list-group-item-action btn border-0 rounded-0 text-start d-flex align-items-center gap-2 flex-grow-1" [disabled]="busy()" (click)="play(u.id)">
+                  <app-account-avatar [id]="u.id" [at]="u.pictureAt" />
+                  <span class="flex-grow-1"><strong>{{ u.name }}</strong><span class="text-body-secondary small ms-2">{{ u.username }}</span></span>
+                  <span class="small text-body-secondary">{{ t('play.account.playAs') || 'Play' }}</span><i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn border-0 rounded-0 text-danger" [disabled]="busy()" [title]="t('play.account.delete') || 'Delete this account'" [attr.aria-label]="(t('play.account.delete') || 'Delete this account') + ': ' + u.name" (click)="deleting.set(u); newUser.set(null)"><i class="bi bi-trash" aria-hidden="true"></i></button>
+              </div>
+            }
+          </div>
+          @if (deleting(); as d) {
+            <!-- deleting is asked about first: the server only does it when nothing is attached to the account -->
+            <div class="alert alert-danger py-2 small" role="alert">
+              <p class="mb-2">{{ t('play.account.confirmDelete', { name: d.name, username: d.username }) || 'Delete ' + d.name + ' (' + d.username + ') for good? This works only when the account has no jigsaws, no rounds played and no other sign-in.' }}</p>
+              <div class="toolbar">
+                <button type="button" class="btn btn-sm btn-danger" [disabled]="busy()" (click)="deleteUser()"><i class="bi bi-trash" aria-hidden="true"></i> {{ t('play.account.confirmDeleteYes') || 'Yes, delete it' }}</button>
+                <button type="button" class="link-action" (click)="deleting.set(null)">{{ t('play.account.cancel') || 'Cancel' }}</button>
+              </div>
+            </div>
+          }
+        } @else {
+          <p class="form-text">{{ t('play.account.none') || 'No account has this sign-in yet.' }}</p>
+        }
+        @if (newUser(); as n) {
+          <!-- a new account is asked about first: the name and the alias it would get -->
+          <div class="alert alert-info py-2 small" role="alert">
+            <p class="mb-2">{{ t('play.account.confirmNew', { name: n.name, username: n.username }) || 'Make a new account called ' + n.name + ' with the alias ' + n.username + ', for your sign-in?' }}@if (n.taken) { {{ ' ' + (t('play.account.confirmNewTaken') || 'That alias is taken, so four digits are added to it.') }} }</p>
+            <div class="toolbar">
+              <button type="button" class="btn btn-sm btn-primary" [disabled]="busy()" (click)="makeNew()"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ t('play.account.confirmNewYes') || 'Yes, make it' }}</button>
+              <button type="button" class="link-action" (click)="newUser.set(null)">{{ t('play.account.cancel') || 'Cancel' }}</button>
+            </div>
+          </div>
+        }
+        <div class="toolbar">
+          <button type="button" class="btn btn-sm btn-outline-primary" [disabled]="busy()" (click)="askNew()"><i class="bi bi-plus-lg" aria-hidden="true"></i> {{ t('play.account.makeNew') || 'Make a new account with my sign-in' }}</button>
+          <button type="button" class="link-action" [attr.aria-expanded]="moreOpen()" (click)="moreOpen.set(!moreOpen())"><i class="bi bi-three-dots" aria-hidden="true"></i>{{ t('play.account.more') || 'More' }}</button>
+          @if (moreOpen()) {
+            <button type="button" class="link-action" [attr.aria-pressed]="codeOpen()" (click)="codeOpen.set(!codeOpen())"><i class="bi bi-key" aria-hidden="true"></i>{{ t('play.account.haveCode') || 'I have a link code' }}</button>
+            <button type="button" class="link-action" [disabled]="busy()" (click)="otherLogin()"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>{{ t('play.account.otherLogin') || 'Use another sign-in' }}</button>
+          }
+        </div>
+        @if (moreOpen() && codeOpen()) {
+          <form class="mt-2" (submit)="$event.preventDefault(); useCode()">
+            <p class="form-text mt-0">{{ t('play.account.codeHelp') || 'Someone who can use the account makes the code: they open the account, press Edit, then Add another sign-in. Type the alias and the code here.' }}</p>
+            <div class="vstack gap-2 mb-2">
+              <div>
+                <label class="form-label" for="play-link-username">{{ t('play.account.username') || 'Account alias' }}</label>
+                <input id="play-link-username" name="username" class="form-control text-input" type="text" autocapitalize="none" spellcheck="false" autocomplete="off" [value]="username()" (input)="username.set($any($event.target).value)">
+              </div>
+              <div>
+                <label class="form-label" for="play-link-code">{{ t('play.account.code') || 'Link code' }}</label>
+                <input id="play-link-code" name="code" class="form-control font-monospace" type="text" autocapitalize="characters" spellcheck="false" autocomplete="off" placeholder="ABCDE-FGHJK" [value]="code()" (input)="code.set($any($event.target).value)">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="busy() || !username().trim() || !code().trim()"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ t('play.account.use') || 'Use the code' }}</button>
+          </form>
+        }
+        @if (message()) {
+          <div class="alert alert-success py-2 small mt-2 mb-0" role="status">{{ message() }}</div>
+        }
+        @if (error()) {
+          <div class="alert alert-warning py-2 small mt-2 mb-0" role="alert">{{ error() }}</div>
+        }
+      </div>
+    }
+
+    @if (mode() === 'start') {
+      <!-- a person who is new only says their name: the alias is made from it. A signed-in person makes a new account in the box above, so there is no name to type then -->
+      @if (!auth.user()) {
+        <form class="vstack gap-2" (submit)="$event.preventDefault(); startNow()">
+          <p class="text-body-secondary mb-0">{{ t('play.account.startHelp') || 'Type your name and press the button: you make a new account that is open to anyone. You can lock it later with a sign-in.' }}</p>
+          <label class="form-label mb-0" for="play-first-name">{{ t('play.account.yourName') || 'Your name' }}</label>
+          <input id="play-first-name" name="name" class="form-control text-input-name" type="text" autocomplete="name" [attr.maxlength]="nameMax" required [value]="name()" (input)="name.set($any($event.target).value); sameUsers.set([])">
+          @if (startError() && !sameUsers().length) {
+            <div class="alert alert-warning py-2 small mb-0" role="alert">{{ startError() }}</div>
+          }
+          @if (sameUsers().length) {
+            <!-- somebody already has this name: which of them is the person, or is it somebody else with the same name? -->
+            <div class="alert alert-info mb-0" role="alert">
+              @if (sameUsers().length === 1) {
+                <p class="mb-2">{{ t('play.account.sameName', { name: sameUsers()[0].name }) || 'There is already someone called ' + sameUsers()[0].name + '. Is that you?' }}</p>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="pick(sameUsers()[0])">{{ t('play.account.thatIsMe') || 'Yes, that is me' }}</button>
+                  <button type="button" class="btn btn-outline-primary" [disabled]="busy()" (click)="startNow(true)">{{ t('play.account.makeNewUser') || 'No, make a new account' }}</button>
+                </div>
+              } @else {
+                <p class="mb-2">{{ t('play.account.sameNames', { count: sameUsers().length, name: name().trim() }) || 'There are ' + sameUsers().length + ' people called ' + name().trim() + '. Which one is you?' }}</p>
+                <div class="list-group mb-2">
+                  @for (user of sameUsers(); track user.id) {
+                    <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2" [disabled]="busy()" (click)="pick(user)">
+                      <i class="bi bi-person-circle icon-md text-primary" aria-hidden="true"></i>
+                      <span class="flex-grow-1"><strong>{{ user.name }}</strong><span class="text-body-secondary small ms-2">{{ user.username }}</span></span>
+                      <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+                    </button>
+                  }
+                </div>
+                <button type="button" class="btn btn-outline-primary" [disabled]="busy()" (click)="startNow(true)">{{ t('play.account.noneOfThem') || 'None of them, make a new account' }}</button>
+              }
+            </div>
+          } @else {
+            <button type="submit" class="btn btn-primary" [disabled]="busy() || !name().trim()"><i class="bi bi-play-fill" aria-hidden="true"></i> {{ t('play.account.startButton') || 'Start playing' }}</button>
+          }
+        </form>
+      }
+    } @else {
+      <!-- choosing is done from the list: press a name -->
+      @if (!auth.user()) {
+        <!-- somebody who is not on the list makes an account of their own: a clear choice of its own (a signed-in person does it in the box above) -->
+        <div class="border-bottom pb-2">
+          <p class="fw-semibold mb-2">{{ t('play.account.notOnList') || 'Not on the list and have no account?' }}</p>
+          <button type="button" class="btn btn-primary w-100" (click)="mode.set('start')"><i class="bi bi-plus-lg" aria-hidden="true"></i> {{ t('play.account.makeMine') || 'Make my own account' }}</button>
+        </div>
+      }
+      <p class="text-body-secondary mb-0">{{ auth.user() ? (t('play.account.pressName') || 'Press your name to play as you.') : (t('play.account.chooseHelp') || 'Press your account to play. A lock means you must sign in first.') }}</p>
+      @if (list() === null) {
+        <div class="text-body-secondary" role="status">{{ t('play.account.lookingUsers') || 'Looking for the accounts…' }}</div>
+      } @else {
+        @if (list()!.length > 8) {
+          <input class="form-control" type="search" name="filter" [attr.placeholder]="t('play.account.findUser') || 'Find an account'" [attr.aria-label]="t('play.account.findUser') || 'Find an account'" [value]="filter()" (input)="filter.set($any($event.target).value)">
+        }
+        <div class="list-group">
+          @for (user of shown(); track user.id) {
+            <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2" (click)="pick(user)">
+              <app-account-avatar [id]="user.id" [at]="user.pictureAt" />
+              <span class="flex-grow-1"><strong>{{ user.name }}</strong><span class="text-body-secondary small ms-2">{{ user.username }}</span></span>
+              @if (user.protected) {
+                <i class="bi bi-lock text-body-secondary" [title]="t('play.account.needsLogin') || 'Locked'" role="img" [attr.aria-label]="t('play.account.needsLogin') || 'Locked'"></i>
+              }
+              <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+            </button>
+          } @empty {
+            <div class="list-group-item text-body-secondary">{{ t('play.account.nobodyFits') || 'Nobody fits that.' }}</div>
+          }
+        </div>
+      }
+    }
+  }
+</div>

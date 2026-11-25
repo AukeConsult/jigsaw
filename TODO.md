@@ -89,3 +89,19 @@ To do:
 
 - [ ] Decide what a news item and an offer are (a title, a text, perhaps a picture and a link; for everybody or for some; from when to when), and who may write them (an admin, a publisher).
 - [ ] Keep them (the model, the API and a test), and show them in `app-news`; the welcome is shown for one minute, so decide if the news also has a place that stays.
+- [ ] **A second mark for an admin, on the user (the login) itself** (decided: later, not now; decided where: a field owned by the jigsaw in `user-account/<uid>`, e.g. `jigsawAdmin: true`; Seven Friends' own fields are not used and not changed). An admin is then on two places: the **account** (the level here, set on the page `/jigsaw/admin`) and the **user itself** (the login's record), and a login is an admin only when **both** say so; one without the other is refused (never let through). **The mark on the user is added by hand, directly in the document, for now** (Seven Friends has no user admin page yet; when it gets one, that page sets it). So the jigsaw only **reads** it and never writes it. Design notes, so it is not worked out twice:
+  - `isAdminLogin` (`functions/src/logons/gate.ts`) keeps asking the database fresh at every call (never kept, see `users-and-logon.md`, "Why it cannot leak"): it asks `linkedTo(uid)` for a real admin account, **and** reads `user-account/<uid>`; the mark counts only when it is exactly `true`, and a login with no document, or a database that cannot answer, is refused (503 for the latter). The mark is read only when the first answer is yes.
+  - A small read-only store of its own (`AdminMarks.has(uid)`), injected like the other stores so tests give memory. Nothing is written to `user-account` for this, so the rule in `CLAUDE.md` (the jigsaw writes only the sign-in fields of `user-account`) stays as it is, and there is nothing to keep in sync when a level or a login changes.
+  - **The first admin changes**: while no admin exists any account may make itself one (`GET /jigsaw-levels/open`), but with the mark required that is not enough: the level is given on the page, and the mark is added by hand, so the open rule and the page text "There is no admin yet" must say so (or the open rule is dropped); until the mark is there the login is refused.
+  - Tests (`user-levels.test.ts` and the real Firestore in `test-emulator/`): level without mark is refused; mark without level is refused; both is accepted; a mark that is not exactly `true` (`"true"`, `1`) is refused; a login with no `user-account` document is refused and none is made; a mark taken away by hand is refused at the next call (nothing is kept).
+
+## Translate the texts of the new app (`play`)
+
+The texts of the new app (`frontend/src/play/`, the scope `play`) are written in English only for now: `public/i18n/en/play.json`. The other eight languages have no `play.json` yet, so `npm run check:i18n` lists the file as missing in da, de, es, fi, fr, nb, nl and sv, and the pages show the English text (the template keeps it next to the key). The first try's texts, with the translations that were made for them (the sign-in, the accounts, the picture form, copied from `logons.json`, `jigsawUser.json` and `jigsawNew.json`), are in `_old-play/i18n/`.
+
+To do:
+
+- [ ] Make `play.json` in the other eight languages for every `play` key, when the texts of the app are settled (take the wording from `_old-play/i18n/` and from the files the keys were copied from).
+- [ ] Run `npm run check:i18n` until it says "Translations are in order."
+- [ ] Take away `forcedLanguage()` in `frontend/src/app/core/language.service.ts`: while the app is developed and tested (a dev build) it is always shown in English, whatever language is chosen, so the untranslated texts are never a surprise.
+- [ ] Delete `_old-play/` when nothing more is needed from the first try.

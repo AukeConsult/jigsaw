@@ -1,6 +1,6 @@
 <ng-container *transloco="let t">
   <form class="card card-body mt-3" (submit)="$event.preventDefault(); go()">
-    <h2 class="form-section first"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawPage.startTitle') || 'Choose the pieces and the difficulty' }}</h2>
+    <h2 class="form-section first"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawPage.startTitle') || 'Choose the pieces and the difficulty for putting it together' }}</h2>
     <div class="row g-3">
       <div class="col-12">
         <!-- the numbers of pieces that fit the shape of the picture, as a row of pills to press; one the person has solved is not offered again (it is shown, and cannot be pressed) -->
@@ -8,7 +8,7 @@
         <div class="d-flex flex-wrap gap-2" role="radiogroup" aria-labelledby="round-pieces-label">
           @for (o of options(); track o.key; let i = $index) {
             <input [id]="'round-pieces-' + o.key" name="roundPieces" class="btn-check" type="radio" autocomplete="off" [checked]="key() === o.key" [disabled]="o.solved" (change)="setPieces(o.key)">
-            <label class="btn btn-sm btn-scale rounded-pill text-nowrap" [style.--scale]="scale(i, options().length)" [for]="'round-pieces-' + o.key" [title]="o.columns + ' × ' + o.rows">{{ o.count }}@if (o.solved) { ({{ t('jigsawPage.startSolved') || 'solved' }}) }</label>
+            <label class="btn btn-main btn-scale rounded-pill text-nowrap" [style.--scale]="scale(i, options().length)" [for]="'round-pieces-' + o.key" [title]="o.columns + ' × ' + o.rows">{{ o.count }}@if (o.solved) { ({{ t('jigsawPage.startSolved') || 'solved' }}) }</label>
           }
         </div>
       </div>
@@ -18,7 +18,7 @@
         <div class="d-flex flex-wrap gap-2" role="radiogroup" aria-labelledby="round-difficulty-label">
           @for (l of levels; track l.key; let i = $index) {
             <input [id]="'round-difficulty-' + l.key" name="roundDifficulty" class="btn-check" type="radio" autocomplete="off" [checked]="level() === l.key" (change)="setLevel(l.key)">
-            <label class="btn btn-sm btn-scale rounded-pill text-nowrap" [style.--scale]="scale(i, levels.length)" [for]="'round-difficulty-' + l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</label>
+            <label class="btn btn-main btn-scale rounded-pill text-nowrap" [style.--scale]="scale(i, levels.length)" [for]="'round-difficulty-' + l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</label>
           }
         </div>
         <!-- what the three words mean: how far from its place a piece may be and still snap in -->
@@ -27,7 +27,7 @@
     </div>
     <!-- who sees the round: public (it is in the list of rounds on the front page) or private (only its player) -->
     <fieldset class="mt-3">
-      <legend class="form-label fs-6 mb-1">{{ t('jigsawPage.roundWho') || 'Who sees the round' }}</legend>
+      <legend class="form-label mb-1">{{ t('jigsawPage.roundWho') || 'Who sees the round' }}</legend>
       <div class="d-flex flex-wrap gap-2">
         <input id="round-public" name="roundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="!isPrivate()" (change)="setPrivate(false)">
         <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="round-public"><i class="bi bi-globe2 me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityEveryone') || 'Public' }}</label>

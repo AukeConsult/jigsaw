@@ -30,5 +30,7 @@
   "cheatHelp": "(help stukjes vinden)",
   "couldNotDelete": "De ronde kon niet worden verwijderd: probeer het opnieuw.",
   "couldNotStart": "De ronde kon niet worden gereset: probeer het opnieuw.",
-  "openJigsaw": "De pagina van de puzzel openen"
+  "openJigsaw": "De pagina van de puzzel openen",
+  "finishedTitle": "Klaar!",
+  "finishedTime": "Tijd: {{ time }}"
 }

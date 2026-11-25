@@ -1,3 +1,5 @@
+import { UserLevel } from './user-level';
+
 // A person who signs in with Firebase (Google, e-mail, phone). Karins jigsaw and Seven Friends are in the same Firebase project, so a login is one login for both, and the
 // account of a person is ONE document in the collection `user-account` (the id is the Firebase UID). This is the same document that Seven Friends keeps, written with the same
 // fields and the same rules (`LogonAccounts.stored` is what Seven Friends' `POST /users/sync` does), so the two apps never disagree about who somebody is. The jigsaw writes only
@@ -57,6 +59,8 @@ export interface LinkedUser {
   name: string;
   username: string;
   pictureAt?: number;
+  /** the level kept on the account (nothing: user): an account the login is verified for, so it counts (`UserLevels.of`); the page uses it to know that the login is an admin's */
+  level?: UserLevel;
 }
 
 /** The answer of `POST /jigsaw/api/session`. */

@@ -1,5 +1,5 @@
 import { Box } from './geometry';
-import { AREA_MARGIN_PX, PICTURE_LAYER, MAX_LAYER, PiecePlace, PlacedFigure, PlacedObject } from './placed';
+import { areaMargin, PICTURE_LAYER, MAX_LAYER, PiecePlace, PlacedFigure, PlacedObject } from './placed';
 
 // What the objects placed on a picture area (the jigsaw pieces) do together: stick together, are collected, and are moved as a group.
 
@@ -30,6 +30,11 @@ export class Puzzle {
     readonly width: number,
     readonly height: number,
   ) {}
+
+  /** the margin round the picture area, where a piece may go too: relative to the size of the area (`areaMargin`) */
+  get margin(): number {
+    return areaMargin(this.width, this.height);
+  }
 
   static from(data: readonly PlacedObject[], width: number, height: number): Puzzle {
     return new Puzzle(data.map((d) => new PlacedFigure(d)), width, height);
@@ -73,8 +78,8 @@ export class Puzzle {
    * that is the centre between half the size and the picture area size minus half the size. When no grid point is in that range
    * (an object nearly as big as the picture area) the centre is held at the range instead.
    */
-  private static stickCenter(wanted: number, size: number, pictureSize: number, step: number, origin = 0): number {
-    const low = size / 2 - AREA_MARGIN_PX; // the box may go into the margin at the top and the left
+  private static stickCenter(wanted: number, size: number, pictureSize: number, step: number, margin: number, origin = 0): number {
+    const low = size / 2 - margin; // the box may go into the margin at the top and the left
     const high = pictureSize - size / 2;
     let center = origin + Math.round((wanted - origin) / step) * step;
     if (center < low) center = origin + Math.ceil((low - origin) / step) * step;
@@ -308,7 +313,7 @@ export class Puzzle {
    */
   settled(): Puzzle {
     const fixed = this.grown(this.items.filter((p) => p.data.piece && p.inPlace()));
-    const back = this.groupShifts({ left: -AREA_MARGIN_PX, top: -AREA_MARGIN_PX, width: this.width + AREA_MARGIN_PX, height: this.height + AREA_MARGIN_PX }, null, fixed); // a group that is outside the area comes back whole, never piece by piece
+    const back = this.groupShifts({ left: -this.margin, top: -this.margin, width: this.width + this.margin, height: this.height + this.margin }, null, fixed); // a group that is outside the area comes back whole, never piece by piece
     let changed = false;
     const items = this.items.map((p) => {
       if (!p.data.piece) return p;
@@ -401,9 +406,9 @@ export class Puzzle {
     if (!figures.length || this.isFixed(ids) || !Number.isFinite(dx) || !Number.isFinite(dy)) return this;
     const boxes = figures.map((f) => f.box());
     // the furthest the whole group can go each way: the figure that is nearest to an edge decides
-    const lowX = Math.max(...boxes.map((b) => -AREA_MARGIN_PX - b.left));
+    const lowX = Math.max(...boxes.map((b) => -this.margin - b.left));
     const highX = Math.min(...boxes.map((b) => this.width - (b.left + b.width)));
-    const lowY = Math.max(...boxes.map((b) => -AREA_MARGIN_PX - b.top));
+    const lowY = Math.max(...boxes.map((b) => -this.margin - b.top));
     const highY = Math.min(...boxes.map((b) => this.height - (b.top + b.height)));
     const moveX = Math.min(Math.max(Math.round(dx * 2) / 2, lowX), highX);
     const moveY = Math.min(Math.max(Math.round(dy * 2) / 2, lowY), highY);
@@ -440,8 +445,8 @@ export class Puzzle {
     // a piece moves in much finer steps than the grid (a step that goes a whole number of times into the grid, so the grid points are still among them)
     const pieceStep = figure.data.piece ? Math.max(PIECE_MIN_STEP_PX, Math.round(step / PIECE_STEP_DIVISOR / PIECE_MIN_STEP_PX) * PIECE_MIN_STEP_PX) : step;
     const moved = figure.at(
-      Puzzle.stickCenter(wantedX, figure.object.width, this.width, pieceStep, origin),
-      Puzzle.stickCenter(wantedY, figure.object.height, this.height, pieceStep, origin),
+      Puzzle.stickCenter(wantedX, figure.object.width, this.width, pieceStep, this.margin, origin),
+      Puzzle.stickCenter(wantedY, figure.object.height, this.height, pieceStep, this.margin, origin),
     );
     if (moved.centerX === figure.centerX && moved.centerY === figure.centerY) return this;
     return this.with(this.items.map((p) => (p.id === id ? moved : p)));

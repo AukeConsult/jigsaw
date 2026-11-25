@@ -37,7 +37,7 @@
   "couldNotResetRounds": "Kierroksia ei voitu poistaa: vain omistaja voi.",
   "youSolvedIt": "Olet ratkaissut tämän palapelin",
   "roundProtected": "Lukittu: aloitettu tilin kirjautumisella",
-  "startTitle": "Valitse palat ja vaikeustaso",
+  "startTitle": "Valitse palat ja vaikeustaso palapelin kokoamiseen",
   "startPieces": "Palat",
   "startGo": "Aloita kierros",
   "startSolved": "ratkaistu",

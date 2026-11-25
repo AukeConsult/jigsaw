@@ -9,16 +9,14 @@ import type { UserStore } from "./jigsaw-users";
 const KEEP_MS = 10_000;
 
 /**
- * The account an admin has gone into, for the call that is being answered (set by `intoAccount` after the gate has seen that the admin's login is a real admin's): for that account `Levels.of` says
- * `admin` during this call, so an admin in an account has every right of an admin there. It is kept for the call only (`AsyncLocalStorage`), never for the account.
+ * The call that is being answered comes with an admin's login (the gate has seen that the Bearer token is verified for an account that is a real admin: `res.locals.byAdmin`): for this call every
+ * question about a level is answered `admin`, whatever account the call acts as and also when it names none, so the login of an admin is accepted on every call and on every item. It is kept for the call
+ * only (`AsyncLocalStorage`), never for an account.
  */
-const adminInto = new AsyncLocalStorage<string>();
+const byAdmin = new AsyncLocalStorage<true>();
 
-/** In front of the routes, after the gate: runs the rest of the call with the account the gate said an admin is in. */
-export const intoAccount: express.RequestHandler = (_req, res, next) => {
-  const id = res.locals.adminInto as string | undefined;
-  return id ? adminInto.run(id, next) : next();
-};
+/** In front of the routes, after the gate: runs the rest of the call as an admin's, when the gate said it is. */
+export const intoAccount: express.RequestHandler = (_req, res, next) => (res.locals.byAdmin ? byAdmin.run(true, next) : next());
 
 export interface Levels {
   /** The level the account really has (`UserLevels.of`: `user` for nobody, for an account that does not exist and for one that needs no login). */
@@ -31,8 +29,8 @@ export function userLevels(users: Pick<UserStore, "get">, now: () => number = Da
   const known = new Map<string, { at: number; level: UserLevel }>();
   return {
     async of(id) {
+      if (byAdmin.getStore()) return "admin"; // the call comes with an admin's login: every level is admin for it (see `byAdmin`)
       if (!id || JigsawUsers.idError(id)) return "user";
-      if (adminInto.getStore() === id) return "admin"; // an admin has gone into this account for this call
       const same = known.get(id);
       if (same && now() - same.at < KEEP_MS) return same.level;
       if (known.size > 2000) known.clear();

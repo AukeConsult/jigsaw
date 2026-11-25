@@ -23,13 +23,14 @@ export class LogonRequired {
     this.injector.get(JigsawUserService).leave();
     const here = router.url;
     if (here.startsWith('/login')) return; // already where the person can sign in
-    if (here.startsWith('/jigsaw/user')) {
+    const app = /^\/play(\/|$)/.test(here); // the module the person is in: what is done here stays in it
+    if (here.startsWith('/jigsaw/user') || here.startsWith('/play/account')) {
       // already where the person can choose: the reason is said there (`app-my-logon-users` reads it), without leaving the page
       void router.navigate([], { queryParams: { logon: code === 'wrong-logon' && this.auth.user() ? 'wrong' : 'needlogin' }, queryParamsHandling: 'merge', replaceUrl: true });
       return;
     }
-    const next = /^\/jigsaw(\/|$)/.test(here) ? here : undefined;
-    if (code === 'wrong-logon' && this.auth.user()) void router.navigate(['/jigsaw/user'], { queryParams: { logon: 'wrong', ...(next ? { next } : {}) } });
+    const next = /^\/(jigsaw|play)(\/|$)/.test(here) ? here : undefined;
+    if (code === 'wrong-logon' && this.auth.user()) void router.navigate([app ? '/play/account' : '/jigsaw/user'], { queryParams: { logon: 'wrong', ...(next && !app ? { next } : {}) } });
     else void router.navigate(['/login'], { queryParams: { notice: 'needlogin', ...(next ? { next } : {}) } });
   }
 }

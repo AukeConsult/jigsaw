@@ -10,8 +10,8 @@ import { TokenVerifier } from "./require-auth";
 //   - no token (or a bad one) for a user that needs a login: 401 `logon-required`;
 //   - a good token for an account that is not one of the user's: 403 `wrong-logon`;
 //   - a question that cannot be answered (Firebase is not there): 503, never a way through.
-// An admin can go into an account (the header `X-Jigsaw-Admin` is the admin account; the token that comes is the admin's own login): the call is then answered as the account in `X-Jigsaw-User`,
-// without its login. The logins of that account (`/jigsaw-users/:id/logons`) are not opened that way.
+// An admin can act as any account: the key is the admin's own login, the Bearer token that comes with every call. When that login is verified for an account that is a real admin (it needs a login, and
+// has the level), the call is answered as the account in `X-Jigsaw-User` (or in the address), without the login of that account. The logins of the account (`/jigsaw-users/:id/logons`) are not opened that way.
 // A verified account that no longer exists in Firebase is taken from the list when it is found out (an account deleted in Seven Friends, say); a user whose every account is gone is free again, with
 // everything it has.
 
@@ -51,12 +51,7 @@ function looking(req: Request): boolean {
   return true;
 }
 
-/** Changing or deleting an account (`PUT` or `DELETE /jigsaw-users/:id`): an admin may do it to an account of another, so the login of that account is not asked for (the admin's own is). */
-function managesAccount(req: Request): boolean {
-  return (req.method === "PUT" || req.method === "DELETE") && /^\/jigsaw-users\/[^/]+\/?$/.test(req.path);
-}
-
-/** The routes of the logins of one account (`/jigsaw-users/:id/logons`): they stay the account's own, an admin does not get into them. */
+/** The routes of the logins of one account (`/jigsaw-users/:id/logons`): they stay the account's own, an admin's login does not get into them. */
 function ownLogins(req: Request): boolean {
   return /^\/jigsaw-users\/[^/]+\/logons(\/|$)/.test(req.path);
 }
@@ -81,6 +76,14 @@ export function createGate(deps: { verifier: TokenVerifier; users: UserStore; di
     known.delete(userId);
     allThere.delete(userId);
   };
+
+  /**
+   * Whether this login is verified for an account that is a real admin (an account that needs a login and has the level, `UserLevels.of`), worked out from the accounts of the login. **Never kept**: it is asked of the database at every call that
+   * carries a login, so a demoted admin, or a login taken off an admin account, is refused at once, also by another instance of the function (a kept answer would be a window in which a login that is
+   * no admin's any more still is). When the database cannot answer, the call fails (503): there is no way through.
+   */
+  /** The accounts this login is verified for (asked of the database each time, never kept). */
+  const accountsOfLogin = (uid: string) => deps.users.linkedTo(uid);
 
   const userOf = async (id: string): Promise<JigsawUserSpec | null> => {
     const same = known.get(id);
@@ -122,17 +125,17 @@ export function createGate(deps: { verifier: TokenVerifier; users: UserStore; di
         }
         return proof;
       };
-      const header = req.get("X-Jigsaw-User");
-      // An admin who has gone into an account: the header `X-Jigsaw-Admin` names the admin account and the login that comes is one of the admin's (a real admin: an account that needs a login, with the level).
-      // The call is then answered as the account in `X-Jigsaw-User`, with the rights of an admin (`res.locals.adminInto` is that account; the app gives it the level of an admin for this call), whatever
-      // login the account needs. The logins of the account (`/jigsaw-users/:id/logons`) are not opened that way.
-      const adminId = req.get("X-Jigsaw-Admin");
+      // An admin: the login that comes (the Bearer token, the admin's own key) is verified for an account that is a real admin. Then the call is answered as the account it acts as, with the rights of an
+      // admin (`res.locals.byAdmin`: every level is admin for this call, `intoAccount`), whatever login that account needs. The logins of the account are not opened that way.
       let viaAdmin = false;
-      if (adminId && header && adminId !== header && !JigsawUsers.idError(adminId) && !JigsawUsers.idError(header) && !ownLogins(req)) {
+      if (req.get("Authorization") && !ownLogins(req)) {
         const who = await token();
-        const admin = who ? await userOf(adminId) : null;
-        viaAdmin = !!who && !!admin && JigsawUsers.mayAct(admin, who.uid) && JigsawUsers.requiresLogon(admin) && UserLevels.isAdmin(UserLevels.of(admin));
-        if (viaAdmin) res.locals.adminInto = header;
+        const own = who ? await accountsOfLogin(who.uid) : [];
+        viaAdmin = own.some((u) => UserLevels.isAdmin(UserLevels.of(u)));
+        // For the whole call: every level is admin for it, also when no account is named. **Not** when the call acts as another account the login is verified for and that is no admin: that is the person's own
+        // account, with its own level (choosing it is not going into somebody else's account). The page shows the same (`JigsawUserService.admin`).
+        const named = actingAs(req);
+        if (viaAdmin && (!named.length || named.some((id) => { const mine = own.find((u) => u.id === id); return !mine || UserLevels.isAdmin(UserLevels.of(mine)); }))) res.locals.byAdmin = true;
       }
       for (const id of actingAs(req)) {
         if (viaAdmin) continue;
@@ -140,11 +143,6 @@ export function createGate(deps: { verifier: TokenVerifier; users: UserStore; di
         if (!user || !JigsawUsers.requiresLogon(user)) continue;
         const who = await token();
         if (who && JigsawUsers.mayAct(user, who.uid)) continue;
-        // an admin (the account of the header, which this login may act as and which has the level) may change or delete the account of another
-        if (who && id !== header && managesAccount(req) && header && !JigsawUsers.idError(header)) {
-          const admin = await userOf(header);
-          if (admin && JigsawUsers.mayAct(admin, who.uid) && UserLevels.isAdmin(UserLevels.of(admin))) continue;
-        }
         const after = await sweep(user); // every account it had may be gone: then it is free
         if (!JigsawUsers.requiresLogon(after)) continue;
         if (looking(req)) {

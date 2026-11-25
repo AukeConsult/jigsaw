@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JIGSAW_MAX_PLACED, JigsawSettings, Puzzle, DEFAULT_OBJECT, PlacedFigure } from "../src/models";
+import { areaMargin, JIGSAW_MAX_PLACED, JigsawSettings, Puzzle, DEFAULT_OBJECT, PlacedFigure } from "../src/models";
 import type { PlacedObject } from "../src/models";
 
 const STEP = 5; // the grid
@@ -14,8 +14,9 @@ describe("moving a figure", () => {
   it("puts the centre of an object on a grid point, inside the picture area", () => {
     const d = Puzzle.from([at("a", 100, 100)], 800, 600).moveFigure("a", 203, 153, STEP);
     expect([figure(d, "a").centerX, figure(d, "a").centerY]).toEqual([205, 155]);
-    const corner = Puzzle.from([at("a", 100, 100)], 800, 600).moveFigure("a", 3, 2, STEP); // pulled in so the whole object is inside, or at most in the margin (8 px)
-    expect([figure(corner, "a").centerX, figure(corner, "a").centerY]).toEqual([45, 45]);
+    const corner = Puzzle.from([at("a", 100, 100)], 800, 600).moveFigure("a", 3, 2, STEP); // pulled in so the whole object is inside, or at most in the margin
+    const edge = Math.ceil((50 - areaMargin(800, 600)) / STEP) * STEP; // the centre of a box that begins in the margin, on the next grid point
+    expect([figure(corner, "a").centerX, figure(corner, "a").centerY]).toEqual([edge, edge]);
   });
 
   it("changes nothing when it does not move, or for an object that is not there", () => {

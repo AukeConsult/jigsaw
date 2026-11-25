@@ -51,7 +51,7 @@ export function createLogons(users: UserStore, deps: LogonDeps = {}): Logons {
     try {
       const token = tokenOf(res);
       const { account, created } = await accounts.sync(token);
-      const linked = (await users.linkedTo(token.uid)).map((u) => ({ id: u.id, name: u.name, username: u.username, ...(u.pictureAt ? { pictureAt: u.pictureAt } : {}) }));
+      const linked = (await users.linkedTo(token.uid)).map((u) => ({ id: u.id, name: u.name, username: u.username, ...(u.pictureAt ? { pictureAt: u.pictureAt } : {}), ...(u.level ? { level: u.level } : {}) }));
       const answer: LogonSession = { ok: true, accountId: account.accountId, created, user: LogonAccounts.publicOf(account), users: linked };
       res.json(answer);
     } catch (err) {
@@ -62,7 +62,7 @@ export function createLogons(users: UserStore, deps: LogonDeps = {}): Logons {
 
   /** `GET /session`: the jigsaw users the account that is signed in is verified for (the page asks when it has been signed in since before, without making a login of it). */
   session.get("/", requireAuth(verifier), async (_req, res) => {
-    const linked = (await users.linkedTo(tokenOf(res).uid)).map((u) => ({ id: u.id, name: u.name, username: u.username, ...(u.pictureAt ? { pictureAt: u.pictureAt } : {}) }));
+    const linked = (await users.linkedTo(tokenOf(res).uid)).map((u) => ({ id: u.id, name: u.name, username: u.username, ...(u.pictureAt ? { pictureAt: u.pictureAt } : {}), ...(u.level ? { level: u.level } : {}) }));
     res.json({ users: linked });
   });
 

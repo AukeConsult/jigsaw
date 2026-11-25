@@ -1,0 +1,55 @@
+<div class="vstack gap-2" *transloco="let t">
+  <button type="button" class="link-action align-self-start" (click)="state.closeLogon()"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('play.logon.back') || 'Back to who is on' }}</button>
+  <h2 class="fs-5 d-flex align-items-center gap-2 mb-0">
+    <i class="bi bi-person-circle text-primary" aria-hidden="true"></i>
+    {{ mode() === 'signin' ? (t('play.logon.signIn') || 'Sign in') : (t('play.logon.createTitle') || 'Create your sign-in') }}
+  </h2>
+
+  <button type="button" class="btn btn-outline-secondary w-100" (click)="google()" [disabled]="busy()"><i class="bi bi-google" aria-hidden="true"></i> {{ t('play.logon.google') || 'Continue with Google' }}</button>
+
+  <p class="text-body-secondary text-center mb-0">{{ t('play.logon.orPassword') || 'or use a password' }}</p>
+
+  <form class="vstack gap-2" (submit)="$event.preventDefault(); submit()">
+    @if (mode() === 'signup') {
+      <input type="text" name="name" class="form-control text-input-name" [attr.placeholder]="t('play.logon.namePlaceholder') || 'Your name (optional)'" [attr.aria-label]="t('play.logon.namePlaceholder') || 'Your name (optional)'"
+             autocomplete="name" [value]="name()" (input)="name.set($any($event.target).value)" />
+    }
+    <input type="email" name="email" class="form-control" [attr.placeholder]="t('play.logon.email') || 'Email'" [attr.aria-label]="t('play.logon.email') || 'Email'"
+           autocomplete="email" inputmode="email" required [value]="email()" (input)="email.set($any($event.target).value); rejected.set(false)" />
+    <input type="password" name="password" class="form-control" [attr.placeholder]="t('play.logon.password') || 'Password'" [attr.aria-label]="t('play.logon.password') || 'Password'" required minlength="6"
+           [attr.autocomplete]="mode() === 'signin' ? 'current-password' : 'new-password'" [value]="password()" (input)="password.set($any($event.target).value); rejected.set(false)" />
+    @if (mode() === 'signup') {
+      <!-- making an account: the password is typed twice, so a typing mistake does not lock the person out -->
+      <input type="password" name="password-again" class="form-control" [attr.placeholder]="t('play.logon.repeat') || 'Repeat the password'" [attr.aria-label]="t('play.logon.repeat') || 'Repeat the password'"
+             required minlength="6" autocomplete="new-password" [value]="again()" (input)="again.set($any($event.target).value)" />
+    }
+
+    @if (!rejected()) {
+      <button type="submit" class="btn btn-primary" [disabled]="busy()">{{ busy() ? (t('play.logon.wait') || 'Please wait…') : mode() === 'signin' ? (t('play.logon.signIn') || 'Sign in') : (t('play.logon.createAccount') || 'Create sign-in') }}</button>
+    }
+
+    @if (error() && !rejected()) {
+      <div class="alert alert-danger mb-0 text-center" role="alert">{{ error() }}</div>
+    }
+    @if (rejected()) {
+      <!-- turned down: no red error, but the two ways on: there may be no account yet, or the password is forgotten -->
+      <div class="alert alert-secondary mb-0 vstack gap-2 text-center" role="region">
+        <p class="mb-0">{{ t('play.logon.rejectedText') || 'We could not sign you in with this email and password.' }}</p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="button" class="btn btn-sm btn-primary" (click)="toggleMode()">{{ t('play.logon.createAnAccount') || 'Create a sign-in' }}</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="forgot()">{{ t('play.logon.forgot') || 'Forgot password?' }}</button>
+        </div>
+      </div>
+    }
+    @if (info()) {
+      <div class="alert alert-success mb-0 text-center" role="status">{{ info() }}</div>
+    }
+  </form>
+
+  <div class="toolbar justify-content-center">
+    @if (mode() === 'signin' && !rejected()) {
+      <button type="button" class="link-action" (click)="forgot()">{{ t('play.logon.forgot') || 'Forgot password?' }}</button>
+    }
+    <button type="button" class="link-action" (click)="toggleMode()">{{ mode() === 'signin' ? (t('play.logon.noAccount') || 'New here? Create a sign-in') : (t('play.logon.haveAccount') || 'Already signed up? Sign in') }}</button>
+  </div>
+</div>

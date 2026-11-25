@@ -1,5 +1,5 @@
 <ng-container *transloco="let t">
-@switch (status()) {
+@switch (round.status()) {
   @case ('loading') {
     <main class="container-fluid page-margin text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
   }
@@ -14,86 +14,16 @@
     </main>
   }
   @case ('ready') {
-    @let it = item()!;
-    @let m = matched();
-    <div class="jigsaw-play" [class.show-areas]="debug()">
+    <div class="jigsaw-play" [class.show-areas]="round.debug()">
+      <app-puzzel-banner />
       <div class="jigsaw-side">
         <!-- the sidebar, docked at the left edge on a wide screen: how far the round has come and what can be done in it; on a narrow screen it is folded away until the Sidebar switch in the top menu opens it over the board -->
         <aside id="jigsaw-sidebar" class="jigsaw-sidebar p-3" [class.is-open]="tools.sidebarOpen()" [style.height.px]="sidebarHeight()" [attr.aria-label]="t('jigsawPlay.sidebar') || 'The jigsaw'">
-        <!-- the title of the jigsaw (it is changed on the page of the jigsaw): a link to that page, with its rounds; the rest of the panel closes it when it is open over the board -->
-        <h1 class="page-title mb-2"><a class="d-block text-reset text-decoration-none text-name" [routerLink]="['/jigsaw', jigsawId]" [title]="t('jigsawPlay.openJigsaw') || 'Open the page of the jigsaw'">{{ it.name }}</a></h1>
-        @if (it.author) {
-          <div class="small text-author"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>{{ it.author }}</div>
-        }
-        <div class="small text-facts mb-3">{{ t('jigsawPlay.info', { total: m.total, columns: pieceInfo().columns, rows: pieceInfo().rows, width: it.width, height: it.height, grid: it.gridSize, level: levelLabel().toLowerCase() }) || m.total + ' pieces (' + pieceInfo().columns + ' × ' + pieceInfo().rows + '), ' + it.width + ' × ' + it.height + ' px, grid ' + it.gridSize + ' px, difficulty ' + levelLabel().toLowerCase() }}</div>
-
-        @if (viewOnly()) {
-          <!-- another player's round: it can be looked at, never changed -->
-          <div class="alert alert-info py-2 small" role="status">
-            <i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('jigsawPlay.lookingAt') || 'You are looking at' }} <strong>{{ play()?.userName || t('jigsawPlay.anotherPlayer') || 'another player' }}</strong>{{ t('jigsawPlay.roundSuffix') || "'s round. You can look, but not change it." }}
-            <div class="mt-2"><button type="button" class="btn btn-sm btn-primary" (click)="startOwn()"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawPlay.startOwn') || 'Start my own round' }}</button></div>
-          </div>
-        }
-
-        <div class="small text-count mb-3" role="status" aria-live="polite">
-          {{ t('jigsawPlay.matched') || 'Matched:' }} <strong>{{ m.count }}</strong> {{ t('jigsawPlay.ofTotal', { total: m.total }) || 'of ' + m.total }}{{ m.total && m.count === m.total ? (t('jigsawPlay.solved') || ' – solved!') : '' }}
-        </div>
-        @if (pieceSync.state() === 'failed') {
-          <div class="small text-danger mb-2" role="alert">{{ t('jigsawPlay.couldNotSavePieces') || 'Could not save the pieces, trying again' }}</div>
-        }
-
-        @if (message(); as msg) {
-          <div class="alert py-1 px-2 small" [class.alert-success]="msg.kind === 'success'" [class.alert-danger]="msg.kind === 'danger'" role="status">{{ msg.text }}</div>
-        }
-
-        <!-- who sees the round, for its player: public (in the list of rounds on the front page) or private (only the player); saved at once -->
-        @if (!viewOnly() && play(); as round) {
-          <fieldset class="mb-3">
-            <legend class="form-label fs-6 mb-1">{{ t('jigsawPage.roundWho') || 'Who sees the round' }}</legend>
-            <div class="d-flex flex-wrap gap-2">
-              <input id="side-round-public" name="sideRoundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="!round.private" [disabled]="privacyBusy()" (change)="setPrivate(false)">
-              <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="side-round-public"><i class="bi bi-globe2 me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityEveryone') || 'Public' }}</label>
-              <input id="side-round-private" name="sideRoundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="!!round.private" [disabled]="privacyBusy()" (change)="setPrivate(true)">
-              <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="side-round-private"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityOwner') || 'Private' }}</label>
-            </div>
-          </fieldset>
-        }
-
-        <!-- the buttons that start or delete a round are for the player of the round only (Bootstrap's d-flex beats the hidden attribute, so it is not rendered at all) -->
-        @if (!viewOnly()) {
-          <div class="d-grid gap-2 mb-3">
-            @if (confirmingStartOver()) {
-              <div class="small" role="alert">{{ t('jigsawPlay.startNewAsk') || 'Reset this round? The pieces are scattered again and the time starts from zero.' }}</div>
-              <button type="button" class="btn btn-danger" (click)="startOver()">{{ t('jigsawPlay.yesNew') || 'Yes, reset' }}</button>
-              <button type="button" class="btn btn-outline-secondary" (click)="confirmingStartOver.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
-            } @else if (confirmingDelete()) {
-              <div class="small" role="alert">{{ t('jigsawPlay.deleteAsk') || 'Delete this round for good? Its pieces and progress are lost. The jigsaw stays.' }}</div>
-              <button type="button" class="btn btn-danger" (click)="deleteGame()">{{ t('jigsawPlay.yesDelete') || 'Yes, delete' }}</button>
-              <button type="button" class="btn btn-outline-secondary" (click)="confirmingDelete.set(false)">{{ t('jigsawPlay.cancel') || 'Cancel' }}</button>
-            } @else {
-              @if (!(m.total > 0 && m.count === m.total)) {
-                <!-- a solved round is not played over -->
-              <button type="button" class="btn btn-outline-primary text-nowrap" (click)="confirmingStartOver.set(true)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{{ t('jigsawPlay.newRound') || 'Reset round' }}</button>
-              }
-              <button type="button" class="btn btn-outline-danger text-nowrap" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawPlay.deleteRound') || 'Delete round' }}</button>
-            }
-          </div>
-        }
-
-        @if (!viewOnly()) {
-          <!-- the cheat: the numbers of the places on the picture and on the pieces, to help find them (a switch, as the helper ones in the menu are) -->
-          <div class="form-check form-switch mb-3">
-            <input id="cheat" class="form-check-input" type="checkbox" role="switch" [checked]="debug()" (change)="debug.set($any($event.target).checked)">
-            <label class="form-check-label" for="cheat"><i class="bi bi-bug me-1" aria-hidden="true"></i>{{ t('jigsawPlay.cheat') || 'Cheat' }} <span class="text-body-secondary">{{ t('jigsawPlay.cheatHelp') || '(help find pieces)' }}</span></label>
-          </div>
-        }
+          <app-puzzel-details (deleted)="onDeleted()" (own)="onOwn($event)" />
         </aside>
       </div>
-
       <div class="jigsaw-main">
-        <app-jigsaw-board [width]="it.width" [height]="it.height" [gridSize]="it.gridSize" [gridVisible]="it.gridVisible" [gridInset]="true" [numberPoints]="debug()"
-                          [storeWidth]="it.storeWidth ?? 0" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [backColor]="backColor()" [snapRange]="snapRangePx()" [picture]="picture()" [fillScreen]="true" [helperBanner]="true" [viewOnly]="viewOnly()"
-                          [(placed)]="placed" (storeWidthChange)="widenStore($event)" />
+        <app-puzzel-board />
       </div>
     </div>
   }

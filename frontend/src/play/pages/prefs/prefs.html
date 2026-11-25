@@ -1,0 +1,12 @@
+<main class="container-fluid page-margin find-page" *transloco="let t">
+  <!-- the title is only for a screen reader: the jigsaw app's page has it, with the title and Show, outside the component; Show is here, under the choices -->
+  <h1 class="visually-hidden">{{ t('jigsawList.findTitle') || 'Filter pictures' }}</h1>
+  <!-- the choices are in a frame of their own, so they are read on a plain background and not on the soft pattern of the page -->
+  <div class="card card-body">
+    <app-jigsaw-filter [(filter)]="filter" [facets]="facets()" idPrefix="prefs" />
+  </div>
+  <!-- Show: the choices are kept already, so it only goes back to the home page, where the list is filtered by them (not when nothing matches) -->
+  <div class="text-center my-3">
+    <a class="btn btn-primary" routerLink="/" [class.disabled]="facets()?.total === 0" [attr.aria-disabled]="facets()?.total === 0"><i class="bi bi-search" aria-hidden="true"></i> {{ t('jigsawList.go') || 'Show' }}</a>
+  </div>
+</main>

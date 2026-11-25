@@ -1,0 +1,15 @@
+@if (panel.inMain()) {
+  <section class="container-fluid page-margin" *transloco="let t">
+    <!-- the frame: the views of the helper, in the place of the page that was open -->
+    <div class="helper-main-frame border rounded-3 bg-body p-2 p-sm-3 mx-auto">
+      <div class="d-flex justify-content-end mb-2">
+        <button type="button" class="link-action" (click)="panel.close()"><i class="bi bi-x-lg" aria-hidden="true"></i>{{ t('play.close') || 'Close' }}</button>
+      </div>
+      <div class="vstack gap-2">
+        @for (view of panel.views(); track $index) {
+          <ng-container *ngComponentOutlet="view" />
+        }
+      </div>
+    </div>
+  </section>
+}

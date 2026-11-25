@@ -1,0 +1,26 @@
+{
+  "jigsaws": "Bilder",
+  "loading": "Hämtar bilderna …",
+  "loadFailed": "Det gick inte att läsa in bilderna.",
+  "more": "Visa fler",
+  "none": "Ingen bild ännu.",
+  "playName": "Visa {{ name }}",
+  "play": "Visa bilden",
+  "solvedByYou": "Du har löst den här",
+  "addFavorite": "Lägg till som favorit",
+  "removeFavorite": "Ta bort från favoriter",
+  "timed": "Tidtagning",
+  "hiddenNote": "Dold: bara i listan över dina bilder",
+  "onlyYou": "Bara du ser det",
+  "piecesShort": "{{ count }} bitar",
+  "difficulty": "Svårighetsgrad",
+  "choosePieces": "Välj bitar",
+  "choosePiecesTitle": "Antal bitar och svårighetsgrad väljs när du startar en rond",
+  "snap": {
+    "hard": "Svår",
+    "medium": "Medel",
+    "easy": "Lätt"
+  },
+  "helper": "Hjälpare",
+  "helperMain": "Det här är hjälparen på huvudsidan. Den är bara ett exempel än så länge."
+}

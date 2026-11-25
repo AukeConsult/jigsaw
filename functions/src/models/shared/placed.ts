@@ -39,8 +39,17 @@ export interface PiecePlace {
 export const MAX_PIECE_INDEX = 1000;
 /** A piece this close (pixels) to its own place is in place: half a pixel is the finest a piece is put (the same as `JigsawPieces.MATCH_TOLERANCE_PX`). */
 export const PLACE_TOLERANCE_PX = 0.5;
-/** How far a piece may go past the top and the left edge of the picture area, in pixels (the margin the board draws round the picture, where a piece can be put too): its box may begin this far before 0. */
-export const AREA_MARGIN_PX = 8;
+/** The least the margin round the picture can be, in pixels, and what it is of the shorter side of the picture area (so it follows the size of the picture and is not the same few pixels on a small picture and on a large one). */
+export const AREA_MARGIN_MIN_PX = 20;
+export const AREA_MARGIN_RATIO = 0.05;
+
+/**
+ * How far a piece may go past the top and the left edge of a picture area of this size, in pixels (the margin the board draws round the picture, where a piece can be put too): its box may begin this far before 0. It is **relative to the
+ * size of the picture area**: a twentieth of its shorter side, and never less than `AREA_MARGIN_MIN_PX`. The board, the model and the API all ask here, so they cannot disagree.
+ */
+export function areaMargin(width: number, height: number): number {
+  return Math.max(AREA_MARGIN_MIN_PX, Math.round(Math.min(width, height) * AREA_MARGIN_RATIO));
+}
 
 /**
  * A placed figure (a jigsaw piece): a box, it knows its own place, its own box and its own home in the picture area.
@@ -112,7 +121,8 @@ export class PlacedFigure {
 
   /** whether it is inside a picture area of this size */
   fits(width: number, height: number): boolean {
-    return this.left >= -AREA_MARGIN_PX && this.top >= -AREA_MARGIN_PX && this.left + this.object.width <= width && this.top + this.object.height <= height;
+    const margin = areaMargin(width, height);
+    return this.left >= -margin && this.top >= -margin && this.left + this.object.width <= width && this.top + this.object.height <= height;
   }
 
   /** the same object with its centre somewhere else */

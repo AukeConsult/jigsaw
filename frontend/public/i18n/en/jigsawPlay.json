@@ -30,5 +30,7 @@
   "cheatHelp": "(help find pieces)",
   "couldNotDelete": "Could not delete the round: try again.",
   "couldNotStart": "Could not reset the round: try again.",
-  "openJigsaw": "Open the page of the jigsaw"
+  "openJigsaw": "Open the page of the jigsaw",
+  "finishedTitle": "Finished!",
+  "finishedTime": "Time: {{ time }}"
 }

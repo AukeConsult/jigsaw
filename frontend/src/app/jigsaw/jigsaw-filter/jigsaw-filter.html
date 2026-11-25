@@ -1,21 +1,32 @@
 <ng-container *transloco="let t">
+  @if (shows('visibilities')) {
+    <!-- public and private, always there at the top (they do not depend on what pictures there are): one, both or none; none or both is every picture -->
+    <fieldset class="mb-2">
+      <legend class="form-label">{{ t('jigsawList.access') || 'Public or private' }}</legend>
+      <div class="choice-group">
+        @for (v of visibilities; track v) {
+          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('visibilities', v)" [class.btn-outline-secondary]="!chosen('visibilities', v)" [attr.aria-pressed]="chosen('visibilities', v)" (click)="toggle('visibilities', v)"><i class="bi" [class]="v === 'private' ? 'bi-lock' : 'bi-globe2'" aria-hidden="true"></i> {{ t('jigsawList.' + v) || v }}</button>
+        }
+      </div>
+    </fieldset>
+  }
   <!-- every choice is a row of small buttons (`choice-group` in styles.scss, the same format as the forms), the chosen ones filled, with how many jigsaws each has -->
-  @if (shows('kinds')) {
+  @if (shows('kinds') && shownKinds().length) {
     <!-- what the entry is: a ready jigsaw (cut already) or a picture (cut in each round) -->
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.kind') || 'Type' }}</legend>
       <div class="choice-group">
-        @for (k of kinds; track k) {
+        @for (k of shownKinds(); track k) {
           <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('kinds', k)" [class.btn-outline-secondary]="!chosen('kinds', k)" [attr.aria-pressed]="chosen('kinds', k)" (click)="toggle('kinds', k)"><i class="bi" [class]="k === 'picture' ? 'bi-image' : 'bi-puzzle'" aria-hidden="true"></i> {{ t('jigsawList.kinds.' + k) || k }}@if (chosen('kinds', k)) {<span class="choice-count">{{ count('kinds', k) }}</span>}</button>
         }
       </div>
     </fieldset>
   }
-  @if (shows('categories')) {
+  @if (shows('categories') && shownCategories().length) {
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.category') || 'Category' }}</legend>
       <div class="choice-group">
-        @for (c of categories; track c.key) {
+        @for (c of shownCategories(); track c.key) {
           <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('categories', c.key)" [class.btn-outline-secondary]="!chosen('categories', c.key)" [attr.aria-pressed]="chosen('categories', c.key)" [disabled]="!canChoose('categories', c.key)" (click)="toggle('categories', c.key)"><i class="bi" [class]="c.icon" aria-hidden="true"></i> {{ t('jigsawCategories.name.' + c.key) || c.name }}@if (chosen('categories', c.key)) {<span class="choice-count">{{ count('categories', c.key) }}</span>}</button>
         }
       </div>
@@ -25,62 +36,79 @@
       <fieldset class="mb-2 ms-3">
         <legend class="small text-body-secondary mb-1">{{ t('jigsawCategories.subOf', { name: t('jigsawCategories.name.' + c.key) || c.name }) || (t('jigsawCategories.name.' + c.key) || c.name) + ': more exactly (optional)' }}</legend>
         <div class="choice-group">
-          @for (s of c.subs; track s.key) {
+          @for (s of shownSubs(c); track s.key) {
             <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('categories', s.key)" [class.btn-outline-secondary]="!chosen('categories', s.key)" [attr.aria-pressed]="chosen('categories', s.key)" [disabled]="!canChoose('categories', s.key)" (click)="toggle('categories', s.key)">{{ t('jigsawCategories.name.' + s.key) || s.name }}@if (chosen('categories', s.key)) {<span class="choice-count">{{ count('categories', s.key) }}</span>}</button>
           }
         </div>
       </fieldset>
     }
   }
-  @if (shows('languages')) {
+  @if (shows('languages') && shownLanguages().length) {
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.language') || 'Language' }}</legend>
       <div class="choice-group">
-        @for (l of languages(); track l.code) {
+        @for (l of shownLanguages(); track l.code) {
           <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('languages', l.code)" [class.btn-outline-secondary]="!chosen('languages', l.code)" [attr.aria-pressed]="chosen('languages', l.code)" (click)="toggle('languages', l.code)">{{ l.name }}@if (chosen('languages', l.code)) {<span class="choice-count">{{ count('languages', l.code) }}</span>}</button>
         }
       </div>
     </fieldset>
   }
-  @if (shows('sizes')) {
+  @if (shows('sizes') && shownSizes().length) {
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.size') || 'Size' }}</legend>
       <div class="choice-group">
-        @for (s of sizes; track s.key) {
+        @for (s of shownSizes(); track s.key) {
           <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('sizes', s.key)" [class.btn-outline-secondary]="!chosen('sizes', s.key)" [attr.aria-pressed]="chosen('sizes', s.key)" (click)="toggle('sizes', s.key)">{{ t('jigsawList.sizes.' + s.key) || s.key }}@if (chosen('sizes', s.key)) {<span class="choice-count">{{ count('sizes', s.key) }}</span>}</button>
         }
       </div>
     </fieldset>
   }
-  @if (shows('difficulties')) {
+  @if (shows('difficulties') && shownDifficulties().length) {
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.difficulty') || 'Difficulty' }}</legend>
       <div class="choice-group">
-        @for (d of difficulties; track d.key) {
+        @for (d of shownDifficulties(); track d.key) {
           <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('difficulties', d.key)" [class.btn-outline-secondary]="!chosen('difficulties', d.key)" [attr.aria-pressed]="chosen('difficulties', d.key)" (click)="toggle('difficulties', d.key)">{{ t('jigsawLevels.snap.' + d.key) || d.key }}@if (chosen('difficulties', d.key)) {<span class="choice-count">{{ count('difficulties', d.key) }}</span>}</button>
         }
       </div>
     </fieldset>
   }
-  @if (shows('motives')) {
+  @if (shows('motives') && shownMotives().length) {
     <!-- the motive difficulty: how hard the picture itself is, a property of the jigsaw like its difficulty -->
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.motive') || 'Motive difficulty' }}</legend>
       <div class="choice-group">
-        @for (m of motives; track m.key) {
+        @for (m of shownMotives(); track m.key) {
           <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('motives', m.key)" [class.btn-outline-secondary]="!chosen('motives', m.key)" [attr.aria-pressed]="chosen('motives', m.key)" (click)="toggle('motives', m.key)">{{ t('jigsawLevels.motive.' + m.key) || m.name }}@if (chosen('motives', m.key)) {<span class="choice-count">{{ count('motives', m.key) }}</span>}</button>
         }
       </div>
     </fieldset>
   }
-  @if (shows('owners')) {
+  @if (shows('owners') && shownOwners().length) {
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.owner') || 'Made by' }} <span class="text-body-secondary">{{ t('jigsawList.ownersHelp', { max: maxOwners }) || '(choose one or more)' }}</span></legend>
       <div class="choice-group">
-        @for (u of owners(); track u.id) {
+        @for (u of shownOwners(); track u.id) {
           <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('owners', u.id)" [class.btn-outline-secondary]="!chosen('owners', u.id)" [attr.aria-pressed]="chosen('owners', u.id)" [disabled]="!canChoose('owners', u.id)" (click)="toggle('owners', u.id)">{{ u.id === noOwner ? (t('jigsawList.noOwner') || 'No owner') : u.name }}@if (chosen('owners', u.id)) {<span class="choice-count">{{ u.count }}</span>}</button>
         }
       </div>
     </fieldset>
   }
+  <!-- at the bottom, in the middle: how many match, or, when nothing does, a calm message (nothing is wrong: there are only no pictures for these choices), -->
+  <div class="text-center my-3">
+    @if (matches(); as count) {
+      <div role="status">
+        <span class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-primary-subtle text-primary-emphasis fw-semibold">
+          <i class="bi bi-images" aria-hidden="true"></i>{{ (count === 1 ? t('jigsawList.matchOne', { count: count }) : t('jigsawList.matchMany', { count: count })) || count + (count === 1 ? ' picture matches' : ' pictures match') }}
+        </span>
+      </div>
+    }
+    @if (noneMatch()) {
+      <div class="py-3 px-3 mb-2 rounded-3 border bg-body bg-opacity-75" role="status">
+        <i class="bi bi-search icon-xl d-block mb-1 text-primary" aria-hidden="true"></i>
+        <div class="fw-semibold">{{ t('jigsawList.noneMatchTitle') || 'No pictures match' }}</div>
+        <div class="text-body-secondary">{{ t('jigsawList.noneMatchHelp') || 'Try other choices.' }}</div>
+      </div>
+    }
+  </div>
 </ng-container>

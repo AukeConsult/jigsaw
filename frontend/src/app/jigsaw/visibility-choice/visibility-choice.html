@@ -1,6 +1,6 @@
 <ng-container *transloco="let t">
 <fieldset class="mb-3">
-  <legend class="form-label fs-6">{{ t('jigsawNew.visibility') || 'Who sees it' }}</legend>
+  <legend class="form-label">{{ t('jigsawNew.visibility') || 'Who sees it' }}</legend>
   <!-- the three choices as a row of pills, the chosen one filled -->
   <div class="d-flex flex-wrap gap-2">
     @if (!publicLocked()) {
@@ -12,7 +12,9 @@
     <input id="visibility-hidden" name="visibility" class="btn-check" type="radio" autocomplete="off" [checked]="visibility() === 'hidden'" [disabled]="!ownerKnown()" (change)="visibility.set('hidden')">
     <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="visibility-hidden"><i class="bi bi-eye-slash me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityHidden') || 'Hidden' }}</label>
   </div>
+  @if (showHelp()) {
   @if (publicLocked()) { <div class="form-text mt-2"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ t('userLevels.publicLocked') || 'Only a publisher can make a jigsaw public.' }}</div> }
   <div class="form-text mt-2">{{ t('jigsawNew.visibilityHelp') || 'Public: in the lists of everyone. Private: only its owner and its players see it. Hidden: only in the list of your own jigsaws, not on the front page or in any other list.' }}</div>
+  }
 </fieldset>
 </ng-container>

@@ -1,0 +1,26 @@
+{
+  "jigsaws": "Bilder",
+  "loading": "Henter bildene …",
+  "loadFailed": "Kunne ikke laste bildene.",
+  "more": "Vis flere",
+  "none": "Ingen bilder ennå.",
+  "playName": "Vis {{ name }}",
+  "play": "Vis bildet",
+  "solvedByYou": "Du har løst denne",
+  "addFavorite": "Legg til som favoritt",
+  "removeFavorite": "Fjern fra favoritter",
+  "timed": "Tidtaking",
+  "hiddenNote": "Skjult: bare i listen over dine bilder",
+  "onlyYou": "Bare du ser det",
+  "piecesShort": "{{ count }} brikker",
+  "difficulty": "Vanskelighetsgrad",
+  "choosePieces": "Velg brikker",
+  "choosePiecesTitle": "Antall brikker og vanskelighetsgrad velges når du starter en runde",
+  "snap": {
+    "hard": "Vanskelig",
+    "medium": "Middels",
+    "easy": "Lett"
+  },
+  "helper": "Hjelper",
+  "helperMain": "Dette er hjelperen på hovedsiden. Den er bare en prøve foreløpig."
+}

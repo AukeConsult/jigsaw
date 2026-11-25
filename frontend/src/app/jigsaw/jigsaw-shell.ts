@@ -7,13 +7,14 @@ import { LabelFit } from '../core/label-fit';
 import { WelcomeTime } from '../core/welcome-time';
 import { JigsawHelper } from './jigsaw-helper';
 import { isInApp } from '../core/platform';
+import { AdminBanner } from './admin-banner/admin-banner';
 import { JigsawUserService } from './jigsaw-user.service';
 import { ShareButton } from './share-button/share-button';
 
 /** The jigsaw module: its own header menu above whatever page of the module is open. */
 @Component({
   selector: 'app-jigsaw-shell',
-  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, ShareButton, LabelFit],
+  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, ShareButton, LabelFit, AdminBanner],
   providers: [provideTranslocoScope('jigsawShell'), provideTranslocoScope('userLevels')],
   template: `
     <ng-container *transloco="let t">
@@ -142,7 +143,7 @@ import { ShareButton } from './share-button/share-button';
         <div class="d-md-none ms-auto order-1 position-relative">
           <button id="more-menu" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center px-2 py-1" aria-haspopup="menu" [attr.aria-expanded]="moreOpen()"
                   [attr.aria-label]="t('jigsawShell.more') || 'More'" [title]="t('jigsawShell.more') || 'More'" (click)="toggleMore($event)">
-            <i class="bi bi-three-dots fs-5" aria-hidden="true"></i>
+            <i class="bi bi-three-dots icon-md" aria-hidden="true"></i>
           </button>
           @if (moreOpen()) {
             <ul class="dropdown-menu language-menu show" role="menu" [style.top.px]="moreTop()" [style.bottom.px]="moreBottom()" [attr.aria-label]="t('jigsawShell.more') || 'More'">
@@ -194,13 +195,7 @@ import { ShareButton } from './share-button/share-button';
     </nav>
     </ng-container>
     <ng-container *transloco="let t">
-    @if (users.admin(); as admin) {
-      <!-- an admin is in an account: everything is done as that account; the way back is here -->
-      <div class="app-banner alert alert-warning rounded-0 border-0 border-bottom m-0 py-1 px-2 small d-flex flex-wrap align-items-center justify-content-center gap-2" role="status">
-        <span><i class="bi bi-person-gear me-1" aria-hidden="true"></i>{{ t('userLevels.into.banner', { name: users.user()?.name }) || 'You are using ' + users.user()?.name + ' as an admin.' }}</span>
-        <button type="button" class="btn btn-sm btn-outline-dark" (click)="backToAdmin()">{{ t('userLevels.into.back', { name: admin.name }) || 'Back to ' + admin.name }}</button>
-      </div>
-    }
+    <app-admin-banner />
     </ng-container>
     <router-outlet />
   `,
@@ -220,11 +215,6 @@ export class JigsawShell {
     void this.router.navigateByUrl('/');
   }
 
-  /** The admin comes out of the account they went into, and is back on the page of the accounts. */
-  protected async backToAdmin(): Promise<void> {
-    await this.users.backToAdmin();
-    await this.router.navigate(['/jigsaw/admin']);
-  }
   protected readonly languages = LANGUAGES;
   /** the list of languages is open */
   protected readonly languageOpen = signal(false);

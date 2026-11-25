@@ -1,0 +1,47 @@
+<ng-container *transloco="let t">
+  <div class="welcome-grid">
+    <div class="welcome-art" aria-hidden="true" [style.--welcome-art-h]="textHeight() ? textHeight() + 'px' : null">
+      @for (src of art; track src; let i = $index) {
+        <img [src]="src" alt="" [class.on]="artIndex() === i">
+      }
+    </div>
+    <div class="welcome-text" #welcomeText>
+      <h2 class="subsection-title mt-0 mb-1">{{ t('jigsawHome.welcome') || 'Welcome' }}</h2>
+      <p class="text-body-secondary mb-1">{{ t('jigsawHome.welcomeIntro') || 'Enjoy my jigsaws, play them and have fun, or use your own picture to make your own.' }}</p>
+      <!-- the first steps, for somebody who has not played yet -->
+      <!-- the three steps, as bullets with an icon each: easy to see at a glance -->
+      <ul class="list-unstyled mb-0 d-grid gap-2">
+        <li class="d-flex gap-2 align-items-start"><i class="bi bi-hand-index-thumb-fill text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('jigsawHome.step1') || 'Pick a jigsaw below and press it.' }}</span></li>
+        <li class="d-flex gap-2 align-items-start"><i class="bi bi-arrows-move text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('jigsawHome.step2') || 'Drag the pieces to where they belong.' }}</span></li>
+        <li class="d-flex gap-2 align-items-start"><i class="bi bi-plus-circle-fill text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('jigsawHome.step3') || 'Want your own? Make one from a picture:' }} <a class="link-inline fw-semibold" [routerLink]="inApp() ? '/play/mine/addpicture' : '/jigsaw/new'">{{ t('jigsawHome.makeOwn') || 'Make a jigsaw' }}</a></span></li>
+      </ul>
+    </div>
+    <!-- news and offers: its own row under the picture and the text, from the left edge over to Karin's picture -->
+    @if (inApp()) {
+      <!-- the app: a short description of how to play, where the website has the news -->
+      <section class="welcome-news" [attr.aria-label]="t('play.howToPlayTitle') || 'How to play'">
+        <h2 class="subsection-title mt-0 mb-1">{{ t('play.howToPlayTitle') || 'How to play' }}</h2>
+        <p class="text-body-secondary mb-0">{{ t('play.howToPlay') || 'Press a picture to start a round. The pieces are scattered round the picture: drag them to where they belong, and pieces that fit click together. Everything is saved by itself, so you can stop and come back any time. The menu has a help picture, the details of the round and the border pieces to help you.' }}</p>
+        <!-- the home logo, the floating menu and the Info button, in short -->
+        <ul class="list-unstyled mt-2 mb-0 d-grid gap-2">
+          <li class="d-flex gap-2 align-items-start"><a routerLink="/" class="brand-lockup scaled text-decoration-none" [attr.aria-label]="t('play.howHomeLink') || 'Go home'"><span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32"><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span></a><span class="text-body">{{ t('play.howHome') || 'The logo with the little house at the top of the menu takes you home, to the pictures: press the logo here and you go there. The arrow beside it folds the menu away and opens it again.' }}</span></li>
+          <li class="d-flex gap-2 align-items-start"><i class="bi bi-hand-index-thumb-fill text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('play.howMenu') || 'The menu floats over the page: drag it to where it is out of the way. It changes with the page you are on.' }}</span></li>
+          <li class="d-flex gap-2 align-items-start"><i class="bi bi-box-arrow-in-up-right text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('play.howCorner') || 'The little arrow at the right end of the top row of the menu (or a double click on that row) folds the menu and places it in the top right corner of the window.' }}</span></li>
+          <li class="d-flex gap-2 align-items-start"><i class="bi bi-info-circle-fill text-primary icon-md" aria-hidden="true"></i><span class="text-body">{{ t('play.howInfo') || 'The round i button in the bottom right corner brings you back here.' }}</span></li>
+        </ul>
+        <!-- the other documents as direct buttons: the whole width of the page, the three the same size (they are in the menu of the helper too) -->
+        <div class="d-flex gap-2 mt-3">
+          <a class="btn btn-outline-primary flex-fill" routerLink="/play/info/help"><i class="bi bi-book" aria-hidden="true"></i>{{ t('guide.tabGuide') || 'Help' }}</a>
+          <a class="btn btn-outline-primary flex-fill" routerLink="/play/info/about"><i class="bi bi-info-circle" aria-hidden="true"></i>{{ t('guide.tabAbout') || 'About' }}</a>
+          <a class="btn btn-outline-primary flex-fill" routerLink="/play/info/install"><i class="bi bi-download" aria-hidden="true"></i>{{ t('guide.tabInstall') || 'Install' }}</a>
+        </div>
+      </section>
+    } @else {
+      <app-news class="welcome-news" />
+    }
+    <div class="welcome-karin">
+      <img class="welcome-photo rounded-3 shadow-sm" src="images/front.jpg" width="510" height="815" [attr.alt]="t('jigsawHome.imageAlt') || 'Karin with a colourful parasol on a fort terrace'">
+      <p class="welcome-note text-body-secondary fst-italic small mb-0 mt-1"><i class="bi bi-heart-fill text-danger" aria-hidden="true"></i> {{ t('jigsawHome.note') || 'I love making jigsaws and puzzles, and I hope you will love my system too.' }} <span class="text-nowrap">&mdash; Karin</span></p>
+    </div>
+  </div>
+</ng-container>

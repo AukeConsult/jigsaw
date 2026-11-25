@@ -37,7 +37,7 @@
   "couldNotResetRounds": "No se pudieron borrar las rondas: solo su propietario puede.",
   "youSolvedIt": "Has resuelto este rompecabezas",
   "roundProtected": "Bloqueada: iniciada con un inicio de sesión de la cuenta",
-  "startTitle": "Elige las piezas y la dificultad",
+  "startTitle": "Elige las piezas y la dificultad para montar el puzle",
   "startPieces": "Piezas",
   "startGo": "Empezar la ronda",
   "startSolved": "resuelto",

@@ -20,10 +20,22 @@ export class RoundRow {
   readonly timed = input(true);
   /** the round is the user's own (the others can be looked at, not changed) */
   readonly mine = input(false);
+  /** the app's row: a round opens the puzzle of the app (`/play/jigsaw/:id`, with this round) and not the page of the website */
+  readonly inApp = input(false);
 
   readonly remove = output<void>();
 
   /** Delete was pressed and waits for "Yes" */
   protected readonly confirming = signal(false);
   protected readonly clock = clockOf;
+
+  /** where the round opens: the page of the round in the website, or the puzzle in the app */
+  protected link(): string[] {
+    return this.inApp() ? ['/play/jigsaw', this.jigsawId()] : ['/jigsaw', this.jigsawId(), 'play', this.game().id];
+  }
+
+  /** in the app the puzzle is told which round to open */
+  protected query(): { round: string } | null {
+    return this.inApp() ? { round: this.game().id } : null;
+  }
 }

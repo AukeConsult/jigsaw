@@ -30,5 +30,7 @@
   "cheatHelp": "(aide à trouver les pièces)",
   "couldNotDelete": "Impossible de supprimer la partie : réessaie.",
   "couldNotStart": "Impossible de réinitialiser la partie : réessaie.",
-  "openJigsaw": "Ouvrir la page du puzzle"
+  "openJigsaw": "Ouvrir la page du puzzle",
+  "finishedTitle": "Terminé !",
+  "finishedTime": "Temps : {{ time }}"
 }

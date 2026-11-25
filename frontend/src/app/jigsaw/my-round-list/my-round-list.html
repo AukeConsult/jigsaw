@@ -1,0 +1,59 @@
+<ng-container *transloco="let t">
+      @if (error()) {
+        <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
+      }
+      @if (games() === null) {
+        <div class="text-body-secondary" role="status">{{ t('jigsawUser.lookingRounds') || 'Looking for your rounds…' }}</div>
+      } @else if (gamesFailed()) {
+        <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.roundsFailed') || 'Could not read your rounds: reload the page.' }}</div>
+      } @else if (!games()!.length) {
+        <!-- a new person: the two ways to begin, as buttons -->
+        <div class="text-center py-4">
+          <p class="text-body-secondary mb-3">{{ t('jigsawUser.noRounds') || 'You have not played any jigsaw yet.' }}</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+          <a class="btn btn-main btn-primary" routerLink="/"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawUser.startButton') || 'Start playing' }}</a>
+          @if (!inApp()) {
+            <a class="btn btn-main btn-outline-primary" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawUser.findJigsaw') || 'Filter pictures' }}</a>
+          }
+        </div>
+        </div>
+      } @else {
+        <ul class="list-group">
+          @for (game of games(); track game.play.id) {
+            <li class="list-group-item round-row" [class.round-solved]="game.play.status === 'solved'">
+              <div class="round-body">
+                <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
+                  @if (!noPicture().has(game.jigsaw.id)) {
+                    <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
+                  }
+                </div>
+                <div class="round-info">
+                  <!-- the stretched link makes the whole row (picture, text) open the page of the jigsaw; the buttons sit above it -->
+                  <a class="text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id, game.play.id)">{{ game.jigsaw.name }}</a>
+                  <div class="d-flex align-items-center gap-2 flex-wrap small">
+                    @if (game.play.status === 'solved') {
+                      <span class="badge text-bg-success"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.solved') || 'Solved' }}</span>
+                    } @else {
+                      <span class="badge text-bg-primary">{{ t('jigsawUser.playing') || 'Playing' }}</span>
+                    }
+                    <span>{{ t('jigsawUser.ofTotal', { matched: game.play.matched, total: game.play.total }) || game.play.matched + ' of ' + game.play.total }}</span>
+                  </div>
+                  <div class="tiny text-body-secondary"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ game.play.startedAt | date: 'MMM d, y, HH:mm' }}@if (game.play.protected) { <i class="bi bi-lock text-primary ms-2" role="img" [title]="t('jigsawUser.roundProtected') || 'Locked: started with a sign-in of this account'" [attr.aria-label]="t('jigsawUser.roundProtected') || 'Locked: started with a sign-in of this account'"></i> }@if (game.play.elapsedMs) { <span class="ms-2 text-nowrap" [title]="t('jigsawUser.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ clock(game.play.elapsedMs) }}</span> }</div>
+                </div>
+                <div class="round-actions" [class.confirming]="confirmingPlayId() === game.play.id">
+                  @if (confirmingPlayId() === game.play.id) {
+                    <button type="button" class="link-action danger" (click)="removeGame(game)">{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
+                    <button type="button" class="link-action" (click)="confirmingPlayId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+                  } @else {
+                    <a class="link-action text-nowrap" [routerLink]="link(game.jigsaw.id, game.play.id)" [title]="game.play.status === 'solved' ? (t('jigsawUser.look') || 'Look') : (t('jigsawUser.keepPlaying') || 'Continue')">
+                      <i class="bi bi-play-fill" aria-hidden="true"></i><span class="round-action-text">@if (game.play.status === 'solved') { {{ t('jigsawUser.look') || 'Look' }} } @else { {{ t('jigsawUser.keepPlaying') || 'Continue' }} }</span>
+                    </a>
+                    <button type="button" class="link-action danger text-nowrap" [title]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingPlayId.set(game.play.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.deleteRound') || 'Delete' }}</span></button>
+                  }
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+</ng-container>

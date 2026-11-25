@@ -1,0 +1,28 @@
+<ng-container *transloco="let t">
+  @if (points().length > 1) {
+    <!-- the button of a helper with a menu: the entries of the menu are inside it, side by side (each is the menu of a point); the one that is open is lighter, and choosing another switches the active component -->
+    <div class="play-helper-button play-helper-menu shadow" role="group" [attr.aria-label]="t('play.helper') || 'Helper'" [class.dragging]="grab !== null"
+         (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up()" (pointercancel)="up()">
+      @for (point of points(); track $index) {
+        <button type="button" class="play-helper-entry" [class.active]="panelState.open() && panelState.point() === $index" [attr.aria-pressed]="panelState.open() && panelState.point() === $index" (click)="pick($index)">
+          <ng-container *ngComponentOutlet="point.menu" />
+        </button>
+      }
+    </div>
+  } @else {
+    <!-- the button: its menu is the menu of the helper; its name is only for a screen reader -->
+    <button type="button" class="play-helper-button shadow" [class.dragging]="grab !== null" [attr.aria-expanded]="panelState.open()"
+            (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up()" (pointercancel)="up()" (click)="toggle()">
+      <span class="visually-hidden">{{ t('play.helper') || 'Helper' }}</span>
+      <ng-container *ngComponentOutlet="menu()" />
+    </button>
+  }
+  @if (panelState.inPopup()) {
+    <!-- a helper that shows its views in a popup: they open beside the button, one after the other, on the side of it where there is room -->
+    <div class="vstack gap-2 position-absolute play-helper-panel" [class.bottom-100]="above()" [class.top-100]="!above()" [class.end-0]="towardsLeft()" [class.start-0]="!towardsLeft()">
+      @for (view of views(); track $index) {
+        <ng-container *ngComponentOutlet="view" />
+      }
+    </div>
+  }
+</ng-container>

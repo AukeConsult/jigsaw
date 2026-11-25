@@ -40,8 +40,6 @@ export class JigsawFind implements OnInit {
   /** the spinner is shown only when reading has taken more than 3 seconds (a quick answer shows nothing, so nothing flashes) */
   readonly slow = signal(false);
   private slowTimer: ReturnType<typeof setTimeout> | undefined;
-  /** something is chosen: Reset all can be pressed */
-  readonly chosen = computed(() => JigsawFilters.isOn(this.filter()));
   /** only the answer to the last count is used */
   private asked = 0;
 
@@ -77,11 +75,6 @@ export class JigsawFind implements OnInit {
         this.slow.set(false);
       }
     }
-  }
-
-  /** Reset all: nothing is chosen (every jigsaw), and the counts are read again. */
-  protected resetAll(): void {
-    this.filter.set(JigsawFilters.empty());
   }
 
   /** Go: what is chosen (cards or list, and what to look for) is kept, and the front page shows the jigsaws that match. */

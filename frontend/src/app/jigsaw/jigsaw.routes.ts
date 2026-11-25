@@ -31,7 +31,7 @@ import { JigsawShell } from './jigsaw-shell';
  *  - `/jigsaw/guide`: the help (the user guide), and `/jigsaw/about`: the about page (the same component, another document).
  *  - `/jigsaw/:id`: a jigsaw: its picture, and the games of the user (continue one, or start a new one).
  *  - `/jigsaw/:id/edit`: edit the whole jigsaw (the form of a new one, filled in), while nobody has played it.
- *  - `/jigsaw/:id/play/:playId`: playing one game of a jigsaw.
+ *  - `/jigsaw/jigsaw/:id`: the puzzle of a jigsaw, the round of the account that plays (the same route as the app's `/play/jigsaw/:id`); `/jigsaw/:id/play/:playId`: playing one given game of a jigsaw.
  * The pages that need to know who plays are behind `userGuard`: making and editing a jigsaw and entering a round. A jigsaw (`/jigsaw/:id`) can be looked at with no account.
  */
 export const JIGSAW_ROUTES: Routes = [
@@ -53,6 +53,7 @@ export const JIGSAW_ROUTES: Routes = [
       { path: 'guide', component: GuidePage, title: 'Help', data: { guide: 'jigsaw-guide.md' } }, // before ':id'
       { path: 'about', component: GuidePage, title: 'About', data: { guide: 'jigsaw-about.md' } }, // before ':id'
       { path: 'install', redirectTo: '/install' }, // how to get the app is at /install; before ':id'
+      { path: 'jigsaw/:id', component: JigsawPlay, title: 'Karins jigsaw', canActivate: [userGuard] }, // the puzzle of a jigsaw: the round of the account that plays; the same route as the app's `/play/jigsaw/:id`; before ':id'
       { path: ':id/edit', component: JigsawNew, title: 'Edit jigsaw', canActivate: [userGuard] },
       { path: ':id/play/:playId', component: JigsawPlay, title: 'Karins jigsaw', canActivate: [userGuard] },
       { path: ':id', component: JigsawPage, title: 'Karins jigsaw' }, // anybody may look at a jigsaw; an account is asked for when a round is entered

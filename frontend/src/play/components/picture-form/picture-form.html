@@ -1,0 +1,176 @@
+<ng-container *transloco="let t">
+  <div>
+    @if (n.missing()) {
+      <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
+    } @else {
+    @if (n.readOnly()) {
+      <!-- another player's picture: it can be looked at here, never changed -->
+      <div class="alert alert-info py-2 small" role="status"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('play.notYours') || 'This picture is not yours: you can look at it, but not change it.' }}</div>
+    } @else if (n.locked()) {
+      <!-- the picture is the user's own, but rounds have been played of it -->
+      <div class="alert alert-info py-2 small" role="status"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('play.hasRounds') || 'Rounds have been played of this picture: its picture, size and cut can not be changed. The rest can.' }}</div>
+    }
+    <!-- the same top as the page of a jigsaw: the picture, the name, the description and the details, as it will look, and under it what is chosen -->
+    <app-jigsaw-header [jigsaw]="n.draft()" [draft]="true" [showExample]="!n.isPicture() && !!n.preview()" [pictureSrc]="n.preview()" [heading]="n.editId() ? (n.isPicture() ? (t('jigsawNew.editPictureTitle') || 'Edit picture') : (t('jigsawNew.editTitle') || 'Edit jigsaw')) : n.isPicture() ? (t('jigsawNew.newPictureTitle') || 'New picture') : (t('jigsawNew.newTitle') || 'New jigsaw')"
+                       [changeLabel]="n.canChangePicture() && n.preview() ? (t('jigsawNew.changePicture') || 'Change picture') : ''" [chooseLabel]="t('jigsawNew.pickPicture') || 'Choose a picture'" (choose)="pictureInput.click()">
+      <!-- a ready jigsaw: an example of it in place of the plain picture, the cut picture in pieces -->
+      <div draft-picture>
+        @if (n.preview(); as src) {
+          <app-jigsaw-example [plain]="true" [picture]="src" [width]="n.width()" [height]="n.height()" [gridSize]="n.choice.gridSize()" [lineWidth]="lineWidth" [lineColor]="lineColor" [backColor]="backColor" />
+        }
+      </div>
+      <!-- what is made, right under the name: a picture (the person who plays chooses the pieces and the difficulty) or a ready jigsaw (chosen here) -->
+      <fieldset draft-top class="mb-0" [disabled]="n.saving() || !!n.editId()">
+        <legend class="visually-hidden">{{ t('jigsawNew.kindTitle') || 'What are you making?' }}</legend>
+        <div class="d-flex flex-column flex-sm-row justify-content-sm-end gap-2">
+          <input id="play-kind-picture" name="kind" class="btn-check" type="radio" autocomplete="off" [checked]="n.isPicture()" (change)="n.chooseKind('picture')">
+          <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="play-kind-picture" [title]="t('jigsawNew.kindPictureHelp') || 'People choose the number of pieces and the difficulty when they start a round.'"><i class="bi bi-image me-1" aria-hidden="true"></i>{{ t('jigsawNew.kindPicture') || 'A picture' }}</label>
+          <input id="play-kind-jigsaw" name="kind" class="btn-check" type="radio" autocomplete="off" [checked]="!n.isPicture()" (change)="n.chooseKind('jigsaw')">
+          <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="play-kind-jigsaw" [title]="t('jigsawNew.kindJigsawHelp') || 'You choose the number of pieces and the difficulty now.'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawNew.kindJigsaw') || 'A ready jigsaw' }}</label>
+        </div>
+      </fieldset>
+      <!-- the name, in the card: the text with a small pencil; pressed, it is a field to type in -->
+      <div draft-title [attr.inert]="n.inert() ? '' : null">
+        @if (editingName()) {
+          <input id="play-picture-name" name="name" class="form-control form-control-lg text-input-name" type="text" [attr.maxlength]="maxName" required [attr.aria-label]="t('jigsawNew.name') || 'Name'"
+                 [attr.placeholder]="t('play.picture.namePlaceholder') || 'Name of the picture'" [value]="n.name()" (input)="n.name.set($any($event.target).value)" (blur)="editingName.set(false)" (keydown.enter)="$any($event.target).blur()">
+        } @else {
+          <h1 class="page-title mb-1"><span class="text-name">{{ n.name() || (n.isPicture() ? (t('jigsawNew.newPictureTitle') || 'New picture') : (t('jigsawNew.newTitle') || 'New jigsaw')) }}</span><button type="button" class="link-action ms-2 align-middle" [attr.aria-label]="t('jigsawNew.name') || 'Name'" (click)="edit('name')"><i class="bi bi-pencil icon-md" aria-hidden="true"></i></button></h1>
+        }
+      </div>
+      <!-- the description, in the card, the same way -->
+      <div draft-description [attr.inert]="n.inert() ? '' : null">
+        @if (editingDescription()) {
+          <textarea id="play-picture-description" name="description" class="form-control text-input" rows="3" [attr.maxlength]="maxDescription" [attr.aria-label]="t('jigsawNew.description') || 'Description'"
+                    [attr.placeholder]="t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…'" [value]="n.description()" (input)="n.description.set($any($event.target).value)" (blur)="editingDescription.set(false)"></textarea>
+        } @else {
+          <p class="description text-facts mb-0">{{ n.description() || (t('jigsawNew.descriptionPlaceholder') || 'A place, a day, a memory…') }}<button type="button" class="link-action ms-2" [attr.aria-label]="t('jigsawNew.description') || 'Description'" (click)="edit('description')"><i class="bi bi-pencil" aria-hidden="true"></i></button></p>
+        }
+      </div>
+      <!-- the AI, in a frame of its own under the picture: it looks at the picture and sets the categories, the motive difficulty, the name and the description (in the language chosen here) -->
+      <div draft-under-picture [attr.inert]="n.inert() ? '' : null">
+        <!-- the size and the cut of the picture, under the picture they are about: the same for a picture and for a ready jigsaw (a picture can also be the whole picture) -->
+        <div class="row g-2 mt-0 mb-1">
+          <div class="col-12">
+            <select id="play-size" name="size" class="form-select form-select-sm" [disabled]="!n.canChangePicture()" [attr.aria-label]="t('jigsawNew.size') || 'Size'" (change)="n.chooseSize($any($event.target).value)">
+              @if (n.isPicture()) {
+                <option value="whole" [selected]="n.sizeKey() === 'whole'">{{ t('jigsawNew.sizes.whole') || 'The whole picture' }}</option>
+              }
+              @for (p of n.choice.sizePresets; track p.key) {
+                <option [value]="p.key" [selected]="n.sizeKey() === p.key">{{ t('jigsawNew.sizes.' + p.key) || p.label }}</option>
+              }
+            </select>
+          </div>
+          @if (n.sizeKey() !== 'whole' && n.file() && (n.preview() || n.stale())) {
+            <div class="col-12">
+              <button type="button" class="btn btn-outline-secondary w-100 py-2" (click)="n.cropping.set(true)"><i class="bi bi-crop" aria-hidden="true"></i> {{ t('jigsawNew.adjustCut') || 'Adjust the cut' }}</button>
+            </div>
+          }
+        </div>
+        <div class="ai-panel rounded border bg-body-tertiary p-3 mt-3">
+          @if (!n.editId()) {
+          <button type="button" class="btn btn-outline-primary w-100 py-2" [disabled]="!n.canAnalyse()" (click)="save(true)">
+            @if (n.analysing()) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> {{ t('jigsawNew.classifying') || 'The AI looks at the picture…' }} } @else { <i class="bi bi-stars" aria-hidden="true"></i> {{ t('jigsawNew.saveAnalyse') || 'Save and analyse with AI' }} }
+          </button>
+          }
+          <!-- the language the AI writes the name and the description in: small, under its text -->
+          <div class="d-flex align-items-center gap-2 mt-2">
+            <label class="small text-body-secondary text-nowrap" for="play-picture-language">{{ t('jigsawNew.language') || 'Language' }}</label>
+            <select id="play-picture-language" name="language" class="form-select form-select-sm" [value]="n.language()" (change)="n.language.set($any($event.target).value)">
+              @for (l of languages; track l.code) {
+                <option [value]="l.code" [selected]="l.code === n.language()">{{ l.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Advanced: the categories and the motive difficulty, folded away (open and closed with the arrow; kept on the device) -->
+      <div draft class="mb-3">
+        <details class="more-options" [open]="advancedOpen()">
+          <summary class="link-action" (click)="$event.preventDefault(); advancedOpen.set(!advancedOpen())"><i class="bi bi-chevron-right more-options-icon" aria-hidden="true"></i>{{ t('play.advanced') || 'Advanced' }}</summary>
+          <div class="pt-2" [attr.inert]="n.inert() ? '' : null">
+            <!-- the categories are chosen in the card itself: the chosen ones are the lit ones -->
+            <div class="mb-3"><app-category-picker class="choice-block" [(selected)]="n.categories" /></div>
+            <!-- the motive difficulty, in the same form as the categories: a row of small buttons, the chosen one lit (pressed again, it is not said) -->
+            <div class="choice-block">
+              <div class="form-label" id="play-motive-label">{{ t('jigsawNew.motive') || 'Motive difficulty' }} <span class="text-body-secondary">{{ t('jigsawNew.optional') || '(optional)' }}</span></div>
+              <div class="choice-group" role="group" aria-labelledby="play-motive-label">
+                @for (m of motives; track m.key) {
+                  <button type="button" class="btn btn-sm" [class.btn-primary]="n.motive() === m.key" [class.btn-outline-secondary]="n.motive() !== m.key" [attr.aria-pressed]="n.motive() === m.key" (click)="n.motive.set(n.motive() === m.key ? '' : m.key)">
+                    {{ t('jigsawLevels.motive.' + m.key) || m.name }}
+                  </button>
+                }
+              </div>
+              <div class="form-text">{{ t('jigsawNew.motiveHelp') || 'How hard the picture itself is to put together: the fewer distinct details, the harder. The AI sets it too.' }}</div>
+            </div>
+          </div>
+        </details>
+      </div>
+      @if (!n.isPicture()) {
+        <!-- what only a ready jigsaw has, in the card with the rest: the number of pieces, the difficulty and the clock on one row -->
+        <div draft class="choice-block mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-5">
+              <label class="form-label" for="play-pieces">{{ t('jigsawNew.pieces') || 'Pieces' }}</label>
+              <select id="play-pieces" name="pieces" class="form-select form-select-sm" [disabled]="!n.canChangePicture()" [attr.aria-label]="t('jigsawNew.standardPieces') || 'Standard numbers of pieces'" (change)="n.choice.choosePieces($any($event.target).value)">
+                @for (o of n.choice.pieceOptions(); track o.key) {
+                  <option [value]="o.key" [selected]="n.choice.pieceChoice() === o.key" [title]="o.columns + ' × ' + o.rows">{{ o.count }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="play-difficulty">{{ t('jigsawNew.difficulty') || 'Difficulty' }}</label>
+              <select id="play-difficulty" name="snapLevel" class="form-select form-select-sm" [disabled]="!n.canChangePicture()" [title]="t('jigsawNew.difficultyTitle') || 'How close a piece must be dropped to its place to click into it: the easier, the farther away it can be'" (change)="n.choice.chooseLevel($any($event.target).value)">
+                @for (l of n.choice.levels; track l.key) {
+                  <option [value]="l.key" [selected]="n.choice.level() === l.key">{{ t('jigsawLevels.snap.' + l.key) || l.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-3">
+              <div class="form-check form-switch mb-1">
+                <input id="play-timed" name="timed" class="form-check-input" type="checkbox" role="switch" [disabled]="!n.canChangePicture()" [checked]="n.choice.timed()" (change)="n.choice.timed.set($any($event.target).checked)">
+                <label class="form-check-label text-nowrap" [title]="t('jigsawNew.timedHelp') || 'A clock counts how long each round takes.'" for="play-timed"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawNew.timed') || 'Timed' }}</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-text mt-1 mb-0" role="status">{{ t('jigsawNew.gridInfo', { grid: n.choice.gridSize(), columns: n.choice.pieceInfo().columns, rows: n.choice.pieceInfo().rows }) || 'Grid ' + n.choice.gridSize() + ' px: ' + n.choice.pieceInfo().columns + ' × ' + n.choice.pieceInfo().rows + ' pieces (worked out from the number of pieces).' }}</div>
+        </div>
+      }
+      @if (n.stale()) {
+        <div draft class="form-text text-danger mb-2">{{ t('jigsawNew.staleBefore') || 'The size changed since the picture was cut.' }} <button type="button" class="link-inline" (click)="n.cropping.set(true)">{{ t('jigsawNew.adjustAgain') || 'Adjust the picture again' }}</button>.</div>
+      } @else if (n.file() && !n.preview() && !n.cropping()) {
+        <div draft class="form-text mb-2">{{ t('jigsawNew.findCutFirst') || 'Find the cut of the picture first.' }} <button type="button" class="link-inline" (click)="n.cropping.set(true)">{{ t('jigsawNew.findCut') || 'Find the cut' }}</button>.</div>
+      }
+      <!-- what is wrong, and Cancel and Save: in the card itself, at its lower right -->
+      <div draft-actions class="w-100">
+        @if (n.problem()) {
+          <div class="alert alert-warning py-2 small" role="alert">{{ n.problem() }}</div>
+        }
+        @if (n.error()) {
+          <div class="alert alert-danger py-2 small" role="alert">{{ n.error() }}</div>
+        }
+        @if (!n.viewing()) {
+        <div class="d-flex justify-content-end gap-2">
+          @if (n.editId()) {
+            <button type="button" class="btn btn-outline-secondary" (click)="cancel()">{{ t('jigsawNew.cancel') || 'Cancel' }}</button>
+          } @else {
+            <a class="btn btn-outline-secondary" routerLink="/">{{ t('jigsawNew.cancel') || 'Cancel' }}</a>
+          }
+          <button type="button" class="btn btn-primary" [disabled]="!n.canSave()" (click)="save()">
+            @if (n.saving()) { {{ t('play.picture.saving') || 'Saving the picture…' }} } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ n.editId() ? (t('jigsawNew.saveChanges') || 'Save changes') : (t('jigsawNew.saveNew') || 'Save') }} }
+          </button>
+        </div>
+        }
+      </div>
+      <app-visibility-choice draft [attr.inert]="n.inert() ? '' : null" [(visibility)]="n.visibility" [ownerKnown]="!!n.ownerUid()" [showHelp]="false" />
+      <!-- the one thing worth saying about who sees it: what Hidden does -->
+      <div draft class="form-text mb-3">{{ t('play.hiddenHelp') || 'Hidden: the picture is removed from the home page.' }}</div>
+    </app-jigsaw-header>
+    }
+    <!-- the file field itself is never shown: the button in the empty picture at the top, and the link over the picture once there is one, open it -->
+    @if (n.cropping() && n.file(); as chosen) {
+      <app-picture-cropper [file]="chosen" [width]="n.width()" [height]="n.height()" (use)="n.useCut($event)" (cancel)="n.cropping.set(false)" />
+    }
+    <input #pictureInput id="play-new-picture" name="picture" type="file" class="d-none" [attr.aria-label]="t('jigsawNew.picture') || 'Picture'" accept="image/jpeg,image/png,image/webp" (change)="n.choose($event)">
+  </div>
+</ng-container>

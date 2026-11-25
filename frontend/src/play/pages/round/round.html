@@ -1,0 +1,32 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  @switch (state()) {
+    @case ('opening') {
+      <div class="text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</div>
+    }
+    @case ('missing') {
+      <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
+    }
+    @case ('logon') {
+      <div class="text-center py-5 px-3 my-3 rounded-3 border bg-body bg-opacity-75 shadow-sm" role="status">
+        <i class="bi bi-person-circle icon-xl d-block mb-2 text-primary" aria-hidden="true"></i>
+        <div class="subsection-title">{{ t('play.puzzelLogon') || 'Log on to put the puzzle together.' }}</div>
+        <a class="btn btn-primary mt-3" routerLink="/play/account">{{ t('play.logon') || 'Logon' }}</a>
+      </div>
+    }
+    @case ('choose') {
+      @if (jigsaw(); as j) {
+        <!-- the picture and its name, and under them the choice of the pieces and the difficulty, which starts the round -->
+        <h1 class="page-title text-break">{{ j.name }}</h1>
+        <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden mb-3">
+          @if (!noPicture()) {
+            <img class="object-fit-contain" [src]="pictureUrl()" alt="" (error)="noPicture.set(true)">
+          }
+        </div>
+        <app-round-choice [jigsaw]="j" [solved]="solved()" [busy]="busy()" [cancellable]="false" (chosen)="start($event)" />
+        @if (error()) {
+          <div class="alert alert-warning py-2 small mt-3" role="alert">{{ error() }}</div>
+        }
+      }
+    }
+  }
+</main>
