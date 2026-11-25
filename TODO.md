@@ -45,6 +45,21 @@ To do:
 - [ ] Give a style sheet a preview in the account settings, and a plain default that is what the app looks like now.
 - [ ] Check every page with each style sheet in a light and a dark look (`prefers-color-scheme`).
 
+## The home page: tiles
+
+Built (the structure, with made-up content): the home page is a list of **tiles**. `FeedItem` (`functions/src/models/shared/feed-item.ts`) is the parent class; `PictureItem` (made from a search result), `InfoItem`, `OfferItem` and `PackageItem` override small hooks (what is wrong with it, where a press leads, where it goes among the pictures). `HomeFeed.merge` (`home-feed.ts`) puts the tiles that are not pictures among the pictures, counted in pictures from the first one, so a page loaded later never moves a tile that is there. `GET /jigsaw-feed` (`functions/src/jigsaw/jigsaw-feed.ts`) gives the tiles to show now; **its store is `dummyFeedStore`, four made-up tiles**. The app's list (`play-cards`) and the website's finder (`app-jigsaw-finder`, `[tiles]="true"` on the front page) use the same service (`FeedService`) and the same tile (`app-feed-tile`).
+
+To do:
+
+- [ ] Decide what an offer, an information and a package are (who writes them, who sees them, what a package holds, how a picture gets into it) and write it in `docs/guide/`.
+- [ ] Keep the tiles in Firestore (`JIGSAW_FEED`, `firestoreFeedStore`, replacing `dummyFeedStore`) with an index in this repo's `firestore.indexes.json` if a query needs one; routes to make, change and delete a tile (publisher or admin, `UserLevels`), with tests.
+- [ ] The pages that write the tiles (`/play/mine/packages` and the like), built like the picture form.
+- [ ] A page for a package (`FeedAction` `package`: now a package tile is not pressed), and a package as a filter of the list (`JigsawFilters`).
+- [ ] Tiles made in the frontend (`source: 'local'`, for example "add your first picture") added to `FeedService.others`.
+- [ ] Let a person close an information or an offer (kept on the device, then with the user).
+- [ ] Say who a tile is for (language, level, signed in or not) and use it in `isShown`.
+- [ ] Texts of the tiles are English (they come from the backend); translate the labels if the page adds any.
+
 ## Packages
 
 There is a button "Select packages" in the row of quick filters on the front page (after "Filter pictures"), and the page it opens, `/jigsaw/packages` (`jigsaw-packages/`), is a dummy: a title, a line that says it is not ready, and a way back. What a package is is not decided yet.

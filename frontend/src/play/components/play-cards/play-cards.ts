@@ -1,6 +1,8 @@
-import { Component, ElementRef, OnInit, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { scrollParent } from '../../../app/core/theme';
+import { FeedService, isPicture } from '../../../app/jigsaw/feed.service';
+import { FeedTile } from '../../../app/jigsaw/feed-tile/feed-tile';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawSearchRequest, JigsawService } from '../../../app/jigsaw/jigsaw.service';
 import { JigsawFilter, JigsawFilters } from '../../../app/models/shared/jigsaw-filter';
@@ -14,7 +16,7 @@ import { PlayCard } from '../play-card/play-card';
  */
 @Component({
   selector: 'play-cards',
-  imports: [TranslocoDirective, PlayCard],
+  imports: [TranslocoDirective, PlayCard, FeedTile],
   providers: [provideTranslocoScope('play'), provideTranslocoScope('jigsawList')],
   host: { class: 'd-block' },
   templateUrl: './play-cards.html',
@@ -23,6 +25,7 @@ export class PlayCards implements OnInit {
   private readonly service = inject(JigsawService);
   protected readonly users = inject(JigsawUserService);
   private readonly list = inject(PlayListFilter);
+  private readonly feed = inject(FeedService);
   /** what the home page shows, as the menu of the helper has it: here, whether only the favorites are listed */
   protected readonly view = inject(ListView);
 
@@ -32,6 +35,9 @@ export class PlayCards implements OnInit {
   /** the jigsaws found, as many pages as have been asked for */
   readonly items = signal<JigsawSummary[]>([]);
   readonly hasMore = signal(false);
+  /** the pictures with the other tiles (information, offers, packages) among them: one rule for the app and the website (`HomeFeed.merge`, through `FeedService`) */
+  protected readonly tiles = computed(() => this.feed.tiles(this.items(), !this.hasMore()));
+  protected readonly isPicture = isPicture;
   readonly loading = signal(true);
   readonly failed = signal(false);
   private page = 1;
@@ -76,6 +82,7 @@ export class PlayCards implements OnInit {
     this.filter = this.list.filter();
     this.filtered.set(JigsawFilters.isOn(this.filter));
     this.started = true;
+    void this.feed.load(); // the tiles that are not pictures; they come when they are read, the pictures do not wait for them
     await this.load(1);
   }
 

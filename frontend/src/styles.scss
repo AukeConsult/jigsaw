@@ -485,6 +485,16 @@ play-jigsaw .jigsaw-play {
   }
 }
 
+.feed-pressable {
+  // a tile of the home page that leads somewhere (an offer, an information with a page): it is pressed like a card
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--app-primary);
+  }
+}
+
 .play-info-button {
   // the Info button in the bottom right corner of the frame of the app: a round button over the page, sized from the title size (`em`), so it follows the screen like the text does
   font-size: var(--app-fs-title);
@@ -1021,6 +1031,13 @@ app-jigsaw-filter {
 /* the almost finished jigsaws in the welcome band: about a third of it, beside the text and as high as the photo, on a wide screen; under the text and as wide as the band on a narrow one, and fade from one to the next */
 /* The welcome band when there is no round going. Narrow: the jigsaws with the welcome under them at the left, Karin's picture (and her note) at the right. Wide (`$bp-lg` and up): the
    jigsaws at the left, the welcome in the middle, Karin's picture at the right. */
+// the welcome is a container (`app-welcome`): it has three columns, the jigsaws, the text (at least 300 px) and Karin's picture, when it has this much room, whatever the window is
+$welcome-three: 50rem;
+app-welcome {
+  display: block;
+  container: welcome / inline-size;
+}
+
 .welcome-grid {
   display: grid;
   gap: 0.5rem 1rem;
@@ -1031,9 +1048,9 @@ app-jigsaw-filter {
     'news news';
   align-items: start;
 
-  @include from($bp-lg) {
+  @container welcome (min-width: #{$welcome-three}) {
     // the picture and Karin's picture have the width they need, the text is the middle one (its lines at most 34rem, in the middle of its place); the news is a row of its own under the picture and the text, from the left edge to Karin's picture
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(18.75rem, 1fr) auto; // the text is at least 300 px wide
     grid-template-areas:
       'art text karin'
       'news news karin';
@@ -1044,7 +1061,7 @@ app-jigsaw-filter {
 .welcome-text {
   grid-area: text;
 
-  @include from($bp-lg) {
+  @container welcome (min-width: #{$welcome-three}) {
     align-self: start; // its top is the top of the pictures
     width: 100%;
     max-width: 34rem;
@@ -1081,7 +1098,7 @@ app-jigsaw-filter {
   aspect-ratio: 372 / 288; // the shape of the pictures
   max-height: 33dvh;
 
-  @include from($bp-lg) {
+  @container welcome (min-width: #{$welcome-three}) {
     width: auto; // as wide as its height says
     height: var(--welcome-art-h, min(33dvh, 20rem)); // as high as the text beside it (the page measures it), so its bottom edge is the bottom edge of the last step
     max-height: min(33dvh, 20rem);

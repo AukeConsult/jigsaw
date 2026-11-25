@@ -22,7 +22,7 @@
     @if (roundsShown()) {
       <app-all-rounds />
     } @else {
-      <app-jigsaw-finder storageKey="jigsaw.front" [(filter)]="filter" [hold]="!roundsLoaded()" />
+      <app-jigsaw-finder storageKey="jigsaw.front" [(filter)]="filter" [hold]="!roundsLoaded()" [tiles]="true" />
     }
   </section>
 </main>

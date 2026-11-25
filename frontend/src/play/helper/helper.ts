@@ -5,6 +5,7 @@ import { filter, map } from 'rxjs';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { isBoolean, readPreference, writePreference } from '../../app/core/preferences';
 import { FavoritesService } from '../../app/jigsaw/favorites.service';
+import { LanguageSelect } from '../../app/jigsaw/language-select/language-select';
 import { ListView } from '../list-view';
 import { PictureView } from '../picture-view';
 import { PuzzelToggle, PuzzelView } from '../puzzel-view';
@@ -32,7 +33,7 @@ const DRAG_FROM = 4;
  */
 @Component({
   selector: 'play-helper',
-  imports: [RouterLink, RouterLinkActive, TranslocoDirective],
+  imports: [RouterLink, RouterLinkActive, TranslocoDirective, LanguageSelect],
   providers: [provideTranslocoScope('play')],
   host: {
     class: 'play-helper',
@@ -47,7 +48,7 @@ const DRAG_FROM = 4;
     <!-- the menu: white, the entries one under the other (the entry of the page that is open is marked). The first row is the name of the app, with the arrow that folds the rest away and opens it again. It is moved by pressing anywhere on it.
          The links are not draggable by the browser: its own drag of a link would cancel the move of the helper. -->
     <div class="list-group menu-style rounded-4 overflow-hidden shadow" role="group" *transloco="let t">
-      @for (item of menu(); track item.route ?? item.toggle) {
+      @for (item of menu(); track item.route ?? item.toggle ?? 'language') {
         @if (item.brand) {
           <!-- the name of the app, as the website shows it: the logo with the house on its corner, "Karins" and under it "jigsaw"; it goes home -->
           <!-- home is the logo itself (with the name beside it on the home page) and nothing round it: the link is no larger than what is drawn. The rest of the row opens and folds the menu. The logo alone (a menu with no other entry, so no arrow) has the same room on all four sides -->
@@ -82,6 +83,9 @@ const DRAG_FROM = 4;
             <span class="form-check form-switch mb-0 ms-auto ps-0"><input class="form-check-input ms-2" type="checkbox" role="presentation" tabindex="-1" [checked]="stateOf(toggle)()" (click)="$event.preventDefault()"></span>
           </button>
           }
+        } @else if (expanded() && item.language) {
+          <!-- the language of the app: the flag and name of the language in use, and the list one step down (the same choice as in the menu of the website) -->
+          <app-language-select />
         } @else if (expanded() && item.route) {
           <a class="list-group-item list-group-item-action" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route">
             <i class="bi me-2" [class]="item.icon" aria-hidden="true"></i>{{ item.text || (item.key ? (t(item.key) || item.english) : '') }}

@@ -1,8 +1,11 @@
 import { scrollParent } from '../../core/theme';
-import { Component, ElementRef, OnInit, effect, inject, input, model, signal, untracked, viewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, computed, effect, inject, input, model, signal, untracked, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { PictureItem } from '../../models/shared/feed-item';
 import { JigsawFilter, JigsawFilters } from '../../models/shared/jigsaw-filter';
 import { JigsawSummary } from '../../models/shared/jigsaw-search';
+import { FeedService, isPicture } from '../feed.service';
+import { FeedTile } from '../feed-tile/feed-tile';
 import { JigsawCard } from '../jigsaw-card/jigsaw-card';
 import { JigsawRow } from '../jigsaw-row/jigsaw-row';
 import { JigsawService, JigsawSearchRequest } from '../jigsaw.service';
@@ -16,7 +19,7 @@ import { readFinderPreferences } from './finder-preferences';
  */
 @Component({
   selector: 'app-jigsaw-finder',
-  imports: [TranslocoDirective, JigsawCard, JigsawRow],
+  imports: [TranslocoDirective, JigsawCard, JigsawRow, FeedTile],
   providers: [provideTranslocoScope('jigsawList')],
   host: { class: 'd-block' },
   templateUrl: './jigsaw-finder.html',
@@ -24,7 +27,10 @@ import { readFinderPreferences } from './finder-preferences';
 export class JigsawFinder implements OnInit {
   private readonly service = inject(JigsawService);
   private readonly users = inject(JigsawUserService);
+  private readonly feed = inject(FeedService);
 
+  /** the home page: the other tiles (information, offers, packages) are among the cards, as in the app (the same service and the same rule); a finder where a jigsaw is picked shows only jigsaws */
+  readonly tiles = input(false);
   /** where what is looked for is kept on the device */
   readonly storageKey = input('jigsaw.finder');
   /** how many jigsaws a page of the answer has */
@@ -40,6 +46,9 @@ export class JigsawFinder implements OnInit {
   readonly items = signal<JigsawSummary[]>([]);
   readonly total = signal(0);
   readonly hasMore = signal(false);
+  /** the cards: the jigsaws, with the other tiles among them when this is the home page */
+  protected readonly cards = computed(() => (this.tiles() ? this.feed.tiles(this.items(), !this.hasMore()) : this.items().map((j) => PictureItem.from(j))));
+  protected readonly isPicture = isPicture;
   readonly loading = signal(true);
   readonly failed = signal(false);
   private page = 1;
@@ -80,6 +89,7 @@ export class JigsawFinder implements OnInit {
     const saved = readFinderPreferences(this.storageKey());
     this.view.set(saved.view);
     this.filter.set(saved.filter); // what the user looked for (the Find page, Go): this page only reads it; a change made here (a quick filter) is for now and is not kept
+    if (this.tiles()) void this.feed.load();
     this.ready = true; // the first question is asked by the effect, now that the choice is set
   }
 

@@ -3,6 +3,7 @@ import express from "express";
 import { JigsawStore, jigsawHeads, jigsawListRouter, firestoreJigsawStore } from "../common/jigsaw-list";
 import { JigsawSearchStore, firestoreJigsawSearch, jigsawSearchRouter } from "./jigsaw-search";
 import { FavoriteStore, firestoreFavoriteStore, jigsawFavoritesRouter } from "./jigsaw-favorites";
+import { FeedStore, dummyFeedStore, jigsawFeedRouter } from "./jigsaw-feed";
 import { Classifier, configuredClassifier } from "./classifier";
 import { jigsawClassifyRouter } from "./jigsaw-classify";
 import { TokenUsageStore, firestoreTokenUsageStore, tokenUsageRouter } from "./token-usage";
@@ -22,7 +23,7 @@ import { Levels, intoAccount, userLevelRouter, userLevels } from "./user-levels"
 export const JIGSAW_API = "/jigsaw/api";
 
 /** The Express app behind the `jigsawApi` Cloud Function (also used directly by the tests): the jigsaws, their pieces and pictures, the users and their plays. */
-export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; accountPictures?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; logons?: LogonDeps; viewKeySecret?: SecretSource; levels?: Levels; now?: () => number; random?: () => number } = {}): express.Express {
+export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; accountPictures?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; feed?: FeedStore; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; logons?: LogonDeps; viewKeySecret?: SecretSource; levels?: Levels; now?: () => number; random?: () => number } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
   // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
@@ -147,6 +148,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     const solved = new Set((await plays.listOfUser(userId)).filter((r) => r.play.status === "solved").map((r) => r.jigsawId));
     return among.filter((j) => solved.has(j.id)).map((j) => j.id);
   };
+  // the tiles of the home page that are not pictures (information, offers, packages): made up for now, see `dummyFeedStore`
+  router.use("/jigsaw-feed", jigsawFeedRouter(stores.feed ?? dummyFeedStore(), stores.now ?? Date.now));
   router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canFind(c, me), () => (users.ids ? users.ids() : users.list().then((all) => all.map((u) => u.id))), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed));
   // the AI classification of one jigsaw by its picture (categories, name and description); its settings are read when it is asked for (before the routes of one jigsaw)
   router.use(

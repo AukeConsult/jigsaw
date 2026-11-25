@@ -16,7 +16,24 @@ const isLanguage = (code: string) => JigsawLanguages.is(code);
  */
 export const forcedLanguage = (): string | null => (isDevMode() ? 'en' : null);
 
-/** The language to start in: the one chosen on this device (kept in this browser's `localStorage`, like which user plays), else English. The language of the browser is not used. */
+/**
+ * The language of the browser, when the app has it: the first of its languages (`navigator.languages`) that the app is written in (Norwegian is written `nb`, `nn` or `no`), else nothing. Used only
+ * when nobody has chosen a language, and never kept: it is a guess, and the browser may change.
+ */
+export function browserLanguage(): string | null {
+  try {
+    for (const tag of navigator.languages?.length ? navigator.languages : [navigator.language]) {
+      const primary = (tag ?? '').toLowerCase().split('-')[0];
+      const code = primary === 'no' || primary === 'nn' ? 'nb' : primary;
+      if (isLanguage(code)) return code;
+    }
+  } catch {
+    /* no language to read: English */
+  }
+  return null;
+}
+
+/** The language to start in: the one chosen on this device (kept in this browser's `localStorage`, like which user plays), else the language of the browser if the app has it, else English. */
 export function startLanguage(): string {
   const forced = forcedLanguage();
   if (forced) return forced;
@@ -24,13 +41,13 @@ export function startLanguage(): string {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && isLanguage(saved)) return saved;
   } catch {
-    /* storage not available: English */
+    /* storage not available: the browser's language, else English */
   }
-  return 'en';
+  return browserLanguage() ?? 'en';
 }
 
 /**
- * The language of the texts of the app: the language of the user who plays (set when the user is chosen, kept with the user), else the choice made on this device (the menu), else English. The page's `lang` follows it, so a screen reader and the browser's own parts (the colour picker, the file chooser) use it too.
+ * The language of the texts of the app: the language of the user who plays (set when the user is chosen, kept with the user), else the choice made on this device (the menu), else the language of the browser if the app has it, else English. The page's `lang` follows it, so a screen reader and the browser's own parts (the colour picker, the file chooser) use it too.
  */
 @Injectable({ providedIn: 'root' })
 export class LanguageService {

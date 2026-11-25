@@ -20,3 +20,5 @@ export * from './classification';
 export * from './token-usage';
 export * from './logon';
 export * from './rounds-list';
+export * from './feed-item';
+export * from './home-feed';
