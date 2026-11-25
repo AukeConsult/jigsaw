@@ -51,17 +51,17 @@ const DRAG_FROM = 4;
       @for (item of menu(); track item.route ?? item.toggle ?? 'language') {
         @if (item.brand) {
           <!-- the name of the app, as the website shows it: the logo with the house on its corner, "Karins" and under it "jigsaw"; it goes home -->
-          <!-- home is the logo itself (with the name beside it on the home page) and nothing round it: the link is no larger than what is drawn. The rest of the row opens and folds the menu. The logo alone (a menu with no other entry, so no arrow) has the same room on all four sides -->
+          <!-- home is the logo itself and nothing round it: the link is no larger than what is drawn. The rest of the row, the name beside the logo (on the home page) too, opens and folds the menu -->
           <div class="list-group-item brand-item d-flex align-items-center" [class.brand-row]="(menu()?.length ?? 0) > 1" (click)="rowPressed($event)" (dblclick)="onRowDoubleClick($event)">
-            <a class="d-inline-block text-reset text-decoration-none" draggable="false" [routerLink]="item.route!">
-              <!-- going home leaves the menu as it is (open or folded: kept on the device); the name of the app is written beside the logo on the home page only, everywhere else the logo is enough -->
-              <span class="brand-lockup scaled d-flex align-items-center gap-2">
+            <!-- only the logo goes home (going home leaves the menu as it is, open or folded: kept on the device); the rest of the row, the name of the app beside the logo included, opens and folds the menu -->
+            <span class="brand-lockup scaled d-flex align-items-center gap-2">
+              <a class="d-inline-block text-reset text-decoration-none" draggable="false" [routerLink]="item.route!">
                 <span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32" /><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span>
-                @if (atHome()) {
-                  <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
-                }
-              </span>
-            </a>
+              </a>
+              @if (atHome()) {
+                <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
+              }
+            </span>
             <span class="d-flex ms-auto">
               @if ((menu()?.length ?? 0) > 1) {
                 <button type="button" class="btn btn-link brand-fold text-body-secondary" [attr.aria-expanded]="expanded()" [title]="expanded() ? (t('play.menuFold') || 'Hide the menu') : (t('play.menuUnfold') || 'Show the menu')"

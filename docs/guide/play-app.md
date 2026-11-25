@@ -15,7 +15,7 @@ The device has a mode, `play` or `jigsaw` (`core/app-mode.ts`, kept as `app.mode
 2. **One component, framed into different pages**, so the person sees the same layout each time: the form of a picture (`play-picture-form`) is framed by Add picture and by the page of a picture.
 3. **Every route carries a page and the menu that goes with it** (`data.menu`, a function of who plays, in `helper/menus.ts`, read by `play-route.ts`).
 4. **The look is `styles.scss` only**: the five text sizes (`--app-fs-*`), the button sizes, the colour tokens, the page width `--app-page-max` (75 rem). Nothing sets a size or a font of its own (see `look-and-texts.md`). Every page is at most `.page-max` wide, except the puzzle, which fills the screen.
-5. **Texts** are the scope `play` (`frontend/public/i18n/<language>/play.json`), **English only for now** (`TODO.md`, "Translate the texts of the new app"); a dev build is always shown in English (`forcedLanguage`). Reused scopes (`jigsawNew`, `jigsawList`, `guide` ...) are translated.
+5. **Texts** are the scope `play` (`frontend/public/i18n/<language>/play.json`), in all nine languages like the rest of the app (`npm run check:i18n`); reused scopes (`jigsawNew`, `jigsawList`, `guide` ...) are translated too. The language is the account's, else the one chosen on the device, else the browser's if the app has it, else English; it is chosen in the last row of the home page menu. The texts of the tiles of the home page come from the backend and are English for now.
 6. **Every choice the person makes is kept on the device** (`readPreference`/`writePreference`, rule 12 of `CLAUDE.md`): the list filter, the switches of the menu, whether the menu is open, where it was put.
 
 ## The frame: main page, helper, Info button
@@ -24,14 +24,14 @@ The device has a mode, `play` or `jigsaw` (`core/app-mode.ts`, kept as `app.mode
 - **The helper** (`helper/helper.ts`) is **one movable menu on the main level**. It shows the menu of the open page: a list of entries, each an icon, words and the page a press goes to, or a **switch** (`toggle`) of the page that is open. A press is plain routing (`routerLink`): there are no helper views and no helper subclasses.
   - **The first entry of every menu is the name of the app** (the logo with the little house: it goes home, `/`). The first row has two small buttons at its right end: the arrow that folds the menu to that row and opens it again, and the little arrow into a corner, which folds the menu and puts it in the top right corner (a double click on the row does the same). The first row is the same in every menu, sized by one parent class (`.play-helper .brand-item`).
   - It is dragged with the pointer, kept inside the window, grows from the side nearest to the edge when it opens or its words change, and its place and whether it is open are kept on the device. Until it is moved it is in the bottom right corner, just above the Info button.
-  - **The last row of every menu with more than the logo is the language** (`app-language-select`, shared with the website: a row with the flag and name of the language in use, which opens the list of languages one step down, each with its flag; the choice is kept on the device and as the account's language). Until a language is chosen the language of the browser is used when the app has it.
+  - **The last row of the home page menu is the language** (`app-language-select`, the menu entry `language: true`, shared with the website: a row with the flag and name of the language in use, which opens the list of languages one step down, each with its flag; the choice is kept on the device and as the account's language). Until a language is chosen the language of the browser is used when the app has it.
   - Switches that have nothing to switch are not offered (Ongoing rounds without rounds going, My favorites without favorites). A finished puzzle has no help picture and no border pieces to switch.
 
 ## The menus (`helper/menus.ts`)
 | Menu | Where | Entries |
 |---|---|---|
 | `pageMenu` | the pages outside the user's own ones (preferences) | brand, My pictures, Add picture, Picture preferences, Info, (Admin), the account's name; for nobody: brand, Info, Logon |
-| `listMenu` | the list (home) | the page menu with the switches Ongoing rounds and My favorites |
+| `listMenu` | the list (home) | the page menu with the switches Ongoing rounds and My favorites, and last the language |
 | `mineMenu` | `/play/mine/...` | brand, Add picture, (Many pictures and Make packages for a publisher or admin), My pictures, My rounds |
 | `accountMenu` | `/play/account/...` | brand, Account, Preferences |
 | `infoMenu` | `/play/info/...` | brand, Welcome, Help, About, Install |

@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { tr } from '../../../app/core/i18n';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
 import { PictureForm } from '../../components/picture-form/picture-form';
@@ -47,7 +48,7 @@ export class PlayPicture {
       await this.jigsaws.removeAs(this.id, me.id);
       await this.router.navigateByUrl('/play/mine/pictures');
     } catch {
-      this.error.set('Could not delete the picture: only its owner can.');
+      this.error.set(tr('play.picture.couldNotDelete', 'Could not delete the picture: only its owner can.'));
       this.busy.set(false);
     }
   }

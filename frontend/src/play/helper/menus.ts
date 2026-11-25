@@ -15,6 +15,8 @@ export interface PlayMenuItem {
   readonly text?: string;
   readonly key?: string;
   readonly english?: string;
+  /** the entry is the choice of the language (the flag and name of the language in use, and the list one step down): it has no icon or words of its own */
+  readonly language?: boolean;
   /** the entry is the name of the app, the logo with "Karins jigsaw" (the same as the website shows it), instead of an icon and words */
   readonly brand?: boolean;
 }
@@ -41,6 +43,9 @@ const LOGON: PlayMenuItem = { icon: 'bi-person-circle', route: '/play/account', 
 /** The entry that adds a picture: its page is one of the user's pages (`/play/mine/...`), so a press switches to the user menu. */
 const ADD_PICTURE: PlayMenuItem = { icon: 'bi-image', route: '/play/mine/addpicture', key: 'play.addPicture', english: 'Add picture' };
 
+/** The last row of the home page menu: the language, as the website's menu has it (the flag and name of the language in use, and the list of languages one step down). */
+const LANGUAGE: PlayMenuItem = { icon: 'bi-translate', language: true };
+
 /** The entry for the info page: the welcome, the help, the about page and how to install the app. For everybody, also for nobody who is logged on. */
 const INFO: PlayMenuItem = { icon: 'bi-info-circle', route: '/play/info', key: 'play.info', english: 'Info' };
 
@@ -64,9 +69,9 @@ export const pageMenu: PlayMenu = (user, may) => (user ? pageEntries(user, may) 
 /** The menu of the home page (the list): the page menu with two switches: the rounds that are going on the top of the list, and only the user's favorites. Nobody plays: no rounds, so the page menu. */
 export const listMenu: PlayMenu = (user, may) => {
   const entries = pageMenu(user, may) ?? [];
-  if (!user) return entries;
+  if (!user) return [...entries, LANGUAGE]; // the language is the last row of the home page menu, also for nobody
   const at = entries.findIndex((item) => item.route === ADD_PICTURE.route) + 1;
-  return [...entries.slice(0, at), { icon: 'bi-play-circle', toggle: 'ongoing', key: 'play.ongoingRounds', english: 'Ongoing rounds' }, { icon: 'bi-heart', toggle: 'favorites', key: 'play.myFavorites', english: 'My favorites' }, ...entries.slice(at)];
+  return [...entries.slice(0, at), { icon: 'bi-play-circle', toggle: 'ongoing', key: 'play.ongoingRounds', english: 'Ongoing rounds' }, { icon: 'bi-heart', toggle: 'favorites', key: 'play.myFavorites', english: 'My favorites' }, ...entries.slice(at), LANGUAGE];
 };
 
 /** The menu of the info pages (`/play/info/...`): the way home (the brand) and every page of the info, one entry each (the welcome, the help, the about page and how to install the app), the same for everybody. */

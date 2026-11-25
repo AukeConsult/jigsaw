@@ -76,7 +76,8 @@
     "saving": "Saving the picture…",
     "couldNotMake": "Could not save the picture. Nothing was saved: check the picture and try again.",
     "couldNotRead": "Could not read the picture: try again.",
-    "couldNotChange": "Could not save the changes: only the owner can change a picture, and not its picture once rounds have been played."
+    "couldNotChange": "Could not save the changes: only the owner can change a picture, and not its picture once rounds have been played.",
+    "couldNotDelete": "Could not delete the picture: only its owner can."
   },
   "myPictures": "My pictures",
   "myRounds": "My rounds",

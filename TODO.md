@@ -112,11 +112,11 @@ To do:
 
 ## Translate the texts of the new app (`play`)
 
-The texts of the new app (`frontend/src/play/`, the scope `play`) are written in English only for now: `public/i18n/en/play.json`. The other eight languages have no `play.json` yet, so `npm run check:i18n` lists the file as missing in da, de, es, fi, fr, nb, nl and sv, and the pages show the English text (the template keeps it next to the key). The first try's texts, with the translations that were made for them (the sign-in, the accounts, the picture form, copied from `logons.json`, `jigsawUser.json` and `jigsawNew.json`), are in `_old-play/i18n/`.
+Done: `play.json` is made in all nine languages (en, nb, sv, da, fi, de, fr, es, nl; the words are the same as in the older scopes: round, account, sign-in, locked), `npm run check:i18n` says "Translations are in order.", and the dev build is no longer forced to English (`forcedLanguage()` is gone). The translations of the new app were written by the assistant and have not been read by native speakers.
 
 To do:
 
-- [ ] Make `play.json` in the other eight languages for every `play` key, when the texts of the app are settled (take the wording from `_old-play/i18n/` and from the files the keys were copied from).
-- [ ] Run `npm run check:i18n` until it says "Translations are in order."
-- [ ] Take away `forcedLanguage()` in `frontend/src/app/core/language.service.ts`: while the app is developed and tested (a dev build) it is always shown in English, whatever language is chosen, so the untranslated texts are never a surprise.
+- [ ] Let native speakers read the eight new `play.json` files (and `jigsawPage.startTitle`, which was changed in all languages).
+- [ ] The titles of the pages (the browser tab: `title:` of the routes in `play.routes.ts`) are English; give the app a title strategy that translates them (`titles.*` keys are already left out of `check:i18n`).
+- [ ] The texts of the tiles of the home page come from the backend and are English (`TODO.md`, "The home page: tiles").
 - [ ] Delete `_old-play/` when nothing more is needed from the first try.

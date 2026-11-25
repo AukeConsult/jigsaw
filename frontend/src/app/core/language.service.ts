@@ -1,4 +1,4 @@
-import { Injectable, inject, isDevMode, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { JIGSAW_LANGUAGES, JigsawLanguages } from '../models/shared/language';
 import { registerTranslator } from './i18n';
@@ -9,12 +9,6 @@ export const LANGUAGES = JIGSAW_LANGUAGES;
 const STORAGE_KEY = 'jigsaw.language';
 
 const isLanguage = (code: string) => JigsawLanguages.is(code);
-
-/**
- * While the app is developed and tested (a dev build: `ng serve` and the tests) it is always shown in English, whatever language the device, the menu or the user has: the new texts are only written in English so far
- * (`TODO.md`, "Translate the texts of the new app"). A production build uses the language as before. Take this away when the texts are translated.
- */
-export const forcedLanguage = (): string | null => (isDevMode() ? 'en' : null);
 
 /**
  * The language of the browser, when the app has it: the first of its languages (`navigator.languages`) that the app is written in (Norwegian is written `nb`, `nn` or `no`), else nothing. Used only
@@ -35,8 +29,6 @@ export function browserLanguage(): string | null {
 
 /** The language to start in: the one chosen on this device (kept in this browser's `localStorage`, like which user plays), else the language of the browser if the app has it, else English. */
 export function startLanguage(): string {
-  const forced = forcedLanguage();
-  if (forced) return forced;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && isLanguage(saved)) return saved;
@@ -73,9 +65,8 @@ export class LanguageService {
   }
 
   private apply(chosen: string): void {
-    const code = forcedLanguage() ?? chosen; // what is shown: English in a dev build, whatever was chosen (it is still remembered by `use`)
-    this.lang.set(code);
-    this.transloco.setActiveLang(code);
-    document.documentElement.lang = code;
+    this.lang.set(chosen);
+    this.transloco.setActiveLang(chosen);
+    document.documentElement.lang = chosen;
   }
 }

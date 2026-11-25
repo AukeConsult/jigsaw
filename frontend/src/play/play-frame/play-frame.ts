@@ -1,6 +1,7 @@
 import { Component, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { map, startWith } from 'rxjs';
 import { Helper } from '../helper/helper';
 import { PlayMenuItem } from '../helper/menus';
@@ -11,15 +12,18 @@ import { PlayMenuItem } from '../helper/menus';
  */
 @Component({
   selector: 'play-frame',
-  imports: [Helper, RouterLink],
+  imports: [Helper, RouterLink, TranslocoDirective],
+  providers: [provideTranslocoScope('play')],
   host: { class: 'play-frame' },
   template: `
     <play-helper [menu]="menu()" />
+    <ng-container *transloco="let t">
     @if (!onInfo()) {
-      <a class="play-info-button btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0 position-absolute bottom-0 end-0 m-3" routerLink="/play/info" title="Info" aria-label="Info">
+      <a class="play-info-button btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0 position-absolute bottom-0 end-0 m-3" routerLink="/play/info" [title]="t('play.info') || 'Info'" [attr.aria-label]="t('play.info') || 'Info'">
         <i class="bi bi-info-lg" aria-hidden="true"></i>
       </a>
     }
+    </ng-container>
   `,
 })
 export class PlayFrame {

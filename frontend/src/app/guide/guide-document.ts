@@ -16,7 +16,7 @@ import { renderMarkdown } from '../core/markdown';
   providers: [provideTranslocoScope('guide')],
   template: `
     <ng-container *transloco="let t">
-      <article class="guide mx-auto" aria-label="Help">
+      <article class="guide mx-auto" [attr.aria-label]="t('guide.tabGuide') || 'Help'">
         @if (failed()) {
           <div class="alert alert-danger py-2 small" role="alert">{{ t('guide.failed') || 'Could not load the help.' }}</div>
         } @else if (html() === null) {
