@@ -7,13 +7,13 @@ using Microsoft.Web.WebView2.Core;
 namespace KarinsJigsaw;
 
 /// <summary>
-/// Shows the live web app on the main address, the same as server.url in frontend/capacitor.config.json (change both together).
+/// Shows the live web app on the address of the play module (`/play`, the app: the wrappers always open it, never the website), the same as server.url in frontend/capacitor.config.json (change both together).
 /// The web app stays the one code base: deploy it and this window shows the new version, nothing to rebuild.
 /// </summary>
 public partial class MainWindow : Window
 {
     public const string WindowTitle = "Karins jigsaw";
-    private const string AppUrl = "https://karins-jigsaw.web.app";
+    private const string AppUrl = "https://karins-jigsaw.web.app/play";
 
     /// <summary>Pages that may open INSIDE the app (the app itself and the pages of the sign-in popup). Every other link opens in the browser.</summary>
     private static readonly string[] Inside = ["karins-jigsaw.web.app", "sevenfriends.io", "accounts.google.com", "firebaseapp.com"];

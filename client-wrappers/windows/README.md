@@ -3,7 +3,7 @@
 A native Windows app (.NET 8, WPF) with the Microsoft Edge WebView2 control that shows the live web app, the same idea as
 `client-wrappers/android/` and `client-wrappers/ios/`. The web app stays the one code base: deploy it and this app shows the new version, nothing to rebuild or reinstall.
 
-- App id `io.karinsjigsaw.app` · the address shown is `AppUrl` in `MainWindow.xaml.cs` (the same as `server.url` in
+- App id `io.karinsjigsaw.app` · the address shown is `AppUrl` in `MainWindow.xaml.cs`, always the play module (`/play`) (the same as `server.url` in
   `frontend/capacitor.config.json`; change both when https://karins-jigsaw.web.app works).
 - **Needs:** the .NET SDK 8 or newer on the computer that builds it. The people who install the app need nothing extra
   except the WebView2 Runtime, which is part of Windows 11 and of Microsoft Edge (the app says so if it is missing).

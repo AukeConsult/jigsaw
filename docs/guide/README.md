@@ -14,5 +14,6 @@
 - [The look and the texts](look-and-texts.md)
 - [The board: layout, helpers and the store](board-layout.md)
 - [Pieces and playing](pieces-and-play.md)
+- [The play module (`/play`): the new app](play-app.md)
 
 Linked from CLAUDE.md and the project README.

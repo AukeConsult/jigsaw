@@ -6,7 +6,7 @@
     "path": "../client-wrappers/android"
   },
   "server": {
-    "url": "https://karins-jigsaw.web.app",
+    "url": "https://karins-jigsaw.web.app/play",
     "cleartext": false
   },
   "plugins": {
