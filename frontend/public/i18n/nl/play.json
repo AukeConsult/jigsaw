@@ -202,5 +202,6 @@
   },
   "allPackages": "Alle pakketten",
   "myPackages": "Mijn pakketten",
-  "dragHint": "Sleep om te verplaatsen"
+  "dragHint": "Sleep om te verplaatsen",
+  "homeHint": "Tik icoon: start"
 }

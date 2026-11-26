@@ -39,7 +39,8 @@ export class LabelFit {
   /** Whether the bar has more than one line: two things in it that do not share a line (one begins under where another ends). */
   private wraps(): boolean {
     if (getComputedStyle(this.host).flexDirection === 'column') return false; // a bar down a side: one thing under the other is how it is
-    const boxes = [...this.host.children].map((c) => c.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+    const boxes = [...this.host.children].filter((c) => getComputedStyle(c).position !== 'absolute').map((c) => c.getBoundingClientRect()) // what lies on the bar, out of its row, is no line of it
+      .filter((r) => r.width > 0 && r.height > 0);
     if (boxes.length < 2) return false;
     return Math.max(...boxes.map((r) => r.top)) >= Math.min(...boxes.map((r) => r.bottom)) - 0.5;
   }

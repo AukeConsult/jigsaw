@@ -202,5 +202,6 @@
   },
   "allPackages": "All packages",
   "myPackages": "My packages",
-  "dragHint": "Drag to move"
+  "dragHint": "Drag to move",
+  "homeHint": "Hit icon to go home"
 }

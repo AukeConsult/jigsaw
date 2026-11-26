@@ -202,5 +202,6 @@
   },
   "allPackages": "Alle pakker",
   "myPackages": "Mine pakker",
-  "dragHint": "Dra for å flytte"
+  "dragHint": "Dra for å flytte",
+  "homeHint": "Trykk ikonet: hjem"
 }

@@ -202,5 +202,6 @@
   },
   "allPackages": "Alla paket",
   "myPackages": "Mina paket",
-  "dragHint": "Dra för att flytta"
+  "dragHint": "Dra för att flytta",
+  "homeHint": "Tryck ikonen: hem"
 }

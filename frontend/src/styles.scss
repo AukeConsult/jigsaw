@@ -497,69 +497,93 @@ small,
     }
   }
 
-  // how the menu is moved, in the room a bar has left (between the entries and the arrow): it never makes the bar bigger
-  .play-drag-hint {
-    flex: 1 1 0;
-    min-width: 0;
-    min-height: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    line-height: 1.2;
+  // How the menu is moved and how one goes home: a small label ON the edge of the bar that faces the page, half on the bar and half on the page, in the middle of that edge (the lower one of a top bar, the upper one
+  // of a bottom bar, the right one of a left bar and the left one of a right bar). It lies on top, out of the row, so it takes no room from the entries, and presses go through it.
+  .play-bar {
+    position: relative;
   }
 
-  // The hint is next to the edge of the bar that faces the page: the lower one of a top bar, the upper one of a bottom bar, the right one of a left bar and the left one of a right bar. Along the bar it is in the
-  // middle of the room that is left.
+  .play-drag-hint {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    white-space: nowrap;
+    line-height: 1;
+    pointer-events: none;
+    background-color: var(--bs-body-bg); // it is read over any picture
+    border-radius: 1rem;
+  }
 
-  // across the top or the bottom: a phrase with no room goes to a second line, which is cut away: all of it or none
+  // across the top or the bottom: the two phrases side by side with a stroke between
   &.docked-top .play-drag-hint,
   &.docked-bottom .play-drag-hint {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    height: 1.2em;
+    left: 50%;
+    padding: 0.15em 0.6em;
 
-    &::before {
-      content: '';
-      width: 1px;
-      height: 1.2em;
+    .play-hint-home::before {
+      content: ' / ';
+      white-space: pre;
     }
   }
 
-  // (the negative margins take it into the room round the bar, close to its edge)
   &.docked-top .play-drag-hint {
-    align-self: flex-end;
-    margin-bottom: -0.2rem;
+    bottom: 0;
+    transform: translate(-50%, 50%);
   }
 
   &.docked-bottom .play-drag-hint {
-    align-self: flex-start;
-    margin-top: -0.2rem;
+    top: 0;
+    transform: translate(-50%, -50%);
   }
 
-  // down a side: upright letters one under the other, close together
+  // down a side: upright letters one under the other, close together; the two phrases are two lines beside each other
   &.docked-left .play-drag-hint,
   &.docked-right .play-drag-hint {
-    display: flex;
+    top: 50%;
     align-items: center;
-    justify-content: safe center;
-    writing-mode: vertical-rl;
+    padding: 0.6em 0.15em;
+    writing-mode: vertical-lr;
     text-orientation: upright;
-    letter-spacing: -0.15em;
+    letter-spacing: -0.4em; // an upright letter takes the whole height of the font: most of the room between two is taken out
 
-    // a low window (a phone on its side) has no room for the whole of it: none is better than half a phrase
-    @media (max-height: 32rem) {
-      visibility: hidden;
+    .play-hint-words > span {
+      display: block;
     }
   }
 
   &.docked-left .play-drag-hint {
-    align-self: flex-end;
-    margin-right: -0.2rem;
+    right: 0;
+    transform: translate(50%, -50%);
   }
 
   &.docked-right .play-drag-hint {
-    align-self: flex-start;
-    margin-left: -0.2rem;
+    left: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  // the half of the label that is on a side bar must lie on no entry: the bar is that much wider there
+  &.docked-left .play-bar {
+    padding-right: calc(var(--app-fs-tiny) * 1.3);
+  }
+
+  &.docked-right .play-bar {
+    padding-left: calc(var(--app-fs-tiny) * 1.3);
+  }
+
+  // a collapsed bar has no hint, and no room for one
+  &.bar-folded.docked-top .play-bar,
+  &.bar-folded.docked-bottom .play-bar,
+  &.bar-folded.docked-left .play-bar,
+  &.bar-folded.docked-right .play-bar {
+    padding: 0.25rem;
+  }
+
+  // a low window (a phone on its side) has no room for the whole of it down a side: none is better than half a phrase
+  @media (max-height: 22rem) {
+    &.docked-left .play-drag-hint,
+    &.docked-right .play-drag-hint {
+      visibility: hidden;
+    }
   }
 
   // down a side of a narrow screen only the icons are shown (the words stay for a screen reader), so the page keeps its width

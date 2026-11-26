@@ -26,8 +26,10 @@
       }
     }
     @if (!barFolded()) {
-      <!-- in the room that is left in a bar: how the menu is moved, in tiny letters (down a side one under the other). It takes what is left, and no more -->
-      <div class="play-drag-hint tiny text-body-secondary"><span>{{ t('play.dragHint') || 'Drag to move' }}</span></div>
+      <!-- in the room that is left in a bar: how the menu is moved and how one goes home, in tiny letters (down a side one under the other, the two beside each other). It takes what is left, and no more -->
+      <div class="play-drag-hint tiny text-body-secondary">
+        <span class="play-hint-words"><span>{{ t('play.dragHint') || 'Drag to move' }}</span><span class="play-hint-home">{{ t('play.homeHint') || 'Hit icon to go home' }}</span></span>
+      </div>
     }
     <!-- at the far end: collapse the bar (the arrow points to its edge) or open it again -->
     <button type="button" class="nav-link" [class.ms-auto]="!upright() && !barFolded()" [class.mt-auto]="upright() && !barFolded()" [attr.aria-expanded]="!barFolded()"

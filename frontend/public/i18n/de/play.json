@@ -202,5 +202,6 @@
   },
   "allPackages": "Alle Pakete",
   "myPackages": "Meine Pakete",
-  "dragHint": "Zum Verschieben ziehen"
+  "dragHint": "Zum Verschieben ziehen",
+  "homeHint": "Symbol: zur Startseite"
 }

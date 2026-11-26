@@ -202,5 +202,6 @@
   },
   "allPackages": "Kaikki paketit",
   "myPackages": "Omat pakettini",
-  "dragHint": "Siirrä vetämällä"
+  "dragHint": "Siirrä vetämällä",
+  "homeHint": "Ikoni vie kotiin"
 }

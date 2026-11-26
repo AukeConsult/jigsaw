@@ -202,5 +202,6 @@
   },
   "allPackages": "Tous les paquets",
   "myPackages": "Mes paquets",
-  "dragHint": "Glisser pour déplacer"
+  "dragHint": "Glisser pour déplacer",
+  "homeHint": "Icône : accueil"
 }

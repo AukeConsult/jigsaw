@@ -202,5 +202,6 @@
   },
   "allPackages": "Todos los paquetes",
   "myPackages": "Mis paquetes",
-  "dragHint": "Arrastra para mover"
+  "dragHint": "Arrastra para mover",
+  "homeHint": "Icono: ir al inicio"
 }
