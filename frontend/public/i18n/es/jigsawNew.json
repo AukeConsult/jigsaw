@@ -77,5 +77,8 @@
   "kindPictureHelp": "Al empezar una ronda se elige el número de piezas y la dificultad.",
   "kindJigsaw": "Un puzle listo",
   "kindJigsawHelp": "Eliges ahora el número de piezas y la dificultad.",
-  "pictureAlt": "La imagen"
+  "pictureAlt": "La imagen",
+  "limitCount": "{{ count }} de {{ max }} imágenes usadas. Una cuenta verificada no tiene límite.",
+  "limitFull": "Tienes {{ max }} imágenes, el máximo para una cuenta sin verificar. Verifica tu cuenta o borra una imagen.",
+  "limitVerify": "Verificar la cuenta"
 }

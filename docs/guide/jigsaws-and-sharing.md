@@ -25,3 +25,6 @@ A jigsaw is `everyone` (public), `owner` (private) or `hidden`. The server decid
 - **The picture itself** of a private or hidden jigsaw is read with a key that the answers give only to those who may open the jigsaw (`image-access.ts`); the key is never kept.
 - **Levels count only for a verified account** (one with a verified login): an account with none can only be a user, whatever is written on it.
 - **A jigsaw changed after a round was started** keeps what every round shares (size, pieces, picture, difficulty, clock); this holds for the owner and an admin too.
+
+## A picture of a package
+A picture with a `packageId` belongs to a package of the home page (`play-app.md`). Whatever its visibility says, it is also only for its owner, an admin and **the accounts that have the package** (`jigsaw-users/<id>/bought-packages`, `BoughtPackages.mayUse`): the search, the lists, the popular ones, the page of one jigsaw and its rounds all ask that. Its image file is not locked: the package page shows it as a preview.

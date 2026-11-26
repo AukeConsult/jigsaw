@@ -1,0 +1,74 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  <h1 class="page-title mb-1"><i class="bi me-2" [class]="icon" aria-hidden="true"></i>{{ kind === 'info' ? (t('play.feed.infoTitle') || 'Information on the home page') : kind === 'offer' ? (t('play.feed.offersTitle') || 'Offers on the home page') : (t('play.feed.packagesTitle') || 'Packages on the home page') }}</h1>
+  <p class="text-body-secondary">{{ t('play.feed.intro') || 'You write in one language and the AI translates the others when you save. A tile is shown from the day you say until the day it expires.' }}</p>
+
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <input type="search" class="form-control feed-search" [value]="search()" (input)="search.set($any($event.target).value)" [attr.aria-label]="t('play.feed.search') || 'Search'" [placeholder]="t('play.feed.search') || 'Search'">
+    <div class="d-flex flex-wrap gap-1" role="group" [attr.aria-label]="t('play.feed.status.label') || 'Status'">
+      @for (s of statuses; track s) {
+        <input type="radio" class="btn-check" name="feed-status" [id]="'feed-status-' + (s || 'all')" autocomplete="off" [checked]="status() === s" (change)="status.set(s)">
+        <label class="btn btn-sm btn-outline-primary rounded-pill" [for]="'feed-status-' + (s || 'all')">{{ s ? (t('play.feed.status.' + s) || s) : (t('play.feed.all') || 'All') }}</label>
+      }
+    </div>
+    <a class="btn btn-primary ms-auto" [routerLink]="path + '/new'"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('play.feed.add') || 'Add' }}</a>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-warning py-2 small" role="alert">{{ t('play.feed.deleteFailed') || 'Could not delete it: only the one who wrote it can.' }}</div>
+  }
+  @if (failed()) {
+    <div class="alert alert-danger py-2 small" role="alert">{{ t('play.feed.loadFailed') || 'Could not read the list: try again.' }}</div>
+  } @else if (items() === null) {
+    <div class="text-center py-4"><span class="spinner-border" role="presentation" aria-hidden="true"></span></div>
+  } @else if (!rows().length) {
+    <p class="text-body-secondary text-center py-4">{{ search() || status() ? (t('play.feed.noMatch') || 'Nothing matches.') : (t('play.feed.none') || 'Nothing here yet.') }}</p>
+  } @else {
+    <ul class="list-group">
+      @for (row of rows(); track row.data.id) {
+        <li class="list-group-item d-flex flex-wrap align-items-center gap-2">
+          <div class="me-auto feed-row-main">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="fw-semibold text-break">{{ row.item.titleFor(language()) }}</span>
+              @if (kind === 'offer' && row.item.labelFor(language())) {
+                <span class="badge text-bg-warning"><i class="bi bi-tag-fill" aria-hidden="true"></i> {{ row.item.labelFor(language()) }}</span>
+              }
+              @if (row.data.visibility === 'owner') {
+                <span class="badge text-bg-warning"><i class="bi bi-lock" aria-hidden="true"></i> {{ t('jigsawNew.visibilityOwner') || 'Private' }}</span>
+              } @else if (row.data.visibility === 'hidden') {
+                <span class="badge text-bg-secondary"><i class="bi bi-eye-slash" aria-hidden="true"></i> {{ t('jigsawNew.visibilityHidden') || 'Hidden' }}</span>
+              }
+              @if (kind === 'package') {
+                <span class="badge text-bg-light border">{{ price(row.item) || (t('play.feed.free') || 'Free') }}</span>
+              }
+              <span class="badge" [class.text-bg-success]="row.status === 'active'" [class.text-bg-info]="row.status === 'upcoming'" [class.text-bg-secondary]="row.status === 'expired'">{{ t('play.feed.status.' + row.status) || row.status }}</span>
+            </div>
+            <div class="small text-body-secondary">
+              @if (row.data.from !== undefined && row.data.to !== undefined) {
+                {{ date(row.data.from) }} – {{ date(row.data.to) }}
+              } @else if (row.data.from !== undefined) {
+                {{ t('play.feed.fromDate', { date: date(row.data.from) }) || 'From ' + date(row.data.from) }}
+              } @else if (row.data.to !== undefined) {
+                {{ t('play.feed.untilDate', { date: date(row.data.to) }) || 'Until ' + date(row.data.to) }}
+              } @else {
+                {{ t('play.feed.noDates') || 'Always shown' }}
+              }
+            </div>
+          </div>
+          <span class="toolbar">
+            @if (deleting() === row.data.id) {
+              <span class="small" role="alert">{{ pictureCount() ? (t('play.feed.deletePackageAsk', { count: pictureCount() }) || 'Delete this package and its ' + pictureCount() + ' pictures for good?') : (t('play.feed.deleteAsk') || 'Delete this for good?') }}</span>
+              <button type="button" class="link-action danger" (click)="remove(row.data.id)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
+              <button type="button" class="link-action" (click)="deleting.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+            } @else {
+              @if (kind === 'package') {
+                <a class="link-action" [routerLink]="path + '/' + row.data.id + '/pictures'"><i class="bi bi-images" aria-hidden="true"></i>{{ t('play.feed.pictures') || 'Pictures' }}</a>
+              }
+              <a class="link-action" [routerLink]="path + '/' + row.data.id"><i class="bi bi-pencil" aria-hidden="true"></i>{{ t('jigsawUser.edit') || 'Edit' }}</a>
+              <button type="button" class="link-action danger" (click)="askDelete(row.data.id)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.deleteRound') || 'Delete' }}</button>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</main>

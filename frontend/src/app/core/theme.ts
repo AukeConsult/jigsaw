@@ -19,9 +19,9 @@ export function cssNumber(name: string, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
 }
 
-/** Where the menu begins when it is at the bottom of the screen (the footer), else the bottom of the screen: the working area of a round must end here and never go below it (rule 6 of the board). */
+/** Where the menu begins when it is at the bottom of the screen (the footer of the website, or the app's menu stuck to the bottom), else the bottom of the screen: the working area of a round must end here and never go below it (rule 6 of the board). */
 export function footerTop(): number {
-  const bar = document.querySelector('.app-navbar')?.getBoundingClientRect();
+  const bar = document.querySelector('.app-navbar, .play-helper.docked-bottom')?.getBoundingClientRect();
   return bar && bar.top > window.innerHeight / 2 ? Math.floor(bar.top) : window.innerHeight;
 }
 

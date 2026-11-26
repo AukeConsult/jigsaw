@@ -24,7 +24,7 @@ export interface AiUsage {
 }
 
 /** What the AI was used for. */
-export type TokenUsageKind = 'classify';
+export type TokenUsageKind = 'classify' | 'translate';
 
 /** One call that is kept for a user: what it used and what it was for. */
 export interface TokenUsageSpec extends AiUsage {
@@ -34,6 +34,8 @@ export interface TokenUsageSpec extends AiUsage {
   kind: TokenUsageKind;
   /** the jigsaw it was about */
   jigsawId?: string;
+  /** the tile of the home page it was about (a translation) */
+  feedId?: string;
   /** `ok`: it gave an answer that could be used; `failed`: the tokens were spent, but there was nothing to use */
   status: 'ok' | 'failed';
   /** the answer was put on the jigsaw */
@@ -79,11 +81,12 @@ export class TokenUsages {
   }
 
   /** A call as it is kept for a user (nothing but the known fields; not yet paid for). */
-  static record(usage: AiUsage, about: { userId: string; kind: TokenUsageKind; jigsawId?: string; status: 'ok' | 'failed'; applied: boolean; now: number }): Omit<TokenUsageSpec, 'id'> {
+  static record(usage: AiUsage, about: { userId: string; kind: TokenUsageKind; jigsawId?: string; feedId?: string; status: 'ok' | 'failed'; applied: boolean; now: number }): Omit<TokenUsageSpec, 'id'> {
     return {
       userId: about.userId,
       kind: about.kind,
       ...(about.jigsawId ? { jigsawId: about.jigsawId } : {}),
+      ...(about.feedId ? { feedId: about.feedId } : {}),
       status: about.status,
       applied: about.applied,
       createdAt: about.now,

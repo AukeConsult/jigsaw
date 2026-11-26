@@ -14,7 +14,8 @@ export class HomeFeed {
    */
   static merge(pictures: readonly FeedItem[], others: readonly FeedItem[], complete: boolean): FeedItem[] {
     const seen = new Map<string, number>();
-    const placed = [...others]
+    const placed = others
+      .filter((item) => item.onHome)
       .sort((a, b) => b.priority - a.priority || (a.id < b.id ? -1 : 1)) // the number of a tile among its kind follows its priority, not the order it came in
       .map((item) => {
         const order = seen.get(item.kind) ?? 0;

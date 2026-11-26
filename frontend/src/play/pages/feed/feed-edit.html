@@ -1,0 +1,155 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  <h1 class="page-title mb-2"><i class="bi me-2" [class]="icon" aria-hidden="true"></i>{{ kind === 'info' ? (t('play.feed.infoOne') || 'Information') : kind === 'offer' ? (t('play.feed.offerOne') || 'Offer') : (t('play.feed.packageOne') || 'Package') }}</h1>
+  <div class="toolbar mb-3">
+    <a class="link-action" [routerLink]="path"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('play.feed.back') || 'Back to the list' }}</a>
+    @if (kind === 'package' && item(); as saved) {
+      <a class="link-action" [routerLink]="path + '/' + saved.id + '/pictures'"><i class="bi bi-images" aria-hidden="true"></i>{{ t('play.feed.pictures') || 'Pictures' }}</a>
+    }
+  </div>
+
+  @if (missing()) {
+    <div class="alert alert-warning" role="alert">{{ t('play.feed.notFound') || 'There is no such tile, or it is not yours.' }}</div>
+  } @else if (loading()) {
+    <div class="text-center py-4"><span class="spinner-border" role="presentation" aria-hidden="true"></span></div>
+  } @else {
+    <form class="vstack gap-3" (submit)="$event.preventDefault(); save()">
+      <div>
+        <label class="form-label" for="feed-master">{{ t('play.feed.masterLanguage') || 'Language you write in' }}</label>
+        <select id="feed-master" class="form-select" [value]="masterLanguage()" (change)="masterLanguage.set($any($event.target).value)">
+          @for (l of languages; track l.code) {
+            <option [value]="l.code" [selected]="l.code === masterLanguage()">{{ l.name }}</option>
+          }
+        </select>
+        <div class="form-text">{{ t('play.feed.masterHelp') || 'The AI makes the other languages when you save.' }}</div>
+      </div>
+
+      <div>
+        <label class="form-label" for="feed-title">{{ t('play.feed.titleLabel') || 'Title' }}</label>
+        <input id="feed-title" class="form-control" type="text" [maxLength]="titleMax" [value]="title()" (input)="title.set($any($event.target).value)" required>
+      </div>
+
+      <div>
+        <label class="form-label" for="feed-text">{{ t('play.feed.textLabel') || 'Text' }}</label>
+        <textarea id="feed-text" class="form-control" rows="4" [maxLength]="textMax" [value]="text()" (input)="text.set($any($event.target).value)"></textarea>
+      </div>
+
+      @if (kind === 'offer') {
+        <div>
+          <label class="form-label" for="feed-label">{{ t('play.feed.labelLabel') || 'Mark' }}</label>
+          <input id="feed-label" class="form-control" type="text" [maxLength]="labelMax" [value]="label()" (input)="label.set($any($event.target).value)" required>
+          <div class="form-text">{{ t('play.feed.labelHelp') || 'A short mark on the offer, for example -20 %.' }}</div>
+        </div>
+        <div>
+          <label class="form-label" for="feed-link">{{ t('play.feed.linkLabel') || 'Link' }}</label>
+          <input id="feed-link" class="form-control" type="url" autocapitalize="none" spellcheck="false" [value]="link()" (input)="link.set($any($event.target).value)">
+          <div class="form-text">{{ t('play.feed.linkHelp') || 'Starts with https://. An offer leads to a link or to a page in the app.' }}</div>
+        </div>
+      }
+      @if (kind === 'package') {
+        <!-- the categories of a picture: the person's search finds the package by them -->
+        <div><app-category-picker class="choice-block" [(selected)]="categories" /></div>
+        <div>
+          <div class="form-check form-switch">
+            <input id="feed-free" class="form-check-input" type="checkbox" role="switch" [checked]="free()" (change)="free.set($any($event.target).checked)">
+            <label class="form-check-label" for="feed-free">{{ t('play.feed.freeLabel') || 'Free of charge' }}</label>
+          </div>
+        </div>
+        @if (!free()) {
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label" for="feed-price">{{ t('play.feed.priceLabel') || 'Price' }}</label>
+              <input id="feed-price" class="form-control" type="text" inputmode="decimal" [value]="price()" (input)="price.set($any($event.target).value)" [class.is-invalid]="priceMissing()">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="feed-currency">{{ t('play.feed.currencyLabel') || 'Currency' }}</label>
+              <select id="feed-currency" class="form-select" [value]="currency()" (change)="currency.set($any($event.target).value)">
+                @for (c of currencies; track c) {
+                  <option [value]="c" [selected]="c === currency()">{{ c }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+      } @else {
+      <div>
+        <label class="form-label" for="feed-route">{{ t('play.feed.routeLabel') || 'Page in the app (optional)' }}</label>
+        <input id="feed-route" class="form-control" type="text" autocapitalize="none" spellcheck="false" [value]="route()" (input)="route.set($any($event.target).value)">
+        <div class="form-text">{{ t('play.feed.routeHelp') || 'For example /play/info/help' }}</div>
+      </div>
+      }
+
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label" for="feed-from">{{ t('play.feed.fromLabel') || 'Shown from' }}</label>
+          <input id="feed-from" class="form-control" type="date" [value]="from()" (input)="from.set($any($event.target).value)">
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" for="feed-to">{{ t('play.feed.toLabel') || 'Expires' }}</label>
+          <input id="feed-to" class="form-control" type="date" [value]="to()" (input)="to.set($any($event.target).value)">
+        </div>
+        <div class="col-12 form-text mt-0">{{ t('play.feed.datesHelp') || 'Leave a date empty for no limit.' }}</div>
+      </div>
+
+      <!-- who sees it: private is for checking how it looks (it has a banner that says so), and has to be made public to be seen by everybody -->
+      <div>
+        <app-visibility-choice [(visibility)]="visibility" [ownerKnown]="true" [showHelp]="false" />
+        <div class="form-text mt-0">{{ t('play.feed.visibilityHelp') || 'Public: everybody sees it. Private: only you see it, with a banner on it, so you can check how it looks. Hidden: it is not shown on the home page.' }}</div>
+      </div>
+
+      <details class="more-options">
+        <summary class="link-action">{{ t('play.advanced') || 'Advanced' }}</summary>
+        <div class="row g-3 mt-1">
+          <div class="col-sm-6">
+            <label class="form-label" for="feed-slot">{{ t('play.feed.slotLabel') || 'Place (after how many pictures)' }}</label>
+            <input id="feed-slot" class="form-control" type="number" min="0" step="1" [value]="slot()" (input)="slot.set($any($event.target).value)">
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="feed-priority">{{ t('play.feed.priorityLabel') || 'Priority' }}</label>
+            <input id="feed-priority" class="form-control" type="number" step="1" [value]="priority()" (input)="priority.set($any($event.target).value)">
+          </div>
+        </div>
+      </details>
+
+      @if (failed()) {
+        <div class="alert alert-danger py-2 small" role="alert">{{ t('play.feed.saveFailed') || 'Could not save it.' }} {{ error() }}</div>
+      }
+      @if (saved(); as result) {
+        <div class="alert py-2 small" role="status" [class.alert-success]="result === 'done' || result === 'none'" [class.alert-warning]="result === 'unavailable' || result === 'failed'">
+          <i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('play.feed.saved') || 'Saved.' }}
+          @switch (result) {
+            @case ('done') { {{ t('play.feed.tDone') || 'The other languages were translated.' }} }
+            @case ('unavailable') { {{ t('play.feed.tUnavailable') || 'The AI could not be asked, so the other languages are missing for now: save again later.' }} }
+            @case ('failed') { {{ t('play.feed.tFailed') || 'The translation failed: save again later.' }} }
+          }
+        </div>
+      }
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a class="btn btn-outline-secondary" [routerLink]="path">{{ t('play.feed.back') || 'Back to the list' }}</a>
+        <button type="submit" class="btn btn-primary" [disabled]="busy() || !title().trim() || priceMissing()">{{ busy() ? (t('play.feed.saving') || 'Saving…') : (t('play.feed.save') || 'Save') }}</button>
+      </div>
+    </form>
+
+    @if (translations().length) {
+      <!-- the other languages: who made each, and whether it is out of date or missing -->
+      <section class="mt-4">
+        <h2 class="section-title"><i class="bi bi-translate me-2" aria-hidden="true"></i>{{ t('play.feed.translations') || 'Translations' }}</h2>
+        <ul class="list-group">
+          @for (tr of translations(); track tr.code) {
+            <li class="list-group-item d-flex flex-wrap align-items-baseline gap-2">
+              <span class="fw-semibold">{{ tr.name }}</span>
+              @if (tr.entry) {
+                <span class="badge" [class.text-bg-primary]="tr.by === 'author'" [class.text-bg-secondary]="tr.by === 'ai'">{{ tr.by === 'author' ? (t('play.feed.byAuthor') || 'written by hand') : (t('play.feed.byAi') || 'by the AI') }}</span>
+                @if (tr.waiting) {
+                  <span class="badge text-bg-warning">{{ t('play.feed.stale') || 'out of date' }}</span>
+                }
+                <span class="text-body-secondary text-break">{{ tr.entry.title }}</span>
+              } @else {
+                <span class="badge text-bg-warning">{{ t('play.feed.missing') || 'missing' }}</span>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</main>

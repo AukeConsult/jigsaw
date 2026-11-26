@@ -26,7 +26,7 @@
       </div>
     }
 
-    <div class="d-flex justify-content-end gap-2 mt-2">
+    <div class="d-flex flex-wrap justify-content-center gap-2 mt-2">
       <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancel.emit()">{{ t('jigsawCropper.cancel') || 'Cancel' }}</button>
       <button type="button" class="btn btn-sm btn-primary" [disabled]="!crop()" (click)="confirm()">{{ t('jigsawCropper.use') || 'Use this cut' }}</button>
     </div>

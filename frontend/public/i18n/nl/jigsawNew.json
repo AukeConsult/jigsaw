@@ -77,5 +77,8 @@
   "kindPictureHelp": "Je kiest het aantal stukjes en de moeilijkheid als je een ronde start.",
   "kindJigsaw": "Een kant-en-klare puzzel",
   "kindJigsawHelp": "Je kiest nu het aantal stukjes en de moeilijkheid.",
-  "pictureAlt": "De afbeelding"
+  "pictureAlt": "De afbeelding",
+  "limitCount": "{{ count }} van {{ max }} afbeeldingen gebruikt. Een geverifieerd account heeft geen limiet.",
+  "limitFull": "Je hebt {{ max }} afbeeldingen, het maximum voor een niet-geverifieerd account. Verifieer je account of verwijder een afbeelding.",
+  "limitVerify": "Account verifiëren"
 }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, WritableSignal, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, WritableSignal, afterRenderEffect, computed, effect, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -6,6 +6,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { isBoolean, readPreference, writePreference } from '../../app/core/preferences';
 import { FavoritesService } from '../../app/jigsaw/favorites.service';
 import { LanguageSelect } from '../../app/jigsaw/language-select/language-select';
+import { LabelFit } from '../../app/core/label-fit';
 import { ListView } from '../list-view';
 import { PictureView } from '../picture-view';
 import { PuzzelToggle, PuzzelView } from '../puzzel-view';
@@ -14,86 +15,58 @@ import { PlayMenuItem } from './menus';
 /** how many entries a menu has (none: no menu) */
 const menuLength = (menu: readonly PlayMenuItem[] | null): number => menu?.length ?? 0;
 
-/** Where the helper was put: its top left corner, in pixels of the window. */
+/** The edges of the window the helper can stick to. */
+const SIDES = ['top', 'bottom', 'left', 'right'] as const;
+type Side = (typeof SIDES)[number];
+
+/** Where the helper was put: its top left corner, in pixels of the window, or the edge it is stuck to (the corner then says nothing). */
 interface Spot {
   x: number;
   y: number;
+  side?: Side;
 }
 
 const SPOT_KEY = 'play.helperSpot';
-const isSpot = (value: unknown): value is Spot => !!value && typeof value === 'object' && Number.isFinite((value as Spot).x) && Number.isFinite((value as Spot).y);
+const isSpot = (value: unknown): value is Spot => !!value && typeof value === 'object' && Number.isFinite((value as Spot).x) && Number.isFinite((value as Spot).y) && ((value as Spot).side === undefined || SIDES.includes((value as Spot).side!));
 /** how far the pointer must go (pixels) before a press is a drag and not a click */
 const DRAG_FROM = 4;
+/** a drag with the pointer this near an edge of the window (in rem, so it follows the text size) sticks the helper to it */
+const STICK_REM = 2;
+/** the arrow that collapses a bar points to its edge, the one that opens it again away from it */
+const BAR_ARROWS: Record<Side, { fold: string; open: string }> = {
+  top: { fold: 'bi-chevron-up', open: 'bi-chevron-down' },
+  bottom: { fold: 'bi-chevron-down', open: 'bi-chevron-up' },
+  left: { fold: 'bi-chevron-left', open: 'bi-chevron-right' },
+  right: { fold: 'bi-chevron-right', open: 'bi-chevron-left' },
+};
+const rem = (): number => parseFloat(getComputedStyle(document.documentElement).fontSize);
 
 /**
  * **The helper: it lives always on the main level (in the frame of `PlayMain`), one of it, and what it shows is a menu.** Main gives it the proper menu (`menus.ts`: a list of entries, each an icon, the words and the page a press goes to),
  * different for nobody and for a user, and the helper shows it; a press is plain routing (`routerLink`): there are no helper views and no subclasses. **The helper can be moved**: it is dragged to where the person wants it (by pressing
  * anywhere on it, on an entry too, and going a few pixels; a press that ends a drag is not a click, since the helper then holds the pointer), it can never be dragged, or left by a smaller window or by a change of its own size, outside the window,
- * and where it was put is kept on the device (rule 12 of `CLAUDE.md`). Until it is moved it is in the bottom right corner (`.play-helper` in `styles.scss`). The menu can be folded to the name of the app, and opened again, with the arrow on its first row. It is not shown while it has no menu.
+ * and where it was put is kept on the device (rule 12 of `CLAUDE.md`). **Dragged to an edge of the window (top, bottom, left or right) it sticks there as a bar** along that edge, and the page makes room for it (`--app-play-bar-top` and the others), until it is dragged away again. **A bar can be collapsed** with the arrow that points to its edge: only a small tab with the logo and the arrow that opens it is left at the start of that edge, and the page has the whole window back. Until it is moved it is in the bottom right corner (`.play-helper` in `styles.scss`). The menu can be folded to the name of the app, and opened again, with the arrow on its first row. It is not shown while it has no menu.
  */
 @Component({
   selector: 'play-helper',
-  imports: [RouterLink, RouterLinkActive, TranslocoDirective, LanguageSelect],
+  imports: [RouterLink, RouterLinkActive, TranslocoDirective, LanguageSelect, LabelFit],
   providers: [provideTranslocoScope('play')],
   host: {
     class: 'play-helper',
     '[class.d-none]': '!menu()',
     '[class.dragging]': 'dragging()',
-    '[style.left.px]': 'spot()?.x',
-    '[style.top.px]': 'spot()?.y',
-    '[style.right]': 'spot() ? "auto" : null',
-    '[style.bottom]': 'spot() ? "auto" : null',
+    '[class.docked-top]': "docked() === 'top'",
+    '[class.docked-bottom]': "docked() === 'bottom'",
+    '[class.docked-left]': "docked() === 'left'",
+    '[class.docked-right]': "docked() === 'right'",
+    '[class.bar-folded]': 'docked() && barFolded()',
+    // stuck to an edge the stylesheet places it
+    '[style.left.px]': 'docked() ? null : spot()?.x',
+    '[style.top.px]': 'docked() ? null : spot()?.y',
+    '[style.right]': '!docked() && spot() ? "auto" : null',
+    '[style.bottom]': '!docked() && spot() ? "auto" : null',
   },
-  template: `
-    <!-- the menu: white, the entries one under the other (the entry of the page that is open is marked). The first row is the name of the app, with the arrow that folds the rest away and opens it again. It is moved by pressing anywhere on it.
-         The links are not draggable by the browser: its own drag of a link would cancel the move of the helper. -->
-    <div class="list-group menu-style rounded-4 overflow-hidden shadow" role="group" *transloco="let t">
-      @for (item of menu(); track item.route ?? item.toggle ?? 'language') {
-        @if (item.brand) {
-          <!-- the name of the app, as the website shows it: the logo with the house on its corner, "Karins" and under it "jigsaw"; it goes home -->
-          <!-- home is the logo itself and nothing round it: the link is no larger than what is drawn. The rest of the row, the name beside the logo (on the home page) too, opens and folds the menu -->
-          <div class="list-group-item brand-item d-flex align-items-center" [class.brand-row]="(menu()?.length ?? 0) > 1" (click)="rowPressed($event)" (dblclick)="onRowDoubleClick($event)">
-            <!-- only the logo goes home (going home leaves the menu as it is, open or folded: kept on the device); the rest of the row, the name of the app beside the logo included, opens and folds the menu -->
-            <span class="brand-lockup scaled d-flex align-items-center gap-2">
-              <a class="d-inline-block text-reset text-decoration-none" draggable="false" [routerLink]="item.route!">
-                <span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32" /><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span>
-              </a>
-              @if (atHome()) {
-                <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
-              }
-            </span>
-            <span class="d-flex ms-auto">
-              @if ((menu()?.length ?? 0) > 1) {
-                <button type="button" class="btn btn-link brand-fold text-body-secondary" [attr.aria-expanded]="expanded()" [title]="expanded() ? (t('play.menuFold') || 'Hide the menu') : (t('play.menuUnfold') || 'Show the menu')"
-                        [attr.aria-label]="expanded() ? (t('play.menuFold') || 'Hide the menu') : (t('play.menuUnfold') || 'Show the menu')" (click)="expanded.set(!expanded())">
-                  <i class="bi" [class]="expanded() ? 'bi-chevron-up' : 'bi-chevron-down'" aria-hidden="true"></i>
-                </button>
-              }
-              <!-- the little arrow into a corner, at the right end of the row beside the arrow that folds the menu: it folds the menu and puts it in the top right corner of the window (the same as a double click on this row) -->
-              <button type="button" class="btn btn-link brand-fold text-body-secondary" [title]="t('play.toCorner') || 'Fold the menu into the top right corner'" [attr.aria-label]="t('play.toCorner') || 'Fold the menu into the top right corner'" (click)="moveToCorner()">
-                <i class="bi bi-box-arrow-in-up-right" aria-hidden="true"></i>
-              </button>
-            </span>
-          </div>
-        } @else if (expanded() && item.toggle; as toggle) {
-          @if (!hidden(toggle)) {
-          <!-- a switch of the page that is open: on or off, the entry says which (a puzzle that is finished has no help picture and no border pieces to switch) -->
-          <button type="button" class="list-group-item list-group-item-action d-flex align-items-center" role="switch" [attr.aria-checked]="stateOf(toggle)()" (click)="stateOf(toggle).set(!stateOf(toggle)())">
-            <i class="bi me-2" [class]="item.icon" aria-hidden="true"></i>{{ item.text || (item.key ? (t(item.key) || item.english) : '') }}
-            <span class="form-check form-switch mb-0 ms-auto ps-0"><input class="form-check-input ms-2" type="checkbox" role="presentation" tabindex="-1" [checked]="stateOf(toggle)()" (click)="$event.preventDefault()"></span>
-          </button>
-          }
-        } @else if (expanded() && item.language) {
-          <!-- the language of the app: the flag and name of the language in use, and the list one step down (the same choice as in the menu of the website) -->
-          <app-language-select />
-        } @else if (expanded() && item.route) {
-          <a class="list-group-item list-group-item-action" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route">
-            <i class="bi me-2" [class]="item.icon" aria-hidden="true"></i>{{ item.text || (item.key ? (t(item.key) || item.english) : '') }}
-          </a>
-        }
-      }
-    </div>
-  `,
+  templateUrl: './helper.html',
 })
 export class Helper implements OnInit, OnDestroy {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -139,7 +112,7 @@ export class Helper implements OnInit, OnDestroy {
     this.expanded.set(false);
     // once the folded menu is drawn, its width is known: its right edge is one rem from the right edge of the window
     requestAnimationFrame(() => {
-      const gap = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const gap = rem();
       const { width } = this.host.nativeElement.getBoundingClientRect();
       this.spot.set(this.inside({ x: window.innerWidth - width - gap, y: gap }));
       writePreference(SPOT_KEY, this.spot());
@@ -151,6 +124,17 @@ export class Helper implements OnInit, OnDestroy {
 
   /** where it was put (nothing: it has not been moved, and the stylesheet puts it in the corner) */
   protected readonly spot = signal<Spot | null>(readPreference<Spot | null>(SPOT_KEY, null, (v): v is Spot | null => v === null || isSpot(v)));
+  /** the edge of the window it is stuck to, drawn as a bar along it (null: it floats) */
+  protected readonly docked = computed(() => this.spot()?.side ?? null);
+  /** it is a bar down a side: the entries one under the other */
+  protected readonly upright = computed(() => this.docked() === 'left' || this.docked() === 'right');
+  /** the bar is collapsed to a tab with the logo; kept on the device, apart from whether the floating menu is folded */
+  protected readonly barFolded = signal(readPreference('play.helperBarFolded', false, isBoolean));
+  /** what a bar shows: everything, or collapsed the logo alone */
+  protected readonly barItems = computed(() => (this.barFolded() ? (this.menu() ?? []).filter((item) => item.brand) : (this.menu() ?? [])));
+  protected readonly barArrows = BAR_ARROWS;
+  /** which edge the room is kept at now, and how much (pixels): so the window is told only of a change */
+  private reserved = '';
   /** it is being dragged */
   protected readonly dragging = signal(false);
 
@@ -171,6 +155,11 @@ export class Helper implements OnInit, OnDestroy {
    */
   private resized(): void {
     const { width, height } = this.host.nativeElement.getBoundingClientRect();
+    this.reserve();
+    if (this.docked()) {
+      this.lastSize = null; // the size of the bar says nothing about the box it becomes again
+      return;
+    }
     const before = this.lastSize;
     this.lastSize = { width, height };
     const spot = this.spot();
@@ -183,8 +172,26 @@ export class Helper implements OnInit, OnDestroy {
     writePreference(SPOT_KEY, next);
   }
 
+  /** The page makes room for a bar: its thickness is kept free at its edge, and what measures the room it has (the board of a puzzle) is told to measure again. */
+  private reserve(side: Side | null = this.docked()): void {
+    const { width, height } = this.host.nativeElement.getBoundingClientRect();
+    const size = side === null || this.barFolded() ? 0 : side === 'left' || side === 'right' ? width : height; // a collapsed bar lies over the page: no room is kept for it
+    const now = side && size ? `${side} ${size}` : '';
+    if (now === this.reserved) return;
+    this.reserved = now;
+    for (const edge of SIDES) document.documentElement.style.setProperty(`--app-play-bar-${edge}`, `${edge === side ? size : 0}px`);
+    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+  }
+
   constructor() {
     effect(() => writePreference('play.helperExpanded', this.expanded()));
+    effect(() => writePreference('play.helperBarFolded', this.barFolded()));
+    // moved from one edge to another it can keep its size, which the watch of the size would not see
+    afterRenderEffect(() => {
+      this.docked();
+      this.barFolded();
+      this.reserve();
+    });
   }
 
   ngOnInit(): void {
@@ -194,6 +201,7 @@ export class Helper implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.up(); // no listener is left on the document
     this.sizeWatch.disconnect();
+    this.reserve(null);
   }
 
   @HostListener('pointerdown', ['$event'])
@@ -216,6 +224,17 @@ export class Helper implements OnInit, OnDestroy {
       this.dragging.set(true);
     }
     this.moved = true;
+    const side = this.edgeAt(event);
+    if (side) {
+      this.spot.set({ x: 0, y: 0, side });
+      return;
+    }
+    if (this.docked()) {
+      // pulled away from the edge: the small box is held near its upper left corner, wherever the long bar was pressed (its size is the box's only once it is drawn, so it is not kept inside before the next move)
+      this.grab.inside = { x: Math.min(this.grab.inside.x, 4 * rem()), y: Math.min(this.grab.inside.y, 1.5 * rem()) };
+      this.spot.set({ x: event.clientX - this.grab.inside.x, y: event.clientY - this.grab.inside.y });
+      return;
+    }
     this.spot.set(this.inside({ x: event.clientX - this.grab.inside.x, y: event.clientY - this.grab.inside.y }));
   }
 
@@ -233,7 +252,23 @@ export class Helper implements OnInit, OnDestroy {
   @HostListener('window:resize')
   protected keepInside(): void {
     const spot = this.spot();
-    if (spot) this.spot.set(this.inside(spot));
+    if (spot && !spot.side) this.spot.set(this.inside(spot));
+  }
+
+  /**
+   * The edge of the window the drag sticks the helper to: the one the pointer is at (the nearest, in a corner). A bar stays on its edge until the pointer has left it, so it can be taken hold of anywhere along it, also at an
+   * end that is at another edge.
+   */
+  private edgeAt(event: PointerEvent): Side | null {
+    const away: Record<Side, number> = { top: event.clientY, bottom: window.innerHeight - event.clientY, left: event.clientX, right: window.innerWidth - event.clientX };
+    const near = STICK_REM * rem();
+    const now = this.docked();
+    if (now) {
+      const { width, height } = this.host.nativeElement.getBoundingClientRect();
+      if (away[now] <= (now === 'left' || now === 'right' ? width : height) + near) return now;
+    }
+    const closest = SIDES.reduce((best, side) => (away[side] < away[best] ? side : best));
+    return away[closest] <= near ? closest : null;
   }
 
   /** The corner moved to the nearest place where the whole helper is in the window. */

@@ -1,0 +1,49 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  @if (missing()) {
+    <div class="alert alert-warning" role="alert">{{ t('play.feed.notFound') || 'This does not exist, or it is not yours.' }}</div>
+    <a class="link-action" routerLink="/play/mine/packages"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('play.feed.back') || 'Back to the list' }}</a>
+  } @else if (item(); as pack) {
+    <h1 class="page-title mb-1"><i class="bi bi-box-seam me-2" aria-hidden="true"></i>{{ pack.titleFor(language()) }}</h1>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      <span class="badge text-bg-light border">{{ price(pack) || (t('play.feed.free') || 'Free') }}</span>
+      <span class="toolbar">
+        <a class="link-action" routerLink="/play/mine/packages"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('play.feed.back') || 'Back to the list' }}</a>
+        <a class="link-action" [routerLink]="'/play/mine/packages/' + pack.id"><i class="bi bi-pencil" aria-hidden="true"></i>{{ t('play.feed.editPackage') || 'Edit the package' }}</a>
+      </span>
+    </div>
+    <p class="text-body-secondary">{{ t('play.feed.picturesIntro') || 'The pictures you add here belong to the package. They are public and are not in the general list.' }}</p>
+
+    <!-- the pictures that are in the package -->
+    <h2 class="form-section first"><i class="bi bi-images" aria-hidden="true"></i>{{ t('play.feed.pictures') || 'Pictures' }}</h2>
+    @if (error()) {
+      <div class="alert alert-warning py-2 small" role="alert">{{ t('play.feed.deleteFailed') || 'Could not delete it: only the one who wrote it can.' }}</div>
+    }
+    @if (pictures() === null) {
+      <div class="text-center py-4"><span class="spinner-border" role="presentation" aria-hidden="true"></span></div>
+    } @else if (!pictures()!.length) {
+      <p class="text-body-secondary">{{ t('play.feed.noPictures') || 'No pictures in this package yet.' }}</p>
+    } @else {
+      <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-2 g-sm-3 mb-3">
+        @for (picture of pictures(); track picture.id) {
+          <div class="col">
+            <play-card [jigsaw]="picture" [editIn]="pack.id" />
+            <div class="toolbar justify-content-center mt-1">
+              @if (deleting() === picture.id) {
+                <button type="button" class="link-action danger" (click)="remove(picture)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
+                <button type="button" class="link-action" (click)="deleting.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+              } @else {
+                <button type="button" class="link-action danger" (click)="deleting.set(picture.id)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.deleteRound') || 'Delete' }}</button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- many files at once: each is made into a picture of the package -->
+    <h2 class="form-section"><i class="bi bi-upload" aria-hidden="true"></i>{{ t('play.feed.addPictures') || 'Add pictures' }}</h2>
+    <app-jigsaw-batch [packageId]="pack.id" [inApp]="true" (madeOne)="reload()" />
+  } @else {
+    <div class="text-center py-4"><span class="spinner-border" role="presentation" aria-hidden="true"></span></div>
+  }
+</main>

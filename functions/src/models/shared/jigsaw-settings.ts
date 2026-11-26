@@ -65,6 +65,8 @@ export interface JigsawSpec {
   timed?: boolean;
   /** a jigsaw: the name of the picture file it was made from (kept as information; not shown while playing) */
   pictureName?: string;
+  /** a picture that belongs to a package: the id of the package (a package, `jigsaw-packages`, is a tile of the home page that holds pictures; they are linked by this and are not in the general list); none for an ordinary jigsaw */
+  packageId?: string;
   /** a jigsaw: a few words about the picture, shown on its page (a place, a day, a memory; optional) */
   description?: string;
   /** a jigsaw: the language its name and description are written in (a code of `JIGSAW_LANGUAGES`; English when it says nothing): the language of the user who made it, to begin with */
@@ -105,14 +107,14 @@ export interface JigsawSpec {
 }
 
 /** What the page sends to make a jigsaw. */
-export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'pictureName' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'pictureName' | 'packageId' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** The stored fields of a jigsaw except `placed` (the objects on its board, most of a big document) and the id: what a list that only names, counts or ranks jigsaws reads. A test keeps it in step with `JigsawInput`. */
-export const JIGSAW_HEAD_FIELDS = ['name', 'author', 'ownerUid', 'kind', 'visibility', 'timed', 'pictureName', 'description', 'categories', 'motive', 'language', 'width', 'height', 'gridSize', 'gridVisible', 'storeWidth', 'snapPercent', 'frameWidth', 'lineWidth', 'lineColor', 'backColor', 'createdAt'] as const satisfies readonly (keyof JigsawInput | 'createdAt')[];
+export const JIGSAW_HEAD_FIELDS = ['name', 'author', 'ownerUid', 'kind', 'visibility', 'timed', 'pictureName', 'packageId', 'description', 'categories', 'motive', 'language', 'width', 'height', 'gridSize', 'gridVisible', 'storeWidth', 'snapPercent', 'frameWidth', 'lineWidth', 'lineColor', 'backColor', 'createdAt'] as const satisfies readonly (keyof JigsawInput | 'createdAt')[];
 
 /** A jigsaw as it comes from outside (the page, the API): it checks itself. */
 export class JigsawSettings {
-  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; kind?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; kind?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; packageId?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a jigsaw whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -216,6 +218,7 @@ export class JigsawSettings {
       ...(i.visibility === 'owner' || i.visibility === 'hidden' ? { visibility: i.visibility } : {}), // `everyone` is what none says
       ...(i.timed === false ? { timed: false } : {}), // timed is what none says
       ...(typeof i.pictureName === 'string' && i.pictureName.trim() ? { pictureName: i.pictureName.trim() } : {}),
+      ...(typeof i.packageId === 'string' && i.packageId ? { packageId: i.packageId } : {}),
       ...(typeof i.description === 'string' && i.description.trim() ? { description: i.description.trim() } : {}),
       ...(JigsawCategories.stored(i.categories).length ? { categories: JigsawCategories.stored(i.categories) } : {}),
       ...(JigsawMotives.is(i.motive) ? { motive: i.motive } : {}),
@@ -245,6 +248,7 @@ export class JigsawSettings {
       ...(doc.visibility === 'owner' || doc.visibility === 'hidden' ? { visibility: doc.visibility } : {}),
       ...(doc.timed === false ? { timed: false } : {}),
       ...(doc.pictureName ? { pictureName: doc.pictureName } : {}),
+      ...(doc.packageId ? { packageId: doc.packageId } : {}),
       ...(doc.description ? { description: doc.description } : {}),
       ...(JigsawCategories.stored(doc.categories).length ? { categories: JigsawCategories.stored(doc.categories) } : {}),
       ...(JigsawMotives.of(doc) ? { motive: JigsawMotives.of(doc) } : {}), // a motive difficulty that an older version kept among the categories is the property now
@@ -277,6 +281,7 @@ export class JigsawSettings {
     if (input.timed !== undefined && typeof input.timed !== 'boolean') return 'Timed is yes or no.';
     if (input.visibility !== undefined && !(JIGSAW_VISIBILITIES as readonly unknown[]).includes(input.visibility)) return 'A jigsaw is public, private or hidden.';
     if (JigsawVisibilities.restricted(input.visibility as string) && !input.ownerUid) return 'A private or hidden jigsaw needs an owner: choose the author from the accounts.';
+    if (input.packageId !== undefined && (typeof input.packageId !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(input.packageId))) return 'Not a package id.';
     if (input.pictureName !== undefined && (typeof input.pictureName !== 'string' || input.pictureName.trim().length > JIGSAW_MAX_PICTURE_NAME)) {
       return `The name of the picture file can be at most ${JIGSAW_MAX_PICTURE_NAME} characters.`;
     }

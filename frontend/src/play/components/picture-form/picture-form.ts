@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, effect, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { UploadLimit } from '../../../app/jigsaw/upload-limit/upload-limit';
 import { LANGUAGES } from '../../../app/core/language.service';
 import { isBoolean, readPreference, writePreference } from '../../../app/core/preferences';
 import { CategoryPicker } from '../../../app/jigsaw/category-picker/category-picker';
@@ -21,7 +22,7 @@ import { NewPicture } from './new-picture';
  */
 @Component({
   selector: 'play-picture-form',
-  imports: [TranslocoDirective, RouterLink, JigsawHeader, JigsawExample, PictureCropper, CategoryPicker, VisibilityChoice],
+  imports: [TranslocoDirective, RouterLink, UploadLimit, JigsawHeader, JigsawExample, PictureCropper, CategoryPicker, VisibilityChoice],
   providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('play'), NewPicture],
   host: { class: 'd-block' },
   templateUrl: './picture-form.html',

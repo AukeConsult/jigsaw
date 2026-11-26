@@ -111,7 +111,7 @@
             <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
           }
           <!-- there is no Save: every change is saved by itself a moment after the last one; Close saves what is waiting and closes the form -->
-          <div class="d-flex justify-content-end gap-2">
+          <div class="d-flex flex-wrap justify-content-center gap-2">
             <button type="button" class="btn btn-outline-secondary" [disabled]="busy()" (click)="closeEdit()">{{ t('jigsawUser.close') || 'Close' }}</button>
           </div>
         </form>

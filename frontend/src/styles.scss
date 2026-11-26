@@ -68,6 +68,7 @@ $fluid-to: 87.5; // 1400px in rem
   --app-fs-heading: #{fluid(1.125, 1.5)}; // a part of a page (h2, h3 and under), the line under a title, the name in the header, an icon beside a heading
   --app-fs-text: #{fluid(1, 1.125)}; // the text, what is typed in the fields, and the main button (not under 1rem: a smaller field makes a phone zoom in)
   --app-fs-small: #{fluid(0.8125, 0.9375)}; // labels and the help under a field, notes, the text of every button
+  --app-fs-menu: #{fluid(0.8125, 0.9375)}; // not one of the five: the text of the menu of the app (class `.menu-font`): 13 px on a phone, 15 px on a wide screen. Its own token, so the menu is tuned alone
   --app-fs-compact: #{fluid(0.75, 0.9375)}; // not one of the five: the name on a card, smaller than `small` on a phone (12 px) and the same as it on a wide screen (class `.card-name`)
   --app-fs-band: #{fluid(0.8125, 1.125)}; // not one of the five: the heading badge of a band (Ongoing): from the size of `small` on a phone to 18 px on a wide screen, so it follows the screen
   --app-fs-tiny: #{fluid(0.6875, 0.8125)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`): 11 px on a phone, 13 px on a big screen
@@ -389,19 +390,32 @@ small,
 }
 
 .play-helper {
-  // the menu follows the screen like the text does: the text is the normal size (`.menu-style`) and the room round it is in `em` of it (the first row too: the logo and the arrow), so every entry keeps its shape at every size
+  // the menu follows the screen like the text does: the text is the menu size (`.menu-font`) and the room round it is in `em` of it (the first row too: the logo and the arrow), so every entry keeps its shape at every size
   .list-group {
     --bs-list-group-item-padding-y: 0.5em;
     --bs-list-group-item-padding-x: 1em;
   }
 
+  // the room round the logo: the same above, below and to its left, and little of it, in the floating menu and in the bar
+  --app-logo-gap: 0.375rem;
+
+  // the name beside the logo is no higher than the logo, so it does not push the room round it apart
+  .brand-lockup.scaled .brand-name {
+    font-size: var(--app-fs-text);
+  }
+
   .brand-item {
-    padding-block: 0.5em;
-    padding-inline: 1em 0;
+    padding-block: var(--app-logo-gap);
+    padding-inline: var(--app-logo-gap) 0;
     // the header of the menu has the look of the welcome band: little white puzzle pieces on a light wash in the colours of the logo, so it is seen over any picture
-    background-image: $white-pieces, linear-gradient(120deg, #dbe9ff, #d9f5ec 55%, #fff1cc);
+    background-image: $white-pieces, linear-gradient(120deg, #a9c8ff, #9fe3c9 55%, #ffd970);
     background-size: 9.375rem 9.375rem, auto;
-    border-bottom-color: color-mix(in srgb, var(--app-primary) 30%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--app-primary) 55%, transparent);
+  }
+
+  // a border in the colour of the app round the whole menu, so it stands out on top of any page and picture
+  .list-group {
+    border: 2px solid color-mix(in srgb, var(--app-primary) 65%, transparent);
   }
 
   // the two little buttons at the right end of the first row (the arrow into the corner, and the arrow that folds the menu): close together, both the same
@@ -417,7 +431,7 @@ small,
   // a helper (`Helper`, the class every helper extends) in the frame: in the bottom right corner until it is dragged; the press of a finger drags it, the page does not scroll
   position: absolute;
   right: 1rem;
-  bottom: calc(1rem + 1.75 * var(--app-fs-title) + 0.5rem); // just above the Info button (`.play-info-button`, 1.75 title sizes high) in the same corner
+  bottom: 1rem;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -428,6 +442,159 @@ small,
   .brand-row {
     cursor: pointer; // the rest of the first row, beside the logo, opens and folds the menu
   }
+
+  // stuck to an edge of the window: it lies along that edge
+  &.docked-top {
+    inset: 0 0 auto;
+  }
+  &.docked-bottom {
+    inset: auto 0 0;
+  }
+  &.docked-left {
+    inset: 0 auto 0 0;
+  }
+  &.docked-right {
+    inset: 0 0 0 auto;
+  }
+
+  // collapsed: a small tab at the start of its edge, over the page, with the logo and the arrow that opens it (down a side one above the other, without the name)
+  &.bar-folded {
+    &.docked-top,
+    &.docked-left {
+      inset: 0 auto auto 0;
+    }
+    &.docked-bottom {
+      inset: auto auto 0 0;
+    }
+    &.docked-right {
+      inset: 0 0 auto auto;
+    }
+
+    .play-bar {
+      border-radius: 0.5rem;
+    }
+
+    &.docked-top .play-bar {
+      border-radius: 0 0 0.5rem 0;
+      border-width: 0 2px 2px 0;
+    }
+    &.docked-bottom .play-bar {
+      border-radius: 0 0.5rem 0 0;
+      border-width: 2px 2px 0 0;
+    }
+    &.docked-left .play-bar {
+      border-radius: 0 0 0.5rem 0;
+      border-width: 0 2px 2px 0;
+    }
+    &.docked-right .play-bar {
+      border-radius: 0 0 0 0.5rem;
+      border-width: 0 0 2px 2px;
+    }
+
+    &.docked-left .brand-text,
+    &.docked-right .brand-text {
+      display: none;
+    }
+  }
+
+  // the line of the bar is on the side that faces the page
+  &.docked-bottom .play-bar {
+    border-width: 2px 0 0;
+  }
+  &.docked-left .play-bar {
+    border-width: 0 2px 0 0;
+  }
+  &.docked-right .play-bar {
+    border-width: 0 0 0 2px;
+  }
+
+  // down a side of a narrow screen only the icons are shown (the words stay for a screen reader), so the page keeps its width
+  @include below($bp-md) {
+    &.docked-left,
+    &.docked-right {
+      .play-bar {
+        --bs-nav-link-padding-x: 0.4em;
+        align-items: center;
+      }
+
+      app-language-select .bi {
+        display: none;
+      }
+
+      app-language-select .nav-link {
+        padding-inline: 0;
+      }
+
+      .fit-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      .brand-text {
+        display: none;
+      }
+    }
+  }
+
+  // down a side of a low screen (a phone on its side) the entries are closer together, so they all fit
+  @media (max-height: 32rem) {
+    &.docked-left .play-bar,
+    &.docked-right .play-bar {
+      --bs-nav-link-padding-y: 0.15em;
+    }
+  }
+
+  // the bar: plain white (no pieces and no wash behind it: a long bar of them is too much beside the page)
+  .play-bar {
+    --bs-nav-link-color: var(--bs-body-color);
+    --bs-nav-link-hover-color: var(--bs-emphasis-color);
+    --bs-nav-link-padding-x: 0.7em;
+    --bs-nav-link-padding-y: 0.3em;
+    padding: 0.25rem;
+    background-color: var(--bs-body-bg);
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--app-primary) 65%, transparent);
+    border-width: 0 0 2px;
+
+    .nav-link:not(.active):hover {
+      background-color: var(--bs-secondary-bg);
+    }
+
+    // the logo: the room of the bar and this make its gap
+    .brand-lockup.nav-link {
+      padding: calc(var(--app-logo-gap) - 0.25rem);
+    }
+
+    // a switch of the page that is on: its icon is white on the colour of the app (the room round the icon is there when it is off too, so nothing moves)
+    [role='switch'] .bi {
+      padding: 0.1em 0.3em;
+      border-radius: 0.375rem;
+    }
+
+    [role='switch'][aria-checked='true'] .bi {
+      color: var(--bs-white);
+      background-color: var(--app-primary);
+    }
+
+    // only the icons: closer together, so they stay on the line also on a phone (each entry without its word, when some have theirs)
+    &.fit-1,
+    .nav-link:has(.fit-off) {
+      --bs-nav-link-padding-x: 0.4em;
+    }
+
+    // still too wide: the name beside the logo goes
+    &.fit-2 {
+      column-gap: 0 !important;
+
+      .brand-text {
+        display: none;
+      }
+    }
+  }
 }
 
 // The main page of the app is the one thing that scrolls: the window itself never does (see `html, body` below), so `play-main` fills the screen and scrolls, with the page that is open in it, and every page of the app can be longer than the screen.
@@ -436,6 +603,11 @@ small,
 play-main {
   position: fixed;
   inset: 0;
+  // beside the menu when it is stuck to an edge as a bar
+  top: var(--app-play-bar-top, 0px);
+  right: var(--app-play-bar-right, 0px);
+  bottom: var(--app-play-bar-bottom, 0px);
+  left: var(--app-play-bar-left, 0px);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -452,7 +624,7 @@ play-main {
 
 play-jigsaw {
   display: block;
-  height: 100dvh;
+  height: calc(100dvh - var(--app-play-bar-top, 0px) - var(--app-play-bar-bottom, 0px));
 }
 
 // the band on top of a puzzle that is finished lies over the top of the puzzle (the board is not moved by it), over the play
@@ -485,6 +657,29 @@ play-jigsaw .jigsaw-play {
   }
 }
 
+.feed-search {
+  // the search box of the list of tiles: as wide as it needs, and not more than a line of text
+  flex: 1 1 12rem;
+  max-width: 20rem;
+}
+
+.feed-row-main {
+  min-width: 12rem;
+}
+
+.feed-private {
+  // a private tile (shown to its owner, to check how it looks): a border in the colour of the banner, so it stands out in the grid
+  --bs-card-border-color: var(--bs-warning);
+  border-width: 2px;
+}
+
+.feed-cover {
+  // the picture of a package on its tile: the whole width of the tile, a fixed shape, so the tiles stay in line (a picture is cut to it, never stretched)
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
 .feed-pressable {
   // a tile of the home page that leads somewhere (an offer, an information with a page): it is pressed like a card
   cursor: pointer;
@@ -495,26 +690,9 @@ play-jigsaw .jigsaw-play {
   }
 }
 
-.play-info-button {
-  // the Info button in the bottom right corner of the frame of the app: a round button over the page, sized from the title size (`em`), so it follows the screen like the text does
-  font-size: var(--app-fs-title);
-  width: 1.75em;
-  height: 1.75em;
-  // see-through, with a thicker border (it stays see-through when the pointer is over it, only the border and the icon are seen)
-  --bs-btn-border-width: 0.125rem;
-  --bs-btn-bg: transparent;
-  --bs-btn-hover-bg: transparent;
-  --bs-btn-active-bg: transparent;
-  // white, with a thin dark line on both sides of the border and a dark glow on the icon, so it is seen over a light picture and over a dark one
-  --bs-btn-color: var(--bs-white);
-  --bs-btn-border-color: var(--bs-white);
-  --bs-btn-hover-color: var(--bs-white);
-  --bs-btn-hover-border-color: var(--bs-white);
-  --bs-btn-active-color: var(--bs-white);
-  --bs-btn-active-border-color: var(--bs-white);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.55);
-  text-shadow: 0 0 0.08em #000, 0 0 0.08em #000, 0 0 0.16em #000; // a dark outline round the white icon
-  backdrop-filter: blur(1px) brightness(0.85); // a little darker and softer behind it, still see-through
+// the tag of a picture that is from a package: in the corner of the picture, never so wide that it reaches the play button
+.package-tag {
+  max-width: 65%;
 }
 
 // the form of a picture is the page: the card round its header (the picture, the name) has no outer border, as the other forms of the app have none (`.form-card`)
@@ -1291,6 +1469,19 @@ app-my-rounds {
 }
 
 // menu style: one text size for everything that is written in a menu or a bar (the links, the switches, the clock, the name, the buttons): the normal text size. The words under an icon on a phone keep their own tiny size (`.nav-label`)
+// menu font: the text of the menu of the app (the helper, floating or as a bar), following the screen (`--app-fs-menu`): everything in it, the links, switches, buttons and the list of languages that drops from a bar
+.menu-font {
+  font-size: var(--app-fs-menu);
+
+  :is(.nav-link, .form-check-label, .small, .btn) {
+    font-size: inherit;
+  }
+
+  .dropdown-menu {
+    --bs-dropdown-font-size: var(--app-fs-menu);
+  }
+}
+
 .menu-style {
   font-size: var(--app-fs-text);
 
@@ -1301,7 +1492,8 @@ app-my-rounds {
 
 // a bar that must stay on one line (`LabelFit`, `core/label-fit.ts`): it measures, and when everything does not fit on one line the words of its buttons are hidden (`fit-1`: the icons stay, the words stay for a
 // screen reader), and then what can go (`fit-2`: the name beside the logo, and the clock, `.fit-drop`)
-.fit-1 :is(.fit-label, .nav-label) {
+.fit-1 :is(.fit-label, .nav-label),
+.fit-label.fit-off {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -1497,18 +1689,6 @@ app-my-rounds {
   padding-block: 0;
 }
 
-// the mark that follows the screen (`scaled`, from the heading size, in `em`), so the logo and the house on its corner keep their shape at every size: in the helper of the app, and the same in a line of text that shows it (the welcome)
-.brand-lockup.scaled {
-  .brand-mark {
-    font-size: calc(var(--app-fs-heading) * 1.75);
-  }
-
-  .brand-logo {
-    width: 1em;
-    height: 1em;
-  }
-}
-
 .brand-lockup {
   .brand-logo {
     width: 2rem;
@@ -1551,6 +1731,24 @@ app-my-rounds {
     line-height: 1;
     letter-spacing: 0.14em;
     color: var(--bs-secondary-color);
+  }
+}
+
+// the mark that follows the screen (`scaled`, from the heading size, in `em`), so the logo and the house on its corner keep their shape at every size: in the helper of the app, and the same in a line of text that shows it (the welcome)
+.brand-lockup.scaled {
+  .brand-mark {
+    font-size: calc(var(--app-fs-heading) * 1.4);
+  }
+
+  .brand-logo {
+    width: 1em;
+    height: 1em;
+  }
+
+  // the house stays on the corner of the logo and barely outside it, so the room round the mark is the same on every side
+  .brand-home {
+    right: -0.1rem;
+    bottom: -0.1rem;
   }
 }
 
@@ -1887,9 +2085,9 @@ app-jigsaw-shell > .app-banner {
 // the same band in the app lies over the top of the page (fixed: the page is the one that scrolls, and a puzzle is as big as the screen)
 play-main > .app-banner {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: var(--app-play-bar-top, 0px);
+  left: var(--app-play-bar-left, 0px);
+  right: var(--app-play-bar-right, 0px);
   z-index: var(--app-z-bar);
 }
 

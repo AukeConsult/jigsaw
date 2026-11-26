@@ -47,7 +47,7 @@ export class JigsawFinder implements OnInit {
   readonly total = signal(0);
   readonly hasMore = signal(false);
   /** the cards: the jigsaws, with the other tiles among them when this is the home page */
-  protected readonly cards = computed(() => (this.tiles() ? this.feed.tiles(this.items(), !this.hasMore()) : this.items().map((j) => PictureItem.from(j))));
+  protected readonly cards = computed(() => (this.tiles() ? this.feed.tiles(this.items(), !this.hasMore(), this.filter()) : this.items().map((j) => PictureItem.from(j))));
   protected readonly isPicture = isPicture;
   readonly loading = signal(true);
   readonly failed = signal(false);

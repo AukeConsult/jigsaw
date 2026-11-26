@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
@@ -67,6 +67,9 @@ export interface BatchItem {
 export class JigsawBatch implements OnDestroy {
   /** the app's page frames it: a made jigsaw opens in the app's puzzle (`/play/jigsaw/:id`) and the way back is the user's pictures there */
   readonly inApp = input(false);
+  /** the pictures belong to this package: only pictures are made (no size, pieces or difficulty), each linked to the package, and the package page (which frames this) is told after each (`madeOne`) */
+  readonly packageId = input<string | undefined>(undefined);
+  readonly madeOne = output<JigsawSpec>();
   protected readonly openRoute = (id: string): string[] => (this.inApp() ? ['/play/jigsaw', id] : ['/jigsaw', id]);
   protected readonly picturesRoute = computed(() => (this.inApp() ? '/play/mine/pictures' : '/jigsaw/user'));
 
@@ -81,7 +84,7 @@ export class JigsawBatch implements OnDestroy {
   readonly timed = signal(this.saved.timed);
   /** ready jigsaws (cut into pieces here) or pictures (cut in each round: no pieces, size or difficulty are chosen here) */
   readonly kind = signal<JigsawKind>(this.saved.kind ?? 'picture');
-  readonly isPicture = computed(() => this.kind() === 'picture');
+  readonly isPicture = computed(() => !!this.packageId() || this.kind() === 'picture');
   /** the language of the names and descriptions: the language the app is shown in, to begin with */
   readonly language = signal(inject(LanguageService).lang());
 
@@ -151,7 +154,7 @@ export class JigsawBatch implements OnDestroy {
    * Either way the AI looks at it and sets its categories, name and description.
    */
   async start(): Promise<void> {
-    const kind = this.kind();
+    const kind: JigsawKind = this.isPicture() ? 'picture' : 'jigsaw';
     const me = this.users.user();
     if (!me || this.running()) return;
     this.running.set(true);
@@ -163,12 +166,13 @@ export class JigsawBatch implements OnDestroy {
         this.change(item, { state: 'cutting', problem: undefined });
         let jigsaw: JigsawSpec;
         try {
-          jigsaw = await this.maker.make(item.file, me, { kind, pieces: this.pieces(), width: this.width(), snapPercent, timed: this.timed(), language: this.language() }, (step) => this.change(item, { state: step }));
+          jigsaw = await this.maker.make(item.file, me, { kind, pieces: this.pieces(), width: this.width(), snapPercent, timed: this.timed(), language: this.language(), packageId: this.packageId() }, (step) => this.change(item, { state: step }));
         } catch (err) {
           this.change(item, { state: 'failed', problem: reasonOf(err) });
           continue;
         }
         this.change(item, { state: 'classifying', jigsaw });
+        this.madeOne.emit(jigsaw);
         try {
           const found = await this.jigsaws.classify(jigsaw.id, true);
           this.change(item, {

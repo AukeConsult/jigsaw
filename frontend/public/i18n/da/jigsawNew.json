@@ -77,5 +77,8 @@
   "kindPictureHelp": "Man vælger antal brikker og sværhedsgrad, når man starter en runde.",
   "kindJigsaw": "Et færdigt puslespil",
   "kindJigsawHelp": "Du vælger antal brikker og sværhedsgrad nu.",
-  "pictureAlt": "Billedet"
+  "pictureAlt": "Billedet",
+  "limitCount": "{{ count }} af {{ max }} billeder brugt. En bekræftet konto har ingen grænse.",
+  "limitFull": "Du har {{ max }} billeder, det meste en konto der ikke er bekræftet kan have. Bekræft kontoen, eller slet et billede.",
+  "limitVerify": "Bekræft kontoen"
 }

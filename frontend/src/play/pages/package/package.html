@@ -1,0 +1,61 @@
+<main class="container-fluid page-margin page-max" *transloco="let t">
+  <div class="toolbar mb-2">
+    <a class="link-action" routerLink="/play/packages"><i class="bi bi-box-seam" aria-hidden="true"></i>{{ t('play.allPackages') || 'All packages' }}</a>
+  </div>
+  @if (loading()) {
+    <div class="text-center py-4"><span class="spinner-border" role="presentation" aria-hidden="true"></span></div>
+  } @else if (item(); as pack) {
+    @if (pack.isPrivate) {
+      <div class="alert alert-warning fw-semibold" role="status"><i class="bi bi-lock-fill" aria-hidden="true"></i> {{ t('play.feed.privateBanner') || 'Private: only you see this. Make it public when it is ready.' }}</div>
+    }
+    <h1 class="page-title mb-1"><i class="bi bi-box-seam me-2" aria-hidden="true"></i>{{ pack.titleFor(language()) }}</h1>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      <span class="badge text-bg-light border">{{ price(pack) || (t('play.feed.free') || 'Free') }}</span>
+      <span class="small text-body-secondary"><i class="bi bi-images" aria-hidden="true"></i> {{ pictures().length === 1 ? (t('play.feed.pictureOne') || '1 picture') : (t('play.feed.pictureCount', { count: pictures().length }) || pictures().length + ' pictures') }}</span>
+      <!-- on top: edit it (its owner), and add it to my pictures (free) or buy it: what the account has says so instead -->
+      <span class="ms-auto d-flex flex-wrap align-items-center justify-content-end gap-2">
+        @if (mayEdit()) {
+          <a class="btn btn-main btn-outline-primary" [routerLink]="[packagesPath, pack.id]"><i class="bi bi-pencil" aria-hidden="true"></i>{{ t('play.feed.editPackage') || 'Edit the package' }}</a>
+        }
+        @if (had()) {
+          <span class="badge text-bg-success"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ t('play.feed.yours') || 'In my pictures' }}</span>
+        } @else if (unverified()) {
+          <a class="btn btn-main btn-primary" routerLink="/play/account"><i class="bi bi-shield-check" aria-hidden="true"></i>{{ t('play.feed.verifyToAdd') || 'Verify your account to add packages' }}</a>
+        } @else if (users.acting()) {
+          <button type="button" class="btn btn-main btn-primary" [disabled]="busy()" (click)="get()">
+            <i class="bi" [class]="pack.isFree ? 'bi-plus-lg' : 'bi-cart'" aria-hidden="true"></i>{{ pack.isFree ? (t('play.feed.get') || 'Add to my pictures') : (t('play.feed.buy') || 'Buy') }}
+          </button>
+        } @else {
+          <a class="btn btn-main btn-primary" routerLink="/play/account"><i class="bi bi-person-circle" aria-hidden="true"></i>{{ t('play.feed.logOnToGet') || 'Log on to add it to my pictures' }}</a>
+        }
+      </span>
+    </div>
+    @if (!had() && !pack.isFree && !unverified()) {
+      <div class="form-text text-end mt-0 mb-2">{{ t('play.feed.noPayment') || 'Payment is not set up yet: nothing is charged.' }}</div>
+    }
+    @if (failed()) {
+      <div class="alert alert-danger py-2 small" role="alert">{{ t('play.feed.getFailed') || 'Could not add the package: try again.' }}</div>
+    }
+    @if (pack.categories.length) {
+      <app-category-tags class="d-block mb-2" [keys]="pack.categories" />
+    }
+    @if (pack.textFor(language())) {
+      <p class="text-body-secondary">{{ pack.textFor(language()) }}</p>
+    }
+    @if (!pictures().length) {
+      <p class="text-body-secondary">{{ t('play.feed.noPictures') || 'No pictures in this package yet.' }}</p>
+    } @else {
+      @if (!mayPlay()) {
+        <p class="small text-body-secondary"><i class="bi bi-lock" aria-hidden="true"></i> {{ t('play.feed.lockedHint') || 'Add the package to my pictures to play them.' }}</p>
+      }
+      <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-2 g-sm-3">
+        @for (picture of pictures(); track picture.id) {
+          <div class="col"><play-card [jigsaw]="picture" [locked]="!mayPlay()" /></div>
+        }
+      </div>
+    }
+  } @else {
+    <div class="alert alert-warning" role="alert">{{ t('play.feed.packageNotFound') || 'There is no such package.' }}</div>
+    <a class="link-action" routerLink="/play/list"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('play.pictures') || 'Pictures' }}</a>
+  }
+</main>

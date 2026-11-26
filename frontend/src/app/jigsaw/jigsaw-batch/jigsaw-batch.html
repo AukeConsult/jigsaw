@@ -1,9 +1,12 @@
-<main class="container-fluid page-margin page-max" *transloco="let t">
+<main class="container-fluid page-margin page-max" [class.p-0]="packageId()" *transloco="let t">
+  @if (!packageId()) {
   <h1 class="page-title mb-2"><i class="bi bi-images me-2" aria-hidden="true"></i>{{ t('jigsawBatch.title') || 'Make many jigsaws' }}</h1>
   <p class="text-body-secondary">{{ t('jigsawBatch.intro') || 'Choose how big and how hard, then pick pictures from your computer. Each picture becomes a jigsaw, and the AI sets its categories, name and description.' }}</p>
+  }
 
   <form (submit)="$event.preventDefault()">
     <!-- what to make, first: ready jigsaws (cut into pieces here) or pictures (cut in each round, by the one who plays); the AI looks at every picture either way -->
+    @if (!packageId()) {
     <fieldset class="mb-3" [disabled]="running()">
       <legend class="visually-hidden">{{ t('jigsawBatch.modeLabel') || 'What to make' }}</legend>
       <div class="d-flex flex-wrap gap-2">
@@ -13,6 +16,7 @@
         <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="batch-mode-picture"><i class="bi bi-image me-1" aria-hidden="true"></i>{{ t('jigsawBatch.modePicture') || 'Make pictures' }}</label>
       </div>
     </fieldset>
+    }
     @if (!isPicture()) {
     <h2 class="form-section"><i class="bi bi-sliders" aria-hidden="true"></i>{{ t('jigsawBatch.sectionSettings') || 'Size and difficulty' }}</h2>
     }
@@ -124,7 +128,7 @@
     </div>
   }
 
-  <div class="d-flex flex-wrap gap-2 align-items-center">
+  <div class="d-flex flex-wrap justify-content-center gap-2 align-items-center">
     @if (running()) {
       <button type="button" class="btn btn-outline-secondary" (click)="stop()"><i class="bi bi-stop-circle" aria-hidden="true"></i>{{ t('jigsawBatch.stop') || 'Stop after this one' }}</button>
     } @else {

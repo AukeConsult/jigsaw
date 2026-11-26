@@ -1,4 +1,10 @@
 <main class="container-fluid page-margin page-max" *transloco="let t">
+  @if (fromPackage) {
+    <!-- opened from the detail of a package: the way back is at the top -->
+    <div class="toolbar mb-2">
+      <a class="link-action" [routerLink]="packagePage"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('play.feed.backToPackage') || 'Back to the package' }}</a>
+    </div>
+  }
   @if (view.picture()) {
     <!-- the buttons are outside the form: Edit changes it (Save and Cancel are in the form), Delete is asked first -->
     @if (mayChange()) {

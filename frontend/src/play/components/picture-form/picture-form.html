@@ -69,7 +69,7 @@
         </div>
         <div class="ai-panel rounded border bg-body-tertiary p-3 mt-3">
           @if (!n.editId()) {
-          <button type="button" class="btn btn-outline-primary w-100 py-2" [disabled]="!n.canAnalyse()" (click)="save(true)">
+          <button type="button" class="btn btn-outline-primary w-100 py-2" [disabled]="!n.canAnalyse() || limit.full()" (click)="save(true)">
             @if (n.analysing()) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> {{ t('jigsawNew.classifying') || 'The AI looks at the picture…' }} } @else { <i class="bi bi-stars" aria-hidden="true"></i> {{ t('jigsawNew.saveAnalyse') || 'Save and analyse with AI' }} }
           </button>
           }
@@ -143,6 +143,7 @@
       }
       <!-- what is wrong, and Cancel and Save: in the card itself, at its lower right -->
       <div draft-actions class="w-100">
+        <app-upload-limit #limit [adding]="!n.editId()" [inApp]="true" />
         @if (n.problem()) {
           <div class="alert alert-warning py-2 small" role="alert">{{ n.problem() }}</div>
         }
@@ -150,13 +151,13 @@
           <div class="alert alert-danger py-2 small" role="alert">{{ n.error() }}</div>
         }
         @if (!n.viewing()) {
-        <div class="d-flex justify-content-end gap-2">
+        <div class="d-flex flex-wrap justify-content-center gap-2">
           @if (n.editId()) {
             <button type="button" class="btn btn-outline-secondary" (click)="cancel()">{{ t('jigsawNew.cancel') || 'Cancel' }}</button>
           } @else {
             <a class="btn btn-outline-secondary" routerLink="/">{{ t('jigsawNew.cancel') || 'Cancel' }}</a>
           }
-          <button type="button" class="btn btn-primary" [disabled]="!n.canSave()" (click)="save()">
+          <button type="button" class="btn btn-primary" [disabled]="!n.canSave() || limit.full()" (click)="save()">
             @if (n.saving()) { {{ t('play.picture.saving') || 'Saving the picture…' }} } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ n.editId() ? (t('jigsawNew.saveChanges') || 'Save changes') : (t('jigsawNew.saveNew') || 'Save') }} }
           </button>
         </div>

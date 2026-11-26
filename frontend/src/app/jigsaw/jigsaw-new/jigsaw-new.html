@@ -74,7 +74,7 @@
       <!-- the AI, in a frame of its own under the picture and its size, always there: a new jigsaw can be analysed once it has a picture (and a name is not needed), a saved one at any time -->
       <div class="ai-panel rounded border bg-body-tertiary p-3 mt-3">
         @if (!editId) {
-          <button type="button" class="btn btn-outline-primary w-100 py-2" [disabled]="!canAnalyse()" (click)="save(true)">
+          <button type="button" class="btn btn-outline-primary w-100 py-2" [disabled]="!canAnalyse() || limit.full()" (click)="save(true)">
             @if (analysing()) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{ t('jigsawNew.classifying') || 'The AI looks at the picture…' }} } @else { <i class="bi bi-stars" aria-hidden="true"></i>{{ t('jigsawNew.saveAnalyse') || 'Save and analyse with AI' }} }
           </button>
           <div class="form-text">{{ t('jigsawNew.saveAnalyseHelp') || 'The picture is sent to OpenAI to set the categories, the motive difficulty, the name and the description.' }}</div>
@@ -154,6 +154,7 @@
     }
     <!-- what is wrong, and Cancel and Save: in the card itself, at its lower right -->
     <div draft-actions class="w-100">
+      <app-upload-limit #limit [adding]="!editId" />
       @if (otherProblem() && !loading()) {
         <div class="alert alert-warning py-2 small" role="alert">{{ otherProblem() }}</div>
       }
@@ -161,9 +162,9 @@
         <div class="alert alert-danger py-2 small" role="alert">{{ error() }}</div>
       }
 
-      <div class="d-flex justify-content-end gap-2">
+      <div class="d-flex flex-wrap justify-content-center gap-2">
         <a class="btn btn-outline-secondary" [routerLink]="editId ? ['/jigsaw', editId] : '/'" [replaceUrl]="true">{{ t('jigsawNew.cancel') || 'Cancel' }}</a>
-        <button type="button" class="btn btn-primary" [disabled]="!canSave()" (click)="save()">
+        <button type="button" class="btn btn-primary" [disabled]="!canSave() || limit.full()" (click)="save()">
           @if (saving()) { @if (editId) { {{ t('jigsawNew.saving') || 'Saving…' }} } @else { {{ t('jigsawNew.making') || 'Making the jigsaw…' }} } } @else { <i class="bi bi-check-lg me-1" aria-hidden="true"></i>@if (editId) { {{ t('jigsawNew.saveChanges') || 'Save changes' }} } @else { {{ t('jigsawNew.saveNew') || 'Save' }} } }
         </button>
       </div>

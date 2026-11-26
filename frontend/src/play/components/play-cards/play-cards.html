@@ -16,7 +16,7 @@
     @for (tile of tiles(); track tile.kind + tile.id) {
       <div class="col">
         @if (isPicture(tile)) {
-          <play-card [jigsaw]="tile.summary" />
+          <play-card [jigsaw]="tile.summary" [packageName]="packageName(tile.summary)" />
         } @else {
           <app-feed-tile [item]="tile" />
         }

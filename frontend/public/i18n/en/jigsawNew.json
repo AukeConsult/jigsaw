@@ -77,5 +77,8 @@
   "kindPictureHelp": "People choose the number of pieces and the difficulty when they start a round.",
   "kindJigsaw": "A ready jigsaw",
   "kindJigsawHelp": "You choose the number of pieces and the difficulty now.",
-  "pictureAlt": "The picture"
+  "pictureAlt": "The picture",
+  "limitCount": "{{ count }} of {{ max }} pictures used. A verified account has no limit.",
+  "limitFull": "You have {{ max }} pictures, the most an account that is not verified can have. Verify your account, or delete a picture.",
+  "limitVerify": "Verify your account"
 }

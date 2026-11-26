@@ -61,3 +61,13 @@ The gate keeps an account 10 seconds (`USER_KEEP_MS`) so each call is not a read
 **The sign-in address.** The Google sign-in window says "to continue to <authDomain>". `authDomain` in `frontend/src/environments/environment.ts` is `sevenfriends.io` (Seven Friends' own address, the same people and the same project; Firebase Hosting serves the sign-in handler at `/__/auth/handler` on every domain it hosts), not the project's `sevenfriends.firebaseapp.com`. This needs `https://sevenfriends.io/__/auth/handler` among the Authorised redirect URIs of the project's Web client (Google Cloud console > APIs & Services > Credentials), and `sevenfriends.io` and `karins-jigsaw.web.app` among the Authorised domains (Firebase console > Authentication > Settings); these are changes in the shared project, made by hand, never from here. Until the redirect URI is added, Google sign-in fails with a redirect error: add it BEFORE deploying this.
 
 - **A login comes back to the module it was started in.** The buttons that go to the login page (Lock this account, Use another sign-in, Sign in) ask `LogonLanding` where the person is (`here()`, `accountPage()`): in the website the page of the user (`/jigsaw/user?logins=1`, the edit form), in the app the account page (`/play/account`), and a login that was started from the app never ends on a page of the website (and the other way round). `LogonRequired` does the same when the server asks for a login.
+
+## Limits of an account that is not verified
+**An account with no verified login:**
+1. **cannot add packages** (neither Add to my pictures nor Buy);
+2. **can have at most 5 uploaded pictures** (`UNVERIFIED_PICTURES_MAX`): the pictures and ready jigsaws it owns now, so deleting one makes room;
+3. **can still play the pictures that are publicly available**: the limits take nothing away from playing.
+
+What an account already has stays (more pictures, packages added before): only new ones are stopped. **An admin is not stopped**, also when doing it for an account.
+
+The rule is `AccountLimits` (`models/shared/account-limits.ts`). The API asks it: `PUT /jigsaw-users/:id/bought-packages/:packageId` (403), `POST /jigsaw` and a `PUT /jigsaw/:id` that gives a jigsaw to another owner (403; the count is `countOwned` of the jigsaw store, a Firestore count on `ownerUid`). The pages say why before the person tries: `app-upload-limit` over the Save button of a new picture or jigsaw (app and website: how many are used, and with 5 the Save buttons are off), and the page of a package has **Verify your account to add packages** in place of the button.

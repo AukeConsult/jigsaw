@@ -11,6 +11,8 @@ import { renderPieceGraphics } from './piece-graphics';
 
 /** What the jigsaws that are made are like: the same for every picture. */
 export interface MakeOptions {
+  /** the picture belongs to this package (`packageId`): it is public, as the package is, and is not in the general list */
+  packageId?: string;
   /** a picture (nothing is cut: each round is) or a ready jigsaw (what none says) */
   kind?: JigsawKind;
   /** about how many pieces (the picture area is made a whole number of pieces wide and high, so it can differ a little) */
@@ -63,7 +65,7 @@ export class JigsawMaker {
       name: nameOfFile(file.name),
       author: owner.name,
       ownerUid: owner.id,
-      visibility: 'owner', // a jigsaw that is made is private to begin with: its owner looks at it, and makes it public when it is good
+      ...(options.packageId ? { packageId: options.packageId } : { visibility: 'owner' as const }), // a picture of a package is public; a jigsaw that is made is private to begin with: its owner looks at it, and makes it public when it is good
       ...(options.timed ? {} : { timed: false }),
       pictureName: file.name.slice(0, JIGSAW_MAX_PICTURE_NAME),
       language: options.language,
@@ -115,7 +117,7 @@ export class JigsawMaker {
       author: owner.name,
       ownerUid: owner.id,
       kind: 'picture',
-      visibility: 'owner', // as a jigsaw that is made: its owner looks at it, and makes it public when it is good
+      ...(options.packageId ? { packageId: options.packageId } : { visibility: 'owner' as const }), // a picture of a package is public (its owner makes the package, and may change it); another is private to begin with: its owner looks at it, and makes it public when it is good
       ...(options.timed ? {} : { timed: false }),
       pictureName: file.name.slice(0, JIGSAW_MAX_PICTURE_NAME),
       language: options.language,

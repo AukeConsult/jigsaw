@@ -78,13 +78,17 @@ export function jigsawSearchRouter(
   solvedOf: (userId: string, among: readonly JigsawSummary[]) => Promise<string[]>,
   /** a jigsaw of the answer for somebody who may see it: with the key of its pictures when it is private or hidden */
   keyed: (jigsaw: JigsawSummary) => Promise<JigsawSummary> = async (j) => j,
+  /** the packages the person has got or bought: their pictures are found by the person, and by nobody else */
+  packagesOf: (userId: string | undefined) => Promise<ReadonlySet<string>> = async () => new Set(),
 ): express.Router {
   const router = express.Router();
   /** The jigsaws the person finds, the newest first: the public ones and the private ones that are the person's (owner or player); with `only.favorites`, those the person has ticked, with `only.solved`, those the person has solved (none for nobody). */
   const visible = async (me: string | undefined, only: { favorites?: boolean; solved?: boolean } = {}): Promise<JigsawSummary[]> => {
     // who the owners are, the jigsaws and the favorites: the favorites are asked for while the owners are, and the jigsaws as soon as the owners are known
     const [all, mine] = await Promise.all([owners().then((who) => store.load(who, SEARCH_MAX_READ)), only.favorites && me ? favorites(me) : Promise.resolve([] as string[])]);
-    const seen = await Promise.all(all.map((j) => (!JigsawVisibilities.listed(j.visibility) ? false : j.visibility !== "owner" ? true : me ? canFind(j, me) : false))); // a hidden one is never found; the private ones are asked about at the same time
+    // what the person has got is asked only when there is a picture of a package to ask about
+    const packages = all.some((j) => j.packageId) ? await packagesOf(me) : new Set<string>();
+    const seen = await Promise.all(all.map((j) => (!JigsawVisibilities.listed(j.visibility) || (j.packageId && !packages.has(j.packageId)) ? false : j.visibility !== "owner" ? true : me ? canFind(j, me) : false))); // a hidden one is never found; the private ones are asked about at the same time
     const seeable = all.filter((_, i) => seen[i]);
     const favored = new Set(mine);
     const solved = new Set(only.solved && me ? await solvedOf(me, seeable) : []);

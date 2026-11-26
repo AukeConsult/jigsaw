@@ -22,7 +22,17 @@
           <i class="bi" [class.bi-heart]="!favorite()" [class.bi-heart-fill]="favorite()" aria-hidden="true"></i>
         </button>
       }
-      <button type="button" class="btn btn-overlay position-absolute bottom-0 end-0 m-1" (click)="show()" [title]="t('play.play') || 'Show the jigsaw'" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></button>
+      @if (packageName() !== null && item.packageId) {
+        <!-- from a package the person has: a tag in the bottom left corner of the picture, which leads to the package -->
+        <a class="package-tag badge text-bg-warning text-decoration-none text-truncate position-absolute bottom-0 start-0 m-1" [routerLink]="['/play/package', item.packageId]" [title]="packageName() || t('play.feed.packageOne') || 'Package'">
+          <i class="bi bi-box-seam me-1" aria-hidden="true"></i>{{ packageName() || t('play.feed.packageOne') || 'Package' }}
+        </a>
+      }
+      @if (locked()) {
+        <span class="btn btn-overlay position-absolute bottom-0 end-0 m-1 pe-none" role="img" [title]="t('play.feed.lockedHint') || 'Add the package to my pictures to play them.'" [attr.aria-label]="t('play.feed.lockedHint') || 'Add the package to my pictures to play them.'"><i class="bi bi-lock-fill" aria-hidden="true"></i></span>
+      } @else {
+        <button type="button" class="btn btn-overlay position-absolute bottom-0 end-0 m-1" (click)="show()" [title]="t('play.play') || 'Show the jigsaw'" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></button>
+      }
     </div>
     <div class="card-body p-2 text-break">
       <button type="button" class="card-name text-name text-decoration-none p-0 border-0 bg-transparent text-start" (click)="show()">{{ item.name }}</button>@if (item.timed !== false) {<i class="bi bi-stopwatch tiny ms-1 text-body-secondary" [title]="t('play.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tiny ms-1 text-body-secondary" [title]="t('play.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tiny ms-1 text-body-secondary" [title]="t('play.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}

@@ -2,6 +2,7 @@ import { Location } from '@angular/common';
 import { Component, OnDestroy, effect, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { UploadLimit } from '../upload-limit/upload-limit';
 import { tr } from '../../core/i18n';
 import { readPreference, writePreference } from '../../core/preferences';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -72,7 +73,7 @@ const PREVIEW_BYTES = 300 * 1024;
  */
 @Component({
   selector: 'app-jigsaw-new',
-  imports: [FormsModule, RouterLink, PictureCropper, JigsawExample, TranslocoDirective, JigsawFields, JigsawHeader, VisibilityChoice, CategoryPicker],
+  imports: [FormsModule, RouterLink, UploadLimit, PictureCropper, JigsawExample, TranslocoDirective, JigsawFields, JigsawHeader, VisibilityChoice, CategoryPicker],
   providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPage')],
   templateUrl: './jigsaw-new.html',
 })

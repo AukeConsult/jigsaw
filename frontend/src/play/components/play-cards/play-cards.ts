@@ -1,10 +1,12 @@
 import { Component, ElementRef, OnInit, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { LanguageService } from '../../../app/core/language.service';
 import { scrollParent } from '../../../app/core/theme';
 import { FeedService, isPicture } from '../../../app/jigsaw/feed.service';
 import { FeedTile } from '../../../app/jigsaw/feed-tile/feed-tile';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawSearchRequest, JigsawService } from '../../../app/jigsaw/jigsaw.service';
+import { PackageItem } from '../../../app/models/shared/feed-item';
 import { JigsawFilter, JigsawFilters } from '../../../app/models/shared/jigsaw-filter';
 import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
 import { ListView } from '../../list-view';
@@ -36,8 +38,16 @@ export class PlayCards implements OnInit {
   readonly items = signal<JigsawSummary[]>([]);
   readonly hasMore = signal(false);
   /** the pictures with the other tiles (information, offers, packages) among them: one rule for the app and the website (`HomeFeed.merge`, through `FeedService`) */
-  protected readonly tiles = computed(() => this.feed.tiles(this.items(), !this.hasMore()));
+  protected readonly tiles = computed(() => this.feed.tiles(this.items(), !this.hasMore(), this.filter()));
   protected readonly isPicture = isPicture;
+  private readonly language = inject(LanguageService).lang;
+  /** the names of the packages the home page has, in the language that is chosen */
+  private readonly packageNames = computed(() => new Map(this.feed.others().flatMap((tile) => (tile instanceof PackageItem ? [[tile.id, tile.titleFor(this.language())] as const] : []))));
+
+  /** what the tag of a picture says: nothing for a picture that is of no package, else the name of the package ('' when the home page has it no more) */
+  protected packageName(picture: JigsawSummary): string | null {
+    return picture.packageId ? (this.packageNames().get(picture.packageId) ?? '') : null;
+  }
   readonly loading = signal(true);
   readonly failed = signal(false);
   private page = 1;
@@ -45,7 +55,7 @@ export class PlayCards implements OnInit {
   private ticket = 0;
   private started = false;
   /** what the list is filtered by: what the preferences chose (everything, when nothing was) */
-  private filter: JigsawFilter = JigsawFilters.empty();
+  private readonly filter = signal<JigsawFilter>(JigsawFilters.empty());
   /** something is chosen in the filter: an empty list then means no picture matches, not that there is none */
   protected readonly filtered = signal(false);
 
@@ -79,8 +89,8 @@ export class PlayCards implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.list.ready; // who asks is read first (what a person may see depends on it), and the filter is the user's
-    this.filter = this.list.filter();
-    this.filtered.set(JigsawFilters.isOn(this.filter));
+    this.filter.set(this.list.filter());
+    this.filtered.set(JigsawFilters.isOn(this.filter()));
     this.started = true;
     void this.feed.load(); // the tiles that are not pictures; they come when they are read, the pictures do not wait for them
     await this.load(1);
@@ -90,7 +100,7 @@ export class PlayCards implements OnInit {
     const ticket = ++this.ticket;
     this.loading.set(true);
     try {
-      const asked: JigsawFilter = { ...this.filter, ...(this.view.favorites() ? { favorites: true as const } : {}) }; // only the favorites of the user, when the menu says so (nobody plays: no favorites, so everything)
+      const asked: JigsawFilter = { ...this.filter(), ...(this.view.favorites() ? { favorites: true as const } : {}) }; // only the favorites of the user, when the menu says so (nobody plays: no favorites, so everything)
       const found = await this.service.search(JigsawFilters.query(listQuestion(asked, !!this.users.acting()), page, this.pageSize()) as JigsawSearchRequest);
       if (ticket !== this.ticket) return;
       this.page = page;

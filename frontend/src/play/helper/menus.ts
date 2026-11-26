@@ -46,25 +46,35 @@ const ADD_PICTURE: PlayMenuItem = { icon: 'bi-image', route: '/play/mine/addpict
 /** The last row of the home page menu: the language, as the website's menu has it (the flag and name of the language in use, and the list of languages one step down). */
 const LANGUAGE: PlayMenuItem = { icon: 'bi-translate', language: true };
 
+/** The entry for all the packages there are to get. For everybody. */
+const PACKAGES: PlayMenuItem = { icon: 'bi-box-seam', route: '/play/packages', key: 'play.allPackages', english: 'All packages' };
+
 /** The entry for the info page: the welcome, the help, the about page and how to install the app. For everybody, also for nobody who is logged on. */
 const INFO: PlayMenuItem = { icon: 'bi-info-circle', route: '/play/info', key: 'play.info', english: 'Info' };
 
 /** The entry for the preferences of the account (the page is under the account: `/play/account/preferences`, reached from the account page, whose menu has it: it is not in the page menu). */
 const ACCOUNT_PREFERENCES: PlayMenuItem = { icon: 'bi-person-gear', route: '/play/account/preferences', key: 'play.accountPreferences', english: 'Account preferences' };
 
+/** The entry to the user's own pages (My pictures, with the user menu). */
+const MY_PICTURES: PlayMenuItem = { icon: 'bi-person-lines-fill', route: '/play/mine', key: 'play.myUser', english: 'My pictures' };
+
 /** The entries of the page menu for a user who is logged on: the brand (home), the user (to the user's own pages, which have the user menu), adding a picture, the picture preferences and, always last, the account (its name, to the account page, the logon). */
 const pageEntries = (user: { readonly name: string }, may: MenuMay): readonly PlayMenuItem[] => [
   BRAND,
-  { icon: 'bi-person-lines-fill', route: '/play/mine', key: 'play.myUser', english: 'My pictures' },
+  MY_PICTURES,
   ADD_PICTURE,
   { icon: 'bi-sliders', route: '/play/prefs', key: 'play.picturePreferences', english: 'Picture preferences' },
+  PACKAGES,
   INFO,
   ...(may.levels ? [{ icon: 'bi-shield-lock', route: '/play/admin', key: 'play.admin', english: 'Admin' }] : []), // the levels of the accounts: for an admin, and for everybody while there is no admin
   { icon: 'bi-person-circle', route: '/play/account', text: user.name },
 ];
 
 /** The menu of the pages outside `/play/mine` (the list, the preferences): the brand and the page entries, or the brand and "Logon" for nobody. */
-export const pageMenu: PlayMenu = (user, may) => (user ? pageEntries(user, may) : [BRAND, INFO, LOGON]);
+export const pageMenu: PlayMenu = (user, may) => (user ? pageEntries(user, may) : [BRAND, PACKAGES, INFO, LOGON]);
+
+/** The menu of the pages of the packages (all of them, and one): the way home (the brand), the user's own pictures, where their packages are too, and All packages; for nobody the way home, All packages and "Logon" (a package is got by an account). */
+export const packagesMenu: PlayMenu = (user) => (user ? [BRAND, MY_PICTURES, PACKAGES] : [BRAND, PACKAGES, LOGON]);
 
 /** The menu of the home page (the list): the page menu with two switches: the rounds that are going on the top of the list, and only the user's favorites. Nobody plays: no rounds, so the page menu. */
 export const listMenu: PlayMenu = (user, may) => {
@@ -117,7 +127,9 @@ export const mineMenu: PlayMenu = (user, may) =>
         ...(may.publish
           ? [
               { icon: 'bi-collection', route: '/play/mine/many', key: 'play.manyPictures', english: 'Many pictures' }, // a publisher or an admin uploads many at once
-              { icon: 'bi-box-seam', route: '/play/mine/packages', key: 'play.makePackages', english: 'Make packages' },
+              { icon: 'bi-card-text', route: '/play/mine/info', key: 'play.feedInfo', english: 'Information' }, // what is shown among the pictures on the home page
+              { icon: 'bi-tag', route: '/play/mine/offers', key: 'play.feedOffers', english: 'Offers' },
+              { icon: 'bi-box-seam', route: '/play/mine/packages', key: 'play.makePackages', english: 'Packages' },
             ]
           : []),
         { icon: 'bi-images', route: '/play/mine/pictures', key: 'play.myPictures', english: 'My pictures' },

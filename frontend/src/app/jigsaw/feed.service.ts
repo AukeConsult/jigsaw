@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { FeedItem, FeedItemData, FeedItems, PictureItem } from '../models/shared/feed-item';
 import { HomeFeed } from '../models/shared/home-feed';
+import { JigsawFilter } from '../models/shared/jigsaw-filter';
 import { JigsawSummary } from '../models/shared/jigsaw-search';
 
 /**
@@ -28,9 +29,29 @@ export class FeedService {
     }
   }
 
-  /** The pictures found, with the other tiles among them. `complete`: there are no more pictures to ask for. */
-  tiles(pictures: readonly JigsawSummary[], complete: boolean): FeedItem[] {
-    return HomeFeed.merge(pictures.map((summary) => PictureItem.from(summary)), this.others(), complete);
+  /** The packages the account that plays has got, also those that are not on the home page any more (none when they cannot be read). */
+  async mine(): Promise<FeedItem[]> {
+    try {
+      const found = await firstValueFrom(this.http.get<{ items: FeedItemData[] }>(`${environment.jigsawApi}/jigsaw-feed/mine`));
+      return found.items.map((data) => FeedItems.of(data));
+    } catch {
+      return [];
+    }
+  }
+
+  /** A package with all its public pictures, whether the account has got it and may play them (for its page); null when there is no such package. */
+  async package(id: string): Promise<{ item: FeedItem; pictures: JigsawSummary[]; bought: boolean; mayPlay: boolean } | null> {
+    try {
+      const found = await firstValueFrom(this.http.get<{ item: FeedItemData; pictures: JigsawSummary[]; bought: boolean; mayPlay: boolean }>(`${environment.jigsawApi}/jigsaw-feed/package/${encodeURIComponent(id)}`));
+      return { item: FeedItems.of(found.item), pictures: found.pictures, bought: found.bought, mayPlay: found.mayPlay };
+    } catch {
+      return null;
+    }
+  }
+
+  /** The pictures found, with the other tiles among them. `complete`: there are no more pictures to ask for. `filter`: what the person looks for, which a package has to match too (`matchesFilter`). */
+  tiles(pictures: readonly JigsawSummary[], complete: boolean, filter: JigsawFilter): FeedItem[] {
+    return HomeFeed.merge(pictures.map((summary) => PictureItem.from(summary)), this.others().filter((tile) => tile.matchesFilter(filter)), complete);
   }
 }
 

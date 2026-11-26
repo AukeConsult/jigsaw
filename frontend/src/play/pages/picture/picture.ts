@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../../app/core/i18n';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
@@ -16,8 +16,8 @@ import { PictureView } from '../../picture-view';
  */
 @Component({
   selector: 'play-picture',
-  imports: [TranslocoDirective, PictureForm, PictureRounds],
-  providers: [provideTranslocoScope('jigsawUser')],
+  imports: [TranslocoDirective, RouterLink, PictureForm, PictureRounds],
+  providers: [provideTranslocoScope('jigsawUser', 'play')],
   host: { class: 'd-block' },
   templateUrl: './picture.html',
 })
@@ -26,10 +26,14 @@ export class PlayPicture {
   private readonly router = inject(Router);
   private readonly jigsaws = inject(JigsawService);
   private readonly users = inject(JigsawUserService);
-  protected readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
+  private readonly address = inject(ActivatedRoute).snapshot;
+  protected readonly id = this.address.paramMap.get('id') ?? '';
+  /** opened from the detail of a package (`?package=`): the link on top and Delete go back there, since that is where the person was */
+  protected readonly fromPackage = this.address.queryParamMap.get('package');
+  protected readonly packagePage = `/play/mine/packages/${encodeURIComponent(this.fromPackage ?? '')}/pictures`;
 
-  /** the form can be changed (Edit was pressed), or it is only looked at */
-  protected readonly editing = signal(false);
+  /** the form can be changed (Edit was pressed, or the page was opened with `?edit`), or it is only looked at */
+  protected readonly editing = signal(this.address.queryParamMap.has('edit'));
   /** the person may change the picture (its owner, or an admin): what the form found out */
   protected readonly mayChange = signal(false);
   /** Delete was pressed and waits for "Yes" */
@@ -46,7 +50,7 @@ export class PlayPicture {
     this.error.set('');
     try {
       await this.jigsaws.removeAs(this.id, me.id);
-      await this.router.navigateByUrl('/play/mine/pictures');
+      await this.router.navigateByUrl(this.fromPackage ? this.packagePage : '/play/mine/pictures');
     } catch {
       this.error.set(tr('play.picture.couldNotDelete', 'Could not delete the picture: only its owner can.'));
       this.busy.set(false);

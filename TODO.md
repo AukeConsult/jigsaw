@@ -47,18 +47,27 @@ To do:
 
 ## The home page: tiles
 
-Built (the structure, with made-up content): the home page is a list of **tiles**. `FeedItem` (`functions/src/models/shared/feed-item.ts`) is the parent class; `PictureItem` (made from a search result), `InfoItem`, `OfferItem` and `PackageItem` override small hooks (what is wrong with it, where a press leads, where it goes among the pictures). `HomeFeed.merge` (`home-feed.ts`) puts the tiles that are not pictures among the pictures, counted in pictures from the first one, so a page loaded later never moves a tile that is there. `GET /jigsaw-feed` (`functions/src/jigsaw/jigsaw-feed.ts`) gives the tiles to show now; **its store is `dummyFeedStore`, four made-up tiles**. The app's list (`play-cards`) and the website's finder (`app-jigsaw-finder`, `[tiles]="true"` on the front page) use the same service (`FeedService`) and the same tile (`app-feed-tile`).
+Built: the home page is a list of **tiles** (`FeedItem`, `PictureItem`, `KeptItem` with `InfoItem`, `OfferItem` and `PackageItem` in `functions/src/models/shared/feed-item.ts`; `HomeFeed.merge`). **Information, offers and packages have their own collections (`jigsaw-info`, `jigsaw-offers`, `jigsaw-packages`), routes and pages** (`/play/mine/info`, `/play/mine/offers`, `/play/mine/packages`: a publisher or an admin adds, changes and deletes their own, an admin any; a search, a status filter, a date it is shown from and a date it expires). **The words are in every language: the author writes the master language and the AI makes the other eight when the tile is saved.** **Every tile is public, private or hidden; a private one is shown to its owner only with a banner, and a new one is private to begin with.** **A package has a price or is free and holds ordinary pictures** (the collection `jigsaw`, linked by `packageId`, not in the general list), uploaded many at once on the detail page of the package; its tile shows a random picture of the collection and opens the page of the package (`/play/package/:id`). `GET /jigsaw-feed` reads the collections and gives the active tiles to the app's list and the website's finder (the same service, rule and tile).
 
 To do:
 
-- [ ] Decide what an offer, an information and a package are (who writes them, who sees them, what a package holds, how a picture gets into it) and write it in `docs/guide/`.
-- [ ] Keep the tiles in Firestore (`JIGSAW_FEED`, `firestoreFeedStore`, replacing `dummyFeedStore`) with an index in this repo's `firestore.indexes.json` if a query needs one; routes to make, change and delete a tile (publisher or admin, `UserLevels`), with tests.
-- [ ] The pages that write the tiles (`/play/mine/packages` and the like), built like the picture form.
-- [ ] A page for a package (`FeedAction` `package`: now a package tile is not pressed), and a package as a filter of the list (`JigsawFilters`).
+- [ ] **Payment for a package**: a priced package can be bought, but nothing is charged (`paid: false` is kept with the price in `bought-packages`); decide how it is paid and build it.
+- [ ] The **picture files** of a package are readable by anybody who has their address (the tile and the package page show them as a preview): the search, opening and playing are kept for those who have the package, the image itself is not. Give them a key, or a smaller preview, if that matters.
+- [ ] A way to take a package out of one's pictures again, and what happens to it when its owner deletes its pictures.
+- [ ] A package has categories and the home page shows it only when it matches the person's search (`FeedItem.matchesFilter`), but **the filter offers only the categories some picture has** (the counts come from `/jigsaw-search/facets`), so a category only a package is in cannot be ticked: count the packages there too if that matters.
+- [ ] A package as a choice in the filter (only the pictures of the chosen packages, `JigsawFilters`), and how many pictures a package shows in the list of packages (`pictureCount`).
+- [ ] Say who a tile is for (language, level, signed in or not) and use it in `GET /jigsaw-feed` (the `Viewer`), and a limit on how many offers are shown.
+- [ ] Let an author correct a translation by hand in the form (the entry then counts as `by: 'author'` and is not overwritten).
 - [ ] Tiles made in the frontend (`source: 'local'`, for example "add your first picture") added to `FeedService.others`.
 - [ ] Let a person close an information or an offer (kept on the device, then with the user).
-- [ ] Say who a tile is for (language, level, signed in or not) and use it in `isShown`.
-- [ ] Texts of the tiles are English (they come from the backend); translate the labels if the page adds any.
+- [ ] `firestore.rules` for the emulator and `npm run sync:firestore` for the live project: the collections `jigsaw-info`, `jigsaw-offers` and `jigsaw-packages` are only read and written by the function (the admin SDK), so no rule is needed unless a client reads them; the picture query by `packageId` is one equality on one field (no composite index). Check before the first deploy.
+- [ ] Texts of the pages (`play.feed.*`) are translated by the assistant and not read by native speakers.
+
+## Limits for an account that is not verified
+
+Built (the rule is in `docs/guide/users-and-logon.md`). What is left:
+
+- [ ] An upload that names no account at all (no owner and no `X-Jigsaw-User`) is not counted: the pages never do that, but the API still takes it.
 
 ## Packages
 

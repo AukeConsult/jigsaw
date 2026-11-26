@@ -4,17 +4,25 @@ import { DocumentStore, documentStore } from "./document-store";
 import { JIGSAW_HEAD_FIELDS, JigsawSettings, JigsawInput, JigsawSpec, JigsawVisibilities } from "../models";
 
 /** Where the jigsaws are kept (Firestore in the app, a memory store in the tests). */
-export type JigsawStore = DocumentStore<JigsawInput, JigsawSpec>;
+export type JigsawStore = DocumentStore<JigsawInput, JigsawSpec> & {
+  /** how many jigsaws an account owns, however old (a fake store may leave it out: its list is counted then) */
+  countOwned?(ownerUid: string): Promise<number>;
+};
 
 /** The jigsaws in a Firestore collection (`jigsaw`): the newest 100; a jigsaw that an older version saved is read as the model says (see `JigsawSettings.fromStored`). */
 export function firestoreJigsawStore(collection: string): JigsawStore {
-  return documentStore<JigsawInput, JigsawSpec>(() => getFirestore().collection(collection), 100, (id, doc) => JigsawSettings.fromStored(id, doc as Partial<JigsawSpec>), {
+  const store = documentStore<JigsawInput, JigsawSpec>(() => getFirestore().collection(collection), 100, (id, doc) => JigsawSettings.fromStored(id, doc as Partial<JigsawSpec>), {
     headFields: JIGSAW_HEAD_FIELDS, // everything but the objects placed on the board (`placed`), which can be most of a document
     async peek(id, fields) {
       const ref = getFirestore().collection(collection).doc(id);
       return (await getFirestore().getAll(ref, { fieldMask: [...fields] }))[0];
     },
   });
+  return {
+    ...store,
+    // one equality on one field, counted by Firestore: no composite index, and no document is read
+    countOwned: async (ownerUid) => (await getFirestore().collection(collection).where("ownerUid", "==", ownerUid).count().get()).data().count,
+  };
 }
 
 /** The jigsaws newest first without what is placed on their boards (the list does not use it): what `heads()` of the store reads. */

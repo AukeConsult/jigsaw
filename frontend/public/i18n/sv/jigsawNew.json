@@ -77,5 +77,8 @@
   "kindPictureHelp": "Man väljer antal bitar och svårighetsgrad när man startar en rond.",
   "kindJigsaw": "Ett färdigt pussel",
   "kindJigsawHelp": "Du väljer antal bitar och svårighetsgrad nu.",
-  "pictureAlt": "Bilden"
+  "pictureAlt": "Bilden",
+  "limitCount": "{{ count }} av {{ max }} bilder använda. Ett verifierat konto har ingen gräns.",
+  "limitFull": "Du har {{ max }} bilder, det mesta ett konto som inte är verifierat kan ha. Verifiera kontot eller ta bort en bild.",
+  "limitVerify": "Verifiera kontot"
 }

@@ -77,5 +77,8 @@
   "kindPictureHelp": "Beim Start einer Runde wählt man die Anzahl der Teile und die Schwierigkeit.",
   "kindJigsaw": "Ein fertiges Puzzle",
   "kindJigsawHelp": "Du wählst die Anzahl der Teile und die Schwierigkeit jetzt.",
-  "pictureAlt": "Das Bild"
+  "pictureAlt": "Das Bild",
+  "limitCount": "{{ count }} von {{ max }} Bildern genutzt. Ein bestätigtes Konto hat keine Grenze.",
+  "limitFull": "Du hast {{ max }} Bilder, mehr kann ein nicht bestätigtes Konto nicht haben. Bestätige dein Konto oder lösche ein Bild.",
+  "limitVerify": "Konto bestätigen"
 }

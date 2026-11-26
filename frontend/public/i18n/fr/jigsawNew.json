@@ -77,5 +77,8 @@
   "kindPictureHelp": "On choisit le nombre de pièces et la difficulté au début d'une manche.",
   "kindJigsaw": "Un puzzle prêt",
   "kindJigsawHelp": "Vous choisissez maintenant le nombre de pièces et la difficulté.",
-  "pictureAlt": "L'image"
+  "pictureAlt": "L'image",
+  "limitCount": "{{ count }} images sur {{ max }} utilisées. Un compte vérifié n'a pas de limite.",
+  "limitFull": "Tu as {{ max }} images, le maximum pour un compte non vérifié. Vérifie ton compte ou supprime une image.",
+  "limitVerify": "Vérifier le compte"
 }

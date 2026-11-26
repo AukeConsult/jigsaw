@@ -1,26 +1,44 @@
+<ng-container *transloco="let t">
 <!-- one frame for every kind: the same look as a card (border, round corners), so a tile and a picture card sit in one grid; what is inside is the kind's own -->
-<div class="card h-100" [class.feed-pressable]="pressable()" [attr.role]="pressable() ? 'link' : null" [attr.tabindex]="pressable() ? 0 : null" (click)="pressable() && press()" (keydown.enter)="pressable() && press()">
+<div class="card h-100" [class.feed-private]="private()" [class.feed-pressable]="pressable()" [attr.role]="pressable() ? 'link' : null" [attr.tabindex]="pressable() ? 0 : null" (click)="pressable() && press()" (keydown.enter)="pressable() && press()">
+  @if (private()) {
+    <!-- a private tile is shown to its owner only, to check how it looks: a clear banner, so it is not forgotten and left private -->
+    <div class="card-header text-bg-warning text-center fw-semibold py-1" role="status"><i class="bi bi-lock-fill" aria-hidden="true"></i> {{ t('play.feed.privateBanner') || 'Private: only you see this. Make it public when it is ready.' }}</div>
+  }
   <div class="card-body d-flex flex-column gap-1">
     @if (offer(); as o) {
       <!-- an offer: a mark that catches the eye, the title and the words -->
-      <span class="badge text-bg-warning align-self-start"><i class="bi bi-tag-fill" aria-hidden="true"></i> {{ o.label }}</span>
-      <div class="subsection-title">{{ o.title }}</div>
-      @if (o.text) {
-        <div class="small text-body-secondary">{{ o.text }}</div>
+      <span class="badge text-bg-warning align-self-start"><i class="bi bi-tag-fill" aria-hidden="true"></i> {{ o.labelFor(language()) }}</span>
+      <div class="subsection-title">{{ o.titleFor(language()) }}</div>
+      @if (o.textFor(language())) {
+        <div class="small text-body-secondary">{{ o.textFor(language()) }}</div>
       }
     } @else if (pack(); as k) {
-      <!-- a package: a box, the title, the words and how many pictures it holds -->
-      <i class="bi bi-box-seam icon-xl text-primary" aria-hidden="true"></i>
-      <div class="subsection-title">{{ k.title }}</div>
-      @if (k.text) {
-        <div class="small text-body-secondary">{{ k.text }}</div>
+      <!-- a package: a picture of its collection (another each time), the title, the words, whether it is free or its price, and how many pictures it holds -->
+      @if (cover(); as src) {
+        @if (!noCover()) {
+          <img class="feed-cover rounded-2" [src]="src" alt="" (error)="noCover.set(true)">
+        }
+      } @else {
+        <i class="bi bi-box-seam icon-xl text-primary" aria-hidden="true"></i>
       }
-      <div class="tiny text-body-secondary mt-auto"><i class="bi bi-images" aria-hidden="true"></i> {{ k.jigsawIds.length }}</div>
+      <div class="subsection-title">{{ k.titleFor(language()) }}</div>
+      @if (k.textFor(language())) {
+        <div class="small text-body-secondary">{{ k.textFor(language()) }}</div>
+      }
+      <div class="d-flex flex-wrap align-items-center gap-2 mt-auto">
+        <span class="badge" [class.text-bg-success]="k.isFree" [class.text-bg-warning]="!k.isFree">{{ k.isFree ? (t('play.feed.free') || 'Free') : price() }}</span>
+        <span class="tiny text-body-secondary"><i class="bi bi-images" aria-hidden="true"></i> {{ k.data.pictureCount ?? 0 }}</span>
+        @if (had()) {
+          <span class="badge text-bg-primary ms-auto"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ t('play.feed.yours') || 'In my pictures' }}</span>
+        }
+      </div>
     } @else if (info(); as i) {
       <!-- information: words to read -->
       <i class="bi bi-info-circle-fill icon-xl text-primary" aria-hidden="true"></i>
-      <div class="subsection-title">{{ i.title }}</div>
-      <div class="small text-body-secondary">{{ i.text }}</div>
+      <div class="subsection-title">{{ i.titleFor(language()) }}</div>
+      <div class="small text-body-secondary">{{ i.textFor(language()) }}</div>
     }
   </div>
 </div>
+</ng-container>
