@@ -47,6 +47,8 @@ export class PlayRound implements OnInit {
 
   /** what the page is: being opened, the choice of a round of a picture, the look at a ready jigsaw, a picture of a package the account has not got, the look of somebody who is not logged on, or there is no such jigsaw */
   protected readonly state = signal<'opening' | 'choose' | 'view' | 'package' | 'logon' | 'missing'>('opening');
+  /** how much it has been played, told under the page as a piece of information (null: not read, or not told to this person) */
+  protected readonly crowd = signal<{ rounds: number; players: number } | null>(null);
   /** of a ready jigsaw: the player has not played it, has a round going, or has solved it */
   protected readonly played = signal<'new' | 'going' | 'solved'>('new');
   protected readonly pieces = computed(() => {
@@ -70,6 +72,7 @@ export class PlayRound implements OnInit {
     const jigsaw = await this.jigsaws.get(this.id).catch(() => null);
     if (!jigsaw) return this.state.set('missing');
     this.jigsaw.set(jigsaw);
+    void this.plays.summary(this.id).then((s) => this.crowd.set(s), () => undefined); // only information: the page does not wait for it
     const me = this.users.acting();
     if (!me) return this.state.set(jigsaw.packageId ? 'package' : 'logon'); // nobody plays: they may look
     const rounds = await this.plays.list(this.id, me.id).catch(() => []);

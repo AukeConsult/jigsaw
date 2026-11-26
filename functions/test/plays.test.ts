@@ -213,7 +213,7 @@ describe("the plays of a jigsaw", () => {
     expect((await request(app).get(`/jigsaw/api/jigsaw/${owned.id}/plays`)).body).toHaveLength(2);
     expect((await request(app).delete(`/jigsaw/api/jigsaw/${owned.id}/plays`).set("X-Jigsaw-User", "anna")).status).toBe(204);
     expect((await request(app).get(`/jigsaw/api/jigsaw/${owned.id}/plays`)).body).toEqual([]);
-    expect((await request(app).get(`/jigsaw/api/jigsaw/${owned.id}/plays/summary`)).body).toEqual({ played: false });
+    expect((await request(app).get(`/jigsaw/api/jigsaw/${owned.id}/plays/summary`)).body).toEqual({ played: false, rounds: 0, players: 0 });
     expect((await request(app).put(`/jigsaw/api/jigsaw/${owned.id}`).set("X-Jigsaw-User", "anna").send({ ...settings, ownerUid: "anna", snapPercent: 40 })).status).toBe(200); // the difficulty can be changed again
     expect((await request(app).delete("/jigsaw/api/jigsaw/nothere/plays").set("X-Jigsaw-User", "anna")).status).toBe(404);
   });
@@ -250,14 +250,14 @@ describe("the plays of a jigsaw", () => {
   it("tells whether anyone has played the jigsaw: only once a piece has been moved", async () => {
     const { app, made } = await setup();
     const url = `/jigsaw/api/jigsaw/${made.id}/plays`;
-    expect((await request(app).get(`${url}/summary`)).body).toEqual({ played: false });
+    expect((await request(app).get(`${url}/summary`)).body).toEqual({ played: false, rounds: 0, players: 0 });
     const opened = (await request(app).post(url).send({ userId: "anna" })).body as PlaySpec;
-    expect((await request(app).get(`${url}/summary`)).body).toEqual({ played: false }); // only opened: not played
+    expect((await request(app).get(`${url}/summary`)).body).toEqual({ played: false, rounds: 0, players: 0 }); // only opened: not played
     const play = await started(app, made.id, { userId: "anna" });
     expect(play.id).toBe(opened.id); // the round that was only opened is the one that is played
-    expect((await request(app).get(`${url}/summary`)).body).toEqual({ played: true });
+    expect((await request(app).get(`${url}/summary`)).body).toEqual({ played: true, rounds: 1, players: 1 });
     await anna(app).delete(`${url}/${play.id}`);
-    expect((await request(app).get(`${url}/summary`)).body).toEqual({ played: false });
+    expect((await request(app).get(`${url}/summary`)).body).toEqual({ played: false, rounds: 0, players: 0 });
     expect((await request(app).get("/jigsaw/api/jigsaw/nothing/plays/summary")).status).toBe(404);
   });
 

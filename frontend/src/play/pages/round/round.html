@@ -37,6 +37,7 @@
             <button type="button" class="btn btn-outline-secondary" (click)="back()">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
           </div>
         </div>
+        <ng-container *ngTemplateOutlet="howMany" />
       }
     }
     @case ('logon') {
@@ -52,6 +53,7 @@
             <button type="button" class="btn btn-outline-secondary" (click)="back()">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
           </div>
         </div>
+        <ng-container *ngTemplateOutlet="howMany" />
       }
     }
     @case ('choose') {
@@ -60,6 +62,7 @@
         <h1 class="page-title text-break">{{ j.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <app-round-choice [jigsaw]="j" [solved]="solved()" [busy]="busy()" (chosen)="start($event)" (cancelled)="back()" />
+        <ng-container *ngTemplateOutlet="howMany" />
         @if (error()) {
           <div class="alert alert-warning py-2 small mt-3" role="alert">{{ error() }}</div>
         }
@@ -99,5 +102,18 @@
         <span class="text-nowrap"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ j.createdAt | date: 'mediumDate' }}</span>
       }
     </div>
+  </ng-template>
+  <!-- how many have played it: only information -->
+  <ng-template #howMany>
+    @if (crowd(); as c) {
+      <p class="tiny text-body-secondary text-center mt-2 mb-0">
+        <i class="bi bi-people me-1" aria-hidden="true"></i>
+        @if (c.rounds) {
+          {{ t('play.playedBy', { rounds: c.rounds, players: c.players }) || 'Rounds played: ' + c.rounds + ', by ' + c.players }}
+        } @else {
+          {{ t('play.notPlayed') || 'Nobody has played it yet.' }}
+        }
+      </p>
+    }
   </ng-template>
 </main>

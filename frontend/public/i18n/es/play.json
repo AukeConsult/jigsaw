@@ -229,5 +229,8 @@
   "languageAndHome": "Idioma y portada",
   "languageTitle": "Idioma",
   "notYourPackage": "Esta imagen está en un paquete que no tienes.",
-  "openPackage": "Abrir el paquete"
+  "openPackage": "Abrir el paquete",
+  "filterOn": "El filtro está activado",
+  "playedBy": "Partidas jugadas: {{ rounds }} · Jugadores: {{ players }}",
+  "notPlayed": "Nadie lo ha jugado todavía."
 }

@@ -229,5 +229,8 @@
   "languageAndHome": "Taal en startpagina",
   "languageTitle": "Taal",
   "notYourPackage": "Deze afbeelding zit in een pakket dat je niet hebt.",
-  "openPackage": "Pakket openen"
+  "openPackage": "Pakket openen",
+  "filterOn": "Het filter staat aan",
+  "playedBy": "Gespeelde rondes: {{ rounds }} · Spelers: {{ players }}",
+  "notPlayed": "Nog niemand heeft hem gespeeld."
 }

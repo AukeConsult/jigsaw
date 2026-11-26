@@ -12,6 +12,8 @@ export interface PlayMenuItem {
   readonly route?: string;
   /** the entry is a switch of the page that is open (the puzzle, or the home page), not a link */
   readonly toggle?: PuzzelToggle | ListToggle;
+  /** the entry can carry a dot on its icon that says something about the app is on: `filter`, that the filter of the list has choices set */
+  readonly mark?: 'filter';
   readonly text?: string;
   readonly key?: string;
   readonly english?: string;
@@ -49,8 +51,8 @@ const ADD_PICTURE: PlayMenuItem = { icon: 'bi-plus-square', route: '/play/mine/a
 /** The entry to the user's own pages (their pictures, rounds and, for a publisher, what they publish), with the user menu. */
 const MY_STUFF: PlayMenuItem = { icon: 'bi-folder', route: '/play/mine', key: 'play.myUser', english: 'My stuff' };
 
-/** The entry that chooses which pictures are listed. */
-const FILTER: PlayMenuItem = { icon: 'bi-funnel', route: '/play/prefs', key: 'play.picturePreferences', english: 'Filter' };
+/** The entry that chooses which pictures are listed; it has a dot while any choice is made. */
+const FILTER: PlayMenuItem = { icon: 'bi-funnel', route: '/play/prefs', key: 'play.picturePreferences', english: 'Filter', mark: 'filter' };
 
 /** The language, for nobody on the home page (a user has it in the preferences): the flag is seen by somebody who can not read the words. */
 const LANGUAGE: PlayMenuItem = { icon: 'bi-translate', language: true };

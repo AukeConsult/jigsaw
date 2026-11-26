@@ -229,5 +229,8 @@
   "languageAndHome": "Sprog og forside",
   "languageTitle": "Sprog",
   "notYourPackage": "Dette billede er i en pakke, du ikke har.",
-  "openPackage": "Åbn pakken"
+  "openPackage": "Åbn pakken",
+  "filterOn": "Filteret er slået til",
+  "playedBy": "Spillede runder: {{ rounds }} · Spillere: {{ players }}",
+  "notPlayed": "Ingen har spillet den endnu."
 }

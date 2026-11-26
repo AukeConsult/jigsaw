@@ -7,6 +7,8 @@ import { isBoolean, readPreference, writePreference } from '../../app/core/prefe
 import { FavoritesService } from '../../app/jigsaw/favorites.service';
 import { LanguageSelect } from '../../app/jigsaw/language-select/language-select';
 import { ListView } from '../list-view';
+import { JigsawFilters } from '../../app/models/shared/jigsaw-filter';
+import { PlayListFilter } from '../play-list-filter';
 import { PuzzelToggle, PuzzelView } from '../puzzel-view';
 import { PlayMenuItem } from './menus';
 
@@ -68,6 +70,9 @@ export class Helper implements OnInit, OnDestroy {
   protected readonly view = inject(PuzzelView);
   private readonly listView = inject(ListView);
   private readonly favorites = inject(FavoritesService);
+  private readonly listFilter = inject(PlayListFilter);
+  /** the filter of the list has some choice set: its entry has a dot, so a list that is short for that reason is not a riddle */
+  protected readonly filterOn = computed(() => JigsawFilters.isOn(this.listFilter.filter()));
 
   /** a switch that is not offered now: the help picture and the border pieces of a puzzle that is finished, and My favorites when the user has no favorites (while the list is only the favorites the switch stays, or there would be no way back) */
   protected hidden(toggle: NonNullable<PlayMenuItem['toggle']>): boolean {

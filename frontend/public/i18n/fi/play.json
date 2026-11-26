@@ -229,5 +229,8 @@
   "languageAndHome": "Kieli ja etusivu",
   "languageTitle": "Kieli",
   "notYourPackage": "Tämä kuva on paketissa, jota sinulla ei ole.",
-  "openPackage": "Avaa paketti"
+  "openPackage": "Avaa paketti",
+  "filterOn": "Suodatin on päällä",
+  "playedBy": "Pelattuja kierroksia: {{ rounds }} · Pelaajia: {{ players }}",
+  "notPlayed": "Kukaan ei ole vielä pelannut sitä."
 }

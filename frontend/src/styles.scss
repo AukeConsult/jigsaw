@@ -568,6 +568,23 @@ small,
     inset: 0 0 0 auto;
   }
 
+  // the dot on the icon of an entry that says something is on (the filter)
+  .menu-icon {
+    position: relative;
+    display: inline-block;
+  }
+
+  .menu-mark {
+    position: absolute;
+    top: -0.0625rem;
+    right: -0.3125rem;
+    width: 0.5625rem;
+    height: 0.5625rem;
+    border-radius: 50%;
+    border: 1px solid var(--bs-white);
+    background-color: var(--bs-warning);
+  }
+
   // The grip: a short thick line that says the menu can be taken hold of. On the top of the floating menu, and on the edge of a bar that faces the page (the lower one of a top bar, the upper one of a bottom bar,
   // the right one of a left bar and the left one of a right bar). Until the person has moved the menu once it grows and takes the colour of the app a few times.
   .list-group,

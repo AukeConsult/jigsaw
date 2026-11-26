@@ -229,5 +229,8 @@
   "languageAndHome": "Language and home page",
   "languageTitle": "Language",
   "notYourPackage": "This picture is in a package you do not have.",
-  "openPackage": "Open the package"
+  "openPackage": "Open the package",
+  "filterOn": "The filter is on",
+  "playedBy": "Rounds played: {{ rounds }} · Players: {{ players }}",
+  "notPlayed": "Nobody has played it yet."
 }

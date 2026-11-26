@@ -60,7 +60,12 @@ export class PlaysService {
 
   /** whether anyone has started a game of the jigsaw (if not, the whole jigsaw can still be edited) */
   async played(jigsawId: string): Promise<boolean> {
-    return (await firstValueFrom(this.http.get<{ played: boolean }>(`${this.base(jigsawId)}/summary`))).played;
+    return (await this.summary(jigsawId)).played;
+  }
+
+  /** how much the jigsaw has been played: whether at all, how many rounds, and by how many accounts */
+  summary(jigsawId: string): Promise<{ played: boolean; rounds: number; players: number }> {
+    return firstValueFrom(this.http.get<{ played: boolean; rounds: number; players: number }>(`${this.base(jigsawId)}/summary`));
   }
 
   /** starts a game: the pieces are scattered, the difficulty is copied from the jigsaw; a picture is cut as chosen (the number of pieces and the difficulty) */

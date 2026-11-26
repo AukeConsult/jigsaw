@@ -205,7 +205,7 @@ export interface PlayDeps {
 
 /**
  * The plays of a jigsaw, `/jigsaw/:id/plays`:
- *  GET /summary: {played}, whether anyone has started a game of it. GET ?userId=: its plays (of that user), newest first. POST {userId}: starts a play for the user with that UID (the play keeps the UID and the name of the user) (the pieces are scattered); 403 when it is a picture of a package that player does not have.
+ *  GET /summary: {played, rounds, players}: whether anyone has started a game of it, how many rounds and by how many accounts. GET ?userId=: its plays (of that user), newest first. POST {userId}: starts a play for the user with that UID (the play keeps the UID and the name of the user) (the pieces are scattered); 403 when it is a picture of a package that player does not have.
  *  GET: the plays of all the users can be read (a round of another player can be looked at). Changing or deleting a round needs the header `X-Jigsaw-User` to be its player (403 otherwise).
  *  GET /:playId: the play, the settings it is played with, and the pieces as it has them (without the graphics).
  *  PATCH /:playId/positions {moves, storeWidth?, elapsedMs?}: where pieces are now (how wide the store of this game has grown to, and how long it has been played: that only grows); how many are in place and whether the game is solved follows from that. DELETE /:playId.
@@ -295,7 +295,9 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
 
   router.get("/summary", async (req, res) => {
     if (!(await jigsawOf(req, res))) return;
-    res.json({ played: await plays.has(idOf(req)) }); // whether anyone has started a game of it: if not, the whole jigsaw can still be edited
+    // whether anyone has started a game of it (if not, the whole jigsaw can still be edited), and how many: numbers only, so the private rounds are counted too; a round nobody has moved a piece in is none
+    const all = (await plays.list(idOf(req))).filter((p) => !p.fresh);
+    res.json({ played: all.length > 0, rounds: all.length, players: new Set(all.map((p) => p.userId)).size });
   });
 
   router.get("/:playId", async (req, res) => {

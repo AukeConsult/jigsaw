@@ -229,5 +229,8 @@
   "languageAndHome": "Språk og forside",
   "languageTitle": "Språk",
   "notYourPackage": "Dette bildet er i en pakke du ikke har.",
-  "openPackage": "Åpne pakken"
+  "openPackage": "Åpne pakken",
+  "filterOn": "Filteret er på",
+  "playedBy": "Runder spilt: {{ rounds }} · Spillere: {{ players }}",
+  "notPlayed": "Ingen har spilt den ennå."
 }
