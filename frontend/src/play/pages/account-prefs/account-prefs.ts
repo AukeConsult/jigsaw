@@ -15,7 +15,7 @@ import { goBack } from '../../go-back';
 import { ListView } from '../../list-view';
 
 /**
- * The page of the route `/play/account/preferences`: **the preferences** (not the filter of the picture list, which is `/play/prefs`): the language, what the home page shows (`ListView`), the theme of the app and the sound of the puzzle (`app-play-look-choice`), how big its text is and in which letters (`TextLook`), how big the picture tiles and the small labels are (`PartSizeChoice`), and whether the tiles tell their details (`TileDetails`). They
+ * The page of the route `/play/account/preferences`: **the preferences** (not the filter of the picture list, which is `/play/prefs`): the language, what the home page shows (`ListView`), the theme of the app and the sound of the puzzle (`app-play-look-choice`), how big its text is and in which letters (`TextLook`), and with the home page: how big the picture tiles and the small labels are (`PartSizeChoice`) and whether the tiles tell their details (`TileDetails`). They
  * are kept with the account that plays; for nobody, on the device.
  */
 @Component({
@@ -36,9 +36,24 @@ import { ListView } from '../../list-view';
           }
         </div>
       </fieldset>
-      <div class="form-check form-switch mb-0">
+      <div class="form-check form-switch mb-3">
         <input id="show-ongoing" class="form-check-input" type="checkbox" role="switch" [checked]="list.ongoing()" (change)="list.ongoing.set($any($event.target).checked)">
         <label class="form-check-label" for="show-ongoing">{{ t('play.showOngoing') || 'Show ongoing rounds on the home page' }}</label>
+      </div>
+      @for (part of parts; track part) {
+        <fieldset class="mb-3">
+          <legend class="form-label mb-1">{{ t('play.' + part) || part }}</legend>
+          <div class="d-flex flex-wrap gap-2">
+            @for (size of partSizes; track size) {
+              <input [id]="part + '-' + size" class="btn-check" type="radio" [name]="part" autocomplete="off" [checked]="chosen[part].value() === size" (change)="chosen[part].set(size)">
+              <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" [for]="part + '-' + size">{{ t('play.sizes.' + size) || size }}</label>
+            }
+          </div>
+        </fieldset>
+      }
+      <div class="form-check form-switch mb-0">
+        <input id="tile-details" class="form-check-input" type="checkbox" role="switch" [checked]="details.shown()" (change)="details.set($any($event.target).checked)">
+        <label class="form-check-label" for="tile-details">{{ t('play.tileDetails') || 'Show details on the picture tiles' }}</label>
       </div>
     </section>
     <section class="card card-body">
@@ -63,21 +78,6 @@ import { ListView } from '../../list-view';
           }
         </div>
       </fieldset>
-      @for (part of parts; track part) {
-        <fieldset class="mb-3">
-          <legend class="form-label mb-1">{{ t('play.' + part) || part }}</legend>
-          <div class="d-flex flex-wrap gap-2">
-            @for (size of partSizes; track size) {
-              <input [id]="part + '-' + size" class="btn-check" type="radio" [name]="part" autocomplete="off" [checked]="chosen[part].value() === size" (change)="chosen[part].set(size)">
-              <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" [for]="part + '-' + size">{{ t('play.sizes.' + size) || size }}</label>
-            }
-          </div>
-        </fieldset>
-      }
-      <div class="form-check form-switch mb-3">
-        <input id="tile-details" class="form-check-input" type="checkbox" role="switch" [checked]="details.shown()" (change)="details.set($any($event.target).checked)">
-        <label class="form-check-label" for="tile-details">{{ t('play.tileDetails') || 'Show details on the picture tiles' }}</label>
-      </div>
       <p class="form-text mb-0">
         @if (users.acting()) {
           {{ t('play.keptWithAccount') || 'Kept with your account, so it is the same on all your devices.' }}

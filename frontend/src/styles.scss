@@ -539,12 +539,25 @@ small,
     // the header of the menu has the look of the welcome band: little white puzzle pieces on a light wash in the colours of the logo, so it is seen over any picture
     background-image: $white-pieces, linear-gradient(120deg, #a9c8ff, #9fe3c9 55%, #ffd970);
     background-size: 9.375rem 9.375rem, auto;
-    border-bottom-color: color-mix(in srgb, var(--app-primary) 55%, transparent);
   }
 
-  // a border in the colour of the app round the whole menu, so it stands out on top of any page and picture
+  // a border in the colour of the app round the whole menu, so it stands out on top of any page and picture. The box alone has the border and the round corners: the rows have only a line between them, no border
+  // of their own at the sides and no corners (the last row is not the last thing in the box, the grip is, so Bootstrap's own rounding of a last row does not reach it)
   .list-group {
     border: 2px solid color-mix(in srgb, var(--app-primary) 65%, transparent);
+
+    > .list-group-item {
+      border-width: var(--bs-list-group-border-width) 0 0;
+      border-radius: 0;
+    }
+
+    > .list-group-item:first-child {
+      border-top-width: 0;
+    }
+
+    > .brand-item + * {
+      border-top-color: color-mix(in srgb, var(--app-primary) 55%, transparent);
+    }
   }
 
   // a helper (`Helper`, the class every helper extends) in the frame: in the bottom right corner until it is dragged; the press of a finger drags it, the page does not scroll
@@ -2686,8 +2699,11 @@ play-main:not([data-table='jigsaw']) {
     --app-theme-lift: var(--app-theme-lift-words);
   }
 
+  .play-helper .brand-item + * {
+    border-top-color: var(--app-theme-edge);
+  }
+
   .play-helper .brand-item {
-    border-bottom-color: var(--app-theme-edge);
     box-shadow: inset 0 0 0 100vmax rgba(255, 255, 255, var(--app-theme-lift));
   }
 
