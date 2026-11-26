@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { adminGuard } from '../app/jigsaw/admin.guard';
 import { publisherGuard } from '../app/jigsaw/publisher.guard';
 import { modeGuard } from '../app/core/app-mode';
-import { accountMenu, adminMenu, infoMenu, pageMenu, jigsawMenu, listMenu, pictureMenu, roundMenu, mineMenu, packagesMenu } from './helper/menus';
+import { accountMenu, infoMenu, pageMenu, jigsawMenu, listMenu, pictureMenu, roundMenu, mineMenu, packagesMenu, publishMenu } from './helper/menus';
 import { PlayAccount } from './pages/account/account';
 import { PlayAdmin } from './pages/admin/admin';
 import { PlayAddPicture } from './pages/add-picture/add-picture';
@@ -22,6 +22,7 @@ import { PlayRound } from './pages/round/round';
 import { PlayJigsaw } from './pages/jigsaw/jigsaw';
 import { PlayAccountPrefs } from './pages/account-prefs/account-prefs';
 import { PlayMain } from './play-main/play-main';
+import { lastPage } from './last-page';
 
 /**
  * The routes of the app, under `/play`: **the main page is the main route, and the pages are its sub routes**, each shown in the one router outlet of the main page: `/play/list` the picture list, `/play/account` the account (who is on, and all that has to
@@ -43,17 +44,17 @@ export const PLAY_ROUTES: Routes = [
         data: { menu: accountMenu },
         children: [
           { path: '', pathMatch: 'full', component: PlayAccount, title: 'Account' },
-          { path: 'preferences', component: PlayAccountPrefs, title: 'Account preferences' },
+          { path: 'preferences', component: PlayAccountPrefs, title: 'Preferences' },
         ],
       },
       { path: 'round/:id', component: PlayRound, title: 'Start a round', data: { menu: roundMenu } }, // where a picture leads: the choice of the pieces and the difficulty
       { path: 'jigsaw/:id', component: PlayJigsaw, title: 'Jigsaw', data: { menu: jigsawMenu } },
-      { path: 'admin', component: PlayAdmin, title: 'Admin', canActivate: [adminGuard], data: { menu: adminMenu } }, // the levels of the accounts: for an admin, and for every account that plays while there is no admin
+      { path: 'admin', component: PlayAdmin, title: 'Admin', canActivate: [adminGuard], data: { menu: accountMenu } }, // the levels of the accounts: for an admin, and for every account that plays while there is no admin
       {
         path: 'info', // the info about the app: the route is only the frame of its pages, so its menu (every page in it) is the menu of each
         data: { menu: infoMenu },
         children: [
-          { path: '', pathMatch: 'full', redirectTo: 'welcome' }, // /play/info has no page of its own: it opens the welcome
+          { path: '', pathMatch: 'full', redirectTo: () => lastPage('info') }, // /play/info has no page of its own: it opens the page of the info that was open last, the help to begin with
           { path: 'welcome', component: PlayInfo, title: 'Welcome', data: { doc: 'welcome' } },
           { path: 'help', component: PlayInfo, title: 'Help', data: { doc: 'help' } },
           { path: 'about', component: PlayInfo, title: 'About', data: { doc: 'about' } },
@@ -67,19 +68,20 @@ export const PLAY_ROUTES: Routes = [
         path: 'mine', // the user's own pages: the route is only the frame of them, so its menu is the menu of every sub page
         data: { menu: mineMenu },
         children: [
-          { path: '', pathMatch: 'full', redirectTo: 'pictures' }, // /play/mine has no page of its own: it goes to the user's pictures
+          { path: '', pathMatch: 'full', redirectTo: () => lastPage('mine') }, // /play/mine has no page of its own: it opens the user's page that was open last, their pictures to begin with
+          { path: 'publish', pathMatch: 'full', redirectTo: () => lastPage('publish') }, // where Publish leads: the page of the publisher that was open last
           { path: 'addpicture', component: PlayAddPicture, title: 'Add picture' },
-          { path: 'many', component: PlayMany, title: 'Many pictures', canActivate: [publisherGuard] }, // many pictures at once: for a publisher or an admin
-          { path: 'info', component: PlayFeedList, title: 'Information', data: { kind: 'info' }, canActivate: [publisherGuard] }, // the information of the home page a publisher or an admin writes
-          { path: 'info/new', component: PlayFeedEdit, title: 'New information', data: { kind: 'info' }, canActivate: [publisherGuard] },
-          { path: 'info/:id', component: PlayFeedEdit, title: 'Information', data: { kind: 'info' }, canActivate: [publisherGuard] },
-          { path: 'offers', component: PlayFeedList, title: 'Offers', data: { kind: 'offer' }, canActivate: [publisherGuard] }, // the offers of the home page
-          { path: 'offers/new', component: PlayFeedEdit, title: 'New offer', data: { kind: 'offer' }, canActivate: [publisherGuard] },
-          { path: 'offers/:id', component: PlayFeedEdit, title: 'Offer', data: { kind: 'offer' }, canActivate: [publisherGuard] },
-          { path: 'packages', component: PlayFeedList, title: 'Packages', data: { kind: 'package' }, canActivate: [publisherGuard] }, // the packages of the home page a publisher or an admin writes
-          { path: 'packages/new', component: PlayFeedEdit, title: 'New package', data: { kind: 'package' }, canActivate: [publisherGuard] },
-          { path: 'packages/:id/pictures', component: PlayPackagePictures, title: 'Pictures of the package', canActivate: [publisherGuard] }, // the detail of a package: its pictures and the upload of more
-          { path: 'packages/:id', component: PlayFeedEdit, title: 'Package', data: { kind: 'package' }, canActivate: [publisherGuard] },
+          { path: 'many', component: PlayMany, title: 'Many pictures', canActivate: [publisherGuard], data: { menu: publishMenu } }, // many pictures at once: for a publisher or an admin
+          { path: 'info', component: PlayFeedList, title: 'Information', data: { kind: 'info', menu: publishMenu }, canActivate: [publisherGuard] }, // the information of the home page a publisher or an admin writes
+          { path: 'info/new', component: PlayFeedEdit, title: 'New information', data: { kind: 'info', menu: publishMenu }, canActivate: [publisherGuard] },
+          { path: 'info/:id', component: PlayFeedEdit, title: 'Information', data: { kind: 'info', menu: publishMenu }, canActivate: [publisherGuard] },
+          { path: 'offers', component: PlayFeedList, title: 'Offers', data: { kind: 'offer', menu: publishMenu }, canActivate: [publisherGuard] }, // the offers of the home page
+          { path: 'offers/new', component: PlayFeedEdit, title: 'New offer', data: { kind: 'offer', menu: publishMenu }, canActivate: [publisherGuard] },
+          { path: 'offers/:id', component: PlayFeedEdit, title: 'Offer', data: { kind: 'offer', menu: publishMenu }, canActivate: [publisherGuard] },
+          { path: 'packages', component: PlayFeedList, title: 'Packages', data: { kind: 'package', menu: publishMenu }, canActivate: [publisherGuard] }, // the packages of the home page a publisher or an admin writes
+          { path: 'packages/new', component: PlayFeedEdit, title: 'New package', data: { kind: 'package', menu: publishMenu }, canActivate: [publisherGuard] },
+          { path: 'packages/:id/pictures', component: PlayPackagePictures, title: 'Pictures of the package', canActivate: [publisherGuard], data: { menu: publishMenu } }, // the detail of a package: its pictures and the upload of more
+          { path: 'packages/:id', component: PlayFeedEdit, title: 'Package', data: { kind: 'package', menu: publishMenu }, canActivate: [publisherGuard] },
           { path: 'picture/:id', component: PlayPicture, title: 'Picture', data: { menu: pictureMenu } }, // a picture that is there: the same form as Add picture, and its rounds
           { path: 'pictures', component: PlayMyPictures, title: 'My pictures' },
           { path: 'rounds', component: PlayMyRounds, title: 'My rounds' },

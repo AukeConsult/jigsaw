@@ -32,5 +32,24 @@
   "couldNotStart": "No se pudo reiniciar la partida: inténtalo de nuevo.",
   "openJigsaw": "Abrir la página del puzle",
   "finishedTitle": "¡Terminado!",
-  "finishedTime": "Tiempo: {{ time }}"
+  "finishedTime": "Tiempo: {{ time }}",
+  "table": "Mesa",
+  "tables": {
+    "plain": "Lisa",
+    "felt": "Fieltro",
+    "wood": "Madera",
+    "linen": "Lino",
+    "spring": "Primavera",
+    "summer": "Verano",
+    "autumn": "Otoño",
+    "winter": "Invierno",
+    "calm": "Tranquilo",
+    "angry": "Enfadado",
+    "jigsaw": "Puzle"
+  },
+  "sound": "Sonido cuando una pieza encaja",
+  "lookOwn": "Solo para esta partida.",
+  "lookReset": "Usar mis preferencias",
+  "lookFollows": "Sigue las preferencias de tu cuenta. Lo que elijas aquí es solo para esta partida.",
+  "lookNotSaved": "No se pudieron guardar los ajustes de la partida."
 }

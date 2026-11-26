@@ -10,5 +10,6 @@
   "clickToGet": "Hier tippen, um die Teile zu sammeln",
   "scrollLeft": "Die Teile nach links scrollen",
   "scrollRight": "Die Teile nach rechts scrollen",
-  "dragHint": "Ziehe ein Teil zum Bild"
+  "dragHint": "Ziehe ein Teil zum Bild",
+  "addHere": "Teile hierher legen"
 }

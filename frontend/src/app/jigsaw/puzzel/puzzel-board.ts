@@ -13,7 +13,7 @@ import { PuzzelRound } from './puzzel-round';
   template: `
     @if (round.item(); as it) {
       <app-jigsaw-board [width]="it.width" [height]="it.height" [gridSize]="it.gridSize" [gridVisible]="it.gridVisible" [gridInset]="true" [numberPoints]="round.debug()"
-                        [storeWidth]="it.storeWidth ?? 0" [lineWidth]="round.lineWidth()" [lineColor]="round.lineColor()" [backColor]="round.backColor()" [snapRange]="round.snapRangePx()" [picture]="round.picture()" [fillScreen]="true" [helperBanner]="true" [viewOnly]="round.viewOnly()"
+                        [storeWidth]="it.storeWidth ?? 0" [lineWidth]="round.lineWidth()" [lineColor]="round.lineColor()" [backColor]="round.backColor()" [snapRange]="round.snapRangePx()" [picture]="round.picture()" [fillScreen]="true" [helperBanner]="true" [viewOnly]="round.viewOnly()" [roundLook]="round.ownLook()"
                         [(placed)]="round.placed" (storeWidthChange)="round.widenStore($event)" />
     }
   `,

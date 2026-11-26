@@ -1,3 +1,4 @@
+import { PlayLookSetup } from '../models/shared/play-look';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
@@ -75,6 +76,11 @@ export class PlaysService {
   /** the round is made private (only its player sees it) or public again */
   setPrivate(jigsawId: string, playId: string, isPrivate: boolean): Promise<PlaySpec> {
     return firstValueFrom(this.http.patch<PlaySpec>(`${this.one(jigsawId, playId)}/privacy`, { private: isPrivate }, { headers: this.whoAsks() }));
+  }
+
+  /** the table and the sound of this round only, or null: the round follows the player's preference again */
+  setLook(jigsawId: string, playId: string, look: PlayLookSetup | null): Promise<PlaySpec> {
+    return firstValueFrom(this.http.patch<PlaySpec>(`${this.one(jigsawId, playId)}/look`, { look }, { headers: this.whoAsks() }));
   }
 
   get(jigsawId: string, playId: string): Promise<PlayDetail> {

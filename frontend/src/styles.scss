@@ -12,6 +12,7 @@ $bp-sm: 576px;
 $bp-md: 768px;
 $bp-lg: 992px;
 $bp-xl: 1200px;
+$bp-xxl: 1400px;
 // the soft colour pattern behind the pages: little puzzle pieces in the colours of the logo on a quiet wash (the frames of lists and of work, the cards and the forms, keep their own plain background)
 $soft-pattern: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><g fill-opacity='.11'><path transform='translate(10 14) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%230d6efd'/><path transform='translate(96 22) rotate(28) scale(.42)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%2320c997'/><path transform='translate(40 96) rotate(-18) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%23198754'/><path transform='translate(112 100) rotate(75) scale(.4)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='%23fd7e14'/></g></svg>"), linear-gradient(120deg, rgba(13, 110, 253, 0.07), rgba(32, 201, 151, 0.08) 55%, rgba(253, 126, 20, 0.07));
 $soft-pattern-size: 9.375rem 9.375rem, auto; // 150 px at the normal text size
@@ -40,8 +41,9 @@ $bp-front: 500px;
  */
 $fluid-from: 23.4375; // 375px in rem
 $fluid-to: 87.5; // 1400px in rem
-@function fluid($min, $max) {
-  $slope: math.div($max - $min, $fluid-to - $fluid-from);
+// (a size that has to be done growing earlier, such as the app's menu on a pad, names the width, in rem, where it is at `$max`)
+@function fluid($min, $max, $to: $fluid-to) {
+  $slope: math.div($max - $min, $to - $fluid-from);
   @return clamp(#{$min}rem, calc(#{$min}rem + #{$slope} * (100vw - #{$fluid-from}rem)), #{$max}rem);
 }
 
@@ -59,8 +61,16 @@ $fluid-to: 87.5; // 1400px in rem
   // a solved round (a light green, the green of the "Solved" badge)
   --app-solved-bg: #e3f4e8;
 
-  // fonts
-  --app-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif;
+  // THE ONE basic size of the text: every size of text is in `rem` (or `em`), so all of it follows this. 100% is the browser's own size; the app lets the person choose another (below).
+  --app-basic-font-size: 100%;
+  font-size: var(--app-basic-font-size);
+
+  // THE ONE basic family of the letters (`--app-font-sans`): everything takes it. The person may choose another of these; they are fonts the device has, nothing is fetched.
+  --app-font-standard: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif;
+  --app-font-clear: Verdana, Tahoma, 'DejaVu Sans', 'Noto Sans', sans-serif;
+  --app-font-serif: Georgia, 'Noto Serif', 'DejaVu Serif', 'Times New Roman', serif;
+  --app-font-playful: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', casual, cursive;
+  --app-font-sans: var(--app-font-standard);
   --app-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   // the sizes of the text: the ONE scale of the app, FIVE sizes. Each grows with the window, from the first size on a phone to the second on a big screen (see `fluid`).
   // A component never sets a size of its own: it takes a class below (`.page-title`, `.section-title`, `.small`, `.tiny` ...) or one of these tokens.
@@ -68,10 +78,11 @@ $fluid-to: 87.5; // 1400px in rem
   --app-fs-heading: #{fluid(1.125, 1.5)}; // a part of a page (h2, h3 and under), the line under a title, the name in the header, an icon beside a heading
   --app-fs-text: #{fluid(1, 1.125)}; // the text, what is typed in the fields, and the main button (not under 1rem: a smaller field makes a phone zoom in)
   --app-fs-small: #{fluid(0.8125, 0.9375)}; // labels and the help under a field, notes, the text of every button
-  --app-fs-menu: #{fluid(0.8125, 0.9375)}; // not one of the five: the text of the menu of the app (class `.menu-font`): 13 px on a phone, 15 px on a wide screen. Its own token, so the menu is tuned alone
+  --app-fs-menu: #{fluid(0.75, 1.125, 64)}; // not one of the five: the text of the menu of the app (class `.menu-font`): follows the width in a straight line from 12 px on a phone (375 px) to 18 px on a pad (1024 px) and wider. Its own token, so the menu is tuned alone
   --app-fs-compact: #{fluid(0.75, 0.9375)}; // not one of the five: the name on a card, smaller than `small` on a phone (12 px) and the same as it on a wide screen (class `.card-name`)
   --app-fs-band: #{fluid(0.8125, 1.125)}; // not one of the five: the heading badge of a band (Ongoing): from the size of `small` on a phone to 18 px on a wide screen, so it follows the screen
   --app-fs-tiny: #{fluid(0.6875, 0.8125)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`): 11 px on a phone, 13 px on a big screen
+  --app-fs-hint: #{fluid(0.5625, 0.8125, 64)}; // not one of the five: the word under an icon of a menu stuck to the top or the bottom: from 9 px on a phone to 13 px on a pad and wider
   // the buttons: the text of every button is `--app-fs-small` (the main one `--app-fs-text`); what makes them three sizes is the room round the text, in em, so it
   // follows the text size and a button keeps its shape whatever size the text has
   --app-btn-pad-y: 0.4em;
@@ -116,12 +127,44 @@ $fluid-to: 87.5; // 1400px in rem
   --app-choice-6: #0aa2c0;
   --app-picked: var(--app-primary); // what is picked: the outline, the frame dragged to pick
   --app-matched: var(--app-success); // the blink when a piece clicks into place
+  // the tables the pieces can lie on (the player chooses, `PlayLook`), and the mat of the picture area on each
+  --app-table-felt: #2f7554;
+  --app-table-felt-edge: #1f4f39;
+  --app-table-wood: #b27d4b;
+  --app-table-wood-edge: #8a5a30;
+  --app-table-linen: #e9e1d0;
+  // the board (the picture area) is a little lighter than its table, like a mat laid on it (the scroller is lighter than the table too)
+  --app-mat-felt: rgba(255, 255, 255, 0.14);
+  --app-mat-wood: rgba(255, 248, 235, 0.32);
+  --app-mat-linen: rgba(255, 255, 255, 0.6);
+  // the tables of the seasons
+  --app-table-spring: #d9efcf;
+  --app-table-spring-edge: #b9ddb0;
+  --app-table-summer: #1f9fc0;
+  --app-table-summer-edge: #12708f;
+  --app-table-autumn: #8a4b23;
+  --app-table-autumn-edge: #5a2d14;
+  --app-table-winter: #d4e6f4;
+  --app-table-winter-edge: #aac8e0;
+  --app-mat-jigsaw: rgba(255, 255, 255, 0.65);
+  // the tables of two moods
+  --app-table-calm: #cfd8ee;
+  --app-table-calm-edge: #a9b6da;
+  --app-table-angry: #8e1b1b;
+  --app-table-angry-edge: #3d0808;
+  --app-mat-calm: rgba(255, 255, 255, 0.55);
+  --app-mat-angry: rgba(255, 220, 200, 0.14);
+  --app-mat-spring: rgba(255, 255, 255, 0.55);
+  --app-mat-summer: rgba(255, 255, 255, 0.2);
+  --app-mat-autumn: rgba(255, 238, 214, 0.2);
+  --app-mat-winter: rgba(255, 255, 255, 0.6);
   --app-piece-outline: rgba(33, 37, 41, 0.55);
   --app-piece-blank: var(--app-blank); // a piece without a picture
   --app-text-name-from: var(--app-primary); // free text (classes `.text-name`, `.text-author`, `.text-facts`, `.text-count`): change the look of all of it here
   --app-text-name-to: var(--app-success);
   --app-text-name-weight: 700;
   --app-text-name-spacing: -0.01em;
+  --app-text-name-effect: none; // a glow or a shadow under a name, which a theme of the app may give it
   --app-text-button-weight: 600; // the text of every button
   --app-text-button-spacing: 0.01em;
   --app-text-author: var(--app-primary);
@@ -162,6 +205,7 @@ $fluid-to: 87.5; // 1400px in rem
   --app-z-overlay: 1000; // a menu or a popup that opens from a bar, over the play
   --app-z-sidebar: 1010; // the sidebar a small screen opens over the board
   --app-z-helper: 1040;
+  --app-z-veil: -1; // the white veil over a dark theme of the app: behind everything on the page, over the theme on the body
   --app-z-play-frame: 1100; // the frame of the app (`.play-frame`) that lies over the page and shows the helper: the highest layer, over the dialogs (1060) and Bootstrap's toasts (1090) too
   --app-z-dialog: 1060;
 
@@ -198,6 +242,80 @@ $fluid-to: 87.5; // 1400px in rem
     --app-btn-main-pad-y: 0.7em;
     --app-grip-size: 1.75rem;
   }
+}
+
+// what the person of the app has chosen for the text (`TextLook`, said by `play-main`): another basic size, another basic family
+@each $name, $size in ("small", 87.5%), ("large", 112.5%), ("larger", 125%) {
+  :root:has(play-main[data-text-size='#{$name}']) {
+    --app-basic-font-size: #{$size};
+  }
+}
+
+@each $font in "clear", "serif", "playful" {
+  :root:has(play-main[data-font='#{$font}']) {
+    --app-font-sans: var(--app-font-#{$font});
+  }
+}
+
+// the choice of a font is written in that font
+@each $font in "standard", "clear", "serif", "playful" {
+  .btn[data-font-sample='#{$font}'] {
+    font-family: var(--app-font-#{$font});
+  }
+}
+
+// a phone zooms in on a field with letters under 16 px: what is typed is never smaller there, however small the text is chosen
+@include touch {
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--app-fs-text)) !important;
+  }
+}
+
+// how big the person of the app likes the picture tiles (`TileSizeChoice`, said by `play-main`): how many are in a row, on a phone and from each wider screen. Medium is what Bootstrap's classes on the grids say.
+@each $size, $phone, $small, $large, $huge in ("small", 3, 4, 6, 8), ("large", 1, 2, 3, 4) {
+  play-main[data-tiles='#{$size}'] .row.tile-grid > * {
+    width: math.div(100%, $phone);
+
+    @include from($bp-sm) {
+      width: math.div(100%, $small);
+    }
+
+    @include from($bp-lg) {
+      width: math.div(100%, $large);
+    }
+
+    @include from($bp-xxl) {
+      width: math.div(100%, $huge);
+    }
+  }
+}
+
+// how big the person of the app likes the small labels (`data-labels`): their text, and with it the room round it, which is in `em`
+@each $size, $scale in ("small", 0.85), ("large", 1.35) {
+  play-main[data-labels='#{$size}'] .badge:not(.band-badge) {
+    --bs-badge-font-size: calc(var(--app-fs-tiny) * #{$scale});
+  }
+}
+
+// a description on a picture tile is a few lines at most, so the tiles of a row stay near one height
+.tile-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+// the picture on the page before the puzzle: whole, in its own shape, no wider than the page and no higher than most of the screen, so the buttons under it are near
+.round-picture {
+  max-width: 100%;
+  max-height: 65vh;
+}
+
+// the details under the name on a picture tile, which the person of the app can leave out (`TileDetails`)
+play-main[data-tile-details='false'] .tile-details {
+  display: none;
 }
 
 // Bootstrap's primary button takes its colours from its own class, so they are set here too (the hover and the press are a little darker)
@@ -373,6 +491,13 @@ small,
   color: var(--bs-danger); // a heart that is ticked is red, also on the shade of the button
 }
 
+@keyframes play-grip-call {
+  50% {
+    scale: var(--grip-grow);
+    background-color: var(--app-primary);
+  }
+}
+
 .btn-overlay {
   // a small see-through button on a picture (Play on the card of a jigsaw): the shade is the text colour of the look at half strength and the icon is the page colour,
   // so it can be seen on any picture, light or dark, and it takes little of it
@@ -418,16 +543,6 @@ small,
     border: 2px solid color-mix(in srgb, var(--app-primary) 65%, transparent);
   }
 
-  // the two little buttons at the right end of the first row (the arrow into the corner, and the arrow that folds the menu): close together, both the same
-  .brand-fold {
-    padding-block: 0;
-    padding-inline: 0.5em;
-  }
-
-  .brand-fold:last-child {
-    padding-right: 0.6em;
-  }
-
   // a helper (`Helper`, the class every helper extends) in the frame: in the bottom right corner until it is dragged; the press of a finger drags it, the page does not scroll
   position: absolute;
   right: 1rem;
@@ -437,10 +552,6 @@ small,
   user-select: none;
   &.dragging {
     cursor: grabbing;
-  }
-
-  .brand-row {
-    cursor: pointer; // the rest of the first row, beside the logo, opens and folds the menu
   }
 
   // stuck to an edge of the window: it lies along that edge
@@ -457,132 +568,128 @@ small,
     inset: 0 0 0 auto;
   }
 
-  // collapsed: a small tab at the start of its edge, over the page, with the logo and the arrow that opens it (down a side one above the other, without the name)
-  &.bar-folded {
-    &.docked-top,
-    &.docked-left {
-      inset: 0 auto auto 0;
-    }
-    &.docked-bottom {
-      inset: auto auto 0 0;
-    }
-    &.docked-right {
-      inset: 0 0 auto auto;
-    }
-
-    .play-bar {
-      border-radius: 0.5rem;
-    }
-
-    &.docked-top .play-bar {
-      border-radius: 0 0 0.5rem 0;
-      border-width: 0 2px 2px 0;
-    }
-    &.docked-bottom .play-bar {
-      border-radius: 0 0.5rem 0 0;
-      border-width: 2px 2px 0 0;
-    }
-    &.docked-left .play-bar {
-      border-radius: 0 0 0.5rem 0;
-      border-width: 0 2px 2px 0;
-    }
-    &.docked-right .play-bar {
-      border-radius: 0 0 0 0.5rem;
-      border-width: 0 0 2px 2px;
-    }
-
-    &.docked-left .brand-text,
-    &.docked-right .brand-text {
-      display: none;
-    }
-  }
-
-  // How the menu is moved and how one goes home: a small label ON the edge of the bar that faces the page, half on the bar and half on the page, in the middle of that edge (the lower one of a top bar, the upper one
-  // of a bottom bar, the right one of a left bar and the left one of a right bar). It lies on top, out of the row, so it takes no room from the entries, and presses go through it.
+  // The grip: a short thick line that says the menu can be taken hold of. On the top of the floating menu, and on the edge of a bar that faces the page (the lower one of a top bar, the upper one of a bottom bar,
+  // the right one of a left bar and the left one of a right bar). Until the person has moved the menu once it grows and takes the colour of the app a few times.
+  .list-group,
   .play-bar {
     position: relative;
   }
 
-  .play-drag-hint {
+  .play-grip {
+    --grip-grow: 1.7 1.5;
     position: absolute;
-    display: flex;
-    justify-content: center;
-    white-space: nowrap;
-    line-height: 1;
-    pointer-events: none;
-    background-color: var(--bs-body-bg); // it is read over any picture
-    border-radius: 1rem;
-  }
-
-  // across the top or the bottom: the two phrases side by side with a stroke between
-  &.docked-top .play-drag-hint,
-  &.docked-bottom .play-drag-hint {
+    top: 0.125rem;
     left: 50%;
-    padding: 0.15em 0.6em;
+    translate: -50% 0;
+    width: 2rem;
+    height: 0.25rem;
+    border-radius: 1rem;
+    background-color: color-mix(in srgb, var(--bs-emphasis-color) 35%, transparent);
+    z-index: 2; // over the entry that is marked
+  }
 
-    .play-hint-home::before {
-      content: ' / ';
-      white-space: pre;
+  &:not(.has-moved) .play-grip {
+    animation: play-grip-call 1.4s ease-in-out 1s 3;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
     }
   }
 
-  &.docked-top .play-drag-hint {
-    bottom: 0;
-    transform: translate(-50%, 50%);
+  &.docked-top .play-grip {
+    top: auto;
+    bottom: 0.0625rem;
   }
 
-  &.docked-bottom .play-drag-hint {
-    top: 0;
-    transform: translate(-50%, -50%);
-  }
-
-  // down a side: upright letters one under the other, close together; the two phrases are two lines beside each other
-  &.docked-left .play-drag-hint,
-  &.docked-right .play-drag-hint {
+  &.docked-left .play-grip,
+  &.docked-right .play-grip {
+    --grip-grow: 1.5 1.7;
     top: 50%;
-    align-items: center;
-    padding: 0.6em 0.15em;
-    writing-mode: vertical-lr;
-    text-orientation: upright;
-    letter-spacing: -0.4em; // an upright letter takes the whole height of the font: most of the room between two is taken out
-
-    .play-hint-words > span {
-      display: block;
-    }
+    translate: 0 -50%;
+    width: 0.25rem;
+    height: 2rem;
   }
 
-  &.docked-left .play-drag-hint {
-    right: 0;
-    transform: translate(50%, -50%);
+  &.docked-left .play-grip {
+    left: auto;
+    right: 0.125rem;
   }
 
-  &.docked-right .play-drag-hint {
-    left: 0;
-    transform: translate(-50%, -50%);
+  &.docked-right .play-grip {
+    left: 0.125rem;
   }
 
-  // the half of the label that is on a side bar must lie on no entry: the bar is that much wider there
+  // the grip of a bar lies on no entry: the bar has a little room for it on that side
+  &.docked-top .play-bar {
+    padding-bottom: 0.5rem;
+  }
+
+  &.docked-bottom .play-bar {
+    padding-top: 0.5rem;
+  }
+
   &.docked-left .play-bar {
-    padding-right: calc(var(--app-fs-tiny) * 1.3);
+    padding-right: 0.625rem;
   }
 
   &.docked-right .play-bar {
-    padding-left: calc(var(--app-fs-tiny) * 1.3);
+    padding-left: 0.625rem;
   }
 
-  // a collapsed bar has no hint, and no room for one
-  &.bar-folded.docked-top .play-bar,
-  &.bar-folded.docked-bottom .play-bar,
-  &.bar-folded.docked-left .play-bar,
-  &.bar-folded.docked-right .play-bar {
-    padding: 0.25rem;
+  // while the menu is carried the edges of the window light up: that is where it can be fastened
+  .play-edges {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 0.25rem color-mix(in srgb, var(--app-primary) 55%, transparent), inset 0 0 2rem color-mix(in srgb, var(--app-primary) 35%, transparent);
   }
 
-  // a low window (a phone on its side) has no room for the whole of it down a side: none is better than half a phrase
-  @media (max-height: 22rem) {
-    &.docked-left .play-drag-hint,
-    &.docked-right .play-drag-hint {
-      visibility: hidden;
+  // across the top or the bottom every entry is its icon with its word under it, so a row of icons is never a riddle: the room is shared by how long the words are (a long one takes two lines at most when there is little)
+  &.docked-top,
+  &.docked-bottom {
+    .play-bar {
+      --bs-nav-link-padding-x: 0.1em;
+      column-gap: 0.125rem !important;
+      flex-wrap: nowrap;
+      align-items: stretch !important;
+
+      > :not(.brand-lockup, .play-grip) {
+        flex: 1 1 auto;
+        min-width: min-content; // a word is never broken: another entry gives up room, taking a second line
+        max-width: 7rem;
+      }
+
+      .nav-link:not(.brand-lockup) {
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        gap: 0 !important;
+      }
+
+      .fit-label {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        max-width: 100%;
+        font-size: var(--app-fs-hint);
+        line-height: 1.1;
+        text-align: center;
+        overflow-wrap: break-word;
+        hyphens: auto;
+      }
+
+      app-language-select .bi {
+        display: none;
+      }
+    }
+
+    @include below($bp-md) {
+      .brand-text {
+        display: none;
+      }
     }
   }
 
@@ -626,24 +733,16 @@ small,
     }
   }
 
-  // a bar flows together with the page: the same soft pattern, laid from the window (`fixed`) so it runs on from the page into the bar with no seam, and no line or shadow between them
-  &:not(.bar-folded) .play-bar {
-    background-image: $soft-pattern;
-    background-size: $soft-pattern-size;
-    background-attachment: fixed;
-  }
-
-  // the bar (the collapsed tab, which lies over the page, is plain white)
+  // the bar
   .play-bar {
     --bs-nav-link-color: var(--bs-body-color);
     --bs-nav-link-hover-color: var(--bs-emphasis-color);
     --bs-nav-link-padding-x: 0.7em;
     --bs-nav-link-padding-y: 0.3em;
     padding: 0.25rem;
-    background-color: var(--bs-body-bg);
-    border-style: solid;
+    border-style: solid; // (the bar is see-through: the theme is painted behind it and the page)
     border-color: color-mix(in srgb, var(--app-primary) 65%, transparent);
-    border-width: 0; // no line between a bar and the page: only the collapsed tab, which lies over the page, has a border
+    border-width: 0; // no line between a bar and the page
 
     .nav-link:not(.active):hover {
       background-color: var(--bs-secondary-bg);
@@ -664,27 +763,12 @@ small,
       color: var(--bs-white);
       background-color: var(--app-primary);
     }
-
-    // only the icons: closer together, so they stay on the line also on a phone (each entry without its word, when some have theirs)
-    &.fit-1,
-    .nav-link:has(.fit-off) {
-      --bs-nav-link-padding-x: 0.4em;
-    }
-
-    // still too wide: the name beside the logo goes
-    &.fit-2 {
-      column-gap: 0 !important;
-
-      .brand-text {
-        display: none;
-      }
-    }
   }
 }
 
 // The main page of the app is the one thing that scrolls: the window itself never does (see `html, body` below), so `play-main` fills the screen and scrolls, with the page that is open in it, and every page of the app can be longer than the screen.
 // The frame that shows the helper is fixed over it, so the helper stays where it is when the page scrolls.
-// The puzzle page is the exception: it does not scroll, it is as big as the screen (`play-jigsaw`), and the board fills what the details leave.
+// The puzzle page is the exception: it does not scroll, it is as big as the screen (`play-jigsaw`), and the board fills it all (the details are a panel over it).
 play-main {
   position: fixed;
   inset: 0;
@@ -697,18 +781,10 @@ play-main {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 
-  // the same soft pattern behind the pages as the website has (`app-jigsaw-shell`): the pages have it behind their frames; the puzzle is a working frame and has none
-  background-image: $soft-pattern;
-  background-size: $soft-pattern-size;
-  background-attachment: fixed; // laid from the window, as the menu's bar is, so the two meet without a seam
+  // (its background is the theme, painted on the body behind it: see the tables below)
 
   &:has(play-jigsaw) {
     overflow-y: hidden;
-    background-image: none;
-
-    .play-bar {
-      background-image: none !important; // the puzzle has no pattern: its bar has none either
-    }
   }
 }
 
@@ -728,12 +804,6 @@ app-puzzel-banner {
 
 play-jigsaw .jigsaw-play {
   height: 100%;
-}
-
-@include from($bp-xl) {
-  play-jigsaw .jigsaw-sidebar {
-    height: 100%; // the details beside the board are as high as the screen and scroll in themselves
-  }
 }
 
 .play-frame {
@@ -1513,6 +1583,8 @@ app-my-rounds {
   margin-top: 0; // no badge on its top border (the "Ongoing" band has one), so no room for it above the band or under the border
   padding-top: 0;
   margin-bottom: 0.5rem; // a small gap between the band and the row of quick filters under it
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  background-color: var(--bs-tertiary-bg);
   background-image: $soft-pattern;
   background-size: $soft-pattern-size;
 }
@@ -1582,8 +1654,7 @@ app-my-rounds {
 
 // a bar that must stay on one line (`LabelFit`, `core/label-fit.ts`): it measures, and when everything does not fit on one line the words of its buttons are hidden (`fit-1`: the icons stay, the words stay for a
 // screen reader), and then what can go (`fit-2`: the name beside the logo, and the clock, `.fit-drop`)
-.fit-1 :is(.fit-label, .nav-label),
-.fit-label.fit-off {
+.fit-1 :is(.fit-label, .nav-label) {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -2272,6 +2343,7 @@ app-jigsaw-shell > app-jigsaw-play:not(.app-navbar):not(.app-toolbar):not(router
 .page-title { // the title of a page has the look of a name
   font-weight: var(--app-text-name-weight);
   letter-spacing: var(--app-text-name-spacing);
+  filter: var(--app-text-name-effect);
   background-image: linear-gradient(120deg, var(--app-text-name-from), var(--app-text-name-to));
   -webkit-background-clip: text;
   background-clip: text;
@@ -2285,6 +2357,7 @@ app-jigsaw-shell > app-jigsaw-play:not(.app-navbar):not(.app-toolbar):not(router
 
 .page-title .text-name {
   background-image: none; // a name inside a title is already clipped by the title's own gradient
+  filter: none;
   color: inherit !important;
 }
 
@@ -2341,6 +2414,366 @@ app-jigsaw-shell > app-jigsaw-play {
 }
 
 // ---- the jigsaw board ------------------------------------------------------------------------------------------------------------------------------
+// the grain of the tables, drawn once by the browser as a tile: fine specks for felt, long streaks for wood
+$grain-felt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 -.1'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+$grain-wood: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006 .13' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .12 0 0 0 0 .02 0 0 0 .9 -.28'/%3E%3C/filter%3E%3Crect width='360' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+
+// the tables: on the working area of a round (and, small, beside their names in the choice)
+%table-felt {
+  background: $grain-felt, radial-gradient(ellipse at center, var(--app-table-felt), var(--app-table-felt-edge));
+}
+
+:is(.board-root, .table-swatch)[data-table='felt'] {
+  @extend %table-felt;
+}
+
+%table-wood {
+  background: $grain-wood, repeating-linear-gradient(0deg, transparent 0 5.5rem, rgba(0, 0, 0, 0.22) 5.5rem calc(5.5rem + 2px)), linear-gradient(90deg, var(--app-table-wood), var(--app-table-wood-edge), var(--app-table-wood));
+}
+
+:is(.board-root, .table-swatch)[data-table='wood'] {
+  @extend %table-wood;
+}
+
+%table-linen {
+  background: repeating-linear-gradient(0deg, rgba(110, 90, 60, 0.09) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(110, 90, 60, 0.09) 0 1px, transparent 1px 3px), var(--app-table-linen);
+}
+
+:is(.board-root, .table-swatch)[data-table='linen'] {
+  @extend %table-linen;
+}
+
+// the seasons: little shapes of each (blossoms, waves and sun, leaves, snowflakes) thinly over its colour
+$season-spring: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cg opacity='.55'%3E%3Cg transform='translate(30 34)' fill='%23f4a7c0'%3E%3Cellipse cx='0' cy='-9' rx='5.6' ry='9' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-9' rx='5.6' ry='9' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-9' rx='5.6' ry='9' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-9' rx='5.6' ry='9' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-9' rx='5.6' ry='9' transform='rotate(288)'/%3E%3Ccircle r='4.0' fill='%23f6d55c'/%3E%3C/g%3E%3Cg transform='translate(128 70)' fill='%23ffffff'%3E%3Cellipse cx='0' cy='-7' rx='4.3' ry='7' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-7' rx='4.3' ry='7' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-7' rx='4.3' ry='7' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-7' rx='4.3' ry='7' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-7' rx='4.3' ry='7' transform='rotate(288)'/%3E%3Ccircle r='3.1' fill='%23f6d55c'/%3E%3C/g%3E%3Cg transform='translate(70 138)' fill='%23f7bfd2'%3E%3Cellipse cx='0' cy='-8' rx='5.0' ry='8' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-8' rx='5.0' ry='8' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-8' rx='5.0' ry='8' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-8' rx='5.0' ry='8' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-8' rx='5.0' ry='8' transform='rotate(288)'/%3E%3Ccircle r='3.6' fill='%23f6d55c'/%3E%3C/g%3E%3Cg transform='translate(158 160)' fill='%23f4a7c0'%3E%3Cellipse cx='0' cy='-5' rx='3.1' ry='5' transform='rotate(0)'/%3E%3Cellipse cx='0' cy='-5' rx='3.1' ry='5' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-5' rx='3.1' ry='5' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-5' rx='3.1' ry='5' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-5' rx='3.1' ry='5' transform='rotate(288)'/%3E%3Ccircle r='2.2' fill='%23f6d55c'/%3E%3C/g%3E%3C/g%3E%3Cg opacity='.4'%3E%3Cpath transform='translate(92 30) rotate(55) scale(0.7)' d='M0 -14 C9 -8 9 8 0 14 C-9 8 -9 -8 0 -14 Z M0 -14 L0 18' fill='%236fae5c' stroke='%236fae5c' stroke-width='1'/%3E%3Cpath transform='translate(28 108) rotate(-40) scale(0.8)' d='M0 -14 C9 -8 9 8 0 14 C-9 8 -9 -8 0 -14 Z M0 -14 L0 18' fill='%236fae5c' stroke='%236fae5c' stroke-width='1'/%3E%3Cpath transform='translate(140 122) rotate(20) scale(0.6)' d='M0 -14 C9 -8 9 8 0 14 C-9 8 -9 -8 0 -14 Z M0 -14 L0 18' fill='%236fae5c' stroke='%236fae5c' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E");
+
+%table-spring {
+  background: $season-spring, radial-gradient(ellipse at center, var(--app-table-spring), var(--app-table-spring-edge));
+}
+
+:is(.board-root, .table-swatch)[data-table='spring'] {
+  @extend %table-spring;
+}
+
+.board-root[data-table='spring'] .picture-mat {
+  background-color: var(--app-mat-spring);
+}
+
+$season-summer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' opacity='.28'%3E%3Cpath d='M8 40 q10 -9 20 0 t20 0 t20 0'/%3E%3Cpath d='M82 112 q10 -9 20 0 t20 0 t20 0'/%3E%3C/g%3E%3Cg opacity='.3' fill='%23ffe08a'%3E%3Ccircle cx='122' cy='36' r='9'/%3E%3Ccircle cx='34' cy='122' r='4'/%3E%3C/g%3E%3C/svg%3E");
+
+%table-summer {
+  background: $season-summer, radial-gradient(ellipse at center, var(--app-table-summer), var(--app-table-summer-edge));
+}
+
+:is(.board-root, .table-swatch)[data-table='summer'] {
+  @extend %table-summer;
+}
+
+.board-root[data-table='summer'] .picture-mat {
+  background-color: var(--app-mat-summer);
+}
+
+$season-autumn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='190'%3E%3Cg opacity='.5'%3E%3Cpath transform='translate(34 40) rotate(35) scale(1.2)' d='M0 -14 C9 -8 9 8 0 14 C-9 8 -9 -8 0 -14 Z M0 -14 L0 18' fill='%23e07a1f' stroke='%23e07a1f' stroke-width='1'/%3E%3Cpath transform='translate(138 66) rotate(-55) scale(1.1)' d='M0 -14 C9 -8 9 8 0 14 C-9 8 -9 -8 0 -14 Z M0 -14 L0 18' fill='%23b5331d' stroke='%23b5331d' stroke-width='1'/%3E%3Cpath transform='translate(84 146) rotate(120) scale(1.0)' d='M0 -14 C9 -8 9 8 0 14 C-9 8 -9 -8 0 -14 Z M0 -14 L0 18' fill='%23e0a21f' stroke='%23e0a21f' stroke-width='1'/%3E%3Cpath transform='translate(166 166) rotate(15) scale(0.7)' d='M0 -14 C9 -8 9 8 0 14 C-9 8 -9 -8 0 -14 Z M0 -14 L0 18' fill='%23e07a1f' stroke='%23e07a1f' stroke-width='1'/%3E%3Cpath transform='translate(96 22) rotate(-120) scale(0.6)' d='M0 -14 C9 -8 9 8 0 14 C-9 8 -9 -8 0 -14 Z M0 -14 L0 18' fill='%23e0a21f' stroke='%23e0a21f' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E");
+
+%table-autumn {
+  background: $season-autumn, radial-gradient(ellipse at center, var(--app-table-autumn), var(--app-table-autumn-edge));
+}
+
+:is(.board-root, .table-swatch)[data-table='autumn'] {
+  @extend %table-autumn;
+}
+
+.board-root[data-table='autumn'] .picture-mat {
+  background-color: var(--app-mat-autumn);
+}
+
+$season-winter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cg opacity='.95'%3E%3Cg transform='translate(36 38)' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M0 0 L0 -12 M0 -6.6 L3.4 -9.6 M0 -6.6 L-3.4 -9.6' transform='rotate(0)'/%3E%3Cpath d='M0 0 L0 -12 M0 -6.6 L3.4 -9.6 M0 -6.6 L-3.4 -9.6' transform='rotate(60)'/%3E%3Cpath d='M0 0 L0 -12 M0 -6.6 L3.4 -9.6 M0 -6.6 L-3.4 -9.6' transform='rotate(120)'/%3E%3Cpath d='M0 0 L0 -12 M0 -6.6 L3.4 -9.6 M0 -6.6 L-3.4 -9.6' transform='rotate(180)'/%3E%3Cpath d='M0 0 L0 -12 M0 -6.6 L3.4 -9.6 M0 -6.6 L-3.4 -9.6' transform='rotate(240)'/%3E%3Cpath d='M0 0 L0 -12 M0 -6.6 L3.4 -9.6 M0 -6.6 L-3.4 -9.6' transform='rotate(300)'/%3E%3C/g%3E%3Cg transform='translate(122 92)' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M0 0 L0 -9 M0 -5.0 L2.5 -7.2 M0 -5.0 L-2.5 -7.2' transform='rotate(0)'/%3E%3Cpath d='M0 0 L0 -9 M0 -5.0 L2.5 -7.2 M0 -5.0 L-2.5 -7.2' transform='rotate(60)'/%3E%3Cpath d='M0 0 L0 -9 M0 -5.0 L2.5 -7.2 M0 -5.0 L-2.5 -7.2' transform='rotate(120)'/%3E%3Cpath d='M0 0 L0 -9 M0 -5.0 L2.5 -7.2 M0 -5.0 L-2.5 -7.2' transform='rotate(180)'/%3E%3Cpath d='M0 0 L0 -9 M0 -5.0 L2.5 -7.2 M0 -5.0 L-2.5 -7.2' transform='rotate(240)'/%3E%3Cpath d='M0 0 L0 -9 M0 -5.0 L2.5 -7.2 M0 -5.0 L-2.5 -7.2' transform='rotate(300)'/%3E%3C/g%3E%3Cg transform='translate(60 138)' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M0 0 L0 -7 M0 -3.9 L2.0 -5.6 M0 -3.9 L-2.0 -5.6' transform='rotate(0)'/%3E%3Cpath d='M0 0 L0 -7 M0 -3.9 L2.0 -5.6 M0 -3.9 L-2.0 -5.6' transform='rotate(60)'/%3E%3Cpath d='M0 0 L0 -7 M0 -3.9 L2.0 -5.6 M0 -3.9 L-2.0 -5.6' transform='rotate(120)'/%3E%3Cpath d='M0 0 L0 -7 M0 -3.9 L2.0 -5.6 M0 -3.9 L-2.0 -5.6' transform='rotate(180)'/%3E%3Cpath d='M0 0 L0 -7 M0 -3.9 L2.0 -5.6 M0 -3.9 L-2.0 -5.6' transform='rotate(240)'/%3E%3Cpath d='M0 0 L0 -7 M0 -3.9 L2.0 -5.6 M0 -3.9 L-2.0 -5.6' transform='rotate(300)'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23ffffff' opacity='.9'%3E%3Ccircle cx='108' cy='24' r='2'/%3E%3Ccircle cx='20' cy='96' r='1.6'/%3E%3Ccircle cx='150' cy='146' r='2.2'/%3E%3Ccircle cx='88' cy='70' r='1.4'/%3E%3C/g%3E%3C/svg%3E");
+
+%table-winter {
+  background: $season-winter, radial-gradient(ellipse at center, var(--app-table-winter), var(--app-table-winter-edge));
+}
+
+:is(.board-root, .table-swatch)[data-table='winter'] {
+  @extend %table-winter;
+}
+
+.board-root[data-table='winter'] .picture-mat {
+  background-color: var(--app-mat-winter);
+}
+
+// two moods: still ripples for calm, bolts and splinters for angry
+$mood-calm: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='2' opacity='.45'%3E%3Ccircle cx='60' cy='60' r='14'/%3E%3Ccircle cx='60' cy='60' r='28' opacity='.7'/%3E%3Ccircle cx='60' cy='60' r='42' opacity='.4'/%3E%3Ccircle cx='166' cy='162' r='10'/%3E%3Ccircle cx='166' cy='162' r='22' opacity='.6'/%3E%3C/g%3E%3Cg fill='%23ffffff' opacity='.35'%3E%3Ccircle cx='170' cy='48' r='4'/%3E%3Ccircle cx='46' cy='174' r='3'/%3E%3C/g%3E%3C/svg%3E");
+
+%table-calm {
+  background: $mood-calm, radial-gradient(ellipse at center, var(--app-table-calm), var(--app-table-calm-edge));
+}
+
+:is(.board-root, .table-swatch)[data-table='calm'] {
+  @extend %table-calm;
+}
+
+.board-root[data-table='calm'] .picture-mat {
+  background-color: var(--app-mat-calm);
+}
+
+$mood-angry: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cg opacity='.55' fill='%23ffb000'%3E%3Cpath d='M38 12 L20 48 L34 48 L22 80 L56 38 L40 38 L52 12 Z'/%3E%3Cpath d='M138 98 L124 126 L135 126 L126 152 L154 118 L141 118 L150 98 Z' opacity='.8'/%3E%3C/g%3E%3Cg stroke='%23ff5a36' stroke-width='2.5' fill='none' stroke-linejoin='miter' opacity='.5'%3E%3Cpath d='M96 30 l10 14 -14 6 18 12'/%3E%3Cpath d='M30 130 l16 -8 -2 18 18 -6 -8 20'/%3E%3Cpath d='M150 38 l14 6 -12 8 16 10'/%3E%3C/g%3E%3C/svg%3E");
+
+%table-angry {
+  background: $mood-angry, radial-gradient(ellipse at center, var(--app-table-angry), var(--app-table-angry-edge));
+}
+
+:is(.board-root, .table-swatch)[data-table='angry'] {
+  @extend %table-angry;
+}
+
+.board-root[data-table='angry'] .picture-mat {
+  background-color: var(--app-mat-angry);
+}
+
+// Jigsaw: the app's own look, the soft pattern of puzzle pieces behind the pages
+%table-jigsaw {
+  background-color: var(--bs-body-bg);
+  background-image: $soft-pattern;
+  background-size: $soft-pattern-size;
+}
+
+:is(.board-root, .table-swatch)[data-table='jigsaw'] {
+  @extend %table-jigsaw;
+}
+
+.board-root[data-table='jigsaw'] .picture-mat {
+  background-color: var(--app-mat-jigsaw);
+}
+
+.board-root[data-table='jigsaw'] .store-scroller {
+  background-color: rgba(255, 255, 255, 0.65); // a light look: more is needed to be seen
+}
+
+.table-swatch {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--bs-emphasis-color-rgb), 0.35);
+  vertical-align: -0.1em;
+  background: var(--bs-body-bg);
+}
+
+.table-swatch[data-table='jigsaw'] {
+  background: linear-gradient(120deg, var(--app-nav-blue), var(--app-success)); // (not the colour of the app, which a theme changes)
+}
+
+@each $season in spring, summer, autumn, winter, calm, angry {
+  .table-swatch[data-table='#{$season}'] {
+    background: var(--app-table-#{$season});
+  }
+}
+
+// the picture area is a mat on the table (a jigsaw that has its own background colour keeps it)
+// the watermark of an empty picture area: big, faint words in its middle, over nothing that can be pressed; the board is drawn at a scale (`--app-scale`), the words keep their size on the screen
+.picture-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5em;
+  text-align: center;
+  font-size: calc(var(--app-fs-title) / var(--app-scale, 1));
+  font-weight: 700;
+  color: color-mix(in srgb, var(--bs-emphasis-color) 24%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+// on the dark tables the words are light
+.board-root:is([data-table='felt'], [data-table='wood'], [data-table='summer'], [data-table='autumn'], [data-table='angry']) .picture-watermark {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.board-root[data-table='felt'] .picture-mat {
+  background-color: var(--app-mat-felt);
+}
+
+.board-root[data-table='wood'] .picture-mat {
+  background-color: var(--app-mat-wood);
+}
+
+.board-root[data-table='linen'] .picture-mat {
+  background-color: var(--app-mat-linen);
+}
+
+// The theme of the app (the account's preference, `PlayLook`) is painted once, on the body, behind every page of the app and the menu: the pages, the board and a menu stuck to an edge are see-through on it, so there is
+// no seam anywhere. A puzzle has the table of its round, which may be its own. (The names are quoted: "linen" is also the name of a colour, which sass would write as a number.)
+@each $table in "jigsaw", "felt", "wood", "linen", "spring", "summer", "autumn", "winter", "calm", "angry" {
+  body:has(play-main[data-table='#{$table}']) {
+    @extend %table-#{$table};
+  }
+
+  body:has(play-jigsaw .board-root[data-table='#{$table}']) {
+    @extend %table-#{$table};
+  }
+}
+
+body:has(play-jigsaw .board-root[data-table='plain']) {
+  background: var(--bs-body-bg);
+}
+
+// on the pages a dark theme is veiled with white, so what is written on them can be read; a puzzle has its table as it is
+body:has(play-main:is([data-table='felt'], [data-table='wood'], [data-table='summer'], [data-table='autumn'], [data-table='angry'])):not(:has(play-jigsaw))::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--app-z-veil);
+  background: rgba(255, 255, 255, 0.76);
+  pointer-events: none;
+}
+
+// Every other background of the app is the theme's too: the band of the rounds going, the welcome band and the header of the floating menu, with the edges round them. (Jigsaw has its own looks for these, the ones
+// the website has.) A white inner shadow lifts them off the page and lets what lies on them be read: a little on a light theme, much where words lie straight on a dark one.
+$themed-places: ".my-rounds.ongoing:not(.folded), .my-rounds.welcome-band, .play-helper .brand-item";
+
+@each $table in "felt", "wood", "linen", "spring", "summer", "autumn", "winter", "calm", "angry" {
+  play-main[data-table='#{$table}'] :is(#{$themed-places}) {
+    @extend %table-#{$table};
+  }
+
+  play-main[data-table='#{$table}'] {
+    --app-theme-edge: var(--app-table-#{$table}-edge, color-mix(in srgb, var(--app-table-#{$table}) 75%, black));
+  }
+}
+
+play-main[data-table='plain'] {
+  --app-theme-edge: var(--bs-border-color);
+
+  :is(#{$themed-places}) {
+    background: var(--bs-body-bg);
+  }
+}
+
+play-main:not([data-table='jigsaw']) {
+  --app-theme-lift: 0.35;
+  --app-theme-lift-words: 0.4;
+
+  .my-rounds.ongoing:not(.folded),
+  .my-rounds.welcome-band {
+    border-color: var(--app-theme-edge);
+    box-shadow: inset 0 0 0 100vmax rgba(255, 255, 255, var(--app-theme-lift)), var(--bs-box-shadow-sm);
+  }
+
+  .my-rounds.welcome-band,
+  .play-helper .brand-item {
+    --app-theme-lift: var(--app-theme-lift-words);
+  }
+
+  .play-helper .brand-item {
+    border-bottom-color: var(--app-theme-edge);
+    box-shadow: inset 0 0 0 100vmax rgba(255, 255, 255, var(--app-theme-lift));
+  }
+
+  .play-helper .list-group {
+    border-color: var(--app-theme-edge);
+  }
+}
+
+play-main:is([data-table='felt'], [data-table='wood'], [data-table='summer'], [data-table='autumn'], [data-table='angry']) {
+  --app-theme-lift: 0.12;
+  --app-theme-lift-words: 0.74;
+}
+
+// The theme colours its text too: names and titles (a gradient), authors, counts, and the colour of the app (links, icons, buttons, ticks), and gives the names an effect of its own. (Jigsaw keeps the look of `:root`.)
+// Every colour is dark enough to be read on white and to carry the white words of a button.
+// theme, name from, name to, the colour of the app, the same as red, green, blue, the effect under a name
+@each $table, $from, $to, $author, $rgb, $effect in
+  ("plain", #212529, #495057, #343a40, "52, 58, 64", none),
+  ("felt", #14532d, #2f7d32, #1b5e20, "27, 94, 32", drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5))),
+  ("wood", #6b3a12, #a0561b, #7a4316, "122, 67, 22", drop-shadow(0 1px 0 rgba(255, 232, 196, 0.5))),
+  ("linen", #5d4a32, #8b6b43, #6b5539, "107, 85, 57", drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5))),
+  ("spring", #a8266a, #3c7d22, #a8266a, "168, 38, 106", drop-shadow(0 1px 0 rgba(255, 182, 213, 0.4))),
+  ("summer", #00647d, #b35400, #00647d, "0, 100, 125", drop-shadow(0 1px 0 rgba(255, 202, 58, 0.35))),
+  ("autumn", #8f2a0f, #a96400, #8a3a10, "138, 58, 16", drop-shadow(0 1px 0 rgba(160, 90, 20, 0.15))),
+  ("winter", #14508c, #1f7292, #14508c, "20, 80, 140", drop-shadow(0 0 1px rgba(140, 200, 255, 0.45))),
+  ("calm", #46469a, #26717a, #46469a, "70, 70, 154", drop-shadow(0 0 2px rgba(150, 165, 235, 0.3))),
+  ("angry", #a80000, #cc4400, #a30d0d, "163, 13, 13", drop-shadow(0 0 1px rgba(255, 96, 32, 0.35))) {
+  play-main[data-table='#{$table}'] {
+    --app-text-name-from: #{$from};
+    --app-text-name-to: #{$to};
+    --app-text-name-effect: #{$effect};
+    --app-text-author: #{$author};
+    --app-text-count: #{$author};
+    --app-text-count-bg: color-mix(in srgb, #{$author} 12%, transparent);
+    --app-primary: #{$author};
+    --app-primary-rgb: #{$rgb};
+    --bs-primary: #{$author};
+    --bs-primary-rgb: #{$rgb};
+    --bs-link-color: #{$author};
+    --bs-link-color-rgb: #{$rgb};
+    --bs-link-hover-color-rgb: #{$rgb};
+  }
+}
+
+play-main:not([data-table='jigsaw']) {
+  .section-title,
+  .subsection-title {
+    color: var(--app-text-name-from);
+    filter: var(--app-text-name-effect);
+  }
+
+  // the icons of the floating menu
+  .play-helper .list-group-item .bi {
+    color: var(--app-text-name-from);
+  }
+
+  // the parts Bootstrap gives its own blue
+  .form-check-input:checked {
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
+  }
+
+  .nav-pills {
+    --bs-nav-pills-link-active-bg: var(--app-primary);
+  }
+
+  .list-group {
+    --bs-list-group-active-bg: var(--app-primary);
+    --bs-list-group-active-border-color: var(--app-primary);
+  }
+}
+
+play-main .board-root {
+  background: none !important;
+  border-radius: 0 !important;
+}
+
+// on the dark tables the words and icons of the bar are light
+play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-table='summer'], [data-table='autumn'], [data-table='angry'])) .play-bar {
+  --bs-nav-link-color: var(--bs-white);
+  --bs-nav-link-hover-color: var(--bs-white);
+
+  .brand-text,
+  .brand-sub {
+    color: var(--bs-white);
+  }
+
+  .nav-link:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+}
+
+// the scroller (the store of pieces) is a little lighter than the table round it, so it is seen where it is
+.board-root:not([data-table='plain']) .store-scroller {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-radius: 0.5rem;
+}
+
+.board-root[data-table='linen'] .store-scroller {
+  background-color: rgba(255, 255, 255, 0.65); // linen is light already: more is needed to be seen
+}
+
+// on a dark table the words on the board are light
+.board-root:is([data-table='felt'], [data-table='wood'], [data-table='summer'], [data-table='autumn'], [data-table='angry']) .store-hint {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
 .picture-surface {
   background-size: cover;
   background-position: center;
@@ -2675,6 +3108,73 @@ app-jigsaw-shell > app-jigsaw-play {
   fill: var(--app-piece-blank);
 }
 
+// a piece that lies loose has depth: a shadow, and, alone, a little turn of its own; held it straightens, comes up and casts a bigger shadow; in its place it lies flat. Only how it looks: nothing of where it is or what it clicks to
+.piece-shadow {
+  display: none;
+  fill: var(--bs-black);
+  fill-opacity: 0.17;
+}
+
+.placed-object {
+  app-puzzle-piece {
+    display: block;
+    transition: transform 0.16s ease, filter 0.16s ease;
+  }
+
+  &.is-loose .piece-shadow {
+    display: inline;
+  }
+
+  &.is-loose.is-single app-puzzle-piece {
+    transform: rotate(var(--app-tilt, 0deg));
+  }
+
+  // (only a piece on its own: a filter on every piece of a big group would be heavy, and each growing by itself would pull the group apart)
+  &.is-held.is-single.is-loose app-puzzle-piece {
+    transform: scale(1.07);
+    filter: drop-shadow(0 calc(9px / var(--app-scale, 1)) calc(7px / var(--app-scale, 1)) rgba(0, 0, 0, 0.38));
+
+    .piece-shadow {
+      display: none;
+    }
+  }
+}
+
+// the ring of light from a piece that has just clicked into place
+.snap-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: calc(4px / var(--app-scale, 1)) solid var(--app-matched);
+  box-shadow: 0 0 1em var(--app-matched), inset 0 0 1em var(--app-matched);
+  pointer-events: none;
+  animation: snap-ring var(--app-blink-duration) ease-out forwards;
+}
+
+@keyframes snap-ring {
+  from {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+// a person who asked their device for less motion: no turning, growing or spreading ring
+@media (prefers-reduced-motion: reduce) {
+  .placed-object app-puzzle-piece {
+    transform: none !important;
+    transition: none;
+  }
+
+  .snap-ring {
+    display: none;
+  }
+}
+
 /** the number of the grid point a piece belongs on (debug): light with the ink round it, so it can be read on any part of a picture */
 .piece-number {
   fill: var(--app-piece-number);
@@ -2791,6 +3291,26 @@ app-jigsaw-shell > app-jigsaw-play {
 .jigsaw-play {
   position: relative;
   display: flex;
+}
+
+// the panels of the app's puzzle (the details, and the table and sound): in the upper right corner over the board, one under the other when both are open
+.puzzle-panels {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  width: min(21rem, calc(100% - 1.5rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  pointer-events: none; // the room under them is the board's
+  z-index: var(--app-z-sidebar);
+
+  > .card {
+    flex-shrink: 0;
+    pointer-events: auto;
+  }
 }
 
 .jigsaw-side {

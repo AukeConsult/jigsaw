@@ -1,3 +1,4 @@
+import { PlayLookSetup } from '../../models/shared/play-look';
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, ElementRef, Injector, afterNextRender, HostListener, inject, computed, effect, input, model, output, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -7,6 +8,8 @@ import { tr } from '../../core/i18n';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
 import { isBoolean, readPreference, writePreference } from '../../core/preferences';
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
+import { PlayLook } from '../../jigsaw/play-look';
+import { playSnap } from '../snap-sound';
 import { cssNumber, cssVar, footerTop, onAnyScroll } from '../../core/theme';
 import { FREE_SPACE_COLUMNS_MAX, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings } from '../../models/shared/jigsaw-settings';
 import { Puzzle } from '../../models/shared/puzzle';
@@ -51,6 +54,9 @@ const ROOT_PADDING_PX = 4;
 /** How far the tabs of a piece reach out of its square, as a share of its side (with some to spare). */
 const TAB_REACH = 0.4;
 
+/** How far a piece that lies loose is turned at most, either way, in degrees: only how it is drawn, its place and what it clicks to are as if it lay straight. */
+const TILT_MAX_DEG = 4;
+
 /** Where it is kept on the device that a piece has been moved (the first-move hint is then not shown any more). */
 const HAS_MOVED_KEY = 'jigsaw.hasMoved';
 
@@ -92,6 +98,8 @@ interface BoardView {
   matched: boolean;
   hidden: boolean;
   inStore: boolean;
+  /** it sticks to no other piece: only such a piece is turned a little and grows when it is held (a group stays as it fits) */
+  single: boolean;
 }
 
 @Component({
@@ -157,6 +165,25 @@ export class JigsawBoard {
     this.viewport.set({ width: window.innerWidth, height: window.innerHeight });
   }
 
+  /** the colour a jigsaw chose for its own picture area (the usual one counts as none: the table then gives the mat) */
+  protected readonly ownColor = computed(() => {
+    const colour = this.backColor();
+    return colour && colour.toLowerCase() !== JigsawSettings.DEFAULT_BACK_COLOR.toLowerCase() ? colour : null;
+  });
+
+  /** the table and the sound of the round that is shown, over the player's preference (null: the preference) */
+  readonly roundLook = input<PlayLookSetup | null>(null);
+  private readonly preference = inject(PlayLook);
+  /** the table the pieces lie on and whether a click is heard */
+  protected readonly look = computed(() => this.roundLook() ?? this.preference.value());
+
+  /** how a loose piece is turned, in degrees: its own, and the same every time it is drawn (from its id) */
+  protected tilt(id: string): string {
+    let sum = 0;
+    for (let i = 0; i < id.length; i++) sum = (sum * 31 + id.charCodeAt(i)) % 9973;
+    return `${(sum % (2 * TILT_MAX_DEG + 1)) - TILT_MAX_DEG}deg`;
+  }
+
   /** the pieces that clicked into place a moment ago: they blink */
   readonly blinking = signal<ReadonlySet<string>>(new Set());
   /** The pieces blink for a moment, and the device vibrates when it can. */
@@ -180,6 +207,12 @@ export class JigsawBoard {
     const grid = pieceGrid(this.width(), this.height(), this.gridSize()); // the border is also known from where the cell is, not only from the flat sides the piece has
     return new Set(this.placed().filter((p) => p.piece && !JigsawPieces.isBorder(p.piece, grid)).map((p) => p.id));
   });
+  /** no piece lies on the picture area (by its middle) yet: the area then says what to do with it, as a watermark */
+  readonly emptyPicture = computed(() => {
+    const pieces = this.placed().filter((p) => p.piece);
+    return pieces.length > 0 && !pieces.some((p) => p.centerX >= 0 && p.centerX <= this.width() && p.centerY >= 0 && p.centerY <= this.height());
+  });
+
   /**
    * the pieces that lie in the store (by their middle) and are shown (not hidden by "only corner and edge pieces"): the ones that are collected. This is deliberately not `belongsToStore` (rule 3,
    * whole inside): the first scatter of a round, made without knowing the width of a slice, leaves pieces over the edge of a slice that no pointer can put there, so by rule 3 they are free pieces;
@@ -658,14 +691,16 @@ export class JigsawBoard {
   }
 
   /** the drawn pieces of the last time (by id), so a piece that has not changed is the same object again and the page does not draw it again (see `view`) */
-  private drawn = new Map<string, { item: unknown; anchor: string; hidden: boolean; inStore: boolean; held: boolean; entry: BoardView }>();
+  private drawn = new Map<string, { item: unknown; anchor: string; hidden: boolean; inStore: boolean; held: boolean; single: boolean; entry: BoardView }>();
   /** the placed objects as they are drawn, with their box at their centre. A piece that was not moved keeps its entry from the last time: while a piece is held only it changes. */
   readonly view = computed<BoardView[]>(() => {
     const anchors = this.groupAnchors();
     const hidden = this.hiddenIds();
     const store = this.store();
     const held = this.held();
-    const next = new Map<string, { item: unknown; anchor: string; hidden: boolean; inStore: boolean; held: boolean; entry: BoardView }>();
+    const next = new Map<string, { item: unknown; anchor: string; hidden: boolean; inStore: boolean; held: boolean; single: boolean; entry: BoardView }>();
+    const members = new Map<string, number>(); // how many pieces each group has, by the one that stands for it
+    for (const anchor of anchors.values()) members.set(anchor, (members.get(anchor) ?? 0) + 1);
     const entries = this.puzzle().items.map((item) => {
       const anchor = anchors.get(item.id) ?? item.id;
       const isHidden = hidden.has(item.id);
@@ -673,8 +708,9 @@ export class JigsawBoard {
       // Below the picture the strip is cut in bands, and the middle decides
       const inStore = !!store && this.belongsToStore(item);
       const isHeld = held.has(item.id);
+      const single = (members.get(anchor) ?? 1) === 1;
       const before = this.drawn.get(item.id);
-      if (before && before.item === item && before.anchor === anchor && before.hidden === isHidden && before.inStore === inStore && before.held === isHeld) {
+      if (before && before.item === item && before.anchor === anchor && before.hidden === isHidden && before.inStore === inStore && before.held === isHeld && before.single === single) {
         next.set(item.id, before);
         return before.entry;
       }
@@ -690,8 +726,9 @@ export class JigsawBoard {
         matched: !!item.data.piece && JigsawPieces.matched({ col: item.data.piece.col, row: item.data.piece.row, size: item.object.width, centerX: item.centerX, centerY: item.centerY }),
         hidden: isHidden,
         inStore,
+        single,
       };
-      next.set(item.id, { item, anchor, hidden: isHidden, inStore, held: isHeld, entry });
+      next.set(item.id, { item, anchor, hidden: isHidden, inStore, held: isHeld, single, entry });
       return entry;
     });
     this.drawn = next;
@@ -1050,7 +1087,9 @@ export class JigsawBoard {
     const fresh = [...this.matchedAmong(dropped, ids)].filter((id) => !moving.matchedAtStart.has(id)); // in place now, and was not when it was picked up
     const joined = dropped.stuckGroup(ids).filter((id) => !moving.stuckAtStart.has(id)); // pieces that stick to what was moved now, and did not when it was picked up
     // only the piece that was dropped blinks (not the whole group it clicked into): the person sees which piece clicked
-    if (fresh.length || joined.length) this.blink([moving.id]);
+    if (!fresh.length && !joined.length) return;
+    this.blink([moving.id]);
+    if (this.look().sound && !this.viewOnly()) playSnap(dropped.stuckGroup([moving.id]).length);
   }
 
   /** which of these objects are jigsaw pieces on their own place */

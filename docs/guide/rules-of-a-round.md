@@ -32,6 +32,8 @@ The **yellow** working area (where the pieces are drawn), the **blue** board (th
 - **The scroller:** the pieces in it are shown in slices one under the other (beside the picture) or in bands side by side (below it); pressing its empty part gathers the pieces of it from the start of it; the switch **Edges** (only corner and edge pieces) hides the inside pieces and works the scroller out again, so the shown pieces are gathered from its start, and again when it is switched off.
 - **The helper:** *Picture* (a frame over the page with the whole picture, moved and sized by the person, 1/10 to 1/2 of the picture), *Edges*, *Details* (the sidebar on a screen under 1200 px, which opens over the board) and *Cheat* (the numbers of the places, and the dotted lines of the three areas).
 
+- **Looks and sound** (never a rule of where a piece goes): loose pieces have a shadow and a lone one is turned a little; the player chooses the table (plain, the app's own look, felt, wood, linen, a season or a mood) and whether a click into place is heard, as a preference of the account, or for one round only (stored on the round); see `pieces-and-play.md`.
+
 ## The page round the board
 
 - **Layers:** page 0–99, bars 100–199, **the play 200–899**, overlays 900 and up (`--app-z-*`).
@@ -40,3 +42,4 @@ The **yellow** working area (where the pieces are drawn), the **blue** board (th
 - **Not here any more:** the line, colour and background of a round (they are for the account settings, see `TODO.md`).
 
 - **A completed round has no helper.** When every piece is in its place (`JigsawHelper.solved`, set by the round) the two switches of the helper, **Picture** and **Edges**, and the line "Showing x of y pieces" are not shown in the bar, the helper picture frame goes away (`JigsawBoard.helperShown`) and every piece is shown (`hiddenIds` ignores Edges). Reset round starts the helper again.
+- **An empty picture area** (no piece with its middle on it) shows the faint words **Add pieces here** in its middle (`.picture-watermark`); they take no presses, and are not shown when a round is only looked at.

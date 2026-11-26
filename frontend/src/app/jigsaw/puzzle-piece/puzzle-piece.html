@@ -3,6 +3,9 @@
   <defs>
     <clipPath [attr.id]="clipId()"><path [attr.d]="path()" /></clipPath>
   </defs>
+  <!-- the shadow of a piece that lies loose (shown by the board): two soft layers of its own outline, a little down and to the right. Drawn, not filtered, so it costs little with many pieces -->
+  <path [attr.d]="path()" class="piece-shadow" [attr.transform]="'translate(' + size() * 0.022 + ' ' + size() * 0.035 + ')'" />
+  <path [attr.d]="path()" class="piece-shadow" [attr.transform]="'translate(' + size() * 0.045 + ' ' + size() * 0.07 + ')'" />
   @if (picture(); as src) {
     <g [attr.clip-path]="'url(#' + clipId() + ')'">
       <image [attr.href]="src" [attr.x]="-piece().col * size()" [attr.y]="-piece().row * size()"

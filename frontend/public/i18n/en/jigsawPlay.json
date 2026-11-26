@@ -32,5 +32,24 @@
   "couldNotStart": "Could not reset the round: try again.",
   "openJigsaw": "Open the page of the jigsaw",
   "finishedTitle": "Finished!",
-  "finishedTime": "Time: {{ time }}"
+  "finishedTime": "Time: {{ time }}",
+  "table": "Table",
+  "tables": {
+    "plain": "Plain",
+    "felt": "Felt",
+    "wood": "Wood",
+    "linen": "Linen",
+    "spring": "Spring",
+    "summer": "Summer",
+    "autumn": "Autumn",
+    "winter": "Winter",
+    "calm": "Calm",
+    "angry": "Angry",
+    "jigsaw": "Jigsaw"
+  },
+  "sound": "Sound when a piece clicks",
+  "lookOwn": "Only for this round.",
+  "lookReset": "Use my preferences",
+  "lookFollows": "Follows your account preferences. What you choose here is for this round only.",
+  "lookNotSaved": "Could not save the settings of this round."
 }

@@ -32,5 +32,24 @@
   "couldNotStart": "Kierrosta ei voitu nollata: yritä uudelleen.",
   "openJigsaw": "Avaa palapelin sivu",
   "finishedTitle": "Valmis!",
-  "finishedTime": "Aika: {{ time }}"
+  "finishedTime": "Aika: {{ time }}",
+  "table": "Pöytä",
+  "tables": {
+    "plain": "Pelkkä",
+    "felt": "Huopa",
+    "wood": "Puu",
+    "linen": "Pellava",
+    "spring": "Kevät",
+    "summer": "Kesä",
+    "autumn": "Syksy",
+    "winter": "Talvi",
+    "calm": "Tyyni",
+    "angry": "Vihainen",
+    "jigsaw": "Palapeli"
+  },
+  "sound": "Ääni, kun pala napsahtaa paikalleen",
+  "lookOwn": "Vain tälle kierrokselle.",
+  "lookReset": "Käytä omia asetuksiani",
+  "lookFollows": "Noudattaa tilisi asetuksia. Tässä valitsemasi koskee vain tätä kierrosta.",
+  "lookNotSaved": "Kierroksen asetuksia ei voitu tallentaa."
 }

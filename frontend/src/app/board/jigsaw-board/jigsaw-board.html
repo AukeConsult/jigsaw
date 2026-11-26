@@ -16,14 +16,18 @@
   The jigsaw pieces area. The picture area is width × height in the stored pixels the objects are placed in; the whole content is drawn at `scale`, so the picture is always
   shown whole, in its own proportions, whatever the size of the screen (the sizer takes the room the scaled content takes).
 -->
-<div #root class="board-root rounded p-1" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
+<div #root class="board-root rounded p-1" [attr.data-table]="look().table" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
      (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()">
 <div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
 <div class="scale-content position-relative d-flex align-items-start" [style.padding-top.px]="margin()" [style.padding-left.px]="margin()" [style.padding-right.px]="store() && !stacked() ? 0 : margin()" [style.padding-bottom.px]="store() && stacked() ? 0 : margin()" [class.flex-column]="stacked()" [style.gap.px]="stacked() ? gridSize() : gutter()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
-  <div class="picture-surface position-relative shadow-sm flex-shrink-0" [class.bg-white]="!backColor()" [style.background-color]="backColor()" [class.picture-frame]="(lineWidth() ?? 0) > 0" [style.width.px]="width()" [style.height.px]="height()" [style.outline-width.px]="lineWidth() === null ? null : lineWidth()! / scale()" [style.outline-color]="lineColor()"
+  <div class="picture-surface position-relative shadow-sm flex-shrink-0" [class.bg-white]="!ownColor() && look().table === 'plain'" [class.picture-mat]="!ownColor() && look().table !== 'plain'" [style.background-color]="ownColor()" [class.picture-frame]="(lineWidth() ?? 0) > 0" [style.width.px]="width()" [style.height.px]="height()" [style.outline-width.px]="lineWidth() === null ? null : lineWidth()! / scale()" [style.outline-color]="lineColor()"
        [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null"
        (pointerdown)="startMarquee($event)">
     <canvas #area class="d-block" [attr.aria-label]="t('jigsawBoard.pictureArea') || 'Picture area'"></canvas>
+    @if (emptyPicture() && !viewOnly()) {
+      <!-- an empty picture area says where the pieces go -->
+      <span class="picture-watermark">{{ t('jigsawBoard.addHere') || 'Add pieces here' }}</span>
+    }
     @if (!store()) {
       @for (v of view(); track v.p.id) {
         <ng-container *ngTemplateOutlet="item; context: { $implicit: v, shift: 0, shiftY: 0, clip: null }" />
@@ -87,12 +91,16 @@
 <ng-template #item let-v let-shift="shift" let-shiftY="shiftY" let-clip="clip">
 @if (!v.hidden) {
       @let p = v.p;
-      <div class="placed-object" role="button" tabindex="0" [attr.data-id]="p.id" [attr.aria-label]="p.object.name" [style.left.px]="v.left - shift" [style.top.px]="v.top - shiftY" [style.clip-path]="clip" [style.z-index]="v.layer"
-           [class.is-picked]="selection().includes(p.id)"
+      <div class="placed-object" role="button" tabindex="0" [attr.data-id]="p.id" [attr.aria-label]="p.object.name" [style.left.px]="v.left - shift" [style.top.px]="v.top - shiftY" [style.clip-path]="clip" [style.z-index]="blinking().has(p.id) ? v.layer + 100000 : v.layer"
+           [class.is-picked]="selection().includes(p.id)" [class.is-loose]="v.piece && !v.matched" [class.is-single]="v.single" [class.is-held]="v.held" [style.--app-tilt]="v.piece ? tilt(p.id) : null"
            (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
            (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
         @if (v.piece; as piece) {
           <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" [blinking]="blinking().has(p.id)" [lineWidth]="lineWidth()" [lineColor]="lineColor()" />
+        }
+        @if (blinking().has(p.id)) {
+          <!-- it has just clicked into place: a ring of light spreads from it -->
+          <span class="snap-ring" aria-hidden="true"></span>
         }
       </div>
 }

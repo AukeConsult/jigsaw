@@ -5,6 +5,7 @@ import { PuzzelBanner } from '../../../app/jigsaw/puzzel/puzzel-banner';
 import { PuzzelBoard } from '../../../app/jigsaw/puzzel/puzzel-board';
 import { PuzzelDetails } from '../../../app/jigsaw/puzzel/puzzel-details';
 import { PuzzelRound } from '../../../app/jigsaw/puzzel/puzzel-round';
+import { RoundLook } from '../../../app/jigsaw/puzzel/round-look';
 import { isWideScreen } from '../../../app/core/theme';
 import { PlaySpec } from '../../../app/models/shared/play';
 import { PuzzelView } from '../../puzzel-view';
@@ -12,11 +13,11 @@ import { PuzzelView } from '../../puzzel-view';
 /**
  * The page of the route `/play/jigsaw/:id`, where a card of the list (or of the rounds) leads: **the puzzle of one jigsaw**, the round of the account that plays (the one going, else a new one), the same route and the same components as the
  * website's `/jigsaw/jigsaw/:id`: the board (`app-puzzel-board`) and the details (`app-puzzel-details`), both of the round (`PuzzelRound`, provided here). There is no menu of its own on the page: the menu of the helper (`jigsawMenu`) has the
- * switches for the help picture, the details and the border pieces (`PuzzelView`). Nobody plays: the account is asked for first. A picture has no round yet: it goes to the page where one is started (`/play/round/:id`).
+ * switches for the help picture, the border pieces and the two panels over the puzzle, Details and Table and sound (`PuzzelView`). A picture with no round yet, and a visitor who is not logged on, go to the page before the puzzle (`/play/round/:id`): one may look there without logging on, and a round is started there.
  */
 @Component({
   selector: 'play-jigsaw',
-  imports: [TranslocoDirective, RouterLink, PuzzelBanner, PuzzelBoard, PuzzelDetails],
+  imports: [TranslocoDirective, RouterLink, PuzzelBanner, PuzzelBoard, PuzzelDetails, RoundLook],
   providers: [PuzzelRound, provideTranslocoScope('play'), provideTranslocoScope('jigsawPlay')],
   host: { class: 'd-block' },
   templateUrl: './jigsaw.html',
@@ -28,8 +29,8 @@ export class PlayJigsaw implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
-  /** what came of opening the puzzle: the round is open (see `round.status`), or an account is needed first */
-  protected readonly opened = signal<'opening' | 'opened' | 'logon'>('opening');
+  /** whether the round of the puzzle is open yet (what came of it is `round.status`) */
+  protected readonly opened = signal<'opening' | 'opened'>('opening');
 
   constructor() {
     effect(() => this.view.solved.set(this.round.status() === 'ready' && this.round.solved())); // a finished puzzle: the menu has no help picture and no border pieces
@@ -37,6 +38,8 @@ export class PlayJigsaw implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.view.solved.set(false);
+    this.view.details.set(false);
+    this.view.look.set(false);
   }
 
   async ngOnInit(): Promise<void> {
@@ -46,19 +49,19 @@ export class PlayJigsaw implements OnInit, OnDestroy {
       return this.opened.set('opened');
     }
     const result = await this.round.openFor(this.id);
-    if (result === 'choose') return void (await this.router.navigate(['/play/round', this.id], { replaceUrl: true })); // a picture has no round yet: where one is started
-    this.opened.set(result === 'missing' ? 'opened' : result); // a jigsaw that is not there is said by the round
+    // a picture has no round yet, or nobody is logged on: the page before the puzzle, where one looks, and a round is started
+    if (result === 'choose' || result === 'logon') return void (await this.router.navigate(['/play/round', this.id], { replaceUrl: true }));
+    this.opened.set('opened'); // a jigsaw that is not there is said by the round
   }
 
-  /**
-   * On a small screen the details lie over the board: a click anywhere closes them again, also on the empty parts of them (the same as the website's). What is in them is used, so a click on a button, a field, a label or a link of
-   * theirs does not close them, and neither does a click on the helper, whose switch Details opens and closes them itself.
-   */
+  /** On a small screen a panel covers much of the board: a click anywhere outside the panels (and not on the helper, whose switches open and close them) closes them. */
   @HostListener('document:click', ['$event'])
-  protected closeDetails(event: MouseEvent): void {
-    if (isWideScreen() || !this.view.details()) return;
-    if ((event.target as Element | null)?.closest('play-helper, .jigsaw-sidebar input, .jigsaw-sidebar button, .jigsaw-sidebar label, .jigsaw-sidebar a, .jigsaw-sidebar select')) return;
+  protected closePanels(event: MouseEvent): void {
+    if (isWideScreen() || (!this.view.details() && !this.view.look())) return;
+    const target = event.target as Element | null;
+    if (!target?.isConnected || target.closest('play-helper, .puzzle-panels')) return; // (what was pressed inside a panel may be drawn anew by the press itself)
     this.view.details.set(false);
+    this.view.look.set(false);
   }
 
   /** The round was deleted: the person goes home. */

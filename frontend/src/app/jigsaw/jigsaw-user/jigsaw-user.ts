@@ -104,26 +104,14 @@ export class JigsawUser implements OnInit {
   readonly blocked = signal<{ name: string; username: string; signedIn: boolean } | null>(null);
 
   /**
-   * A user was picked from the list: the person plays as them, and goes on. A user that has verified logins can be played as only by one of them: it is checked **before** anything is switched, and
-   * when the person is not signed in, or the login they are signed in with is not verified for the user, they are told so (`blocked`) and stay as they are.
+   * A user was picked from the list: the person plays as them (`JigsawUserService.playAs` says who may), and goes on. When the person may not (not signed in, or a login that is not verified for the user and is no
+   * admin's), they are told so (`blocked`) and stay as they are.
    */
   async pick(user: JigsawUserSpec): Promise<void> {
     this.blocked.set(null);
-    if (user.protected && !(await this.mayPlayAs(user))) return;
-    this.users.select(user);
+    const result = await this.users.playAs(user);
+    if (result !== 'playing') return this.blocked.set({ name: user.name, username: user.username, signedIn: result === 'blocked' });
     await this.goOn();
-  }
-
-  /** Whether the person may play as this user: it is open, or the login that is signed in is verified for it (the logins of that account are read again, so one added elsewhere counts). Says why not when it is not. */
-  private async mayPlayAs(user: JigsawUserSpec): Promise<boolean> {
-    if (!this.auth.user()) {
-      this.blocked.set({ name: user.name, username: user.username, signedIn: false });
-      return false;
-    }
-    await this.auth.loadLinked();
-    if (this.auth.linked().some((u) => u.id === user.id)) return true;
-    this.blocked.set({ name: user.name, username: user.username, signedIn: true });
-    return false;
   }
 
   /** A user was chosen or made with the login that is signed in: the person goes on as after any other choice. */

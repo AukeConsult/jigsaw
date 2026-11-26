@@ -32,5 +32,24 @@
   "couldNotStart": "Die Runde konnte nicht zurückgesetzt werden: versuche es noch einmal.",
   "openJigsaw": "Seite des Puzzles öffnen",
   "finishedTitle": "Geschafft!",
-  "finishedTime": "Zeit: {{ time }}"
+  "finishedTime": "Zeit: {{ time }}",
+  "table": "Tisch",
+  "tables": {
+    "plain": "Schlicht",
+    "felt": "Filz",
+    "wood": "Holz",
+    "linen": "Leinen",
+    "spring": "Frühling",
+    "summer": "Sommer",
+    "autumn": "Herbst",
+    "winter": "Winter",
+    "calm": "Ruhig",
+    "angry": "Wütend",
+    "jigsaw": "Puzzle"
+  },
+  "sound": "Ton, wenn ein Teil einrastet",
+  "lookOwn": "Nur für diese Runde.",
+  "lookReset": "Meine Einstellungen verwenden",
+  "lookFollows": "Folgt den Einstellungen deines Kontos. Was du hier wählst, gilt nur für diese Runde.",
+  "lookNotSaved": "Die Einstellungen der Runde konnten nicht gespeichert werden."
 }

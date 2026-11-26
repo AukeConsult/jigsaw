@@ -1,5 +1,6 @@
 // A package a person has got (a free one) or bought. It is kept under the user, in the subcollection `bought-packages`, one document for each package (its id), so getting a package twice is getting it once.
-// What it gives: the pictures of the package are in the person's search, and the person may open and play them (`BoughtPackages.mayUse`). **No money is taken yet** (payment is not built): a priced
+// What it gives: the pictures of the package are in the person's search, and the person may open and play them (`BoughtPackages.mayUse`). **Looking at one the package page shows is open to anybody; a round of such a picture is started only for a player
+// who has it, owns the picture or owns the package** (an admin who is none of these may look at the picture, but starts no round of it). **No money is taken yet** (payment is not built): a priced
 // package that is bought is kept with the price it had and `paid: false`, to be paid for later.
 
 /** The subcollection of a user (`jigsaw-users/<id>/bought-packages`). */
@@ -40,9 +41,9 @@ export class BoughtPackages {
 
   /**
    * Whether this account (nobody: no account) may have this picture as far as packages go: a picture that is in no package is anybody's business of its visibility; a picture of a package is its owner's,
-   * and the account's that has got the package.
+   * the owner's of the package (`packageOwner`, to try it out), and the account's that has got the package.
    */
-  static mayUse(picture: { packageId?: string; ownerUid?: string }, me: string | undefined, bought: ReadonlySet<string>): boolean {
-    return !picture.packageId || (!!me && (picture.ownerUid === me || bought.has(picture.packageId)));
+  static mayUse(picture: { packageId?: string; ownerUid?: string }, me: string | undefined, bought: ReadonlySet<string>, packageOwner?: string): boolean {
+    return !picture.packageId || (!!me && (picture.ownerUid === me || packageOwner === me || bought.has(picture.packageId)));
   }
 }

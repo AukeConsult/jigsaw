@@ -1,7 +1,7 @@
 <ng-container *transloco="let t">
   @if (welcome()) {
     <!-- the band is Karin's welcome (for a minute after the app is opened, when no round is going; or when Welcome in the menu was pressed). On a wide screen: the jigsaws that are almost put together (one after the other), the welcome in the middle, and Karin's picture with her note under it; on a narrow one the welcome is under the jigsaws -->
-    <section class="my-rounds welcome-band position-relative bg-body-tertiary border" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
+    <section class="my-rounds welcome-band position-relative" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
       <div class="container pt-3 pb-2 pb-lg-5 px-4">
         <app-welcome />
       </div>

@@ -2,7 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { documentExists } from "./jigsaw-image";
 import { PieceStore } from "./jigsaw-pieces";
-import { JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays } from "../models";
+import { JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays, PlayLookSetup } from "../models";
 
 // The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`.
 
@@ -197,13 +197,15 @@ export interface PlayDeps {
   now?: () => number;
   /** whether the account that asks may change and delete the rounds of others too (an admin) */
   mayManage?: (me: string | undefined) => Promise<boolean>;
+  /** whether this PLAYER may start a round of it as far as packages go: a picture of a package is for its owner, the owner of the package (to try it out) and an account that has the package. Nobody else, an admin neither (`BoughtPackages.mayUse`) */
+  mayStart?: (jigsaw: JigsawSpec, userId: string) => Promise<boolean>;
   /** numbers from 0 up to 1 for the cut of a picture (the tests give their own) */
   random?: () => number;
 }
 
 /**
  * The plays of a jigsaw, `/jigsaw/:id/plays`:
- *  GET /summary: {played}, whether anyone has started a game of it. GET ?userId=: its plays (of that user), newest first. POST {userId}: starts a play for the user with that UID (the play keeps the UID and the name of the user) (the pieces are scattered).
+ *  GET /summary: {played}, whether anyone has started a game of it. GET ?userId=: its plays (of that user), newest first. POST {userId}: starts a play for the user with that UID (the play keeps the UID and the name of the user) (the pieces are scattered); 403 when it is a picture of a package that player does not have.
  *  GET: the plays of all the users can be read (a round of another player can be looked at). Changing or deleting a round needs the header `X-Jigsaw-User` to be its player (403 otherwise).
  *  GET /:playId: the play, the settings it is played with, and the pieces as it has them (without the graphics).
  *  PATCH /:playId/positions {moves, storeWidth?, elapsedMs?}: where pieces are now (how wide the store of this game has grown to, and how long it has been played: that only grows); how many are in place and whether the game is solved follows from that. DELETE /:playId.
@@ -256,6 +258,8 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (error) return bad(res, error);
     const user = await deps.userOf(userId as string);
     if (!user) return bad(res, "No such account: choose an account first.", 404);
+    // a round of a picture of a package is only for a player who has it: asked for the player of the round, not for who sends the request
+    if (deps.mayStart && !(await deps.mayStart(jigsaw, user.id))) return bad(res, "This picture is in a package you do not have: add the package to your pictures first.", 403);
     // a picture is cut in the round: the person chooses the number of pieces and the difficulty (a ready jigsaw has its own and refuses a choice)
     const body = req.body as { columns?: unknown; rows?: unknown; snapPercent?: unknown; timed?: unknown; private?: unknown };
     const asked = body.columns !== undefined || body.rows !== undefined || body.snapPercent !== undefined ? { columns: body.columns, rows: body.rows, snapPercent: body.snapPercent, ...(body.timed !== undefined ? { timed: body.timed } : {}), ...(body.private !== undefined ? { private: body.private } : {}) } : undefined;
@@ -370,6 +374,17 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     const flag = (req.body as { private?: unknown } | undefined)?.private;
     if (typeof flag !== "boolean") return bad(res, "Say whether the round is private: yes or no.");
     const saved = await plays.update(idOf(req), req.params.playId, (cur) => ({ ...cur, play: Plays.withPrivacy(cur.play, flag) }));
+    if (!saved) return bad(res, "No such play.", 404);
+    res.json(Plays.publicOf(saved.play));
+  });
+
+  // PATCH /:playId/look {look}: the table and the sound of this round only, or {look: null}: the round follows its player's preference again
+  router.patch("/:playId/look", ownRound, async (req, res) => {
+    if (!(await jigsawOf(req, res))) return;
+    const look = (req.body as { look?: unknown } | undefined)?.look;
+    const wrong = Plays.lookError(look);
+    if (wrong) return bad(res, wrong, 400);
+    const saved = await plays.update(idOf(req), req.params.playId, (cur) => ({ ...cur, play: Plays.withLook(cur.play, look as PlayLookSetup | null) }));
     if (!saved) return bad(res, "No such play.", 404);
     res.json(Plays.publicOf(saved.play));
   });

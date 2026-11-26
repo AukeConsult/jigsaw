@@ -65,6 +65,11 @@
       </div>
     }
 
+    <!-- the table and the sound of this round (in the app the menu has them in a panel of their own) -->
+    @if (!inApp()) {
+      <app-round-look />
+    }
+
     @if (!round.viewOnly()) {
       <!-- the cheat: the numbers of the places on the picture and on the pieces, to help find them (a switch, as the helper ones in the menu are) -->
       <div class="form-check form-switch mb-3">

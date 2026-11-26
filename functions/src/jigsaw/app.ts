@@ -80,8 +80,15 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // the packages of the home page, and what each account has got or bought of them (`jigsaw-users/<id>/bought-packages`): the pictures of a package are for those who have it
   const feedPackages = stores.feedPackages ?? firestoreFeedStore(JIGSAW_PACKAGES, "package");
   const bought = boughtPackages(stores.bought ?? firestoreBoughtStore(), stores.now ?? Date.now);
-  /** whether the account has this picture as far as packages go (a picture of a package: its owner, an account that has the package, and an admin) */
-  const hasPicture = async (c: { packageId?: string; ownerUid?: string }, me: string | undefined) => !c.packageId || BoughtPackages.mayUse(c, me, await bought.ids(me)) || (await isAdmin(me));
+  /** whether the account is one this picture is for as far as packages go: it owns the picture or the package, or has the package (a picture in no package is for anybody) */
+  const ownsOrHas = async (c: { packageId?: string; ownerUid?: string }, me: string | undefined): Promise<boolean> => {
+    if (!c.packageId || BoughtPackages.mayUse(c, me, await bought.ids(me))) return true;
+    if (!me) return false;
+    const pack = await (feedPackages.get ? feedPackages.get(c.packageId) : feedPackages.list().then((all) => all.find((p) => p.id === c.packageId) ?? null));
+    return BoughtPackages.mayUse(c, me, new Set(), (pack as { ownerUid?: string } | null)?.ownerUid);
+  };
+  /** whether the account may see this picture as far as packages go: as above, and an admin */
+  const hasPicture = async (c: { packageId?: string; ownerUid?: string }, me: string | undefined) => (await ownsOrHas(c, me)) || (await isAdmin(me));
   /** the package of this id as the home page has it, when this account may get it now */
   const packageFor = async (packageId: string, me: string): Promise<PackageItem | null> => {
     const found = await (feedPackages.get ? feedPackages.get(packageId) : feedPackages.list().then((all) => all.find((p) => p.id === packageId) ?? null));
@@ -95,6 +102,9 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // an admin sees all pictures: also the private ones of others (a hidden one is never in a list, but is opened by its address
   const canSee = async (c: { id: string; visibility?: string; ownerUid?: string; packageId?: string }, me: string | undefined) =>
     (await hasPicture(c, me)) && (!JigsawVisibilities.restricted(c.visibility) || isOwnerOf(c, me) || (await isAdmin(me)) || (await hasRoundOn(c, me)));
+  // looking at one is more than that: a picture the page of a package shows (the package is on show to the person, the picture is neither private nor hidden) is looked at by anybody; it is not found, and no round of it is started
+  const mayLook = async (c: { id: string; visibility?: string; ownerUid?: string; packageId?: string }, me: string | undefined) =>
+    (await canSee(c, me)) || (!!c.packageId && !JigsawVisibilities.restricted(c.visibility) && !!(await packageFor(c.packageId, me ?? "")));
   // the pictures of a jigsaw that is private or hidden are read with a key that the answers about it give to those who may see it (`ImageAccess`): the key is made at each answer and never kept
   const imageAccess = new ImageAccess(new ViewKeys(stores.viewKeySecret ?? firestoreSecret(), stores.now), async (id) => (await jigsawById(id))?.visibility);
   // what the front page, the search and the popular ones show: a private jigsaw is found by its owner and by each player who has a round on it, and only by them (an admin may open it, but finds it only if it is theirs)
@@ -108,7 +118,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (JigsawVisibilities.restricted(c.visibility) && req.method === "POST" && !isOwnerOf(c, me) && !(await isAdmin(me))) return void res.status(403).json({ error: "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have." });
     next();
   });
-  router.use("/jigsaw/:id/plays", logons.identify, playsRouter(plays, { jigsaw: jigsawById, pieces, userOf: async (userId) => (await users.get(userId)) ?? null, mayManage: isAdmin, random: stores.random }));
+  router.use("/jigsaw/:id/plays", logons.identify, playsRouter(plays, { jigsaw: jigsawById, pieces, userOf: async (userId) => (await users.get(userId)) ?? null, mayManage: isAdmin, mayStart: ownsOrHas, random: stores.random }));
   // the owner of a jigsaw is a user that exists (chosen from the users); the author of the jigsaw is then that user's name, put there here, not taken from the request
   const stampOwner: express.RequestHandler = async (req, res, next) => {
     const body = (req.body ?? {}) as { ownerUid?: unknown; author?: unknown };
@@ -290,7 +300,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
         get: jigsawById, // one jigsaw by its id (also an old one), not found in the list of all of them
         remove: async (id) => (search.forget(), imageAccess.forget(), (await jigsaw.remove(id)) && (await Promise.all([pieces.removeAll(id), plays.removeAll(id), favorites.removeAllOf(id)]).then(() => true, () => true))),
       },
-      (c, me) => canSee(c, me),
+      (c, me) => mayLook(c, me), // one jigsaw by its id
       imageAccess.keyed,
       async (c, me) => (!c.packageId || BoughtPackages.mayUse(c, me, await bought.ids(me))) && (!JigsawVisibilities.restricted(c.visibility) || isOwnerOf(c, me) || (c.visibility === "owner" && (await hasRoundOn(c, me)))), // the list: public, the owner's own, and the private ones the person has a round on (an admin opens others' by their address, but does not find them here)
     ),

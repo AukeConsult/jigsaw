@@ -10,5 +10,6 @@
   "clickToGet": "Napauta tästä kerätäksesi palat",
   "scrollLeft": "Vieritä paloja vasemmalle",
   "scrollRight": "Vieritä paloja oikealle",
-  "dragHint": "Vedä pala kuvaan"
+  "dragHint": "Vedä pala kuvaan",
+  "addHere": "Lisää palat tähän"
 }

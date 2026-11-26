@@ -3,15 +3,6 @@
     @case ('opening') {
       <main class="container-fluid page-margin text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</main>
     }
-    @case ('logon') {
-      <main class="container-fluid page-margin page-max">
-        <div class="text-center py-5 px-3 my-3 rounded-3 border bg-body bg-opacity-75 shadow-sm" role="status">
-          <i class="bi bi-person-circle icon-xl d-block mb-2 text-primary" aria-hidden="true"></i>
-          <div class="subsection-title">{{ t('play.puzzelLogon') || 'Log on to put the puzzle together.' }}</div>
-          <a class="btn btn-primary mt-3" routerLink="/play/account">{{ t('play.logon') || 'Logon' }}</a>
-        </div>
-      </main>
-    }
     @default {
       @switch (round.status()) {
         @case ('loading') {
@@ -28,16 +19,36 @@
           </main>
         }
         @case ('ready') {
-          <!-- the puzzle fills the screen and does not scroll: the details beside the board on a wide screen, and over the board on a small one (the same frame as the website's round); the switch Details of the menu of the helper shows them and hides them -->
+          <!-- the puzzle fills the screen and does not scroll: the same frame as the website's round. The details and the table and sound are panels that lie over it, opened from the menu of the helper -->
           <div class="jigsaw-play" [class.show-areas]="round.debug()">
             <app-puzzel-banner />
-            <div class="jigsaw-side" [class.d-none]="!view.details()">
-              <aside class="jigsaw-sidebar p-3" [class.is-open]="view.details()" [attr.aria-label]="t('play.puzzelDetails') || 'Details'">
-                <app-puzzel-details [inApp]="true" (deleted)="onDeleted()" (own)="onOwn($event)" />
-              </aside>
-            </div>
             <div class="jigsaw-main">
               <app-puzzel-board />
+            </div>
+            <div class="puzzle-panels">
+              @if (view.details()) {
+                <section class="card shadow" [attr.aria-label]="t('play.puzzelDetails') || 'Details'">
+                  <div class="card-header d-flex align-items-center gap-2 py-2">
+                    <h2 class="subsection-title m-0"><i class="bi bi-info-circle me-2" aria-hidden="true"></i>{{ t('play.puzzelDetails') || 'Details' }}</h2>
+                    <button type="button" class="btn-close ms-auto" [attr.aria-label]="t('play.puzzelClose') || 'Close'" (click)="view.details.set(false)"></button>
+                  </div>
+                  <div class="card-body">
+                    <app-puzzel-details [inApp]="true" (deleted)="onDeleted()" (own)="onOwn($event)" />
+                  </div>
+                </section>
+              }
+              <!-- the table and the sound of this round: what is chosen is seen on the puzzle at once -->
+              @if (view.look()) {
+                <section class="card shadow" [attr.aria-label]="t('play.puzzelLook') || 'Table and sound'">
+                  <div class="card-header d-flex align-items-center gap-2 py-2">
+                    <h2 class="subsection-title m-0"><i class="bi bi-palette me-2" aria-hidden="true"></i>{{ t('play.puzzelLook') || 'Table and sound' }}</h2>
+                    <button type="button" class="btn-close ms-auto" [attr.aria-label]="t('play.puzzelClose') || 'Close'" (click)="view.look.set(false)"></button>
+                  </div>
+                  <div class="card-body pb-0">
+                    <app-round-look />
+                  </div>
+                </section>
+              }
             </div>
           </div>
         }

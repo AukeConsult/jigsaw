@@ -10,5 +10,6 @@
   "clickToGet": "Tryck här för att samla bitarna",
   "scrollLeft": "Rulla bitarna åt vänster",
   "scrollRight": "Rulla bitarna åt höger",
-  "dragHint": "Dra en bit till bilden"
+  "dragHint": "Dra en bit till bilden",
+  "addHere": "Lägg bitarna här"
 }

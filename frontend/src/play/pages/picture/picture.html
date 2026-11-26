@@ -5,28 +5,21 @@
       <a class="link-action" [routerLink]="packagePage"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('play.feed.backToPackage') || 'Back to the package' }}</a>
     </div>
   }
-  @if (view.picture()) {
-    <!-- the buttons are outside the form: Edit changes it (Save and Cancel are in the form), Delete is asked first -->
-    @if (mayChange()) {
-      <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-2">
-        @if (confirmingDelete()) {
-          <span class="small me-auto" role="alert">{{ t('jigsawUser.deleteJigsawAsk') || 'Delete this jigsaw for good? Its picture and all its rounds, also those of other players, go too.' }}</span>
-          <button type="button" class="btn btn-danger" [disabled]="busy()" (click)="remove()"><i class="bi bi-trash" aria-hidden="true"></i> {{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
-          <button type="button" class="btn btn-outline-secondary" (click)="confirmingDelete.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
-        } @else {
-          @if (!editing()) {
-            <button type="button" class="btn btn-outline-primary" (click)="editing.set(true)"><i class="bi bi-pencil" aria-hidden="true"></i> {{ t('jigsawUser.edit') || 'Edit' }}</button>
-          }
-          <button type="button" class="btn btn-outline-danger" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i> {{ t('jigsawUser.deleteRound') || 'Delete' }}</button>
-        }
-      </div>
-    }
-    @if (error()) {
-      <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
-    }
-    <play-picture-form [pictureId]="id" [editing]="editing()" (access)="mayChange.set($event)" (saved)="editing.set(false)" (cancelled)="editing.set(false)" />
+  <!-- the form of the user's own picture is open for changes at once (Save and Cancel are in it); Delete is on top of it, where it is seen, and is asked first -->
+  @if (mayChange()) {
+    <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-2">
+      @if (confirmingDelete()) {
+        <span class="small me-auto" role="alert">{{ t('jigsawUser.deleteJigsawAsk') || 'Delete this jigsaw for good? Its picture and all its rounds, also those of other players, go too.' }}</span>
+        <button type="button" class="btn btn-danger" [disabled]="busy()" (click)="remove()"><i class="bi bi-trash" aria-hidden="true"></i> {{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="confirmingDelete.set(false)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+      } @else {
+        <button type="button" class="btn btn-danger" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i> {{ t('jigsawUser.deleteRound') || 'Delete' }}</button>
+      }
+    </div>
   }
-  @if (view.rounds()) {
-    <play-picture-rounds [class.mt-4]="view.picture()" [jigsawId]="id" />
+  @if (error()) {
+    <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
   }
+  <play-picture-form [pictureId]="id" (access)="mayChange.set($event)" (saved)="leave()" (cancelled)="leave()" />
+  <play-picture-rounds class="mt-4" [jigsawId]="id" />
 </main>

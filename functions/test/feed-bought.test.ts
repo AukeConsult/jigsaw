@@ -122,6 +122,7 @@ describe("what a package that is got is (the model)", () => {
     expect(BoughtPackages.mayUse({ packageId: "k", ownerUid: "pub" }, "plain", none)).toBe(false);
     expect(BoughtPackages.mayUse({ packageId: "k", ownerUid: "pub" }, "plain", new Set(["k"]))).toBe(true);
     expect(BoughtPackages.mayUse({ packageId: "k", ownerUid: "pub" }, "pub", none)).toBe(true);
+    expect(BoughtPackages.mayUse({ packageId: "k", ownerUid: "boss" }, "pub", none, "pub")).toBe(true); // the owner of the package
   });
 });
 
@@ -169,14 +170,14 @@ describe("the pictures of a package", () => {
     expect(await found()).toEqual(["Outside"]);
   });
 
-  it("are opened, listed and played by those who have the package (their owner and an admin too), and by nobody else", async () => {
+  it("are looked at by anybody while the package is on show, but listed and played only by those who have it (their owner and an admin too)", async () => {
     const { call, pack, picture, get } = setup();
     const id = await pack();
     const inside = await picture(id, "Inside");
     const open = (as?: string) => call("get", `/jigsaw/${inside.id}`, as).then((r) => r.status);
     const rounds = (as?: string) => call("get", `/jigsaw/${inside.id}/plays`, as).then((r) => r.status);
-    expect(await open()).toBe(404);
-    expect(await open("plain")).toBe(404);
+    expect(await open()).toBe(200); // looking is not playing
+    expect(await open("plain")).toBe(200);
     expect(await rounds("plain")).toBe(404);
     expect((await call("post", `/jigsaw/${inside.id}/plays`, "plain").send({ userId: "plain" })).status).toBe(404);
     expect(((await call("get", "/jigsaw", "plain")).body as JigsawSpec[]).map((j) => j.id)).not.toContain(inside.id);
@@ -187,7 +188,17 @@ describe("the pictures of a package", () => {
     expect(await rounds("plain")).toBe(200);
     expect((await call("post", `/jigsaw/${inside.id}/plays`, "plain").send({ userId: "plain" })).status).not.toBe(404);
     expect(((await call("get", "/jigsaw", "plain")).body as JigsawSpec[]).map((j) => j.id)).toContain(inside.id);
-    expect(await open("other")).toBe(404);
+    expect(await open("other")).toBe(200);
+    expect(await rounds("other")).toBe(404);
+  });
+
+  it("are not looked at by others while the package is not on show to them", async () => {
+    const { call, pack, picture } = setup();
+    for (const extra of [{ visibility: "hidden" }, { visibility: "owner" }, { to: 5 * DAY }]) {
+      const inside = await picture(await pack(extra), "Draft");
+      expect((await call("get", `/jigsaw/${inside.id}`, "plain")).status).toBe(404);
+      expect((await call("get", `/jigsaw/${inside.id}`, "pub")).status).toBe(200);
+    }
   });
 
   it("are on the page of the package for everybody to see, which says who has it and who may play them", async () => {
@@ -238,5 +249,34 @@ describe("the home page and a package that is got", () => {
     const tile = (had?: boolean) => FeedItems.of({ id: "k", kind: "package", masterLanguage: "en", texts: [{ language: "en", title: "Forests" }], ...(had ? { had } : {}) } as FeedItemData);
     expect(HomeFeed.merge([], [tile()], true).map((t) => t.id)).toEqual(["k"]);
     expect(HomeFeed.merge([], [tile(true)], true)).toEqual([]);
+  });
+});
+
+describe("a round of a picture of a package", () => {
+  const choice = { columns: 5, rows: 4, snapPercent: 25 };
+
+  it("is started only for a player who has the package or owns the picture, whoever asks: an admin without it neither", async () => {
+    const { call, pack, picture, get } = setup();
+    const id = await pack();
+    const inside = await picture(id, "Birch");
+    const start = (player: string, as: string = player) => call("post", `/jigsaw/${inside.id}/plays`, as).send({ userId: player, ...choice });
+    expect((await start("plain")).status).toBe(404); // it is not there for who has not got it
+    expect((await start("boss")).status).toBe(403); // an admin sees it, but has not got it
+    expect((await start("plain", "boss")).status).toBe(403); // nor can the admin start one for a player without it
+    expect((await start("plain", "pub")).status).toBe(403); // nor the owner
+    expect((await start("pub")).status).toBe(201); // the owner plays their own
+    expect((await get("plain", id)).status).toBe(201);
+    expect((await start("plain")).status).toBe(201);
+  });
+
+  it("is started by the owner of the package to try it out, also a picture that somebody else put there", async () => {
+    const { call, pack } = setup();
+    const id = await pack(); // pub's package
+    const added = await call("post", "/jigsaw", "boss").send({ name: "Added", kind: "picture", width: 200, height: 150, gridSize: 0, gridVisible: false, placed: [], ownerUid: "boss", packageId: id });
+    expect(added.status).toBe(201);
+    expect((await call("get", `/jigsaw/${added.body.id}`, "pub")).status).toBe(200);
+    expect((await call("post", `/jigsaw/${added.body.id}/plays`, "pub").send({ userId: "pub", ...choice })).status).toBe(201);
+    expect((await call("get", `/jigsaw/${added.body.id}`, "other")).status).toBe(200); // may look
+    expect((await call("post", `/jigsaw/${added.body.id}/plays`, "other").send({ userId: "other", ...choice })).status).toBe(404); // not play
   });
 });

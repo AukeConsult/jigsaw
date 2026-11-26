@@ -1,6 +1,5 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { MyRounds } from '../../../app/jigsaw/my-rounds/my-rounds';
 import { SolvedService } from '../../../app/jigsaw/solved.service';
 import { PlayCards } from '../../components/play-cards/play-cards';
@@ -8,7 +7,7 @@ import { ListView } from '../../list-view';
 
 /**
  * The page of the route `/list`, the home page: the picture list, as the cards of the jigsaws, newest first (the component `play-cards`), and, on the top, **the band of the rounds that are going** (`app-my-rounds` of the jigsaw app, in its mode
- * `inApp`: only the rounds that are going, each a picture that opens its puzzle). The menu of the helper (`listMenu`) has the switch Ongoing rounds that shows the band and takes it away (`ListView`), **and only while the user has rounds going** (`ListView.hasOngoing`, read here). A press on a card opens its puzzle
+ * `inApp`: only the rounds that are going, each a picture that opens its puzzle). The preferences have the switch that shows the band and takes it away (`ListView`). A press on a card opens its puzzle
  * (`/play/jigsaw/:id`), or, for a picture, the start of a round.
  */
 @Component({
@@ -34,7 +33,5 @@ export class PlayList {
 
   constructor() {
     inject(SolvedService).refresh(); // a round may have been solved since the cards were last shown
-    const users = inject(JigsawUserService);
-    effect(() => void this.view.refresh(users.acting()?.id ?? null)); // the menu offers Ongoing rounds only when there are some: asked when the page is opened and when another account plays
   }
 }

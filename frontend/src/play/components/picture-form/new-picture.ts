@@ -101,16 +101,14 @@ export class NewPicture {
   private readonly ownerOfPicture = signal<string | undefined>(undefined);
   /** **only the owner of a picture changes it** (an admin too): a picture that is somebody else's can be looked at here, never changed; a new picture is always the user's own */
   readonly mayChange = computed(() => !this.editId() || (!!this.users.user() && this.users.user()!.id === this.ownerOfPicture()) || this.users.isAdmin());
-  /** the form is only looked at (the page that frames it has not asked to change the picture): nothing can be changed, and there is no Save */
-  readonly viewing = signal(false);
   /** the picture is another player's: nothing can be changed */
   readonly readOnly = computed(() => !!this.editId() && !this.loading() && !this.mayChange());
-  /** nothing in the form can be changed: the picture is another player's, or it is only looked at */
-  readonly inert = computed(() => this.readOnly() || this.viewing());
+  /** nothing in the form can be changed: the picture is another player's */
+  readonly inert = this.readOnly;
   /** **rounds have been played of the picture: the picture itself can not be changed** (the name, the description, the categories and who sees it can) */
   readonly locked = computed(() => !!this.editId() && !this.readOnly() && this.played());
   /** the picture file, the size and the cut can be changed: a new picture, or one of the user's own that nobody has played */
-  readonly canChangePicture = computed(() => !this.editId() || (this.mayChange() && !this.played() && !this.viewing()));
+  readonly canChangePicture = computed(() => !this.editId() || (this.mayChange() && !this.played()));
 
   readonly saving = signal(false);
   readonly analysing = signal(false);

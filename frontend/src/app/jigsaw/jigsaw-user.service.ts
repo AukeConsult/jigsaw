@@ -1,3 +1,6 @@
+import { PlayLookSetup } from '../models/shared/play-look';
+import { TextLookSetup } from '../models/shared/text-look';
+import { PartSize, SizedPart } from '../models/shared/part-size';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
@@ -209,6 +212,21 @@ export class JigsawUserService {
     }
   }
 
+  /**
+   * The person picks an account from a list: **one rule for the pages that have such a list**. An open account is played at once. One that needs a login is played with a login that is verified for it, or with an
+   * **admin's**: an admin goes into any account, the same as with Open on the page of the levels (the server allows it). Checked before anything is switched: `logon` (nobody is signed in) and `blocked` (this login
+   * may not) leave things as they are.
+   */
+  async playAs(account: JigsawUserSpec): Promise<'playing' | 'logon' | 'blocked'> {
+    if (account.protected) {
+      if (!this.auth.user()) return 'logon';
+      await this.auth.loadLinked(); // read again, so a login added elsewhere counts
+      if (!this.auth.linked().some((u) => u.id === account.id)) return this.adminAccount() && !(await this.openAs(account.id)) ? 'playing' : 'blocked';
+    }
+    this.select(account);
+    return 'playing';
+  }
+
   /** Plays as a user from the list. */
   select(user: JigsawUserSpec): void {
     this.choose(user);
@@ -251,7 +269,7 @@ export class JigsawUserService {
    * Changes the user who plays: only what is given (an e-mail address that is null is taken away; the address is private and is never read back). The reason when it could
    * not be changed (the user name is taken, a field is not allowed).
    */
-  async update(change: { name?: string; username?: string; language?: string; search?: JigsawSetup; listFilter?: JigsawFilter; picture?: string | null }): Promise<string> {
+  async update(change: { name?: string; username?: string; language?: string; search?: JigsawSetup; listFilter?: JigsawFilter; playLook?: PlayLookSetup; textLook?: TextLookSetup; tileSize?: PartSize; labelSize?: PartSize; tileDetails?: boolean; picture?: string | null }): Promise<string> {
     const me = this.user();
     if (!me) return tr('jigsawUser.chooseFirst', 'Choose an account first.');
     try {
@@ -279,6 +297,26 @@ export class JigsawUserService {
   /** What the app's picture list is filtered by is kept with the user, so it is the same on every device. Nothing is kept for nobody; a failure is not told (the device keeps it). */
   async saveListFilter(listFilter: JigsawFilter): Promise<void> {
     if (this.user()) await this.update({ listFilter });
+  }
+
+  /** How the user likes the play area is kept with the user, so it is the same on every device. Nothing is kept for nobody; a failure is not told (the device keeps it). */
+  async savePlayLook(playLook: PlayLookSetup): Promise<void> {
+    if (this.user()) await this.update({ playLook });
+  }
+
+  /** keeps how big the user likes the text and in which letters with the account that plays (`TextLook`); nothing when nobody plays */
+  async saveTextLook(textLook: TextLookSetup): Promise<void> {
+    if (this.user()) await this.update({ textLook });
+  }
+
+  /** keeps how big the user likes a part (the tiles, the labels) with the account that plays (`PartSizeChoice`); nothing when nobody plays */
+  async savePartSize(part: SizedPart, size: PartSize): Promise<void> {
+    if (this.user()) await this.update({ [part]: size });
+  }
+
+  /** keeps whether the picture tiles tell their details with the account that plays (`TileDetails`); nothing when nobody plays */
+  async saveTileDetails(tileDetails: boolean): Promise<void> {
+    if (this.user()) await this.update({ tileDetails });
   }
 
   /** Deletes a user for good; the server only does it when nothing is attached to it (no jigsaws, no rounds played, no other login), and says why when not. Lets the user go when it was the one playing. */

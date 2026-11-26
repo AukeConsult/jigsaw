@@ -32,5 +32,24 @@
   "couldNotStart": "Kunne ikke nullstille runden: prøv igjen.",
   "openJigsaw": "Åpne siden til puslespillet",
   "finishedTitle": "Ferdig!",
-  "finishedTime": "Tid: {{ time }}"
+  "finishedTime": "Tid: {{ time }}",
+  "table": "Bord",
+  "tables": {
+    "plain": "Enkelt",
+    "felt": "Filt",
+    "wood": "Tre",
+    "linen": "Lin",
+    "spring": "Vår",
+    "summer": "Sommer",
+    "autumn": "Høst",
+    "winter": "Vinter",
+    "calm": "Rolig",
+    "angry": "Sint",
+    "jigsaw": "Puslespill"
+  },
+  "sound": "Lyd når en brikke klikker på plass",
+  "lookOwn": "Bare for denne runden.",
+  "lookReset": "Bruk mine innstillinger",
+  "lookFollows": "Følger innstillingene på kontoen din. Det du velger her, gjelder bare denne runden.",
+  "lookNotSaved": "Kunne ikke lagre innstillingene for runden."
 }

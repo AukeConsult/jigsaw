@@ -17,7 +17,7 @@ import { NewPicture } from './new-picture';
  * **The form of a picture, a component that is framed into different pages**: `/play/mine/addpicture` (a new picture) and `/play/mine/picture/:id` (a picture that is there, with `pictureId`), so the person sees the same layout each time. It is made
  * of the same shared components as the jigsaw app's form (`app-jigsaw-header`, the picture card with the name and the description edited in place, `app-category-picker`, `app-visibility-choice`, the cropper), and its logic is `NewPicture`,
  * which it provides: a picture or a ready jigsaw (the kind, the size and the cut, and for a ready jigsaw the pieces, the difficulty and the clock), a name, a description, a language, the categories and the motive difficulty (folded under "Advanced"),
- * who sees it, then Save (or Save and analyse, for a new picture). **A picture that is changed has restrictions: only its owner changes it (an admin too), and its picture, size and cut can not be changed once rounds have been played of it**; the
+ * who sees it, then Save (or Save and analyse, for a new picture). **There is no looking-only mode for the user's own picture: the form is open for changes at once.** **A picture that is changed has restrictions: only its owner changes it (an admin too), and its picture, size and cut can not be changed once rounds have been played of it**; the
  * name, the description, the categories and who sees it can. Its texts are the scopes `jigsawNew` and `jigsawLevels` of the jigsaw app, in every language.
  */
 @Component({
@@ -32,13 +32,11 @@ export class PictureForm implements OnInit, OnDestroy {
 
   /** the picture that is changed (nothing: a new picture is made); the same form either way */
   readonly pictureId = input<string | null>(null);
-  /** a picture that is there is changed (the default); false: it is only looked at, with no Save, and the page that frames the form has the button that changes it */
-  readonly editing = input(true);
   /** the picture was saved: its id (the page that frames the form decides where to go) */
   readonly saved = output<string>();
-  /** the changes were let go (Cancel): the form has the picture as it is saved again */
+  /** Cancel, for a picture that is there: the changes are let go and the page that frames the form leaves */
   readonly cancelled = output<void>();
-  /** whether the person may change the picture (its owner, or an admin): said once the picture is read, so the page can offer Edit and Delete only to them */
+  /** whether the person may change the picture (its owner, or an admin): said once the picture is read, so the page can offer Delete only to them */
   readonly access = output<boolean>();
 
   protected readonly languages = LANGUAGES;
@@ -57,17 +55,9 @@ export class PictureForm implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => writePreference('play.addPictureAdvanced', this.advancedOpen()));
-    effect(() => this.n.viewing.set(!!this.pictureId() && !this.editing()));
     effect(() => {
       if (this.n.editId() && !this.n.loading() && !this.n.missing()) this.access.emit(this.n.mayChange());
     });
-  }
-
-  /** Cancel, for a picture that is changed: what was changed is let go, the picture is read again, and the page is told. */
-  protected cancel(): void {
-    const id = this.pictureId();
-    if (id) void this.n.load(id);
-    this.cancelled.emit();
   }
 
   ngOnInit(): void {

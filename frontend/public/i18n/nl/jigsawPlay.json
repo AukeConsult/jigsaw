@@ -32,5 +32,24 @@
   "couldNotStart": "De ronde kon niet worden gereset: probeer het opnieuw.",
   "openJigsaw": "De pagina van de puzzel openen",
   "finishedTitle": "Klaar!",
-  "finishedTime": "Tijd: {{ time }}"
+  "finishedTime": "Tijd: {{ time }}",
+  "table": "Tafel",
+  "tables": {
+    "plain": "Effen",
+    "felt": "Vilt",
+    "wood": "Hout",
+    "linen": "Linnen",
+    "spring": "Lente",
+    "summer": "Zomer",
+    "autumn": "Herfst",
+    "winter": "Winter",
+    "calm": "Kalm",
+    "angry": "Boos",
+    "jigsaw": "Puzzel"
+  },
+  "sound": "Geluid als een stukje vastklikt",
+  "lookOwn": "Alleen voor deze ronde.",
+  "lookReset": "Mijn voorkeuren gebruiken",
+  "lookFollows": "Volgt de voorkeuren van je account. Wat je hier kiest, geldt alleen voor deze ronde.",
+  "lookNotSaved": "De instellingen van de ronde konden niet worden opgeslagen."
 }

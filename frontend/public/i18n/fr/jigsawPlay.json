@@ -32,5 +32,24 @@
   "couldNotStart": "Impossible de réinitialiser la partie : réessaie.",
   "openJigsaw": "Ouvrir la page du puzzle",
   "finishedTitle": "Terminé !",
-  "finishedTime": "Temps : {{ time }}"
+  "finishedTime": "Temps : {{ time }}",
+  "table": "Table",
+  "tables": {
+    "plain": "Simple",
+    "felt": "Feutre",
+    "wood": "Bois",
+    "linen": "Lin",
+    "spring": "Printemps",
+    "summer": "Été",
+    "autumn": "Automne",
+    "winter": "Hiver",
+    "calm": "Calme",
+    "angry": "En colère",
+    "jigsaw": "Puzzle"
+  },
+  "sound": "Son quand une pièce s’emboîte",
+  "lookOwn": "Pour cette partie seulement.",
+  "lookReset": "Utiliser mes préférences",
+  "lookFollows": "Suit les préférences de ton compte. Ce que tu choisis ici ne vaut que pour cette partie.",
+  "lookNotSaved": "Impossible d’enregistrer les réglages de la partie."
 }

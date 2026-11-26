@@ -1,10 +1,11 @@
+import { PlayLookSetup } from '../../models/shared/play-look';
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { tr, translationsLoaded } from '../../core/i18n';
 import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { JigsawPieces, pieceGrid } from '../../models/shared/jigsaw';
 import { JigsawSettings, JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { PlacedObject } from '../../models/shared/placed';
-import { PlaySpec } from '../../models/shared/play';
+import { PlaySpec, Plays } from '../../models/shared/play';
 import { clockOf } from '../duration';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
@@ -155,7 +156,12 @@ export class PuzzelRound {
       let round = rounds.find((r) => r.status !== 'solved') ?? rounds[0] ?? null;
       if (!round) {
         if (JigsawKinds.isPicture(jigsaw)) return 'choose';
-        round = await this.plays.start(jigsawId, me.id);
+        try {
+          round = await this.plays.start(jigsawId, me.id);
+        } catch (err) {
+          if ((err as { status?: number }).status === 403) return 'choose'; // a picture of a package the account has not got: the page before the puzzle says so
+          throw err;
+        }
       }
       this.open(jigsawId, round.id);
       return 'opened';
@@ -249,6 +255,22 @@ export class PuzzelRound {
       this.play.set({ ...round }); // not saved: the switch goes back to what is saved
     } finally {
       this.privacyBusy.set(false);
+    }
+  }
+
+  /** the table and the sound of this round only (null: it follows the player's preference) */
+  readonly ownLook = computed(() => this.play()?.look ?? null);
+
+  /** The player gives the round its own table and sound, or takes them away (null): shown at once and saved; what is not saved goes back. */
+  async setLook(look: PlayLookSetup | null): Promise<void> {
+    const round = this.play();
+    if (!round || this.viewOnly()) return;
+    this.play.set(Plays.withLook(round, look));
+    try {
+      await this.plays.setLook(this.jigsawId, round.id, look);
+    } catch {
+      if (this.play()?.id === round.id) this.play.set({ ...round });
+      this.tell(tr('jigsawPlay.lookNotSaved', 'Could not save the settings of this round.'));
     }
   }
 

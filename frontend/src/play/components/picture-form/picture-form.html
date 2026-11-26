@@ -150,10 +150,10 @@
         @if (n.error()) {
           <div class="alert alert-danger py-2 small" role="alert">{{ n.error() }}</div>
         }
-        @if (!n.viewing()) {
+        @if (!n.readOnly()) {
         <div class="d-flex flex-wrap justify-content-center gap-2">
           @if (n.editId()) {
-            <button type="button" class="btn btn-outline-secondary" (click)="cancel()">{{ t('jigsawNew.cancel') || 'Cancel' }}</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="cancelled.emit()">{{ t('jigsawNew.cancel') || 'Cancel' }}</button>
           } @else {
             <a class="btn btn-outline-secondary" routerLink="/">{{ t('jigsawNew.cancel') || 'Cancel' }}</a>
           }

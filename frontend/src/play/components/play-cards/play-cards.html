@@ -12,7 +12,7 @@
   }
 
   <!-- at least three cards in a row, on any width: the text in a card wraps -->
-  <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
+  <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
     @for (tile of tiles(); track tile.kind + tile.id) {
       <div class="col">
         @if (isPicture(tile)) {

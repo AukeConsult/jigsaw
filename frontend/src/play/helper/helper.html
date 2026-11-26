@@ -1,7 +1,7 @@
 @if (docked()) {
-  <!-- stuck to an edge: a bar along it. Across the top or the bottom the entries are side by side on one line (`appLabelFit` hides the words when they do not fit); down a side they are one under the other. It is moved by pressing anywhere on it: dragged away from its edge it is the small menu again. -->
-  <div class="play-bar nav nav-pills menu-font gap-1" [class.align-items-center]="!upright()" [class.flex-column]="upright()" [class.flex-nowrap]="upright()" [class.h-100]="upright() && !barFolded()" role="group" appLabelFit fitSome *transloco="let t">
-    @for (item of barItems(); track item.route ?? item.toggle ?? 'language') {
+  <!-- stuck to an edge: a bar along it. Across the top or the bottom the entries are side by side on one line, each icon with its word under it; down a side they are one under the other. It is moved by pressing anywhere on it: dragged away from its edge it is the small menu again. -->
+  <div class="play-bar nav nav-pills menu-font gap-1" [class.align-items-center]="!upright()" [class.flex-column]="upright()" [class.flex-nowrap]="upright()" [class.h-100]="upright()" role="group" *transloco="let t">
+    @for (item of menu(); track item.route ?? item.toggle ?? 'language') {
       @let label = item.text || (item.key ? (t(item.key) || item.english) : '');
       @if (item.brand) {
         <a class="nav-link brand-lockup scaled d-flex align-items-center gap-2" draggable="false" [routerLink]="item.route!">
@@ -25,28 +25,18 @@
         </a>
       }
     }
-    @if (!barFolded()) {
-      <!-- in the room that is left in a bar: how the menu is moved and how one goes home, in tiny letters (down a side one under the other, the two beside each other). It takes what is left, and no more -->
-      <div class="play-drag-hint tiny text-body-secondary">
-        <span class="play-hint-words"><span>{{ t('play.dragHint') || 'Drag to move' }}</span><span class="play-hint-home">{{ t('play.homeHint') || 'Hit icon to go home' }}</span></span>
-      </div>
-    }
-    <!-- at the far end: collapse the bar (the arrow points to its edge) or open it again -->
-    <button type="button" class="nav-link" [class.ms-auto]="!upright() && !barFolded()" [class.mt-auto]="upright() && !barFolded()" [attr.aria-expanded]="!barFolded()"
-            [title]="barFolded() ? (t('play.menuUnfold') || 'Show the menu') : (t('play.menuFold') || 'Hide the menu')" [attr.aria-label]="barFolded() ? (t('play.menuUnfold') || 'Show the menu') : (t('play.menuFold') || 'Hide the menu')" (click)="barFolded.set(!barFolded())">
-      <i class="bi" [class]="barFolded() ? barArrows[docked()!].open : barArrows[docked()!].fold" aria-hidden="true"></i>
-    </button>
+    <!-- the grip, on the edge that faces the page: it says without words that the menu can be taken hold of -->
+    <span class="play-grip" [title]="t('play.dragHint') || 'Drag to move'" aria-hidden="true"></span>
   </div>
 } @else {
-  <!-- the menu: white, the entries one under the other (the entry of the page that is open is marked). The first row is the name of the app, with the arrow that folds the rest away and opens it again. It is moved by pressing anywhere on it.
+  <!-- the menu: white, the entries one under the other (the entry of the page that is open is marked). The first row is the name of the app, and a grip on top shows that it can be moved: it is moved by pressing anywhere on it.
        The links are not draggable by the browser: its own drag of a link would cancel the move of the helper. -->
   <div class="list-group menu-font rounded-4 overflow-hidden shadow" role="group" *transloco="let t">
     @for (item of menu(); track item.route ?? item.toggle ?? 'language') {
       @if (item.brand) {
         <!-- the name of the app, as the website shows it: the logo with the house on its corner, "Karins" and under it "jigsaw"; it goes home -->
-        <!-- home is the logo itself and nothing round it: the link is no larger than what is drawn. The rest of the row, the name beside the logo (on the home page) too, opens and folds the menu -->
-        <div class="list-group-item brand-item d-flex align-items-center" [class.brand-row]="(menu()?.length ?? 0) > 1" (click)="rowPressed($event)" (dblclick)="onRowDoubleClick($event)">
-          <!-- only the logo goes home (going home leaves the menu as it is, open or folded: kept on the device); the rest of the row, the name of the app beside the logo included, opens and folds the menu -->
+        <!-- home is the logo itself and nothing round it: the link is no larger than what is drawn -->
+        <div class="list-group-item brand-item d-flex align-items-center">
           <span class="brand-lockup scaled d-flex align-items-center gap-2">
             <a class="d-inline-flex text-reset text-decoration-none" draggable="false" [routerLink]="item.route!">
               <span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32" /><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span>
@@ -55,20 +45,8 @@
               <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
             }
           </span>
-          <span class="d-flex ms-auto">
-            @if ((menu()?.length ?? 0) > 1) {
-              <button type="button" class="btn btn-link brand-fold text-body-emphasis" [attr.aria-expanded]="expanded()" [title]="expanded() ? (t('play.menuFold') || 'Hide the menu') : (t('play.menuUnfold') || 'Show the menu')"
-                      [attr.aria-label]="expanded() ? (t('play.menuFold') || 'Hide the menu') : (t('play.menuUnfold') || 'Show the menu')" (click)="expanded.set(!expanded())">
-                <i class="bi" [class]="expanded() ? 'bi-chevron-up' : 'bi-chevron-down'" aria-hidden="true"></i>
-              </button>
-            }
-            <!-- the little arrow into a corner, at the right end of the row beside the arrow that folds the menu: it folds the menu and puts it in the top right corner of the window (the same as a double click on this row) -->
-            <button type="button" class="btn btn-link brand-fold text-body-emphasis" [title]="t('play.toCorner') || 'Fold the menu into the top right corner'" [attr.aria-label]="t('play.toCorner') || 'Fold the menu into the top right corner'" (click)="moveToCorner()">
-              <i class="bi bi-box-arrow-in-up-right" aria-hidden="true"></i>
-            </button>
-          </span>
         </div>
-      } @else if (expanded() && item.toggle; as toggle) {
+      } @else if (item.toggle; as toggle) {
         @if (!hidden(toggle)) {
         <!-- a switch of the page that is open: on or off, the entry says which (a puzzle that is finished has no help picture and no border pieces to switch) -->
         <button type="button" class="list-group-item list-group-item-action d-flex align-items-center" role="switch" [attr.aria-checked]="stateOf(toggle)()" (click)="stateOf(toggle).set(!stateOf(toggle)())">
@@ -76,14 +54,20 @@
           <span class="form-check form-switch mb-0 ms-auto ps-0"><input class="form-check-input ms-2" type="checkbox" role="presentation" tabindex="-1" [checked]="stateOf(toggle)()" (click)="$event.preventDefault()"></span>
         </button>
         }
-      } @else if (expanded() && item.language) {
+      } @else if (item.language) {
         <!-- the language of the app: the flag and name of the language in use, and the list one step down (the same choice as in the menu of the website) -->
         <app-language-select />
-      } @else if (expanded() && item.route) {
+      } @else if (item.route) {
         <a class="list-group-item list-group-item-action" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route">
           <i class="bi me-2" [class]="item.icon" aria-hidden="true"></i>{{ item.text || (item.key ? (t(item.key) || item.english) : '') }}
         </a>
       }
     }
+    <!-- the grip, on the top of the menu: it says without words that the menu can be taken hold of -->
+    <span class="play-grip" [title]="t('play.dragHint') || 'Drag to move'" aria-hidden="true"></span>
   </div>
+}
+@if (dragging() && !docked()) {
+  <!-- while it is carried the edges of the window light up: that is where it can be fastened -->
+  <div class="play-edges" aria-hidden="true"></div>
 }

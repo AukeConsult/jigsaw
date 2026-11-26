@@ -2,6 +2,7 @@ import { Component, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { PlaySpec } from '../../models/shared/play';
+import { RoundLook } from './round-look';
 import { PuzzelRound } from './puzzel-round';
 
 /**
@@ -11,7 +12,7 @@ import { PuzzelRound } from './puzzel-round';
  */
 @Component({
   selector: 'app-puzzel-details',
-  imports: [RouterLink, TranslocoDirective],
+  imports: [RouterLink, TranslocoDirective, RoundLook],
   providers: [provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawNew')],
   templateUrl: './puzzel-details.html',
 })

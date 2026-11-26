@@ -23,7 +23,7 @@
     } @else if (!pictures()!.length) {
       <p class="text-body-secondary">{{ t('play.feed.noPictures') || 'No pictures in this package yet.' }}</p>
     } @else {
-      <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-2 g-sm-3 mb-3">
+      <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 g-2 g-sm-3 mb-3">
         @for (picture of pictures(); track picture.id) {
           <div class="col">
             <play-card [jigsaw]="picture" [editIn]="pack.id" />

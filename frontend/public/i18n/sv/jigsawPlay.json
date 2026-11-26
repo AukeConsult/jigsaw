@@ -32,5 +32,24 @@
   "couldNotStart": "Kunde inte nollställa omgången: försök igen.",
   "openJigsaw": "Öppna pusslets sida",
   "finishedTitle": "Klart!",
-  "finishedTime": "Tid: {{ time }}"
+  "finishedTime": "Tid: {{ time }}",
+  "table": "Bord",
+  "tables": {
+    "plain": "Enkelt",
+    "felt": "Filt",
+    "wood": "Trä",
+    "linen": "Linne",
+    "spring": "Vår",
+    "summer": "Sommar",
+    "autumn": "Höst",
+    "winter": "Vinter",
+    "calm": "Lugn",
+    "angry": "Arg",
+    "jigsaw": "Pussel"
+  },
+  "sound": "Ljud när en bit klickar på plats",
+  "lookOwn": "Bara för den här omgången.",
+  "lookReset": "Använd mina inställningar",
+  "lookFollows": "Följer inställningarna på ditt konto. Det du väljer här gäller bara den här omgången.",
+  "lookNotSaved": "Kunde inte spara omgångens inställningar."
 }

@@ -1,7 +1,7 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { ImageStore, documentExists, pictureType } from "./jigsaw-image";
-import { JIGSAW_USERS, JigsawFilter, JigsawSetup, JigsawUserSpec, JigsawUsers, UserLevel, UserLevels } from "../models";
+import { JIGSAW_USERS, JigsawFilter, JigsawSetup, JigsawUserSpec, JigsawUsers, UserLevel, UserLevels, PlayLookSetup, TextLookSetup, PartSize } from "../models";
 import type { Levels } from "./user-levels";
 
 // The users of the jigsaws: one document each in the collection `jigsaw-users`, with an id the database makes (the UID, the one a play is kept by), the user name the
@@ -62,6 +62,15 @@ export interface UserChange {
   search?: JigsawSetup;
   /** what the app's picture list is filtered by, kept with the user */
   listFilter?: JigsawFilter;
+  /** how the user likes the play area */
+  playLook?: PlayLookSetup;
+  /** how big the user likes the text and in which letters */
+  textLook?: TextLookSetup;
+  /** how big the user likes the picture tiles and the small labels */
+  tileSize?: PartSize;
+  labelSize?: PartSize;
+  /** whether the picture tiles tell their details */
+  tileDetails?: boolean;
   /** set by an admin only (`userLevelRouter`), never by a body that changes a user; `user` takes the kept level away */
   level?: UserLevel;
 }
@@ -144,11 +153,16 @@ export function firestoreUserStore(): UserStore {
         if (change.language !== undefined) data.language = change.language;
         if (change.search !== undefined) data.search = change.search;
         if (change.listFilter !== undefined) data.listFilter = change.listFilter;
+        if (change.playLook !== undefined) data.playLook = change.playLook;
+        if (change.textLook !== undefined) data.textLook = change.textLook;
+        if (change.tileSize !== undefined) data.tileSize = change.tileSize;
+        if (change.labelSize !== undefined) data.labelSize = change.labelSize;
+        if (change.tileDetails !== undefined) data.tileDetails = change.tileDetails;
         if (change.lastUsedAt !== undefined) data.lastUsedAt = change.lastUsedAt;
         if (change.level !== undefined) data.level = change.level === "user" ? FieldValue.delete() : change.level;
         if (change.pictureAt !== undefined) data.pictureAt = change.pictureAt ?? FieldValue.delete();
         if (Object.keys(data).length) tx.update(ref, data);
-        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.listFilter !== undefined ? { listFilter: change.listFilter } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}), ...(change.level !== undefined ? { level: change.level } : {}) };
+        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.listFilter !== undefined ? { listFilter: change.listFilter } : {}), ...(change.playLook !== undefined ? { playLook: change.playLook } : {}), ...(change.textLook !== undefined ? { textLook: change.textLook } : {}), ...(change.tileSize !== undefined ? { tileSize: change.tileSize } : {}), ...(change.labelSize !== undefined ? { labelSize: change.labelSize } : {}), ...(change.tileDetails !== undefined ? { tileDetails: change.tileDetails } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}), ...(change.level !== undefined ? { level: change.level } : {}) };
         if (change.pictureAt !== undefined) {
           if (change.pictureAt) next.pictureAt = change.pictureAt;
           else delete next.pictureAt;
@@ -201,7 +215,7 @@ export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: 
   router.put("/:id", async (req, res) => {
     const idError = JigsawUsers.idError(req.params.id);
     if (idError) return bad(res, idError);
-    const read = JigsawUsers.change((req.body ?? {}) as { name?: unknown; username?: unknown; language?: unknown; search?: unknown; listFilter?: unknown; picture?: unknown });
+    const read = JigsawUsers.change((req.body ?? {}) as { name?: unknown; username?: unknown; language?: unknown; search?: unknown; listFilter?: unknown; playLook?: unknown; textLook?: unknown; tileSize?: unknown; labelSize?: unknown; tileDetails?: unknown; picture?: unknown });
     if ("error" in read) return bad(res, read.error);
     const { picture, ...rest } = read.change;
     let pictureAt: number | null | undefined;

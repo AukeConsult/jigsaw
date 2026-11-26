@@ -124,3 +124,19 @@ describe("a private round", () => {
     expect(((await get("/jigsaw/api/jigsaw-rounds", "bo")).body.items as unknown[]).length).toBe(1);
   });
 });
+
+describe("a round with its own table and sound", () => {
+  it("is set and taken away by its player only, kept on the round, and kept when it is reset", async () => {
+    const { app, started, picture, base, get } = await setup();
+    const round = await started(picture.id, "anna", choiceOf(small));
+    const patch = (as: string, body: object) => request(app).patch(`${base(picture.id)}/${round.id}/look`).set("X-Jigsaw-User", as).send(body);
+    expect((await patch("bo", { look: { table: "wood", sound: true } })).status).toBe(403);
+    expect((await patch("anna", { look: { table: "marble", sound: true } })).status).toBe(400);
+    expect((await patch("anna", {})).status).toBe(400);
+    expect((await patch("anna", { look: { table: "wood", sound: false, more: 1 } })).body.look).toEqual({ table: "wood", sound: false });
+    await request(app).post(`${base(picture.id)}/${round.id}/restart`).set("X-Jigsaw-User", "anna");
+    expect((await get(`${base(picture.id)}/${round.id}`, "anna")).body.play.look).toEqual({ table: "wood", sound: false });
+    expect((await patch("anna", { look: null })).body).not.toHaveProperty("look");
+  });
+});
+

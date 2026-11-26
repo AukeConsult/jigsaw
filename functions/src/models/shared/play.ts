@@ -1,3 +1,4 @@
+import { PlayLookSetup, PlayLooks } from './play-look';
 import { JigsawSettings, JigsawSpec } from './jigsaw-settings';
 import { JigsawKinds } from './jigsaw-kind';
 import { DIFFICULTIES } from './jigsaw-search';
@@ -88,6 +89,8 @@ export interface PlaySpec {
   timed?: false;
   /** a private round: only its player sees it (not in the list of rounds on the front page, nor in the rounds of the jigsaw for the others); without it the round is public */
   private?: true;
+  /** the table and the sound of this round only, over the player's own preference (`PlayLooks`); without it the round follows the preference */
+  look?: PlayLookSetup;
   /** the look this play has chosen (the jigsaw's is used until the player changes it); never the difficulty, which is the jigsaw's */
   overrides: PlayOverrides;
 }
@@ -163,6 +166,17 @@ export class Plays {
       return open as T;
     }
     return play;
+  }
+
+  /** The reason a round's own table and sound are not allowed, or '': a whole choice, or null (the round follows the player's preference). */
+  static lookError(value: unknown): string {
+    return value === null || PlayLooks.is(value) ? '' : 'Choose a table and the sound on or off, or nothing to follow your preference.';
+  }
+
+  /** The round with its own table and sound, or, for null, without any: it follows the preference of its player. */
+  static withLook<T extends Omit<PlaySpec, 'id'>>(play: T, look: PlayLookSetup | null): T {
+    const { look: _was, ...rest } = play;
+    return (look ? { ...rest, look: PlayLooks.stored(look) } : rest) as T;
   }
 
   /** Whether the person who asks (`me`, the UID) may see the round: a public round by anybody, a private one by its player (an admin has a way too: `admin`). */
@@ -265,7 +279,7 @@ export class Plays {
   ): { play: PlaySpec; positions: PlayPositions } | { error: string } {
     const started = Plays.start(jigsaw, { id: play.userId, name: play.userName }, pieces, now, random);
     if ('error' in started) return started;
-    return { play: { ...started.play, id: play.id, overrides: play.overrides ?? {}, ...(play.cut ? { cut: play.cut } : {}), ...(play.snapPercent !== undefined ? { snapPercent: play.snapPercent } : {}), ...(play.timed === false ? { timed: false as const } : {}) }, positions: started.positions };
+    return { play: { ...started.play, id: play.id, overrides: play.overrides ?? {}, ...(play.cut ? { cut: play.cut } : {}), ...(play.snapPercent !== undefined ? { snapPercent: play.snapPercent } : {}), ...(play.timed === false ? { timed: false as const } : {}), ...(play.look ? { look: play.look } : {}) }, positions: started.positions };
   }
 
   /**
@@ -374,6 +388,7 @@ export class Plays {
       ...(typeof play.snapPercent === 'number' ? { snapPercent: play.snapPercent } : {}),
       ...(play.timed === false ? { timed: false as const } : {}),
       ...(play.private ? { private: true as const } : {}),
+      ...(PlayLooks.is(play.look) ? { look: PlayLooks.stored(play.look) } : {}),
       ...(typeof play.elapsedMs === 'number' && play.elapsedMs > 0 ? { elapsedMs: play.elapsedMs } : {}),
       overrides: Object.fromEntries(PLAY_OVERRIDE_KEYS.filter((k) => play.overrides?.[k] !== undefined).map((k) => [k, play.overrides[k]])) as PlayOverrides,
     };

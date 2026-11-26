@@ -35,7 +35,7 @@
       }
     </div>
     <div class="card-body p-2 text-break">
-      <button type="button" class="card-name text-name text-decoration-none p-0 border-0 bg-transparent text-start" (click)="show()">{{ item.name }}</button>@if (item.timed !== false) {<i class="bi bi-stopwatch tiny ms-1 text-body-secondary" [title]="t('play.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tiny ms-1 text-body-secondary" [title]="t('play.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tiny ms-1 text-body-secondary" [title]="t('play.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      <button type="button" class="card-name text-name text-decoration-none p-0 border-0 bg-transparent text-start" (click)="show()">{{ item.name }}</button>@if (item.timed !== false) {<i class="bi bi-stopwatch tile-details tiny ms-1 text-body-secondary" [title]="t('play.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tile-details tiny ms-1 text-body-secondary" [title]="t('play.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tile-details tiny ms-1 text-body-secondary" [title]="t('play.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
       <!-- what every card tells: how many pieces and how hard (the words are in the tooltips) -->
       <div class="text-body-secondary tiny">
         @if (isPicture()) {
@@ -45,6 +45,24 @@
           <span class="text-nowrap" [title]="t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}</span>
           <span class="ms-2 text-nowrap" [title]="t('play.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('play.snap.' + level()) || level() }}</span>
         }
+      </div>
+      <!-- the details, which the player of the app can leave out (`tile-details`, as the marks after the name are): the description, the categories, how hard the motive is, who made it and when; only what is filled in -->
+      <div class="tile-details text-body-secondary tiny">
+        @if (item.description) {
+          <div class="tile-description mt-1">{{ item.description }}</div>
+        }
+        <app-category-tags [keys]="item.categories" />
+        <div class="d-flex flex-wrap column-gap-2">
+          @if (item.motive) {
+            <span class="text-nowrap" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</span>
+          }
+          @if (item.author) {
+            <span class="mw-100 text-truncate" [title]="item.author"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.author }}</span>
+          }
+          @if (item.createdAt) {
+            <span class="text-nowrap"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ item.createdAt | date: 'mediumDate' }}</span>
+          }
+        </div>
       </div>
     </div>
   </div>

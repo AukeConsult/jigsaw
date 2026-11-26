@@ -102,25 +102,14 @@ export class PlayAccount implements OnInit, OnDestroy {
   }
 
   /**
-   * An account was picked from the list: the person plays as it. An account that has verified logins can be played as only by one of them: it is checked **before** anything is switched. A person who is not signed in is sent to the
-   * login page, and comes back here; one whose login is not verified for it is told so (`blocked`) and stays as they are.
+   * An account was picked from the list: the person plays as it (`JigsawUserService.playAs` says who may: an open account, one the login is verified for, or any for an admin). A person who is not signed in is sent to the
+   * login page, and comes back here; one whose login may not is told so (`blocked`) and stays as they are.
    */
   protected async pick(user: JigsawUserSpec): Promise<void> {
     this.blocked.set(null);
-    if (user.protected && !(await this.mayPlayAs(user))) return;
-    this.users.select(user);
-  }
-
-  /** Whether the person may play as this account: it is open, or the login that is signed in is verified for it (the logins are read again, so one added elsewhere counts). Says why not when it is not. */
-  private async mayPlayAs(user: JigsawUserSpec): Promise<boolean> {
-    if (!this.auth.user()) {
-      await this.router.navigate(['/login'], { queryParams: { next: this.landing.here(), notice: 'needlogin' } }); // the login page says the account is locked, and the person comes back to this page
-      return false;
-    }
-    await this.auth.loadLinked();
-    if (this.auth.linked().some((u) => u.id === user.id)) return true;
-    this.blocked.set({ name: user.name });
-    return false;
+    const result = await this.users.playAs(user);
+    if (result === 'logon') await this.router.navigate(['/login'], { queryParams: { next: this.landing.here(), notice: 'needlogin' } }); // the login page says the account is locked, and the person comes back to this page
+    else if (result === 'blocked') this.blocked.set({ name: user.name });
   }
 
   /**

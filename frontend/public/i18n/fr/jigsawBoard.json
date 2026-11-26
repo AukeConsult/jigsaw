@@ -10,5 +10,6 @@
   "clickToGet": "Appuie ici pour rassembler les pièces",
   "scrollLeft": "Faire défiler les pièces vers la gauche",
   "scrollRight": "Faire défiler les pièces vers la droite",
-  "dragHint": "Glisse une pièce vers l'image"
+  "dragHint": "Glisse une pièce vers l'image",
+  "addHere": "Posez les pièces ici"
 }

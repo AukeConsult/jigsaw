@@ -10,5 +10,6 @@
   "clickToGet": "Tap here to gather the pieces",
   "scrollLeft": "Scroll the pieces to the left",
   "scrollRight": "Scroll the pieces to the right",
-  "dragHint": "Drag a piece to the picture"
+  "dragHint": "Drag a piece to the picture",
+  "addHere": "Add pieces here"
 }

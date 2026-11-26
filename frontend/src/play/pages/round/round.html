@@ -6,27 +6,98 @@
     @case ('missing') {
       <div class="alert alert-warning" role="alert">{{ t('jigsawPlay.noSuch') || 'There is no such jigsaw.' }} <a routerLink="/">{{ t('jigsawPlay.toJigsaws') || 'Go to the jigsaws' }}</a>.</div>
     }
+    @case ('package') {
+      @if (jigsaw(); as j) {
+        <!-- a picture of a package the account has not got: no choice and no start, only the picture and the way to the package -->
+        <h1 class="page-title text-break">{{ j.name }}</h1>
+        <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
+        <p class="text-center mb-3" role="status"><i class="bi bi-lock-fill me-1" aria-hidden="true"></i>{{ t('play.notYourPackage') || 'This picture is in a package you do not have.' }}</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+          <a class="btn btn-primary" [routerLink]="['/play/package', j.packageId]"><i class="bi bi-box-seam me-1" aria-hidden="true"></i>{{ t('play.openPackage') || 'Open the package' }}</a>
+          <button type="button" class="btn btn-outline-secondary" (click)="back()">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+        </div>
+      }
+    }
+    @case ('view') {
+      @if (jigsaw(); as j) {
+        <!-- a ready jigsaw is looked at first: its picture, what is told about it, and the button that opens the puzzle -->
+        <h1 class="page-title text-break">{{ j.name }}</h1>
+        <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
+        <div class="card card-body gap-2">
+          <ng-container *ngTemplateOutlet="facts; context: { $implicit: j }" />
+          <div class="d-flex flex-wrap justify-content-center gap-2 mt-2">
+            <button type="button" class="btn btn-primary" (click)="openPuzzle()">
+              <i class="bi bi-play-fill" aria-hidden="true"></i>
+              @switch (played()) {
+                @case ('going') { {{ t('jigsawPage.continue') || 'Continue' }} }
+                @case ('solved') { {{ t('jigsawPage.look') || 'Look' }} }
+                @default { {{ t('jigsawPage.startGo') || 'Start the round' }} }
+              }
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="back()">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+          </div>
+        </div>
+      }
+    }
     @case ('logon') {
-      <div class="text-center py-5 px-3 my-3 rounded-3 border bg-body bg-opacity-75 shadow-sm" role="status">
-        <i class="bi bi-person-circle icon-xl d-block mb-2 text-primary" aria-hidden="true"></i>
-        <div class="subsection-title">{{ t('play.puzzelLogon') || 'Log on to put the puzzle together.' }}</div>
-        <a class="btn btn-primary mt-3" routerLink="/play/account">{{ t('play.logon') || 'Logon' }}</a>
-      </div>
+      @if (jigsaw(); as j) {
+        <!-- nobody is logged on: they may look; in place of the start is the way to log on -->
+        <h1 class="page-title text-break">{{ j.name }}</h1>
+        <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
+        <div class="card card-body gap-2">
+          <ng-container *ngTemplateOutlet="facts; context: { $implicit: j }" />
+          <p class="text-center mb-0 mt-2" role="status">{{ t('play.puzzelLogon') || 'Log on to put the puzzle together.' }}</p>
+          <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a class="btn btn-primary" routerLink="/play/account"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{ t('play.logon') || 'Logon' }}</a>
+            <button type="button" class="btn btn-outline-secondary" (click)="back()">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+          </div>
+        </div>
+      }
     }
     @case ('choose') {
       @if (jigsaw(); as j) {
         <!-- the picture and its name, and under them the choice of the pieces and the difficulty, which starts the round -->
         <h1 class="page-title text-break">{{ j.name }}</h1>
-        <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden mb-3">
-          @if (!noPicture()) {
-            <img class="object-fit-contain" [src]="pictureUrl()" alt="" (error)="noPicture.set(true)">
-          }
-        </div>
-        <app-round-choice [jigsaw]="j" [solved]="solved()" [busy]="busy()" [cancellable]="false" (chosen)="start($event)" />
+        <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
+        <app-round-choice [jigsaw]="j" [solved]="solved()" [busy]="busy()" (chosen)="start($event)" (cancelled)="back()" />
         @if (error()) {
           <div class="alert alert-warning py-2 small mt-3" role="alert">{{ error() }}</div>
         }
       }
     }
   }
+  <!-- the picture in its own shape, with no box round it, and under it in tiny letters how big it is -->
+  <ng-template #picture let-j>
+    @if (!noPicture()) {
+      <img class="round-picture d-block mx-auto rounded" [src]="pictureUrl()" alt="" (error)="noPicture.set(true)">
+    }
+    <div class="tiny text-body-secondary text-center mt-1 mb-3">{{ j.width }} × {{ j.height }} px</div>
+  </ng-template>
+  <!-- what is told about it: the pieces, the difficulty and the clock of a ready jigsaw (a picture is cut in each round), the motive difficulty, the words, the categories, who made it and when -->
+  <ng-template #facts let-j>
+    <div class="d-flex flex-wrap column-gap-3 row-gap-1">
+      @if (j.kind !== 'picture') {
+        <span class="text-nowrap"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}</span>
+        <span class="text-nowrap" [title]="t('play.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('play.snap.' + level()) || level() }}</span>
+        @if (j.timed !== false) {
+          <span class="text-nowrap"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('play.timed') || 'Timed' }}</span>
+        }
+      }
+      @if (j.motive) {
+        <span class="text-nowrap" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + j.motive) || j.motive }}</span>
+      }
+    </div>
+    @if (j.description) {
+      <p class="text-break mb-0">{{ j.description }}</p>
+    }
+    <app-category-tags [keys]="j.categories" />
+    <div class="d-flex flex-wrap column-gap-3 text-body-secondary small">
+      @if (j.author) {
+        <span class="text-break"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ j.author }}</span>
+      }
+      @if (j.createdAt) {
+        <span class="text-nowrap"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ j.createdAt | date: 'mediumDate' }}</span>
+      }
+    </div>
+  </ng-template>
 </main>
