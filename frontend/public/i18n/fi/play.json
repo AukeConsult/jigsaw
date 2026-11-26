@@ -201,5 +201,6 @@
     "verifyToAdd": "Vahvista tili lisätäksesi paketteja"
   },
   "allPackages": "Kaikki paketit",
-  "myPackages": "Omat pakettini"
+  "myPackages": "Omat pakettini",
+  "dragHint": "Siirrä vetämällä"
 }

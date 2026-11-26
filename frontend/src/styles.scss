@@ -497,15 +497,69 @@ small,
     }
   }
 
-  // the line of the bar is on the side that faces the page
-  &.docked-bottom .play-bar {
-    border-width: 2px 0 0;
+  // how the menu is moved, in the room a bar has left (between the entries and the arrow): it never makes the bar bigger
+  .play-drag-hint {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    line-height: 1.2;
   }
-  &.docked-left .play-bar {
-    border-width: 0 2px 0 0;
+
+  // The hint is next to the edge of the bar that faces the page: the lower one of a top bar, the upper one of a bottom bar, the right one of a left bar and the left one of a right bar. Along the bar it is in the
+  // middle of the room that is left.
+
+  // across the top or the bottom: a phrase with no room goes to a second line, which is cut away: all of it or none
+  &.docked-top .play-drag-hint,
+  &.docked-bottom .play-drag-hint {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    height: 1.2em;
+
+    &::before {
+      content: '';
+      width: 1px;
+      height: 1.2em;
+    }
   }
-  &.docked-right .play-bar {
-    border-width: 0 0 0 2px;
+
+  // (the negative margins take it into the room round the bar, close to its edge)
+  &.docked-top .play-drag-hint {
+    align-self: flex-end;
+    margin-bottom: -0.2rem;
+  }
+
+  &.docked-bottom .play-drag-hint {
+    align-self: flex-start;
+    margin-top: -0.2rem;
+  }
+
+  // down a side: upright letters one under the other, close together
+  &.docked-left .play-drag-hint,
+  &.docked-right .play-drag-hint {
+    display: flex;
+    align-items: center;
+    justify-content: safe center;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: -0.15em;
+
+    // a low window (a phone on its side) has no room for the whole of it: none is better than half a phrase
+    @media (max-height: 32rem) {
+      visibility: hidden;
+    }
+  }
+
+  &.docked-left .play-drag-hint {
+    align-self: flex-end;
+    margin-right: -0.2rem;
+  }
+
+  &.docked-right .play-drag-hint {
+    align-self: flex-start;
+    margin-left: -0.2rem;
   }
 
   // down a side of a narrow screen only the icons are shown (the words stay for a screen reader), so the page keeps its width
@@ -548,7 +602,14 @@ small,
     }
   }
 
-  // the bar: plain white (no pieces and no wash behind it: a long bar of them is too much beside the page)
+  // a bar flows together with the page: the same soft pattern, laid from the window (`fixed`) so it runs on from the page into the bar with no seam, and no line or shadow between them
+  &:not(.bar-folded) .play-bar {
+    background-image: $soft-pattern;
+    background-size: $soft-pattern-size;
+    background-attachment: fixed;
+  }
+
+  // the bar (the collapsed tab, which lies over the page, is plain white)
   .play-bar {
     --bs-nav-link-color: var(--bs-body-color);
     --bs-nav-link-hover-color: var(--bs-emphasis-color);
@@ -558,7 +619,7 @@ small,
     background-color: var(--bs-body-bg);
     border-style: solid;
     border-color: color-mix(in srgb, var(--app-primary) 65%, transparent);
-    border-width: 0 0 2px;
+    border-width: 0; // no line between a bar and the page: only the collapsed tab, which lies over the page, has a border
 
     .nav-link:not(.active):hover {
       background-color: var(--bs-secondary-bg);
@@ -615,10 +676,15 @@ play-main {
   // the same soft pattern behind the pages as the website has (`app-jigsaw-shell`): the pages have it behind their frames; the puzzle is a working frame and has none
   background-image: $soft-pattern;
   background-size: $soft-pattern-size;
+  background-attachment: fixed; // laid from the window, as the menu's bar is, so the two meet without a seam
 
   &:has(play-jigsaw) {
     overflow-y: hidden;
     background-image: none;
+
+    .play-bar {
+      background-image: none !important; // the puzzle has no pattern: its bar has none either
+    }
   }
 }
 

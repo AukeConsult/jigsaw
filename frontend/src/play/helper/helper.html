@@ -1,6 +1,6 @@
 @if (docked()) {
   <!-- stuck to an edge: a bar along it. Across the top or the bottom the entries are side by side on one line (`appLabelFit` hides the words when they do not fit); down a side they are one under the other. It is moved by pressing anywhere on it: dragged away from its edge it is the small menu again. -->
-  <div class="play-bar nav nav-pills menu-font gap-1 shadow-sm" [class.align-items-center]="!upright()" [class.flex-column]="upright()" [class.flex-nowrap]="upright()" [class.h-100]="upright() && !barFolded()" role="group" appLabelFit fitSome *transloco="let t">
+  <div class="play-bar nav nav-pills menu-font gap-1" [class.align-items-center]="!upright()" [class.flex-column]="upright()" [class.flex-nowrap]="upright()" [class.h-100]="upright() && !barFolded()" role="group" appLabelFit fitSome *transloco="let t">
     @for (item of barItems(); track item.route ?? item.toggle ?? 'language') {
       @let label = item.text || (item.key ? (t(item.key) || item.english) : '');
       @if (item.brand) {
@@ -24,6 +24,10 @@
           <i class="bi" [class]="item.icon" aria-hidden="true"></i><span class="fit-label">{{ label }}</span>
         </a>
       }
+    }
+    @if (!barFolded()) {
+      <!-- in the room that is left in a bar: how the menu is moved, in tiny letters (down a side one under the other). It takes what is left, and no more -->
+      <div class="play-drag-hint tiny text-body-secondary"><span>{{ t('play.dragHint') || 'Drag to move' }}</span></div>
     }
     <!-- at the far end: collapse the bar (the arrow points to its edge) or open it again -->
     <button type="button" class="nav-link" [class.ms-auto]="!upright() && !barFolded()" [class.mt-auto]="upright() && !barFolded()" [attr.aria-expanded]="!barFolded()"

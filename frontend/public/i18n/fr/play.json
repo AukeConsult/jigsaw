@@ -201,5 +201,6 @@
     "verifyToAdd": "Vérifie ton compte pour ajouter des paquets"
   },
   "allPackages": "Tous les paquets",
-  "myPackages": "Mes paquets"
+  "myPackages": "Mes paquets",
+  "dragHint": "Glisser pour déplacer"
 }

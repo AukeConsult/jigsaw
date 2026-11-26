@@ -201,5 +201,6 @@
     "verifyToAdd": "Verifiser kontoen for å legge til pakker"
   },
   "allPackages": "Alle pakker",
-  "myPackages": "Mine pakker"
+  "myPackages": "Mine pakker",
+  "dragHint": "Dra for å flytte"
 }

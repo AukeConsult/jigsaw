@@ -201,5 +201,6 @@
     "verifyToAdd": "Verifieer je account om pakketten toe te voegen"
   },
   "allPackages": "Alle pakketten",
-  "myPackages": "Mijn pakketten"
+  "myPackages": "Mijn pakketten",
+  "dragHint": "Sleep om te verplaatsen"
 }

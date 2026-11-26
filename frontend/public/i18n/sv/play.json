@@ -201,5 +201,6 @@
     "verifyToAdd": "Verifiera kontot för att lägga till paket"
   },
   "allPackages": "Alla paket",
-  "myPackages": "Mina paket"
+  "myPackages": "Mina paket",
+  "dragHint": "Dra för att flytta"
 }

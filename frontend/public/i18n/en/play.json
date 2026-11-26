@@ -201,5 +201,6 @@
     "verifyToAdd": "Verify your account to add packages"
   },
   "allPackages": "All packages",
-  "myPackages": "My packages"
+  "myPackages": "My packages",
+  "dragHint": "Drag to move"
 }

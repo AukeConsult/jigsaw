@@ -201,5 +201,6 @@
     "verifyToAdd": "Bestätige dein Konto, um Pakete hinzuzufügen"
   },
   "allPackages": "Alle Pakete",
-  "myPackages": "Meine Pakete"
+  "myPackages": "Meine Pakete",
+  "dragHint": "Zum Verschieben ziehen"
 }
