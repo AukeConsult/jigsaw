@@ -78,7 +78,9 @@
   "kindJigsaw": "Un puzzle prêt",
   "kindJigsawHelp": "Vous choisissez maintenant le nombre de pièces et la difficulté.",
   "pictureAlt": "L'image",
-  "limitCount": "{{ count }} images sur {{ max }} utilisées. Un compte vérifié n'a pas de limite.",
+  "limitCount": "{{ count }} images sur {{ max }}.",
   "limitFull": "Tu as {{ max }} images, le maximum pour un compte non vérifié. Vérifie ton compte ou supprime une image.",
-  "limitVerify": "Vérifier le compte"
+  "limitVerify": "Vérifier le compte",
+  "privateCount": "{{ count }} images privées sur {{ max }}.",
+  "privateFull": "Tu as {{ max }} images privées, le maximum. Supprimes-en une pour en ajouter une."
 }

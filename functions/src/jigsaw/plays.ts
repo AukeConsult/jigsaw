@@ -262,6 +262,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (deps.mayStart && !(await deps.mayStart(jigsaw, user.id))) return bad(res, "This picture is in a package you do not have: add the package to your pictures first.", 403);
     // a picture is cut in the round: the person chooses the number of pieces and the difficulty (a ready jigsaw has its own and refuses a choice)
     const body = req.body as { columns?: unknown; rows?: unknown; snapPercent?: unknown; timed?: unknown; private?: unknown };
+    if (res.locals.privateRound) body.private = true; // started through a link to a private picture: nobody else looks at it
     const asked = body.columns !== undefined || body.rows !== undefined || body.snapPercent !== undefined ? { columns: body.columns, rows: body.rows, snapPercent: body.snapPercent, ...(body.timed !== undefined ? { timed: body.timed } : {}), ...(body.private !== undefined ? { private: body.private } : {}) } : undefined;
     const wrong = Plays.choiceError(jigsaw, asked) || Plays.privateError(body.private);
     if (wrong) return bad(res, wrong);

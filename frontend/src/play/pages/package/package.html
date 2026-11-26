@@ -1,4 +1,4 @@
-<main class="container-fluid page-margin page-max" *transloco="let t">
+<main class="container-fluid page-margin" *transloco="let t">
   <div class="toolbar mb-2">
     <a class="link-action" routerLink="/play/packages"><i class="bi bi-box-seam" aria-hidden="true"></i>{{ t('play.allPackages') || 'Packages' }}</a>
   </div>
@@ -48,7 +48,7 @@
       @if (!mayPlay()) {
         <p class="small text-body-secondary"><i class="bi bi-lock" aria-hidden="true"></i> {{ t('play.feed.lockedHint') || 'Add the package to my pictures to play them.' }}</p>
       }
-      <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 g-2 g-sm-3">
+      <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
         @for (picture of pictures(); track picture.id) {
           <div class="col"><play-card [jigsaw]="picture" [locked]="!mayPlay()" /></div>
         }

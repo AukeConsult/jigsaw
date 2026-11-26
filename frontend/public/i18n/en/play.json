@@ -232,5 +232,9 @@
   "openPackage": "Open the package",
   "filterOn": "The filter is on",
   "playedBy": "Rounds played: {{ rounds }} · Players: {{ players }}",
-  "notPlayed": "Nobody has played it yet."
+  "notPlayed": "Nobody has played it yet.",
+  "linkPlays": "Anybody who gets this link can see this picture and play it.",
+  "newLink": "Make a new link: the old one stops working",
+  "newLinkMade": "A new link is made. Share it again.",
+  "close": "Close"
 }

@@ -78,7 +78,9 @@
   "kindJigsaw": "A ready jigsaw",
   "kindJigsawHelp": "You choose the number of pieces and the difficulty now.",
   "pictureAlt": "The picture",
-  "limitCount": "{{ count }} of {{ max }} pictures used. A verified account has no limit.",
+  "limitCount": "{{ count }} of {{ max }} pictures used.",
   "limitFull": "You have {{ max }} pictures, the most an account that is not verified can have. Verify your account, or delete a picture.",
-  "limitVerify": "Verify your account"
+  "limitVerify": "Verify your account",
+  "privateCount": "{{ count }} of {{ max }} private pictures used.",
+  "privateFull": "You have {{ max }} private pictures, the most you can have. Delete one to add another."
 }

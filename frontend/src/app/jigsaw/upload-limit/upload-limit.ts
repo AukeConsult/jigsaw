@@ -1,13 +1,14 @@
 import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { AccountLimits, UNVERIFIED_PICTURES_MAX } from '../../models/shared/account-limits';
+import { AccountLimits, PRIVATE_PICTURES_MAX, UNVERIFIED_PICTURES_MAX } from '../../models/shared/account-limits';
+import { UserLevels } from '../../models/shared/user-level';
 import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 
 /**
  * Over the Save button of a new picture or jigsaw: **what an account that is not verified has left of its uploaded pictures** (`AccountLimits`), with the way to verify the account; when it is full it says so and `full` is
- * true, so the form does not offer to save. Nothing for a verified account or an admin. The API refuses by itself: this only says why before the person tries. Used by the form of the app and of the website.
+ * true, so the form does not offer to save. A **verified user who is no publisher** is told the same of the pictures that are not public. Nothing for a publisher or an admin. The API refuses by itself: this only says why before the person tries. Used by the form of the app and of the website.
  */
 @Component({
   selector: 'app-upload-limit',
@@ -18,12 +19,20 @@ import { JigsawUserService } from '../jigsaw-user.service';
     <ng-container *transloco="let t">
       @if (shown()) {
         <div class="alert py-2 small text-center" [class.alert-warning]="full()" [class.alert-info]="!full()" role="status">
-          @if (full()) {
-            {{ t('jigsawNew.limitFull', { max }) || 'You have ' + max + ' pictures, the most an account that is not verified can have. Verify your account, or delete a picture.' }}
+          @if (privateOnly()) {
+            @if (full()) {
+              {{ t('jigsawNew.privateFull', { max: max() }) || 'You have ' + max() + ' pictures that are not public, the most you can have. Delete one to add another.' }}
+            } @else {
+              {{ t('jigsawNew.privateCount', { count: count(), max: max() }) || count() + ' of ' + max() + ' private pictures used.' }}
+            }
           } @else {
-            {{ t('jigsawNew.limitCount', { count: count(), max }) || count() + ' of ' + max + ' pictures used. A verified account has no limit.' }}
+            @if (full()) {
+              {{ t('jigsawNew.limitFull', { max: max() }) || 'You have ' + max() + ' pictures, the most an account that is not verified can have. Verify your account, or delete a picture.' }}
+            } @else {
+              {{ t('jigsawNew.limitCount', { count: count(), max: max() }) || count() + ' of ' + max() + ' pictures used.' }}
+            }
+            <a class="alert-link ms-1" [routerLink]="inApp() ? '/play/account' : '/account'">{{ t('jigsawNew.limitVerify') || 'Verify your account' }}</a>
           }
-          <a class="alert-link ms-1" [routerLink]="inApp() ? '/play/account' : '/account'">{{ t('jigsawNew.limitVerify') || 'Verify your account' }}</a>
         </div>
       }
     </ng-container>
@@ -36,24 +45,26 @@ export class UploadLimit {
   readonly adding = input(true);
   /** the form is that of the app */
   readonly inApp = input(false);
-  protected readonly max = UNVERIFIED_PICTURES_MAX;
+  /** the limit is the one on pictures that are not public (a verified user), not the one of an account that is not verified */
+  protected readonly privateOnly = computed(() => !!this.users.acting() && AccountLimits.verified(this.users.acting()));
+  protected readonly max = computed(() => (this.privateOnly() ? PRIVATE_PICTURES_MAX : UNVERIFIED_PICTURES_MAX));
   /** how many uploaded pictures the account has (null: not read, or the account has no limit) */
   protected readonly count = signal<number | null>(null);
-  /** the account that has a limit: one that plays, is not verified, and is no admin */
+  /** the account that has a limit: one that plays and is no admin; of the verified ones, those who are no publisher */
   private readonly limited = computed(() => {
     const me = this.users.acting();
-    return me && !this.users.isAdmin() && !AccountLimits.verified(me) ? me.id : null;
+    return me && !this.users.isAdmin() && !(AccountLimits.verified(me) && UserLevels.mayPublish(this.users.level())) ? me.id : null;
   });
   protected readonly shown = computed(() => this.adding() && !!this.limited() && this.count() !== null);
   /** no more picture can be added */
-  readonly full = computed(() => this.shown() && this.count()! >= this.max);
+  readonly full = computed(() => this.shown() && this.count()! >= this.max());
 
   constructor() {
     effect(() => {
       const id = this.limited();
       untracked(() => {
         this.count.set(null);
-        if (id) void this.jigsaws.mineSearch(id, { sort: 'new', limit: 1, page: 1 }).then((found) => this.count.set(found.counts.all), () => this.count.set(null));
+        if (id) void this.jigsaws.mineSearch(id, { sort: 'new', limit: 1, page: 1 }).then((found) => this.count.set(this.privateOnly() ? found.counts.owner + found.counts.hidden : found.counts.all), () => this.count.set(null));
       });
     });
   }

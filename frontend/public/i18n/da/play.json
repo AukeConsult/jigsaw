@@ -232,5 +232,9 @@
   "openPackage": "Åbn pakken",
   "filterOn": "Filteret er slået til",
   "playedBy": "Spillede runder: {{ rounds }} · Spillere: {{ players }}",
-  "notPlayed": "Ingen har spillet den endnu."
+  "notPlayed": "Ingen har spillet den endnu.",
+  "linkPlays": "Alle, der får dette link, kan se billedet og spille det.",
+  "newLink": "Lav et nyt link: det gamle holder op med at virke",
+  "newLinkMade": "Et nyt link er lavet. Del det igen.",
+  "close": "Luk"
 }

@@ -78,7 +78,9 @@
   "kindJigsaw": "Een kant-en-klare puzzel",
   "kindJigsawHelp": "Je kiest nu het aantal stukjes en de moeilijkheid.",
   "pictureAlt": "De afbeelding",
-  "limitCount": "{{ count }} van {{ max }} afbeeldingen gebruikt. Een geverifieerd account heeft geen limiet.",
+  "limitCount": "{{ count }} van {{ max }} afbeeldingen gebruikt.",
   "limitFull": "Je hebt {{ max }} afbeeldingen, het maximum voor een niet-geverifieerd account. Verifieer je account of verwijder een afbeelding.",
-  "limitVerify": "Account verifiëren"
+  "limitVerify": "Account verifiëren",
+  "privateCount": "{{ count }} van {{ max }} privéafbeeldingen gebruikt.",
+  "privateFull": "Je hebt {{ max }} privéafbeeldingen, meer kan niet. Verwijder er een om een nieuwe toe te voegen."
 }

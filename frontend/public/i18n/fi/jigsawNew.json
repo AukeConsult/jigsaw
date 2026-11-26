@@ -78,7 +78,9 @@
   "kindJigsaw": "Valmis palapeli",
   "kindJigsawHelp": "Valitset palojen määrän ja vaikeustason nyt.",
   "pictureAlt": "Kuva",
-  "limitCount": "{{ count }}/{{ max }} kuvaa käytössä. Vahvistetulla tilillä ei ole rajaa.",
+  "limitCount": "{{ count }}/{{ max }} kuvaa käytössä.",
   "limitFull": "Sinulla on {{ max }} kuvaa, enimmäismäärä vahvistamattomalle tilille. Vahvista tili tai poista kuva.",
-  "limitVerify": "Vahvista tili"
+  "limitVerify": "Vahvista tili",
+  "privateCount": "{{ count }}/{{ max }} yksityistä kuvaa käytössä.",
+  "privateFull": "Sinulla on {{ max }} yksityistä kuvaa, enempää ei voi olla. Poista yksi lisätäksesi uuden."
 }

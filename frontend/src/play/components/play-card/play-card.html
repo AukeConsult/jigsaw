@@ -10,6 +10,10 @@
           }
         </div>
       </button>
+      @if (isRecommended()) {
+        <!-- recommended: a star in the top left corner of the picture -->
+        <span class="btn btn-overlay is-recommended position-absolute top-0 start-0 m-1 pe-none" role="img" [title]="t('jigsawCategories.name.recommended') || 'Recommended'" [attr.aria-label]="t('jigsawCategories.name.recommended') || 'Recommended'"><i class="bi bi-star-fill" aria-hidden="true"></i></span>
+      }
       @if (isSolved()) {
         <!-- solved by the user: a small green check in the top right corner of the picture (left of the heart when there is one) -->
         <span class="solved-mark position-absolute top-0 m-1" [class.with-heart]="favorites.available()" [title]="t('play.solvedByYou') || 'You have solved this'" role="img" [attr.aria-label]="t('play.solvedByYou') || 'You have solved this'"><i class="bi bi-check-lg" aria-hidden="true"></i></span>

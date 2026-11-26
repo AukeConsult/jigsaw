@@ -6,6 +6,7 @@ import { CategoryTags } from '../../../app/jigsaw/category-tags/category-tags';
 import { BoughtService } from '../../../app/jigsaw/bought.service';
 import { FeedService } from '../../../app/jigsaw/feed.service';
 import { JigsawImageService } from '../../../app/jigsaw/jigsaw-image.service';
+import { keepShareKey } from '../../../app/jigsaw/share-keys';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
 import { PlaysService } from '../../../app/jigsaw/plays.service';
@@ -18,9 +19,12 @@ import { JigsawSpec } from '../../../app/models/shared/jigsaw-settings';
 import { BoughtPackages } from '../../../app/models/shared/bought-package';
 import { PackageItem } from '../../../app/models/shared/feed-item';
 import { PlayChoice } from '../../../app/models/shared/play';
+import { SharePicture } from '../../components/share-picture/share-picture';
+import { goBack } from '../../go-back';
 
 /**
- * The page of the route `/play/round/:id`, where **a card leads when it is pressed**: what comes before putting it together, with Cancel back to where the person came from.
+ * The page of the route `/play/round/:id`, where **a card leads when it is pressed**: what comes before putting it together, with Cancel back to where the person came from. It is also **where a link to a picture leads** (the key of a
+ * private one comes after `#`, is kept on the device and taken out of the address), and where a picture is shared from (`play-share-picture`).
  * - A **picture** is cut in each round, so this is the start of a round: the player chooses the number of pieces and the difficulty (the component `app-round-choice`, the same as the website's page of a picture has), and the round is
  *   started and opened (`/play/jigsaw/:id`). A picture that the player has a round going of goes straight to it.
  * - A **ready jigsaw** (cut already) is looked at first: its picture, what is told about it, and a button that opens the puzzle: Start the round, Continue (a round is going) or Look (it is solved: a jigsaw is not played twice).
@@ -28,7 +32,7 @@ import { PlayChoice } from '../../../app/models/shared/play';
  */
 @Component({
   selector: 'play-round',
-  imports: [TranslocoDirective, RouterLink, RoundChoice, CategoryTags, DatePipe, NgTemplateOutlet],
+  imports: [TranslocoDirective, RouterLink, RoundChoice, CategoryTags, DatePipe, NgTemplateOutlet, SharePicture],
   providers: [provideTranslocoScope('play'), provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
   host: { class: 'd-block' },
   templateUrl: './round.html',
@@ -43,7 +47,10 @@ export class PlayRound implements OnInit {
   private readonly feed = inject(FeedService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
-  private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
+  private readonly address = inject(ActivatedRoute).snapshot;
+  protected readonly id = this.address.paramMap.get('id') ?? '';
+  /** a private picture of somebody else, opened with its link: a round of it is private */
+  protected readonly byLink = computed(() => this.jigsaw()?.visibility === 'owner' && this.jigsaw()?.ownerUid !== this.users.acting()?.id);
 
   /** what the page is: being opened, the choice of a round of a picture, the look at a ready jigsaw, a picture of a package the account has not got, the look of somebody who is not logged on, or there is no such jigsaw */
   protected readonly state = signal<'opening' | 'choose' | 'view' | 'package' | 'logon' | 'missing'>('opening');
@@ -67,6 +74,8 @@ export class PlayRound implements OnInit {
   protected readonly pictureUrl = computed(() => (this.jigsaw() ? this.images.url(this.jigsaw()!, 1) : ''));
 
   async ngOnInit(): Promise<void> {
+    // a link to a private picture: its key is kept for the picture, and taken out of the address (so it is not left to be seen or copied by chance)
+    if (keepShareKey(this.id, this.address.fragment)) await this.router.navigate(['/play/round', this.id], { replaceUrl: true });
     await this.users.load();
     await this.auth.ready; // a sign-in of an earlier visit is restored first
     const jigsaw = await this.jigsaws.get(this.id).catch(() => null);
@@ -100,10 +109,9 @@ export class PlayRound implements OnInit {
     await this.router.navigate(['/play/jigsaw', this.id], { replaceUrl: true });
   }
 
-  /** Cancel: back to the page the person came from; to the home page when this was the first page of the visit (there is nothing in the app to go back to then). */
+  /** Cancel */
   protected back(): void {
-    if (((this.location.getState() as { navigationId?: number } | null)?.navigationId ?? 1) > 1) this.location.back();
-    else void this.router.navigateByUrl('/play/list');
+    goBack(this.location, this.router);
   }
 
   /** The player chose the number of pieces and the difficulty: the round is started, and opened. */

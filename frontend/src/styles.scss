@@ -487,6 +487,10 @@ small,
   }
 }
 
+.btn-overlay.is-recommended .bi {
+  color: var(--bs-warning); // the star of a recommended picture, on the shade of the button
+}
+
 .btn-overlay.is-favorite .bi {
   color: var(--bs-danger); // a heart that is ticked is red, also on the shade of the button
 }

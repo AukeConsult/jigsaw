@@ -1,4 +1,5 @@
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { shareKeyInterceptor } from './jigsaw/share-keys';
 import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { TRANSLOCO_MISSING_HANDLER, provideTransloco } from '@jsverse/transloco';
@@ -13,7 +14,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withFetch(), withInterceptors([userHeaderInterceptor, authTokenInterceptor])), // who plays, and the token of the account that is signed in; the texts of the app are files (public/i18n)
+    provideHttpClient(withFetch(), withInterceptors([userHeaderInterceptor, authTokenInterceptor, shareKeyInterceptor])), // who plays, the token of the account that is signed in, and the key of a link to a picture; the texts of the app are files (public/i18n)
     provideTransloco({
       config: { availableLangs: ['en', 'nb', 'sv', 'da', 'fi', 'de', 'fr', 'es', 'nl'], defaultLang: 'en', fallbackLang: 'en', reRenderOnLangChange: true, prodMode: !isDevMode() },
       loader: TranslocoHttpLoader,

@@ -30,7 +30,7 @@
         <span class="badge" [class.text-bg-success]="k.isFree" [class.text-bg-warning]="!k.isFree">{{ k.isFree ? (t('play.feed.free') || 'Free') : price() }}</span>
         <span class="tiny text-body-secondary"><i class="bi bi-images" aria-hidden="true"></i> {{ k.data.pictureCount ?? 0 }}</span>
         @if (had()) {
-          <span class="badge text-bg-primary ms-auto"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ t('play.feed.yours') || 'In my pictures' }}</span>
+          <span class="badge text-bg-primary text-wrap ms-auto"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ t('play.feed.yours') || 'In my pictures' }}</span>
         }
       </div>
     } @else if (info(); as i) {

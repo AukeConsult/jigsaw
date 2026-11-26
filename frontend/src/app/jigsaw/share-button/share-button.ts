@@ -20,6 +20,9 @@ export class ShareButton {
   /** `menu`: a link of the menu; `button`: a button of a page (the page of a jigsaw); `item`: an item of a submenu; the same sharing */
   readonly variant = input<'menu' | 'button' | 'item'>('menu');
 
+  /** what is shared instead of the page the person is on (empty: the page) */
+  readonly url = input('');
+
   protected readonly open = signal(false);
   protected readonly copied = signal(false);
   /** where the list starts: just under the button, or just over it when the menu is at the bottom of the screen (fixed to the window, so always in view) */
@@ -28,7 +31,7 @@ export class ShareButton {
   protected services: ReturnType<typeof ShareLinks.services> = [];
 
   private page(): { url: string; title: string } {
-    return { url: window.location.origin + ShareLinks.pathOf(this.router.url.split(/[?#]/)[0]), title: document.title || 'Karins jigsaw' };
+    return { url: this.url() || window.location.origin + ShareLinks.pathOf(this.router.url.split(/[?#]/)[0]), title: document.title || 'Karins jigsaw' };
   }
 
   protected async press(event: MouseEvent): Promise<void> {

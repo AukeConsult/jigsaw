@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, effect, inject, signal, untracked } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../../../app/core/language.service';
 import { readPreference, writePreference } from '../../../app/core/preferences';
@@ -53,6 +53,13 @@ export class PlayAccount implements OnInit, OnDestroy {
   protected readonly blocked = signal<{ name: string } | null>(null);
 
   constructor() {
+    // sent here from a picture to log on (`?next=`): back there as soon as somebody plays. Only a picture's page: nothing from outside can send a person elsewhere
+    const next = inject(ActivatedRoute).snapshot.queryParamMap.get('next');
+    if (next && /^\/play\/round\/[A-Za-z0-9_-]+$/.test(next)) {
+      effect(() => {
+        if (this.users.acting()) untracked(() => void this.router.navigateByUrl(next));
+      });
+    }
     effect(() => writePreference('play.userFilter', this.filter()));
     // the edit page of the account that plays is open as soon as there is one (and again for another account)
     let editedId: string | null = null;

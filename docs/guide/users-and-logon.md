@@ -73,3 +73,5 @@ The gate keeps an account 10 seconds (`USER_KEEP_MS`) so each call is not a read
 What an account already has stays (more pictures, packages added before): only new ones are stopped. **An admin is not stopped**, also when doing it for an account.
 
 The rule is `AccountLimits` (`models/shared/account-limits.ts`). The API asks it: `PUT /jigsaw-users/:id/bought-packages/:packageId` (403), `POST /jigsaw` and a `PUT /jigsaw/:id` that gives a jigsaw to another owner (403; the count is `countOwned` of the jigsaw store, a Firestore count on `ownerUid`). The pages say why before the person tries: `app-upload-limit` over the Save button of a new picture or jigsaw (app and website: how many are used, and with 5 the Save buttons are off), and the page of a package has **Verify your account to add packages** in place of the button.
+
+**A verified user who is no publisher** has at most 20 pictures that are not public (`PRIVATE_PICTURES_MAX`: private and hidden together, since they can make no other kind), refused with 403 on `POST /jigsaw` (and when a picture is given to them); publishers and admins have no limit; the add forms say how many are used.

@@ -232,5 +232,9 @@
   "openPackage": "Pakket openen",
   "filterOn": "Het filter staat aan",
   "playedBy": "Gespeelde rondes: {{ rounds }} · Spelers: {{ players }}",
-  "notPlayed": "Nog niemand heeft hem gespeeld."
+  "notPlayed": "Nog niemand heeft hem gespeeld.",
+  "linkPlays": "Wie deze link krijgt, kan de afbeelding zien en spelen.",
+  "newLink": "Nieuwe link maken: de oude werkt dan niet meer",
+  "newLinkMade": "Er is een nieuwe link. Deel die opnieuw.",
+  "close": "Sluiten"
 }

@@ -1,15 +1,17 @@
+import { Location } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { PlayLook } from '../../../app/jigsaw/play-look';
 import { PlayLookChoice } from '../../../app/jigsaw/play-look-choice/play-look-choice';
-import { LanguageSelect } from '../../../app/jigsaw/language-select/language-select';
+import { LANGUAGES, LanguageService } from '../../../app/core/language.service';
 import { TextLook } from '../../../app/jigsaw/text-look';
 import { TileDetails } from '../../../app/jigsaw/tile-details';
 import { PartSizeChoice } from '../../../app/jigsaw/part-sizes';
 import { FONTS, TEXT_SIZES } from '../../../app/models/shared/text-look';
 import { PART_SIZES, SIZED_PARTS } from '../../../app/models/shared/part-size';
+import { goBack } from '../../go-back';
 import { ListView } from '../../list-view';
 
 /**
@@ -18,14 +20,22 @@ import { ListView } from '../../list-view';
  */
 @Component({
   selector: 'play-account-prefs',
-  imports: [TranslocoDirective, RouterLink, PlayLookChoice, LanguageSelect],
+  imports: [TranslocoDirective, RouterLink, PlayLookChoice],
   providers: [provideTranslocoScope('play')],
   host: { class: 'd-block' },
   template: `<main class="container-fluid page-margin page-max" *transloco="let t">
     <section class="card card-body mb-3">
       <h2 class="subsection-title mt-0"><i class="bi bi-house me-2" aria-hidden="true"></i>{{ t('play.languageAndHome') || 'Language and home page' }}</h2>
-      <div class="form-label mb-1">{{ t('play.languageTitle') || 'Language' }}</div>
-      <div class="list-group mb-3 align-self-start"><app-language-select /></div>
+      <!-- the languages as the other choices are shown, each with its flag -->
+      <fieldset class="mb-3">
+        <legend class="form-label mb-1">{{ t('play.languageTitle') || 'Language' }}</legend>
+        <div class="d-flex flex-wrap gap-2">
+          @for (l of languages; track l.code) {
+            <input [id]="'language-' + l.code" class="btn-check" type="radio" name="language" autocomplete="off" [checked]="language.lang() === l.code" (change)="users.changeLanguage(l.code)">
+            <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" [for]="'language-' + l.code"><img class="flag me-1" [src]="'flags/' + l.code + '.svg'" alt="" width="24" height="16">{{ l.name }}</label>
+          }
+        </div>
+      </fieldset>
       <div class="form-check form-switch mb-0">
         <input id="show-ongoing" class="form-check-input" type="checkbox" role="switch" [checked]="list.ongoing()" (change)="list.ongoing.set($any($event.target).checked)">
         <label class="form-check-label" for="show-ongoing">{{ t('play.showOngoing') || 'Show ongoing rounds on the home page' }}</label>
@@ -76,6 +86,10 @@ import { ListView } from '../../list-view';
         }
       </p>
     </section>
+    <!-- every choice is kept as it is made: Close only leaves the page -->
+    <div class="d-flex justify-content-center mt-3">
+      <button type="button" class="btn btn-primary" (click)="close()"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>{{ t('play.close') || 'Close' }}</button>
+    </div>
   </main>`,
 })
 export class PlayAccountPrefs {
@@ -87,8 +101,17 @@ export class PlayAccountPrefs {
   protected readonly chosen = inject(PartSizeChoice);
   protected readonly details = inject(TileDetails);
   protected readonly list = inject(ListView);
+  protected readonly language = inject(LanguageService);
+  protected readonly languages = LANGUAGES;
   protected readonly parts = SIZED_PARTS;
   protected readonly partSizes = PART_SIZES;
+
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
+
+  protected close(): void {
+    goBack(this.location, this.router);
+  }
 
   constructor() {
     void this.users.load(); // the account that plays brings its own choice

@@ -6,6 +6,8 @@ import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
 import { PictureForm } from '../../components/picture-form/picture-form';
 import { PictureRounds } from '../../components/picture-rounds/picture-rounds';
+import { SharePicture } from '../../components/share-picture/share-picture';
+import { JigsawSpec } from '../../../app/models/shared/jigsaw-settings';
 
 /**
  * The page of the route `/play/mine/picture/:id`, where a picture in the list of the user's pictures leads: **a picture that is there**. It frames the form of a picture (`play-picture-form`, the same form as Add picture) and
@@ -15,7 +17,7 @@ import { PictureRounds } from '../../components/picture-rounds/picture-rounds';
  */
 @Component({
   selector: 'play-picture',
-  imports: [TranslocoDirective, RouterLink, PictureForm, PictureRounds],
+  imports: [TranslocoDirective, RouterLink, PictureForm, PictureRounds, SharePicture],
   providers: [provideTranslocoScope('jigsawUser', 'play')],
   host: { class: 'd-block' },
   templateUrl: './picture.html',
@@ -36,6 +38,12 @@ export class PlayPicture {
   protected readonly confirmingDelete = signal(false);
   protected readonly busy = signal(false);
   protected readonly error = signal('');
+  /** the picture as it is saved, for sending it (read when the page opens) */
+  protected readonly picture = signal<JigsawSpec | null>(null);
+
+  constructor() {
+    void this.jigsaws.get(this.id).then((found) => this.picture.set(found), () => undefined);
+  }
 
   /** back to the list the picture was opened from */
   protected leave(): Promise<boolean> {

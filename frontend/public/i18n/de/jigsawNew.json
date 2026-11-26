@@ -78,7 +78,9 @@
   "kindJigsaw": "Ein fertiges Puzzle",
   "kindJigsawHelp": "Du wählst die Anzahl der Teile und die Schwierigkeit jetzt.",
   "pictureAlt": "Das Bild",
-  "limitCount": "{{ count }} von {{ max }} Bildern genutzt. Ein bestätigtes Konto hat keine Grenze.",
+  "limitCount": "{{ count }} von {{ max }} Bildern belegt.",
   "limitFull": "Du hast {{ max }} Bilder, mehr kann ein nicht bestätigtes Konto nicht haben. Bestätige dein Konto oder lösche ein Bild.",
-  "limitVerify": "Konto bestätigen"
+  "limitVerify": "Konto bestätigen",
+  "privateCount": "{{ count }} von {{ max }} privaten Bildern belegt.",
+  "privateFull": "Du hast {{ max }} private Bilder, mehr geht nicht. Lösche eines, um ein neues hinzuzufügen."
 }

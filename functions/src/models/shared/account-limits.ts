@@ -1,8 +1,14 @@
-// What an account that is NOT verified is limited to. Verified means it has a verified login. An account that is not verified plays the pictures that are publicly available like anybody; it cannot
+// What an account is limited to. A **user** (verified, but no publisher) has at most a number of pictures that are not public: private and hidden together, since it can make no other kind. First, an account that is NOT verified: Verified means it has a verified login. An account that is not verified plays the pictures that are publicly available like anybody; it cannot
 // add packages (get or buy them), and it has at most a few uploaded pictures at a time. What it already has stays: only new ones are stopped. An admin is not stopped (the API asks that first).
+
+import { JigsawVisibilities } from './jigsaw-settings';
+import { UserLevel, UserLevels } from './user-level';
 
 /** how many uploaded pictures an account that is not verified can have (pictures and ready jigsaws; deleting one makes room) */
 export const UNVERIFIED_PICTURES_MAX = 5;
+
+/** how many pictures that are not public (private or hidden) a verified account that is not a publisher can have; deleting one makes room */
+export const PRIVATE_PICTURES_MAX = 20;
 
 /** The part of an account that says whether it is verified: the verified logins on the server (`firebaseUids`), `protected` as the page gets it. */
 export interface Verifiable {
@@ -11,6 +17,12 @@ export interface Verifiable {
 }
 
 export class AccountLimits {
+  /** The reason a verified account of this level may not have one more picture that is not public when it has `has` of them, or ''. A publisher and an admin have no limit. */
+  static privateError(level: UserLevel, visibility: string | undefined, has: number): string {
+    if (UserLevels.mayPublish(level) || !JigsawVisibilities.restricted(visibility) || has < PRIVATE_PICTURES_MAX) return '';
+    return `You can have ${PRIVATE_PICTURES_MAX} pictures that are not public: delete one to add another.`;
+  }
+
   /** The account has a verified login. */
   static verified(account: Verifiable | null | undefined): boolean {
     return !!account && (account.protected === true || (Array.isArray(account.firebaseUids) && account.firebaseUids.length > 0));

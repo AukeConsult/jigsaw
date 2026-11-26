@@ -15,12 +15,12 @@ import { FeedItem } from '../../../app/models/shared/feed-item';
   imports: [TranslocoDirective, MyJigsaws, FeedTile],
   providers: [provideTranslocoScope('play')],
   host: { class: 'd-block' },
-  template: `<main class="container-fluid page-margin page-max" *transloco="let t">
+  template: `<main class="container-fluid page-margin" *transloco="let t">
     <h1 class="page-title">{{ t('play.myPictures') || 'My pictures' }}</h1>
     @if (packages().length) {
       <section class="mb-4">
         <h2 class="subsection-title"><i class="bi bi-box-seam me-2" aria-hidden="true"></i>{{ t('play.myPackages') || 'My packages' }}</h2>
-        <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 g-2 g-sm-3">
+        <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
           @for (pack of packages(); track pack.id) {
             <div class="col"><app-feed-tile [item]="pack" /></div>
           }

@@ -2,8 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
-        Title="Karins jigsaw" Width="1280" Height="800" MinWidth="1000" MinHeight="600"
+        Title="Karins jigsaw" Width="1280" Height="800" MinWidth="375" MinHeight="667"
         Background="#F6F7FB" WindowStartupLocation="CenterScreen">
-    <!-- no largest size: the window can be maximised to the whole screen (the page fits itself to the room) -->
+    <!-- the smallest is the size of a phone (the page fits itself to the room); no largest size: the window can be maximised to the whole screen -->
     <wv2:WebView2 x:Name="Web" />
 </Window>

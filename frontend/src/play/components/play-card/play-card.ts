@@ -8,6 +8,7 @@ import { JigsawImageService } from '../../../app/jigsaw/jigsaw-image.service';
 import { snapLevelOfJigsaw } from '../../../app/jigsaw/snap-level';
 import { SolvedService } from '../../../app/jigsaw/solved.service';
 import { pieceGrid } from '../../../app/models/shared/jigsaw';
+import { JigsawCategories } from '../../../app/models/shared/category';
 import { JigsawKinds } from '../../../app/models/shared/jigsaw-kind';
 import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
 
@@ -15,7 +16,7 @@ import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
 @Component({
   selector: 'play-card',
   imports: [TranslocoDirective, RouterLink, DatePipe, CategoryTags],
-  providers: [provideTranslocoScope('play'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawList')],
+  providers: [provideTranslocoScope('play'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawCategories')],
   templateUrl: './play-card.html',
   host: { class: 'd-block h-100' },
 })
@@ -49,6 +50,8 @@ export class PlayCard {
     const grid = pieceGrid(j.width, j.height, j.gridSize);
     return grid.columns * grid.rows;
   });
+  /** it is in the category Recommended: a star in the top left corner of the picture says so */
+  protected readonly isRecommended = computed(() => JigsawCategories.isChosen(this.jigsaw().categories ?? [], 'recommended'));
   /** the user has solved this jigsaw: a small mark in the corner of the picture says so */
   protected readonly isSolved = computed(() => this.solved.isSolved(this.jigsaw().id));
   protected readonly favorite = computed(() => this.favorites.isFavorite(this.jigsaw().id));

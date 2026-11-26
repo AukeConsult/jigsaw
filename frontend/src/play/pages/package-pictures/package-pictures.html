@@ -1,4 +1,4 @@
-<main class="container-fluid page-margin page-max" *transloco="let t">
+<main class="container-fluid page-margin" *transloco="let t">
   @if (missing()) {
     <div class="alert alert-warning" role="alert">{{ t('play.feed.notFound') || 'This does not exist, or it is not yours.' }}</div>
     <a class="link-action" routerLink="/play/mine/packages"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('play.feed.back') || 'Back to the list' }}</a>
@@ -23,7 +23,7 @@
     } @else if (!pictures()!.length) {
       <p class="text-body-secondary">{{ t('play.feed.noPictures') || 'No pictures in this package yet.' }}</p>
     } @else {
-      <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 g-2 g-sm-3 mb-3">
+      <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3 mb-3">
         @for (picture of pictures(); track picture.id) {
           <div class="col">
             <play-card [jigsaw]="picture" [editIn]="pack.id" />

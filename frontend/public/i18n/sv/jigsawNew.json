@@ -78,7 +78,9 @@
   "kindJigsaw": "Ett färdigt pussel",
   "kindJigsawHelp": "Du väljer antal bitar och svårighetsgrad nu.",
   "pictureAlt": "Bilden",
-  "limitCount": "{{ count }} av {{ max }} bilder använda. Ett verifierat konto har ingen gräns.",
+  "limitCount": "{{ count }} av {{ max }} bilder använda.",
   "limitFull": "Du har {{ max }} bilder, det mesta ett konto som inte är verifierat kan ha. Verifiera kontot eller ta bort en bild.",
-  "limitVerify": "Verifiera kontot"
+  "limitVerify": "Verifiera kontot",
+  "privateCount": "{{ count }} av {{ max }} privata bilder använda.",
+  "privateFull": "Du har {{ max }} privata bilder, det mesta du kan ha. Radera en för att lägga till en ny."
 }

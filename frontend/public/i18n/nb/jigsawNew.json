@@ -78,7 +78,9 @@
   "kindJigsaw": "Et ferdig puslespill",
   "kindJigsawHelp": "Du velger antall brikker og vanskelighetsgrad nå.",
   "pictureAlt": "Bildet",
-  "limitCount": "{{ count }} av {{ max }} bilder brukt. En verifisert konto har ingen grense.",
+  "limitCount": "{{ count }} av {{ max }} bilder brukt.",
   "limitFull": "Du har {{ max }} bilder, det meste en konto som ikke er verifisert kan ha. Verifiser kontoen, eller slett et bilde.",
-  "limitVerify": "Verifiser kontoen"
+  "limitVerify": "Verifiser kontoen",
+  "privateCount": "{{ count }} av {{ max }} private bilder brukt.",
+  "privateFull": "Du har {{ max }} private bilder, det meste du kan ha. Slett et for å legge til et nytt."
 }

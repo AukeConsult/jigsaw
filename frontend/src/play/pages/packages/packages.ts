@@ -15,14 +15,14 @@ import { FeedItem, PackageItem } from '../../../app/models/shared/feed-item';
   providers: [provideTranslocoScope('play')],
   host: { class: 'd-block' },
   template: `
-    <main class="container-fluid page-margin page-max" *transloco="let t">
+    <main class="container-fluid page-margin" *transloco="let t">
       <h1 class="page-title mb-3"><i class="bi bi-box-seam me-2" aria-hidden="true"></i>{{ t('play.allPackages') || 'Packages' }}</h1>
       @if (loading()) {
         <div class="text-center py-4"><span class="spinner-border" role="presentation" aria-hidden="true"></span></div>
       } @else if (!packages().length) {
         <p class="text-body-secondary text-center py-4">{{ t('play.feed.noPackages') || 'There are no packages yet.' }}</p>
       } @else {
-        <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 g-2 g-sm-3">
+        <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
           @for (pack of packages(); track pack.id) {
             <div class="col"><app-feed-tile [item]="pack" [had]="!pack.onHome" /></div>
           }

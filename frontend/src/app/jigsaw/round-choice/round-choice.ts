@@ -38,6 +38,8 @@ export class RoundChoice {
   readonly busy = input(false);
   /** there is a Cancel button (the choice is open on request); without it the choice is simply on the page */
   readonly cancellable = input(true);
+  /** who sees the round is asked (not for a round through a link to a private picture: it is private) */
+  readonly askWho = input(true);
 
   readonly chosen = output<PlayChoice>();
   readonly cancelled = output<void>();

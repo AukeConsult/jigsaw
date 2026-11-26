@@ -78,7 +78,9 @@
   "kindJigsaw": "Un puzle listo",
   "kindJigsawHelp": "Eliges ahora el número de piezas y la dificultad.",
   "pictureAlt": "La imagen",
-  "limitCount": "{{ count }} de {{ max }} imágenes usadas. Una cuenta verificada no tiene límite.",
+  "limitCount": "{{ count }} de {{ max }} imágenes usadas.",
   "limitFull": "Tienes {{ max }} imágenes, el máximo para una cuenta sin verificar. Verifica tu cuenta o borra una imagen.",
-  "limitVerify": "Verificar la cuenta"
+  "limitVerify": "Verificar la cuenta",
+  "privateCount": "{{ count }} de {{ max }} imágenes privadas usadas.",
+  "privateFull": "Tienes {{ max }} imágenes privadas, el máximo. Borra una para añadir otra."
 }

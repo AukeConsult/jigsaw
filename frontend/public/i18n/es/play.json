@@ -232,5 +232,9 @@
   "openPackage": "Abrir el paquete",
   "filterOn": "El filtro está activado",
   "playedBy": "Partidas jugadas: {{ rounds }} · Jugadores: {{ players }}",
-  "notPlayed": "Nadie lo ha jugado todavía."
+  "notPlayed": "Nadie lo ha jugado todavía.",
+  "linkPlays": "Quien reciba este enlace puede ver la imagen y jugarla.",
+  "newLink": "Crear un enlace nuevo: el antiguo dejará de funcionar",
+  "newLinkMade": "Hay un enlace nuevo. Compártelo otra vez.",
+  "close": "Cerrar"
 }

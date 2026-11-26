@@ -25,17 +25,19 @@
         <div class="form-text mt-2">{{ t('jigsawPage.snapHelp') || 'How close a piece must be to its place before it snaps in. Easy: from far away. Hard: only right next to it.' }}</div>
       </div>
     </div>
-    <!-- who sees the round: public (it is in the list of rounds on the front page) or private (only its player) -->
-    <fieldset class="mt-3">
-      <legend class="form-label mb-1">{{ t('jigsawPage.roundWho') || 'Who sees the round' }}</legend>
-      <div class="d-flex flex-wrap gap-2">
-        <input id="round-public" name="roundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="!isPrivate()" (change)="setPrivate(false)">
-        <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="round-public"><i class="bi bi-globe2 me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityEveryone') || 'Public' }}</label>
-        <input id="round-private" name="roundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="isPrivate()" (change)="setPrivate(true)">
-        <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="round-private"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityOwner') || 'Private' }}</label>
-      </div>
-      <div class="form-text mt-1">{{ t('jigsawPage.roundWhoHelp') || 'Public: the round is in the list of rounds on the front page. Private: only you see it.' }}</div>
-    </fieldset>
+    @if (askWho()) {
+      <!-- who sees the round: public (it is in the list of rounds on the front page) or private (only its player) -->
+      <fieldset class="mt-3">
+        <legend class="form-label mb-1">{{ t('jigsawPage.roundWho') || 'Who sees the round' }}</legend>
+        <div class="d-flex flex-wrap gap-2">
+          <input id="round-public" name="roundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="!isPrivate()" (change)="setPrivate(false)">
+          <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="round-public"><i class="bi bi-globe2 me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityEveryone') || 'Public' }}</label>
+          <input id="round-private" name="roundVisibility" class="btn-check" type="radio" autocomplete="off" [checked]="isPrivate()" (change)="setPrivate(true)">
+          <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" for="round-private"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityOwner') || 'Private' }}</label>
+        </div>
+        <div class="form-text mt-1">{{ t('jigsawPage.roundWhoHelp') || 'Public: the round is in the list of rounds on the front page. Private: only you see it.' }}</div>
+      </fieldset>
+    }
     <div class="form-check form-switch mt-3">
       <input id="round-timed" name="roundTimed" class="form-check-input" type="checkbox" role="switch" [ngModel]="timed()" (ngModelChange)="setTimed($event)">
       <label class="form-check-label" for="round-timed" [title]="t('jigsawNew.timedHelp') || 'A clock counts how long each round takes.'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawNew.timed') || 'Timed' }}</label>
