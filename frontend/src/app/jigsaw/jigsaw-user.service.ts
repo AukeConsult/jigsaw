@@ -1,6 +1,3 @@
-import { PlayLookSetup } from '../models/shared/play-look';
-import { TextLookSetup } from '../models/shared/text-look';
-import { PartSize, SizedPart } from '../models/shared/part-size';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
@@ -8,20 +5,16 @@ import { tr } from '../core/i18n';
 import { AuthService } from '../logons/auth.service';
 import { LanguageService } from '../core/language.service';
 import { environment } from '../../environments/environment';
-import { JigsawFilter, JigsawSetup } from '../models/shared/jigsaw-filter';
-import { JigsawUserSpec, JigsawUsers } from '../models/shared/jigsaw-user';
+import { JigsawUserSpec, JigsawUsers, UserEdit, UserSettings } from '../models/shared/jigsaw-user';
 import { UserLevel, UserLevels } from '../models/shared/user-level';
 import { FRONT_FINDER_KEY, hasFinderPreferences, readFinderPreferences, writeFinderPreferences } from './jigsaw-finder/finder-preferences';
 import { JigsawFilters } from '../models/shared/jigsaw-filter';
-
-/** Where the browser keeps which user is playing (the UID; the user itself is in the database). An earlier version kept the user name, which was then the id too. */
-const STORED_KEY = 'jigsaw.userId';
-const LEGACY_KEY = 'jigsaw.username';
+import { apiError } from '../core/api-error';
+import { rememberUserId, storedUserId } from '../core/stored-user';
 
 /** Why a request about a user failed, in words for the person (the API says why when it can). */
 function reasonOf(err: unknown): string {
-  const body = err instanceof HttpErrorResponse ? (err.error as { error?: string } | null) : null;
-  return body?.error ?? tr('jigsawUser.couldNotReach', 'Could not reach the server: try again.');
+  return apiError(err) ?? tr('jigsawUser.couldNotReach', 'Could not reach the server: try again.');
 }
 
 /**
@@ -82,22 +75,14 @@ export class JigsawUserService {
     return `${environment.jigsawApi}/jigsaw-users/${encodeURIComponent(id)}`;
   }
 
-  private stored(): string | null {
-    try {
-      return localStorage.getItem(STORED_KEY) ?? localStorage.getItem(LEGACY_KEY);
-    } catch {
-      return null;
-    }
+  /** the account with this id, as the database has it now */
+  private read(id: string): Promise<JigsawUserSpec> {
+    return firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
   }
 
-  private remember(id: string | null): void {
-    try {
-      localStorage.removeItem(LEGACY_KEY);
-      if (id) localStorage.setItem(STORED_KEY, id);
-      else localStorage.removeItem(STORED_KEY);
-    } catch {
-      /* no storage: the user is asked for again the next time */
-    }
+  /** the account with this alias */
+  private readByAlias(username: string): Promise<JigsawUserSpec> {
+    return firstValueFrom(this.http.get<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users/by-username/${encodeURIComponent(JigsawUsers.normalised(username))}`));
   }
 
   /** The user who played here last, read from the database (once); null when none was chosen or the user is gone. */
@@ -105,16 +90,16 @@ export class JigsawUserService {
     this.loaded ??= (async () => {
       const noAdmin = this.readNoAdmin(); // asked at the same time as the user is read
       try {
-        const id = this.stored();
+        const id = storedUserId();
         if (!id) return null;
         try {
-          const user = await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
+          const user = await this.read(id);
           this.user.set(user);
           this.language.use(user.language); // the app is shown in the language of the user
           if (user.search && !hasFinderPreferences(FRONT_FINDER_KEY)) writeFinderPreferences(FRONT_FINDER_KEY, user.search); // a device that has no search of its own takes the user's
           return user;
         } catch (err) {
-          if (err instanceof HttpErrorResponse && err.status === 404) this.remember(null); // the user is gone: choose again
+          if (err instanceof HttpErrorResponse && err.status === 404) rememberUserId(null); // the user is gone: choose again
           return null;
         }
       } finally {
@@ -150,7 +135,7 @@ export class JigsawUserService {
   /** The user who has this user name (without the e-mail), or null when there is none or it could not be read. Does not change who plays. */
   async lookup(username: string): Promise<JigsawUserSpec | null> {
     try {
-      return await firstValueFrom(this.http.get<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users/by-username/${encodeURIComponent(JigsawUsers.normalised(username))}`));
+      return await this.readByAlias(username);
     } catch {
       return null;
     }
@@ -180,9 +165,9 @@ export class JigsawUserService {
     // only a login that is an admin's goes into an account; nothing is kept for it: the page plays as the account, and every call carries the admin's own login
     if (!this.adminAccount() || this.user()?.id === id) return tr('userLevels.into.notAllowed', 'Only an admin can go into an account.');
     try {
-      const account = await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id)));
+      const account = await this.read(id);
       this.emptyFinder();
-      this.remember(account.id);
+      rememberUserId(account.id);
       this.user.set(account);
       this.loaded = Promise.resolve(account);
       return '';
@@ -235,7 +220,7 @@ export class JigsawUserService {
   /** Plays as the user with this UID (one that a login is verified for): the user is read first, since the list of a login has only the name. The reason when it could not be read, or ''. */
   async selectById(id: string): Promise<string> {
     try {
-      this.choose(await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(id))));
+      this.choose(await this.read(id));
       return '';
     } catch (err) {
       return reasonOf(err);
@@ -247,7 +232,7 @@ export class JigsawUserService {
     const me = this.user();
     if (!me) return;
     try {
-      this.user.set(await firstValueFrom(this.http.get<JigsawUserSpec>(this.url(me.id))));
+      this.user.set(await this.read(me.id));
     } catch {
       /* it is read again at the next visit */
     }
@@ -258,7 +243,7 @@ export class JigsawUserService {
     const error = JigsawUsers.usernameError(username);
     if (error) return error;
     try {
-      this.choose(await firstValueFrom(this.http.get<JigsawUserSpec>(`${environment.jigsawApi}/jigsaw-users/by-username/${encodeURIComponent(JigsawUsers.normalised(username))}`)));
+      this.choose(await this.readByAlias(username));
       return '';
     } catch (err) {
       return err instanceof HttpErrorResponse && err.status === 404 ? tr('jigsawUser.noSuchUser', 'There is no user with that alias.') : reasonOf(err);
@@ -269,7 +254,7 @@ export class JigsawUserService {
    * Changes the user who plays: only what is given (an e-mail address that is null is taken away; the address is private and is never read back). The reason when it could
    * not be changed (the user name is taken, a field is not allowed).
    */
-  async update(change: { name?: string; username?: string; language?: string; search?: JigsawSetup; listFilter?: JigsawFilter; playLook?: PlayLookSetup; textLook?: TextLookSetup; tileSize?: PartSize; labelSize?: PartSize; tileDetails?: boolean; picture?: string | null }): Promise<string> {
+  async update(change: UserEdit): Promise<string> {
     const me = this.user();
     if (!me) return tr('jigsawUser.chooseFirst', 'Choose an account first.');
     try {
@@ -289,34 +274,9 @@ export class JigsawUserService {
     if (me && me.language !== code) await this.update({ language: code });
   }
 
-  /** How the user looks for jigsaws (cards or list, and the filter) is kept with the user, when Go is pressed on the Find page: it is the same on every device. Nothing is kept for nobody; a failure is not told (the device keeps it). */
-  async saveSearch(search: JigsawSetup): Promise<void> {
-    if (this.user()) await this.update({ search });
-  }
-
-  /** What the app's picture list is filtered by is kept with the user, so it is the same on every device. Nothing is kept for nobody; a failure is not told (the device keeps it). */
-  async saveListFilter(listFilter: JigsawFilter): Promise<void> {
-    if (this.user()) await this.update({ listFilter });
-  }
-
-  /** How the user likes the play area is kept with the user, so it is the same on every device. Nothing is kept for nobody; a failure is not told (the device keeps it). */
-  async savePlayLook(playLook: PlayLookSetup): Promise<void> {
-    if (this.user()) await this.update({ playLook });
-  }
-
-  /** keeps how big the user likes the text and in which letters with the account that plays (`TextLook`); nothing when nobody plays */
-  async saveTextLook(textLook: TextLookSetup): Promise<void> {
-    if (this.user()) await this.update({ textLook });
-  }
-
-  /** keeps how big the user likes a part (the tiles, the labels) with the account that plays (`PartSizeChoice`); nothing when nobody plays */
-  async savePartSize(part: SizedPart, size: PartSize): Promise<void> {
-    if (this.user()) await this.update({ [part]: size });
-  }
-
-  /** keeps whether the picture tiles tell their details with the account that plays (`TileDetails`); nothing when nobody plays */
-  async saveTileDetails(tileDetails: boolean): Promise<void> {
-    if (this.user()) await this.update({ tileDetails });
+  /** A choice of the player (how they look for jigsaws, the play area, the text, the sizes...) is kept with the account that plays, so it is the same on every device. Nothing is kept for nobody; a failure is not told (the device keeps it). */
+  async keep(choice: UserSettings): Promise<void> {
+    if (this.user()) await this.update(choice);
   }
 
   /** Deletes a user for good; the server only does it when nothing is attached to it (no jigsaws, no rounds played, no other login), and says why when not. Lets the user go when it was the one playing. */
@@ -328,7 +288,7 @@ export class JigsawUserService {
   /** Stops playing as this user (the user stays in the database). */
   leave(): void {
     this.emptyFinder();
-    this.remember(null);
+    rememberUserId(null);
     this.user.set(null);
     this.loaded = Promise.resolve(null);
   }
@@ -343,7 +303,7 @@ export class JigsawUserService {
 
   private choose(user: JigsawUserSpec): void {
     if (this.user()?.id !== user.id) this.emptyFinder();
-    this.remember(user.id);
+    rememberUserId(user.id);
     // the account was chosen: the lists put it first the next time (a failure is not worth telling the person about)
     void firstValueFrom(this.http.post(`${this.url(user.id)}/used`, {})).catch(() => undefined);
     this.user.set(user);

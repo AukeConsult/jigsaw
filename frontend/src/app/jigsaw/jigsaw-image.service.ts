@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 /** What is needed to read the picture of a jigsaw: its id, and its key when it is private or hidden. */
 export type ImageOf = { id: string; imageKey?: string };
 
-/** The background picture of a jigsaw, kept by the API in Storage (the picture of a jigsaw is read at `url`, sent and taken away by id). */
+/** The background picture of a jigsaw, kept by the API in Storage (the picture of a jigsaw is read at `url` and sent by id). */
 @Injectable({ providedIn: 'root' })
 export class JigsawImageService {
   private readonly http = inject(HttpClient);
@@ -36,9 +36,5 @@ export class JigsawImageService {
   /** sends the picture (the file itself is the request body; the API finds out what it is) */
   upload(id: string, file: Blob): Promise<unknown> {
     return firstValueFrom(this.http.put(this.base(id), file, { headers: { 'Content-Type': file.type || 'application/octet-stream' } }));
-  }
-
-  remove(id: string): Promise<unknown> {
-    return firstValueFrom(this.http.delete(this.base(id)));
   }
 }

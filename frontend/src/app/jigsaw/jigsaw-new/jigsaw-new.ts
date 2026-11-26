@@ -8,7 +8,7 @@ import { readPreference, writePreference } from '../../core/preferences';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MAX_PICTURE_BYTES, fitPicture } from '../fit-picture';
 import { JigsawImageService } from '../jigsaw-image.service';
-import { JigsawPiecesService } from '../jigsaw-pieces.service';
+import { JigsawMaker } from '../jigsaw-maker';
 import { JigsawService } from '../jigsaw.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
@@ -23,12 +23,11 @@ import { JigsawFields } from '../jigsaw-fields/jigsaw-fields';
 import { LANGUAGES, LanguageService } from '../../core/language.service';
 import { JigsawLanguages } from '../../models/shared/language';
 import { PictureCropper } from '../picture-cropper/picture-cropper';
-import { renderPieceGraphics } from '../piece-graphics';
 import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings, JigsawInput, JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { JigsawMotives, MOTIVES, MotiveLevel } from '../../models/shared/motive';
 import { JigsawKind, JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { SourceRect } from '../../models/shared/geometry';
-import { JigsawCut, JigsawPieces, PieceLayout, pieceGrid } from '../../models/shared/jigsaw';
+import { JigsawCut, PieceLayout, pieceGrid } from '../../models/shared/jigsaw';
 
 /** What the person chose the last time they made a jigsaw: the form starts with it (what is typed for this jigsaw, like the name and the picture, is not kept). */
 interface NewJigsawPreferences {
@@ -80,7 +79,7 @@ const PREVIEW_BYTES = 300 * 1024;
 export class JigsawNew implements OnDestroy {
   private readonly service = inject(JigsawService);
   private readonly images = inject(JigsawImageService);
-  private readonly pieceApi = inject(JigsawPiecesService);
+  private readonly maker = inject(JigsawMaker);
   private readonly router = inject(Router);
   private readonly plays = inject(PlaysService);
   private readonly users = inject(JigsawUserService);
@@ -596,18 +595,10 @@ export class JigsawNew implements OnDestroy {
       } else {
         const cutting = JigsawCut.cut(this.width(), this.height(), this.gridSize());
         if ('error' in cutting) throw new Error(cutting.error);
-        const pieces = cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []);
         const picture = await fitPicture(file!, this.width(), this.height(), MAX_PICTURE_BYTES, cut!.rect);
         await this.service.update(id, this.settings(cutting.storeWidth));
         await this.images.upload(id, picture);
-        const address = URL.createObjectURL(picture);
-        let graphics: Map<string, string>;
-        try {
-          graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, { width: this.lineWidth(), color: this.lineColor() });
-        } finally {
-          URL.revokeObjectURL(address);
-        }
-        await this.pieceApi.replace(id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
+        await this.maker.keepPieces(id, picture, cutting, { width: this.lineWidth(), color: this.lineColor() });
       }
       await this.router.navigate(['/jigsaw', id], { replaceUrl: true }); // the form is left out of the history: Back from the page does not come back to it
     } catch {
@@ -639,23 +630,11 @@ export class JigsawNew implements OnDestroy {
       this.saving.set(false);
       return;
     }
-    const pieces = cutting && !('error' in cutting) ? cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []) : [];
-    let madeId: string | null = null;
     try {
       const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut.rect); // cut to the shape of the picture area
-      const made = await this.service.create(this.settings(cutting && !('error' in cutting) ? cutting.storeWidth : undefined, analyse ? this.nameForAi() : this.name().trim()));
-      madeId = made.id;
-      await this.images.upload(made.id, picture);
-      if (cutting && !('error' in cutting)) {
-        const address = URL.createObjectURL(picture);
-        let graphics: Map<string, string>;
-        try {
-          graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, { width: this.lineWidth(), color: this.lineColor() });
-        } finally {
-          URL.revokeObjectURL(address);
-        }
-        await this.pieceApi.replace(made.id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
-      }
+      const made = await this.maker.createWithPicture(this.settings(cutting?.storeWidth, analyse ? this.nameForAi() : this.name().trim()), picture, async (saved) => {
+        if (cutting) await this.maker.keepPieces(saved.id, picture, cutting, { width: this.lineWidth(), color: this.lineColor() });
+      });
       // the new jigsaw is only saved: no round is started, the person goes on to its page and starts one when they like
       if (analyse) {
         this.analysing.set(true);
@@ -677,7 +656,6 @@ export class JigsawNew implements OnDestroy {
       }
       await this.router.navigate(['/jigsaw', made.id], { replaceUrl: true }); // the form is left out of the history
     } catch {
-      if (madeId) await this.service.remove(madeId).catch(() => undefined); // nothing half made is left
       this.error.set(tr('jigsawNew.couldNotMake', 'Could not make the jigsaw. Nothing was saved: check the picture and try again.'));
       this.saving.set(false);
     }

@@ -9,7 +9,7 @@ import { firestorePieceStore } from "../src/jigsaw/jigsaw-pieces";
 import { firestorePlayStore } from "../src/jigsaw/plays";
 import { firestoreUserStore } from "../src/jigsaw/jigsaw-users";
 import { firestoreJigsawSearch } from "../src/jigsaw/jigsaw-search";
-import { DEFAULT_OBJECT, JIGSAW, JIGSAW_PIECES, JigsawCut, JigsawPieces } from "../src/models";
+import { DEFAULT_OBJECT, JIGSAW, JIGSAW_PIECES, JigsawCut, JigsawPieces, JigsawFilters, DEFAULT_PLAY_LOOK, DEFAULT_TEXT_LOOK } from "../src/models";
 
 // The real stores on the real Firestore emulator (npm run test:emulator, which starts it). The other tests use a small fake collection.
 describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firestore emulator", () => {
@@ -117,6 +117,18 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
       await plays.removeAll(id);
       await store.remove(id);
     }
+  });
+
+  it("writes every setting of a change of a user, and nothing it was not given", async () => {
+    const users = firestoreUserStore();
+    const made = await users.create({ username: "change-test", name: "Change", language: "en", createdAt: 1 });
+    const settings = { name: "Changed", username: "changed-test", language: "nb", search: { view: "list" as const, filter: JigsawFilters.empty() }, listFilter: JigsawFilters.empty(), playLook: { ...DEFAULT_PLAY_LOOK, sound: false }, textLook: DEFAULT_TEXT_LOOK, tileSize: "large" as const, labelSize: "small" as const, tileDetails: false };
+    const changed = await users.update(made!.id, { ...settings, lastUsedAt: 5, pictureAt: 7 });
+    expect(changed).toMatchObject({ ...settings, lastUsedAt: 5, pictureAt: 7 });
+    expect(await users.get(made!.id)).toEqual(changed);
+    const without = await users.update(made!.id, { pictureAt: null });
+    expect(without).not.toHaveProperty("pictureAt");
+    await users.remove(made!.id);
   });
 
   it("lists the ids of the users with no field read", async () => {

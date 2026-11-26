@@ -60,6 +60,12 @@ export interface JigsawUserSpec {
   protected?: boolean;
 }
 
+/** What a person chooses about their account (besides its picture): the fields of a change that are kept just as they are. A new setting is added here, and the compiler says where else. */
+export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'username' | 'language' | 'search' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'labelSize' | 'tileDetails'>>;
+
+/** A change of an account as the page asks for it: the settings, and the picture (a data address; null takes it away). */
+export type UserEdit = UserSettings & { picture?: string | null };
+
 /** The most Firebase accounts that can be verified for one jigsaw user. */
 export const LOGONS_MAX = 7;
 
@@ -147,9 +153,9 @@ export class JigsawUsers {
    * What a change of a user is, from a request: only the fields that are there are changed; an empty e-mail address (or null) takes the address away. The change as it is
    * to be made, or the reason it is not allowed.
    */
-  static change(input: { name?: unknown; username?: unknown; language?: unknown; search?: unknown; listFilter?: unknown; playLook?: unknown; textLook?: unknown; tileSize?: unknown; labelSize?: unknown; tileDetails?: unknown; picture?: unknown } | null | undefined): { change: { name?: string; username?: string; language?: string; search?: JigsawSetup; listFilter?: JigsawFilter; playLook?: PlayLookSetup; textLook?: TextLookSetup; tileSize?: PartSize; labelSize?: PartSize; tileDetails?: boolean; picture?: string | null } } | { error: string } {
+  static change(input: { [field in keyof UserEdit]?: unknown } | null | undefined): { change: UserEdit } | { error: string } {
     const body = input ?? {};
-    const change: { name?: string; username?: string; language?: string; search?: JigsawSetup; listFilter?: JigsawFilter; playLook?: PlayLookSetup; textLook?: TextLookSetup; tileSize?: PartSize; labelSize?: PartSize; tileDetails?: boolean; picture?: string | null } = {};
+    const change: UserEdit = {};
     if (body.picture !== undefined) {
       const error = JigsawUsers.pictureError(body.picture);
       if (error) return { error };

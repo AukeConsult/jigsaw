@@ -21,8 +21,8 @@ Firestore collections: `jigsaw` (limit 100, with the subcollection `pieces` unde
 ## Code layout
 - `functions/src/`: `index.ts` (the function `jigsawApi`), `jigsaw/` (`app.ts` and the routes: jigsaws, pieces, pictures, users, plays), `common/` (`jigsaw-list.ts`, `document-store.ts`, `cors.ts`), `models/` (the shared model).
 - `functions/test/`: Vitest tests of every rule on the classes. `functions/test-emulator/`: the real stores on a Firestore emulator.
-- `frontend/src/app/`: `jigsaw/` (the pages, `puzzle-piece/`, `picture-cropper/`, `fit-picture.ts`, `piece-graphics.ts`, `piece-sync.ts` and the API services), `board/` (the board the pieces are played on: `jigsaw-board/`), `guide/`, `core/` (`autosave.ts`, `api-collection.ts`, the Transloco files).
-- Autosave: saves 800 ms after the last change, creates then updates, retries after 5 s, flushes when the page closes.
+- `frontend/src/app/`: `jigsaw/` (the pages, `puzzle-piece/`, `picture-cropper/`, `fit-picture.ts`, `piece-graphics.ts`, `piece-sync.ts` and the API services), `board/` (the board the pieces are played on: `jigsaw-board/`), `guide/`, `core/` (`api-collection.ts`, the Transloco files).
+- Every router is made with `apiRouter` (`common/http.ts`): what a handler does not catch is answered 503 "Try again.".
 
 ## Running
 ```

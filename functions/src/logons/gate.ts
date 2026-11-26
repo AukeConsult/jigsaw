@@ -2,7 +2,9 @@ import { Request, RequestHandler } from "express";
 import type { UserStore } from "../jigsaw/jigsaw-users";
 import { JigsawUserSpec, JigsawUsers, LogonToken, UserLevels } from "../models";
 import { AccountDirectory } from "./account-directory";
-import { TokenVerifier } from "./require-auth";
+import { TokenVerifier, verifiedToken } from "./require-auth";
+import { TtlCache } from "../common/ttl-cache";
+import { askerOf, bad } from "../common/http";
 
 // The gate in front of the API: a jigsaw user that has verified Firebase accounts is used only by somebody signed in with one of them. The token is sent with every call (when somebody is signed
 // in) and this decides, from the user the call acts as, whether it is needed: a user with no verified account ignores it, as before. The user a call acts as is the one in the header `X-Jigsaw-User`
@@ -59,7 +61,7 @@ function ownLogins(req: Request): boolean {
 /** The users a call acts as: the one in the header, and the one in the address of a route of one user. */
 function actingAs(req: Request): string[] {
   const ids: string[] = [];
-  const header = req.get("X-Jigsaw-User");
+  const header = askerOf(req);
   if (header && !JigsawUsers.idError(header)) ids.push(header);
   const path = /^\/jigsaw-users\/([^/]+)(?:\/|$)/.exec(req.path)?.[1];
   if (path && path !== "by-username" && !JigsawUsers.idError(path) && !ids.includes(path)) ids.push(path);
@@ -68,12 +70,12 @@ function actingAs(req: Request): string[] {
 
 export function createGate(deps: { verifier: TokenVerifier; users: UserStore; directory: AccountDirectory; now?: () => number }): Gate {
   const now = deps.now ?? Date.now;
-  const known = new Map<string, { at: number; user: JigsawUserSpec | null }>();
+  const known = new TtlCache<JigsawUserSpec | null>(USER_KEEP_MS, 2000, now);
   const allThere = new Map<string, number>();
   let listSweptAt = 0;
 
   const forget = (userId: string) => {
-    known.delete(userId);
+    known.forget(userId);
     allThere.delete(userId);
   };
 
@@ -85,14 +87,7 @@ export function createGate(deps: { verifier: TokenVerifier; users: UserStore; di
   /** The accounts this login is verified for (asked of the database each time, never kept). */
   const accountsOfLogin = (uid: string) => deps.users.linkedTo(uid);
 
-  const userOf = async (id: string): Promise<JigsawUserSpec | null> => {
-    const same = known.get(id);
-    if (same && now() - same.at < USER_KEEP_MS) return same.user;
-    if (known.size > 2000) known.clear();
-    const user = await deps.users.get(id);
-    known.set(id, { at: now(), user });
-    return user;
-  };
+  const userOf = (id: string): Promise<JigsawUserSpec | null> => known.get(id, () => deps.users.get(id));
 
   /** Takes the accounts that are gone from the list of the user: the user as it is then (it may be free). */
   const sweep = async (user: JigsawUserSpec): Promise<JigsawUserSpec | null> => {
@@ -112,19 +107,7 @@ export function createGate(deps: { verifier: TokenVerifier; users: UserStore; di
     if (open(req)) return next();
     try {
       let proof: LogonToken | null | undefined; // undefined: not looked at yet
-      const token = async (): Promise<LogonToken | null> => {
-        if (proof !== undefined) return proof;
-        const bearer = /^Bearer (.+)$/.exec(req.get("Authorization") ?? "")?.[1];
-        proof = null;
-        if (bearer) {
-          try {
-            proof = await deps.verifier.verify(bearer);
-          } catch {
-            /* a token that is not good is no token */
-          }
-        }
-        return proof;
-      };
+      const token = async (): Promise<LogonToken | null> => (proof !== undefined ? proof : (proof = await verifiedToken(req, deps.verifier)));
       // An admin: the login that comes (the Bearer token, the admin's own key) is verified for an account that is a real admin. Then the call is answered as the account it acts as, with the rights of an
       // admin (`res.locals.byAdmin`: every level is admin for this call, `intoAccount`), whatever login that account needs. The logins of the account are not opened that way.
       let viaAdmin = false;
@@ -157,7 +140,7 @@ export function createGate(deps: { verifier: TokenVerifier; users: UserStore; di
       next();
     } catch (err) {
       console.error("Could not tell who may act as a user", err);
-      res.status(503).json({ error: "Try again." });
+      bad(res, "Try again.", 503);
     }
   };
 

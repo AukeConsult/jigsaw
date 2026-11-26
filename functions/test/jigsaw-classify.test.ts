@@ -1,10 +1,11 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
-import { ClassifierUnavailable, type Classifier } from "../src/jigsaw/classifier";
+import { type Classifier } from "../src/jigsaw/classifier";
 import type { ImageStore, Picture } from "../src/jigsaw/jigsaw-image";
 import type { Classification, JigsawSpec } from "../src/models";
 import { memoryPlays, memoryUsers } from "./memory-plays";
+import { AiUnavailable } from "../src/common/openai-chat";
 
 // The classification of one jigsaw, through the route, with a fake classifier: nothing here calls OpenAI.
 
@@ -148,7 +149,7 @@ describe("classifying one jigsaw", () => {
   });
 
   it("says when the classifier cannot be used (503, as it is) and when it fails (502), and changes nothing", async () => {
-    const unavailable = setup({ classify: async () => { throw new ClassifierUnavailable("OPENAI_API_KEY is not set: put it in the top-level .env and run npm run sync:env."); } });
+    const unavailable = setup({ classify: async () => { throw new AiUnavailable("OPENAI_API_KEY is not set: put it in the top-level .env and run npm run sync:env."); } });
     const down = await classify(unavailable, "u1", "?apply=true");
     expect([down.status, down.body.error]).toEqual([503, "OPENAI_API_KEY is not set: put it in the top-level .env and run npm run sync:env."]);
     const failing = setup({ classify: async () => { throw new Error("OpenAI answered 429: slow down"); } });

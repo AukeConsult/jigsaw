@@ -63,6 +63,7 @@
     "email-already-in-use": "Det finnes allerede en innlogging med denne e-posten. Logg inn i stedet.",
     "weak-password": "Passordet må ha minst 6 tegn.",
     "too-many-requests": "For mange forsøk. Prøv igjen senere.",
+    "popup-blocked": "Nettleseren blokkerte påloggingsvinduet. Tillat popup-vinduer og prøv igjen.",
     "operation-not-allowed": "Denne måten å logge inn på er ikke tilgjengelig. Prøv en annen måte.",
     "requires-recent-login": "Logg inn på nytt, og prøv en gang til.",
     "invalid-action-code": "Denne lenken er ikke gyldig lenger. Be om en ny.",

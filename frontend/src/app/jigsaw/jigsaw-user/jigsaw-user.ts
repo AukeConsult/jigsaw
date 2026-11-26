@@ -1,7 +1,7 @@
-import { Component, OnInit, effect, inject, signal, untracked } from '@angular/core';
+import { Component, OnDestroy, OnInit, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { readPreference, writePreference } from '../../core/preferences';
+import { preferenceSignal } from '../../core/preferences';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MyJigsaws } from '../my-jigsaws/my-jigsaws';
 import { MyRoundList } from '../my-round-list/my-round-list';
@@ -9,13 +9,10 @@ import { JigsawUserService } from '../jigsaw-user.service';
 import { AuthService } from '../../logons/auth.service';
 import { MyLogonUsers } from '../../logons/my-logon-users/my-logon-users';
 import { AccountAvatar } from '../account-avatar/account-avatar';
-import { pictureFromFile } from '../account-picture';
+import { AccountEdit } from '../account-edit';
 import { UserLogins } from '../../logons/user-logins/user-logins';
 import { LANGUAGES, LanguageService } from '../../core/language.service';
 import { JigsawUsers, JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../../models/shared/jigsaw-user';
-
-/** how long the account form waits after the last change before it saves it */
-const EDIT_PAUSE_MS = 800;
 
 /**
  * Who plays (`/jigsaw/user`): a person makes a user (a user name and a name) or says the user name they already have. There is no password for now.
@@ -24,12 +21,14 @@ const EDIT_PAUSE_MS = 800;
 @Component({
   selector: 'app-jigsaw-user',
   imports: [FormsModule, RouterLink, TranslocoDirective, MyJigsaws, MyRoundList, UserLogins, MyLogonUsers, AccountAvatar],
-  providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPackages')],
+  providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPackages'), AccountEdit],
   templateUrl: './jigsaw-user.html',
 })
-export class JigsawUser implements OnInit {
+export class JigsawUser implements OnInit, OnDestroy {
   protected readonly users = inject(JigsawUserService);
   protected readonly auth = inject(AuthService);
+  /** the form of the account that plays */
+  protected readonly edit = inject(AccountEdit);
   private readonly router = inject(Router);
   private readonly next = inject(ActivatedRoute).snapshot.queryParamMap.get('next');
   /** the page was opened as `/jigsaw/user/new`: the form of a new account (anywhere else it is the accounts to choose from) */
@@ -44,12 +43,11 @@ export class JigsawUser implements OnInit {
   readonly list = signal<JigsawUserSpec[] | null>(null);
   readonly listFailed = signal(false);
   /** what is typed to find a user in a long list (kept on the device) */
-  readonly filter = signal(readPreference('jigsaw.userFilter', '', (v): v is string => typeof v === 'string'));
-  readonly username = signal('');
+  readonly filter = preferenceSignal('jigsaw.userFilter', '', (v): v is string => typeof v === 'string');
+  /** what a new person says they are called */
   readonly name = signal('');
-  /** the language of the user: a new user starts with the language the app is shown in */
+  /** a new user starts with the language the app is shown in */
   private readonly appLanguage = inject(LanguageService);
-  readonly language = signal(this.appLanguage.lang());
   protected readonly languages = LANGUAGES;
   readonly error = signal('');
   readonly busy = signal(false);
@@ -58,24 +56,27 @@ export class JigsawUser implements OnInit {
   readonly nameMax = USER_NAME_MAX;
 
   /** which list is shown: the rounds played or the jigsaws made; kept for the session */
-  readonly tab = signal<'rounds' | 'jigsaws'>(readPreference('jigsaw.userTab', 'rounds', (v): v is 'rounds' | 'jigsaws' => v === 'rounds' || v === 'jigsaws'));
+  readonly tab = preferenceSignal<'rounds' | 'jigsaws'>('jigsaw.userTab', 'rounds', (v): v is 'rounds' | 'jigsaws' => v === 'rounds' || v === 'jigsaws');
 
   /** the person was sent here after signing in to protect the user: the edit form is opened, at the list of the logins */
   private readonly showLogins = inject(ActivatedRoute).snapshot.queryParamMap.get('logins') === '1';
   private openedLogins = false;
 
   constructor() {
-    this.startEditAutosave();
+    this.edit.onSaved = () => this.refreshList(); // the list of the users shows the new name and user name
     effect(() => {
       if (!this.showLogins || this.openedLogins || !this.users.user()) return;
       this.openedLogins = true;
       untracked(() => {
-        this.edit();
+        this.edit.open();
         setTimeout(() => document.querySelector('app-user-logins')?.scrollIntoView({ block: 'center' }), 400); // when the form is drawn
       });
     });
-    effect(() => writePreference('jigsaw.userTab', this.tab()));
-    effect(() => writePreference('jigsaw.userFilter', this.filter()));
+  }
+
+  /** What is waiting in the form of the account is saved when the page is left. */
+  ngOnDestroy(): void {
+    void this.edit.close();
   }
 
   async ngOnInit(): Promise<void> {
@@ -157,119 +158,10 @@ export class JigsawUser implements OnInit {
     await this.goOn();
   }
 
-  /** whether the user name typed in the edit form is free ('free'), has another user ('taken') or is not looked at (''): the same, or not yet looked up, or not allowed */
-  readonly usernameCheck = signal<'' | 'free' | 'taken'>('');
-  private checkTimer: ReturnType<typeof setTimeout> | undefined;
-
-  /** A user name is typed in the edit form: a moment after the last key it is looked up, so the person sees at once whether it can be had (only the server knows; it also refuses a taken name when saving). */
-  onUsernameTyped(value: string): void {
-    this.username.set(value);
-    this.usernameCheck.set('');
-    clearTimeout(this.checkTimer);
-    const me = this.users.user();
-    const wanted = JigsawUsers.normalised(value);
-    if (!me || wanted === me.username || JigsawUsers.usernameError(wanted)) return;
-    this.checkTimer = setTimeout(async () => {
-      const found = await this.users.lookup(wanted);
-      if (JigsawUsers.normalised(this.username()) === wanted) this.usernameCheck.set(found && found.id !== me.id ? 'taken' : 'free');
-    }, 400);
-  }
-
-  /** the user who plays is being edited, and what is in the form */
-  readonly editing = signal(false);
-  /** the picture in the form: undefined is the one the account has, null that it is taken away, a data address a new one that is chosen */
-  readonly picture = signal<string | null | undefined>(undefined);
-  readonly pictureFailed = signal(false);
-
-  /** A file is chosen for the picture: it is cut square and shrunk (it is saved by itself a moment later, see `startEditAutosave`). */
-  async onPicture(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = ''; // the same file can be chosen again
-    if (!file) return;
-    this.pictureFailed.set(false);
-    try {
-      this.picture.set(await pictureFromFile(file));
-    } catch {
-      this.pictureFailed.set(true);
-    }
-  }
-
-  /** Edit is a switch: it opens the form of the user, and pressed again it closes it (what is waiting is saved first, see `closeEdit`). */
+  /** Edit is a switch: it opens the form of the user, and pressed again it closes it (what is waiting is saved first). */
   toggleEdit(): void {
-    if (this.editing()) void this.closeEdit();
-    else this.edit();
-  }
-
-  /** What the form changes in the account: only what differs from it (nothing: an empty object). */
-  private editChange(): { name?: string; username?: string; language?: string; picture?: string | null } {
-    const me = this.users.user();
-    const change: { name?: string; username?: string; language?: string; picture?: string | null } = {};
-    if (!me) return change;
-    if (this.name().trim() !== me.name) change.name = this.name();
-    if (this.username().trim().toLowerCase() !== me.username) change.username = this.username();
-    if (this.language() !== me.language) change.language = this.language();
-    if (this.picture() !== undefined && (this.picture() !== null || me.pictureAt)) change.picture = this.picture();
-    return change;
-  }
-
-  /** Whether what is in the form may be saved: it has a name, and a user name that is allowed and, when it is a new one, has been looked up and is free. */
-  private editSavable(): boolean {
-    const wanted = JigsawUsers.normalised(this.username());
-    if (!this.name().trim() || JigsawUsers.usernameError(wanted)) return false;
-    return wanted === this.users.user()?.username || this.usernameCheck() === 'free';
-  }
-
-  private editTimer: ReturnType<typeof setTimeout> | undefined;
-
-  /** Every change in the form is saved a pause after the last one (the page has no Save): the pause starts again at each change, and nothing is saved while the form may not be saved. */
-  private startEditAutosave(): void {
-    effect(() => {
-      if (!this.editing()) return;
-      this.name();
-      this.username();
-      this.language();
-      this.picture();
-      this.usernameCheck();
-      this.users.user(); // after a save the account is the form again: nothing is left to save
-      untracked(() => {
-        clearTimeout(this.editTimer);
-        if (!Object.keys(this.editChange()).length || !this.editSavable()) return;
-        this.editTimer = setTimeout(() => void this.saveEdit(), EDIT_PAUSE_MS);
-      });
-    });
-  }
-
-  /** Close: what is waiting is saved at once (when it may be), and the form is closed. */
-  async closeEdit(): Promise<void> {
-    clearTimeout(this.editTimer);
-    if (Object.keys(this.editChange()).length && this.editSavable()) await this.saveEdit();
-    if (!this.error()) this.editing.set(false);
-  }
-
-  edit(): void {
-    const me = this.users.user();
-    if (!me) return;
-    this.name.set(me.name);
-    this.username.set(me.username);
-    this.language.set(me.language);
-    this.picture.set(undefined);
-    this.pictureFailed.set(false);
-    this.usernameCheck.set('');
-    this.error.set('');
-    this.editing.set(true);
-  }
-
-  /** The changes are saved: only what differs from the user is sent. The form stays open. */
-  async saveEdit(): Promise<void> {
-    const change = this.editChange();
-    if (!Object.keys(change).length) return;
-    this.busy.set(true);
-    this.error.set('');
-    const error = await this.users.update(change);
-    this.busy.set(false);
-    if (error) return this.error.set(error);
-    await this.refreshList(); // the list of the users shows the new name and user name
+    if (this.edit.editing()) void this.edit.close();
+    else this.edit.open();
   }
 
   /** Reads the list of the users again (a user was made or changed), so the list to choose from is current. A failure leaves the list as it was. */
@@ -287,7 +179,7 @@ export class JigsawUser implements OnInit {
    */
   async logout(): Promise<void> {
     this.users.leave();
-    this.editing.set(false);
+    this.edit.editing.set(false);
     this.mode.set(this.list()?.length ? 'choose' : 'start');
     if (this.auth.user()) await this.auth.logout();
     await this.router.navigateByUrl('/');
@@ -296,7 +188,7 @@ export class JigsawUser implements OnInit {
   /** Stop playing as the user who is chosen, to choose another. */
   leave(): void {
     this.users.leave();
-    this.editing.set(false);
+    this.edit.editing.set(false);
     // the list is shown (somebody who chooses another user is not new); a person who is new has the other way, "I am new here"
     this.mode.set(this.list()?.length ? 'choose' : 'start');
   }

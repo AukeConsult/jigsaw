@@ -63,6 +63,7 @@
     "email-already-in-use": "Ya existe un inicio de sesión con este correo. Inicia sesión en su lugar.",
     "weak-password": "La contraseña debe tener al menos 6 caracteres.",
     "too-many-requests": "Demasiados intentos. Inténtalo más tarde.",
+    "popup-blocked": "El navegador ha bloqueado la ventana de inicio de sesión. Permite las ventanas emergentes y vuelve a intentarlo.",
     "operation-not-allowed": "Esta forma de iniciar sesión no está disponible. Prueba otra forma.",
     "requires-recent-login": "Inicia sesión de nuevo y vuelve a intentarlo.",
     "invalid-action-code": "Este enlace ya no es válido. Pide uno nuevo.",

@@ -1,11 +1,12 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
-import { ClassifierFailed, ClassifierUnavailable, openAiClassifier, type Classifier } from "../src/jigsaw/classifier";
+import { openAiClassifier, type Classifier } from "../src/jigsaw/classifier";
 import type { ImageStore } from "../src/jigsaw/jigsaw-image";
 import type { TokenUsageStore } from "../src/jigsaw/token-usage";
 import { TokenUsages, type AiUsage, type JigsawSpec, type TokenUsageSpec } from "../src/models";
 import { memoryPlays, memoryUsers } from "./memory-plays";
+import { AiFailed, AiUnavailable } from "../src/common/openai-chat";
 
 // What the AI uses is kept for the user who pays: the rules (on the class), what OpenAI says, and the route. Nothing here calls OpenAI.
 
@@ -44,8 +45,8 @@ describe("the classifier that asks OpenAI says what it used", () => {
 
   it("says what was used also when the answer cannot be used (the tokens are spent all the same)", async () => {
     const err = await asking("not json").classify(picture, "en").catch((e) => e);
-    expect(err).toBeInstanceOf(ClassifierFailed);
-    expect((err as ClassifierFailed).usage).toMatchObject({ inputTokens: 1200, outputTokens: 80 });
+    expect(err).toBeInstanceOf(AiFailed);
+    expect((err as AiFailed).usage).toMatchObject({ inputTokens: 1200, outputTokens: 80 });
   });
 });
 
@@ -84,7 +85,7 @@ describe("the use of the AI is kept under the user", () => {
     await request(asked.app).post("/jigsaw/api/jigsaw/jig1/classify").set("X-Jigsaw-User", "u1");
     expect(asked.kept[0].usage).toMatchObject({ status: "ok", applied: false });
     const failed = setup(async () => {
-      throw new ClassifierFailed("no JSON", usage);
+      throw new AiFailed("no JSON", usage);
     });
     const res = await request(failed.app).post("/jigsaw/api/jigsaw/jig1/classify?apply=true").set("X-Jigsaw-User", "u1");
     expect(res.status).toBe(502);
@@ -93,7 +94,7 @@ describe("the use of the AI is kept under the user", () => {
 
   it("keeps nothing when the AI could not be asked at all, or the call is refused", async () => {
     const down = setup(async () => {
-      throw new ClassifierUnavailable("no settings");
+      throw new AiUnavailable("no settings");
     });
     expect((await request(down.app).post("/jigsaw/api/jigsaw/jig1/classify").set("X-Jigsaw-User", "u1")).status).toBe(503);
     expect(down.kept).toEqual([]);

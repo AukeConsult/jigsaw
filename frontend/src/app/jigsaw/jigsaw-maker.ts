@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { JigsawCut, JigsawPieces } from '../models/shared/jigsaw';
+import { PlacedObject } from '../models/shared/placed';
 import { JIGSAW_MAX_PICTURE_NAME, JIGSAW_MAX_NAME, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawInput, JigsawSettings, JigsawSpec } from '../models/shared/jigsaw-settings';
 import { JigsawKind, JigsawKinds } from '../models/shared/jigsaw-kind';
 import { JigsawUserSpec } from '../models/shared/jigsaw-user';
@@ -58,7 +59,6 @@ export class JigsawMaker {
     const layout = JigsawCut.layoutFor(width, height, options.pieces);
     const cutting = JigsawCut.cut(layout.width, layout.height, layout.grid);
     if ('error' in cutting) throw new Error(cutting.error);
-    const pieces = cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []);
     const picture = await fitPicture(file, layout.width, layout.height, MAX_PICTURE_BYTES);
 
     const input: JigsawInput = {
@@ -80,26 +80,40 @@ export class JigsawMaker {
       backColor: JigsawSettings.DEFAULT_BACK_COLOR,
       storeWidth: cutting.storeWidth,
     };
-    let madeId: string | null = null;
-    try {
-      step('uploading');
-      const made = await this.jigsaws.create(input);
-      madeId = made.id;
-      await this.images.upload(made.id, picture);
+    step('uploading');
+    return this.createWithPicture(input, picture, async (made) => {
       step('drawing');
-      const address = URL.createObjectURL(picture);
-      let graphics: Map<string, string>;
-      try {
-        graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, { width: JigsawSettings.DEFAULT_LINE_WIDTH, color: JigsawSettings.DEFAULT_LINE_COLOR });
-      } finally {
-        URL.revokeObjectURL(address);
-      }
-      await this.pieceApi.replace(made.id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
-      return made;
+      await this.keepPieces(made.id, picture, cutting, { width: JigsawSettings.DEFAULT_LINE_WIDTH, color: JigsawSettings.DEFAULT_LINE_COLOR });
+    });
+  }
+
+  /**
+   * Saves a new jigsaw with its picture, and then does what else it needs (`then`: its pieces). When a step fails the jigsaw is taken away again, so nothing half made is left, and the error is thrown. What every
+   * way of making one shares: here, the form of the website and the form of the app.
+   */
+  async createWithPicture(input: JigsawInput, picture: Blob, then?: (made: JigsawSpec) => Promise<void>): Promise<JigsawSpec> {
+    const made = await this.jigsaws.create(input);
+    try {
+      await this.images.upload(made.id, picture);
+      await then?.(made);
     } catch (err) {
-      if (madeId) await this.jigsaws.remove(madeId).catch(() => undefined); // nothing half made is left
+      await this.jigsaws.remove(made.id).catch(() => undefined);
       throw err;
     }
+    return made;
+  }
+
+  /** Draws the graphic of each piece of a cut from the picture (the one that is cut to the shape of the picture area), and keeps the pieces with them under the jigsaw, in place of any it had. */
+  async keepPieces(id: string, picture: Blob, cutting: { placed: readonly PlacedObject[]; columns: number; rows: number }, line: { width: number; color: string }): Promise<void> {
+    const pieces = JigsawPieces.ofCut(cutting);
+    const address = URL.createObjectURL(picture);
+    let graphics: Map<string, string>;
+    try {
+      graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, line);
+    } finally {
+      URL.revokeObjectURL(address);
+    }
+    await this.pieceApi.replace(id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
   }
 
   /**
@@ -130,16 +144,7 @@ export class JigsawMaker {
       lineColor: JigsawSettings.DEFAULT_LINE_COLOR,
       backColor: JigsawSettings.DEFAULT_BACK_COLOR,
     };
-    let madeId: string | null = null;
-    try {
-      step('uploading');
-      const made = await this.jigsaws.create(input);
-      madeId = made.id;
-      await this.images.upload(made.id, picture);
-      return made;
-    } catch (err) {
-      if (madeId) await this.jigsaws.remove(madeId).catch(() => undefined);
-      throw err;
-    }
+    step('uploading');
+    return this.createWithPicture(input, picture);
   }
 }

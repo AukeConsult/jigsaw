@@ -311,6 +311,11 @@ export class JigsawPieces {
     return Math.abs(piece.centerX - (piece.col + 0.5) * piece.size) <= tolerance && Math.abs(piece.centerY - (piece.row + 0.5) * piece.size) <= tolerance;
   }
 
+  /** the pieces of a picture area that has been cut, as they are kept */
+  static ofCut(cutting: { placed: readonly PlacedObject[]; columns: number }): JigsawPiece[] {
+    return cutting.placed.flatMap((placed) => JigsawPieces.of(placed, cutting.columns) ?? []);
+  }
+
   /** the piece for a placed jigsaw piece of a jigsaw that is cut into `columns` columns (null for an object that is not a piece) */
   static of(placed: PlacedObject, columns: number): JigsawPiece | null {
     const piece = placed.piece;

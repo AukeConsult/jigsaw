@@ -1,8 +1,9 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import express from "express";
-import { JIGSAW_ROOT, Picture, documentExists, etagOf, isPictureId, pictureType } from "./jigsaw-image";
+import { JIGSAW_ROOT, Picture, documentExists, isPictureId, pictureType, readStoredFile, sendPicture } from "./jigsaw-image";
 import { JIGSAW, JIGSAW_MAX_PIECES, JIGSAW_PIECES, JigsawPiece, JigsawPieces, PieceMove } from "../models";
+import { apiRouter, bad } from "../common/http";
 
 // The pieces of a jigsaw: one document each in the subcollection `jigsaw/<id>/pieces`, with its number, its edges, where it is, on which layer and
 // whether it is matched (the server says so, from where the piece is). The graphic of a piece is a small picture in Storage, `jigsaw/<id>/pieces/<piece id>`,
@@ -88,15 +89,7 @@ export function firestorePieceStore(): PieceStore {
       );
       return true;
     },
-    async graphic(id, pieceId) {
-      try {
-        const [[data], [meta]] = await Promise.all([graphicFile(id, pieceId).download(), graphicFile(id, pieceId).getMetadata()]);
-        return { data, mime: String(meta.contentType ?? "application/octet-stream"), etag: etagOf(data) };
-      } catch (err: any) {
-        if (err?.code === 404) return null;
-        throw err;
-      }
-    },
+    graphic: (id, pieceId) => readStoredFile(graphicFile(id, pieceId)),
     async removeAll(id) {
       await db().recursiveDelete(pieces(id));
       await bucket().deleteFiles({ prefix: `${JIGSAW_ROOT}/${id}/`, force: true }); // the pieces' graphics and the picture
@@ -121,9 +114,8 @@ export function readGraphic(value: unknown): PieceGraphic | { error: string } {
  *  PATCH {moves: [{id, centerX, centerY, layer}]}: where pieces are now. GET /graphic/:pieceId: the graphic of a piece. DELETE: takes all the pieces away.
  */
 export function jigsawPiecesRouter(store: PieceStore, exists: (id: string) => Promise<boolean>): express.Router {
-  const router = express.Router();
+  const router = apiRouter();
   const json = express.json({ limit: MAX_PIECES_BODY });
-  const bad = (res: express.Response, error: string, status = 400) => void res.status(status).json({ error });
 
   router.use("/:id", (req, res, next) => {
     if (!isPictureId(req.params.id)) return bad(res, "Not a jigsaw id.");
@@ -172,10 +164,7 @@ export function jigsawPiecesRouter(store: PieceStore, exists: (id: string) => Pr
     if (!isPictureId(req.params.pieceId) && !/^piece-\d{1,4}-\d{1,4}$/.test(req.params.pieceId)) return bad(res, "Not a piece id.");
     const graphic = await store.graphic(req.params.id, req.params.pieceId);
     if (!graphic) return bad(res, "No graphic.", 404);
-    const etag = `"${graphic.etag}"`;
-    res.set({ "Content-Type": graphic.mime, "Content-Length": String(graphic.data.length), "Cache-Control": "private, no-cache", ETag: etag, "X-Content-Type-Options": "nosniff" });
-    if (req.headers["if-none-match"] === etag) return void res.status(304).end();
-    res.end(req.method === "HEAD" ? undefined : graphic.data);
+    sendPicture(req, res, graphic);
   });
 
   router.delete("/:id", async (req, res) => {

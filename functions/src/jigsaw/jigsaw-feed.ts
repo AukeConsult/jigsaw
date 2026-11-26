@@ -1,9 +1,11 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
-import { DocumentStore, documentStore } from "../common/document-store";
+import { DocumentStore, documentStore, findById } from "../common/document-store";
 import { AiUsage, FeedItemData, FeedItemInput, FeedItems, JIGSAW, JigsawIndex, JigsawLanguages, JigsawSummary, JigsawVisibilities, StoredFeedKind, SUMMARY_FIELDS, TokenUsages, UserLevels } from "../models";
-import { Translator, TranslatorFailed, TranslatorUnavailable } from "./translator";
+import { AiFailed, AiUnavailable } from "../common/openai-chat";
+import { Translator } from "./translator";
 import type { Levels } from "./user-levels";
+import { apiRouter, askerOf, bad } from "../common/http";
 
 // The tiles of the home page that are not pictures. Each kind has its own collection (`jigsaw-info`, `jigsaw-offers`), its own routes (`feedManageRouter`: a publisher or an admin adds, changes and deletes
 // their own) and, for now, no more than that; what is shown on the home page is decided when the collections are read (`jigsawFeedRouter`: `GET /jigsaw-feed`), where a rule of who is shown what can
@@ -63,13 +65,12 @@ export type TranslationResult = "none" | "done" | "unavailable" | "failed";
  * (`FeedItems.toTranslate`) from the master language; if that cannot be done the tile is saved as it is and the answer says so.
  */
 export function feedManageRouter(kind: StoredFeedKind, store: FeedStore, deps: FeedDeps, pictures?: PackagePictures): express.Router {
-  const router = express.Router();
-  const bad = (res: express.Response, error: string, status: number) => void res.status(status).json({ error });
-  const byId = async (id: string) => (store.get ? store.get(id) : ((await store.list()).find((d) => d.id === id) ?? null));
+  const router = apiRouter();
+  const byId = (id: string) => findById(store, id);
 
   /** who asks, when they may publish: an account with a level of publisher or admin */
   const who: express.RequestHandler = async (req, res, next) => {
-    const me = req.get("X-Jigsaw-User") || undefined;
+    const me = askerOf(req);
     const level = await deps.levels.of(me);
     if (!me || !UserLevels.mayPublish(level)) return bad(res, "Only a publisher or an admin can do this.", 403);
     res.locals.me = me;
@@ -87,8 +88,8 @@ export function feedManageRouter(kind: StoredFeedKind, store: FeedStore, deps: F
       const answer = await deps.translator.translate({ title: master.title, text: master.text, label: master.label }, data.masterLanguage, to);
       return { data: FeedItems.withTranslations(data, answer.made), result: "done", ...(answer.usage ? { spent: { usage: answer.usage, status: "ok" as const } } : {}) };
     } catch (err) {
-      if (err instanceof TranslatorUnavailable) return { data, result: "unavailable" };
-      return { data, result: "failed", ...(err instanceof TranslatorFailed && err.usage ? { spent: { usage: err.usage, status: "failed" as const } } : {}) };
+      if (err instanceof AiUnavailable) return { data, result: "unavailable" };
+      return { data, result: "failed", ...(err instanceof AiFailed && err.usage ? { spent: { usage: err.usage, status: "failed" as const } } : {}) };
     }
   };
 
@@ -99,6 +100,20 @@ export function feedManageRouter(kind: StoredFeedKind, store: FeedStore, deps: F
 
   /** The language the author says they write in must be one of the languages (nothing said: the one the tile has, or English). */
   const languageError = (body: Record<string, unknown>) => (body["masterLanguage"] === undefined || JigsawLanguages.is(body["masterLanguage"]) ? "" : JigsawLanguages.error(body["masterLanguage"]));
+
+  /** The tile of the address when whoever asks may change it; else the answer says why not (`notYours`) and nothing is given. */
+  const mine = async (req: express.Request, res: express.Response, notYours: string): Promise<FeedItemData | null> => {
+    const { me, admin } = res.locals as { me: string; admin: boolean };
+    const data = await byId(String(req.params.id));
+    if (!data) bad(res, "No such tile.", 404);
+    else if (!FeedItems.mayChange(data, me, admin)) bad(res, notYours, 403);
+    else return data;
+    return null;
+  };
+
+  /** Why what was sent cannot be saved as this tile ('' when it can). */
+  const sentError = (body: Record<string, unknown>, made: FeedItemData): string =>
+    languageError(body) || FeedItems.visibilityError(body["visibility"]) || (kind === "package" ? FeedItems.categoriesError(body["categories"]) : "") || FeedItems.of(made).error();
 
   router.get("/", async (req, res) => {
     const { me, admin } = res.locals as { me: string; admin: boolean };
@@ -111,18 +126,15 @@ export function feedManageRouter(kind: StoredFeedKind, store: FeedStore, deps: F
   });
 
   router.get("/:id", async (req, res) => {
-    const { me, admin } = res.locals as { me: string; admin: boolean };
-    const data = await byId(req.params.id);
-    if (!data) return bad(res, "No such tile.", 404);
-    if (!FeedItems.mayChange(data, me, admin)) return bad(res, "This is not yours.", 403);
-    res.json({ item: data, now: deps.now() });
+    const data = await mine(req, res, "This is not yours.");
+    if (data) res.json({ item: data, now: deps.now() });
   });
 
   router.post("/", async (req, res) => {
     const { me } = res.locals as { me: string };
     const body = (req.body ?? {}) as Record<string, unknown>;
     const made = FeedItems.edited(null, kind, body, me, deps.now());
-    const error = languageError(body) || FeedItems.visibilityError(body["visibility"]) || (kind === "package" ? FeedItems.categoriesError(body["categories"]) : "") || FeedItems.of({ ...made, id: "new" }).error();
+    const error = sentError(body, { ...made, id: "new" });
     if (error) return bad(res, error, 400);
     const { data, result, spent } = await translated(made);
     const saved = await store.add(inputOf(data));
@@ -131,13 +143,12 @@ export function feedManageRouter(kind: StoredFeedKind, store: FeedStore, deps: F
   });
 
   router.put("/:id", async (req, res) => {
-    const { me, admin } = res.locals as { me: string; admin: boolean };
-    const before = await byId(req.params.id);
-    if (!before) return bad(res, "No such tile.", 404);
-    if (!FeedItems.mayChange(before, me, admin)) return bad(res, "Only its owner can change it.", 403);
+    const { me } = res.locals as { me: string };
+    const before = await mine(req, res, "Only its owner can change it.");
+    if (!before) return;
     const body = (req.body ?? {}) as Record<string, unknown>;
     const made = FeedItems.edited(before, kind, body, me, deps.now());
-    const error = languageError(body) || FeedItems.visibilityError(body["visibility"]) || (kind === "package" ? FeedItems.categoriesError(body["categories"]) : "") || FeedItems.of(made).error();
+    const error = sentError(body, made);
     if (error) return bad(res, error, 400);
     const { data, result, spent } = await translated(made);
     const saved = await store.update(before.id, inputOf(data));
@@ -149,19 +160,14 @@ export function feedManageRouter(kind: StoredFeedKind, store: FeedStore, deps: F
   // a package: its pictures (the owner's page shows them, the upload makes them, each is linked to the package)
   if (pictures) {
     router.get("/:id/pictures", async (req, res) => {
-      const { me, admin } = res.locals as { me: string; admin: boolean };
-      const data = await byId(req.params.id);
-      if (!data) return bad(res, "No such tile.", 404);
-      if (!FeedItems.mayChange(data, me, admin)) return bad(res, "This is not yours.", 403);
-      res.json({ pictures: await pictures.list(data.id) });
+      const data = await mine(req, res, "This is not yours.");
+      if (data) res.json({ pictures: await pictures.list(data.id) });
     });
   }
 
   router.delete("/:id", async (req, res) => {
-    const { me, admin } = res.locals as { me: string; admin: boolean };
-    const before = await byId(req.params.id);
-    if (!before) return bad(res, "No such tile.", 404);
-    if (!FeedItems.mayChange(before, me, admin)) return bad(res, "Only its owner can delete it.", 403);
+    const before = await mine(req, res, "Only its owner can delete it.");
+    if (!before) return;
     if (pictures && (await pictures.list(before.id)).length) return bad(res, "This package still has pictures: delete them first.", 409); // none is left without its package
     await store.remove(before.id);
     res.status(204).end();
@@ -201,7 +207,7 @@ export function jigsawFeedRouter(
   random: () => number = Math.random,
   access?: PackageAccess,
 ): express.Router {
-  const router = express.Router();
+  const router = apiRouter();
   const read = async (me: string | undefined) => FeedItems.shown((await Promise.all(sources.map((source) => source()))).flat() as Record<string, unknown>[], now(), me);
   /** the tile as it is sent: a package with its count and a few ids */
   const sent = async (item: ReturnType<typeof FeedItems.of>): Promise<FeedItemData> => {
@@ -211,14 +217,14 @@ export function jigsawFeedRouter(
   };
   router.get("/", async (req, res) => {
     try {
-      const me = req.get("X-Jigsaw-User") || undefined;
+      const me = askerOf(req);
       const items = await read(me);
       // the packages the person has got say so (asked only when there is a package to ask about)
       const mine = access && me && items.some((i) => i.kind === "package") ? await access.ids(me) : new Set<string>();
       res.json({ items: await Promise.all(items.map(async (item) => ({ ...(await sent(item)), ...(item.kind === "package" && mine.has(item.id) ? { had: true } : {}) }))) });
     } catch (err) {
       console.error("Could not read the tiles of the home page", err);
-      res.status(503).json({ error: "Try again." });
+      bad(res, "Try again.", 503);
     }
   });
   /** a package a person has got, also when it is not on the home page any more (null: it is deleted) */
@@ -230,7 +236,7 @@ export function jigsawFeedRouter(
   // the packages a person has got, as tiles: for the list of them (My pictures)
   router.get("/mine", async (req, res) => {
     try {
-      const me = req.get("X-Jigsaw-User") || undefined;
+      const me = askerOf(req);
       const ids = access && me ? [...(await access.ids(me))] : [];
       const shown = ids.length ? await read(me) : [];
       const found = await Promise.all(ids.map(async (id) => shown.find((i) => i.kind === "package" && i.id === id) ?? (await keptPackage(id))));
@@ -238,21 +244,21 @@ export function jigsawFeedRouter(
       res.json({ items: await Promise.all(items.map(async (item) => ({ ...(await sent(item)), had: true }))) });
     } catch (err) {
       console.error("Could not read the packages of a person", err);
-      res.status(503).json({ error: "Try again." });
+      bad(res, "Try again.", 503);
     }
   });
   router.get("/package/:id", async (req, res) => {
     try {
-      const me = req.get("X-Jigsaw-User") || undefined;
+      const me = askerOf(req);
       const bought = !!access && (await access.ids(me)).has(req.params.id);
       let item = (await read(me)).find((i) => i.kind === "package" && i.id === req.params.id);
       if (!item && bought) item = (await keptPackage(req.params.id)) ?? undefined; // what a person has got stays theirs to look at
-      if (!item || !pictures) return void res.status(404).json({ error: "No such package." });
+      if (!item || !pictures) return bad(res, "No such package.", 404);
       const mayPlay = bought || (!!me && item.ownerUid === me) || (!!access && (await access.isAdmin(me)));
       res.json({ item: await sent(item), pictures: shownPictures(await pictures.list(item.id)), bought, mayPlay });
     } catch (err) {
       console.error("Could not read a package", err);
-      res.status(503).json({ error: "Try again." });
+      bad(res, "Try again.", 503);
     }
   });
   return router;

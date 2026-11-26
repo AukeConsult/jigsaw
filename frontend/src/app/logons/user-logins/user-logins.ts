@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
@@ -8,6 +7,7 @@ import { LinkCodes, UserLogon } from '../../models/shared/logon';
 import { AuthService } from '../auth.service';
 import { LogonLanding } from '../logon-landing';
 import { LogonsService } from '../logons.service';
+import { apiError } from '../../core/api-error';
 
 /**
  * The logins of the user who plays, in the edit form of the user (under Contact): the list of the Firebase accounts that are verified for it (any one of them is enough to use it; the person is signed in with one at a time). A user with no login is open to
@@ -77,8 +77,7 @@ export class UserLogins {
   }
 
   private reason(err: unknown): string {
-    const body = err instanceof HttpErrorResponse ? (err.error as { error?: string } | null) : null;
-    return body?.error ?? tr('logons.userLogins.failed', 'That did not work: try again.');
+    return apiError(err) ?? tr('logons.userLogins.failed', 'That did not work: try again.');
   }
 
   /** The name that shows which login is signed in: the name of the account, else its address. */

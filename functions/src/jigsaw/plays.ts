@@ -3,6 +3,7 @@ import express from "express";
 import { documentExists } from "./jigsaw-image";
 import { PieceStore } from "./jigsaw-pieces";
 import { JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays, PlayLookSetup } from "../models";
+import { apiRouter, askerOf, bad } from "../common/http";
 
 // The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`.
 
@@ -162,15 +163,15 @@ export function userPlaysRouter(
     imageKeyFor?: (jigsaw: JigsawSpec, me: string | undefined) => Promise<string | undefined>;
   },
 ): express.Router {
-  const router = express.Router({ mergeParams: true });
+  const router = apiRouter({ mergeParams: true });
   router.get("/", async (req, res) => {
     const userId = String((req.params as { id?: string }).id);
     const error = Plays.userIdError(userId);
-    if (error) return void res.status(400).json({ error });
+    if (error) return bad(res, error);
     // the account, the jigsaws (to name them) and the rounds of the user over all the jigsaws are asked for at the same time
     const [user, jigsaws, rounds] = await Promise.all([deps.userOf(userId), deps.jigsaws(), plays.listOfUser(userId)]);
-    if (!user) return void res.status(404).json({ error: "No such account." });
-    const me = req.get("X-Jigsaw-User");
+    if (!user) return bad(res, "No such account.", 404);
+    const me = askerOf(req);
     const named = new Map(jigsaws.map((j) => [j.id, j]));
     const shown = rounds
       .filter((r) => !r.play.fresh && named.has(r.jigsawId) && Plays.mayLookAt(r.play, me)) // a round nobody has moved a piece in is not listed; a private round is its player's
@@ -211,8 +212,7 @@ export interface PlayDeps {
  *  PATCH /:playId/positions {moves, storeWidth?, elapsedMs?}: where pieces are now (how wide the store of this game has grown to, and how long it has been played: that only grows); how many are in place and whether the game is solved follows from that. DELETE /:playId.
  */
 export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
-  const router = express.Router({ mergeParams: true });
-  const bad = (res: express.Response, error: string, status = 400) => void res.status(status).json({ error });
+  const router = apiRouter({ mergeParams: true });
   const now = () => (deps.now ?? Date.now)();
   const idOf = (req: express.Request) => String(req.params.id);
 
@@ -229,7 +229,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
    */
   const ownRound: express.RequestHandler = async (req, res, next) => {
     const record = await plays.get(idOf(req), String(req.params.playId));
-    const me = req.get("X-Jigsaw-User");
+    const me = askerOf(req);
     if (record && me !== record.play.userId && !(await deps.mayManage?.(me))) return bad(res, "This round belongs to someone else: you can look at it, but not change it.", 403);
     res.locals.round = record?.play; // already read: the pieces of the round are found from it without another read
     next(); // no such round: the handler says so
@@ -245,7 +245,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
       const error = Plays.userIdError(userId);
       if (error) return bad(res, error);
     }
-    const me = req.get("X-Jigsaw-User");
+    const me = askerOf(req);
     const admin = !!(await deps.mayManage?.(me));
     res.json((await plays.list(idOf(req), userId)).filter((p) => !p.fresh && Plays.mayLookAt(p, me, admin)).map(Plays.publicOf)); // a round nobody has moved a piece in is not listed; a private one is its player's
   });
@@ -275,10 +275,21 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (waiting) return void res.status(200).json(Plays.publicOf(waiting));
     const started = Plays.start(jigsaw, { id: user.id, name: user.name }, await deps.pieces.list(jigsaw.id), now());
     if ("error" in started) return bad(res, started.error, 409);
-    // a login of the account that plays marks the round (its UID is kept for later use, and the page is told only that the round is protected)
-    const marked = Plays.withPrivacy(Plays.marked(started.play, user, res.locals.logonUid as string | undefined), body.private);
-    res.status(201).json(Plays.publicOf(await plays.create(jigsaw.id, marked, started.positions)));
+    await keepStarted(res, jigsaw.id, user, started, body.private);
   });
+
+  /** Keeps a round that was just started, private when that was asked, and answers 201 with it. A login of the account that plays marks it (its UID is kept for later use; the page is told only that the round is protected). */
+  const keepStarted = async (res: express.Response, jigsawId: string, user: { id: string; name: string; firebaseUids?: string[] }, started: { play: Omit<PlaySpec, "id">; positions: PlayPositions; pieces?: JigsawPiece[] }, isPrivate: unknown): Promise<void> => {
+    const marked = Plays.withPrivacy(Plays.marked(started.play, user, res.locals.logonUid as string | undefined), isPrivate);
+    res.status(201).json(Plays.publicOf(await plays.create(jigsawId, marked, started.positions, started.pieces)));
+  };
+
+  /** Changes the play of the round of the address (not where its pieces are), and answers with it. */
+  const changePlay = async (req: express.Request, res: express.Response, change: (play: PlaySpec) => PlaySpec): Promise<void> => {
+    const saved = await plays.update(idOf(req), String(req.params.playId), (cur) => ({ ...cur, play: change(cur.play) }));
+    if (!saved) return bad(res, "No such play.", 404);
+    res.json(Plays.publicOf(saved.play));
+  };
 
   /** Starts a round of a picture: not at a size the user has solved, not while another is going; a round only opened is gone on with when the choice is the same and replaced when it is not. */
   const startOfPicture = async (res: express.Response, jigsaw: JigsawSpec, user: { id: string; name: string; firebaseUids?: string[] }, choice: PlayChoice, theirs: PlaySpec[]) => {
@@ -290,8 +301,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     await Promise.all(waiting.map((p) => plays.remove(jigsaw.id, p.id))); // nothing was moved in them: nothing is lost
     const started = Plays.startOwn(jigsaw, { id: user.id, name: user.name }, choice, now(), deps.random);
     if ("error" in started) return bad(res, started.error, 409);
-    const marked = Plays.withPrivacy(Plays.marked(started.play, user, res.locals.logonUid as string | undefined), choice.private);
-    res.status(201).json(Plays.publicOf(await plays.create(jigsaw.id, marked, started.positions, started.pieces)));
+    await keepStarted(res, jigsaw.id, user, started, choice.private);
   };
 
   router.get("/summary", async (req, res) => {
@@ -306,7 +316,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (!jigsaw) return;
     const record = await plays.get(jigsaw.id, req.params.playId);
     if (!record) return bad(res, "No such play.", 404);
-    if (!Plays.mayLookAt(record.play, req.get("X-Jigsaw-User"), !!(await deps.mayManage?.(req.get("X-Jigsaw-User"))))) return bad(res, "No such play.", 404); // a private round is its player's
+    if (!Plays.mayLookAt(record.play, askerOf(req), !!(await deps.mayManage?.(askerOf(req))))) return bad(res, "No such play.", 404); // a private round is its player's
     const pieces = await piecesOf(jigsaw, record.play);
     const layout = Plays.jigsawFor(jigsaw, record.play);
     // a round of a picture says the size of its picture area, its grid and its store (it has a cut of its own); another round is answered as it was
@@ -376,9 +386,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (!(await jigsawOf(req, res))) return;
     const flag = (req.body as { private?: unknown } | undefined)?.private;
     if (typeof flag !== "boolean") return bad(res, "Say whether the round is private: yes or no.");
-    const saved = await plays.update(idOf(req), req.params.playId, (cur) => ({ ...cur, play: Plays.withPrivacy(cur.play, flag) }));
-    if (!saved) return bad(res, "No such play.", 404);
-    res.json(Plays.publicOf(saved.play));
+    await changePlay(req, res, (play) => Plays.withPrivacy(play, flag));
   });
 
   // PATCH /:playId/look {look}: the table and the sound of this round only, or {look: null}: the round follows its player's preference again
@@ -387,9 +395,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     const look = (req.body as { look?: unknown } | undefined)?.look;
     const wrong = Plays.lookError(look);
     if (wrong) return bad(res, wrong, 400);
-    const saved = await plays.update(idOf(req), req.params.playId, (cur) => ({ ...cur, play: Plays.withLook(cur.play, look as PlayLookSetup | null) }));
-    if (!saved) return bad(res, "No such play.", 404);
-    res.json(Plays.publicOf(saved.play));
+    await changePlay(req, res, (play) => Plays.withLook(play, look as PlayLookSetup | null));
   });
 
   router.delete("/:playId", ownRound, async (req, res) => {

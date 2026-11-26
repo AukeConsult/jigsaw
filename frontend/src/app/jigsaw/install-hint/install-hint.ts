@@ -1,8 +1,8 @@
-import { Component, effect, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { isInApp, platformOf } from '../../core/platform';
-import { isBoolean, readPreference, writePreference } from '../../core/preferences';
+import { isBoolean, preferenceSignal } from '../../core/preferences';
 
 /** Whether the person has closed the hint (kept on the device, as the other choices of a page). */
 const CLOSED_KEY = 'jigsaw.installHint';
@@ -30,11 +30,7 @@ const CLOSED_KEY = 'jigsaw.installHint';
 export class InstallHint {
   /** the device that has an app or a home screen to offer, or null (another device, or the app is already in use) */
   protected readonly platform = this.offer();
-  protected readonly closed = signal(readPreference(CLOSED_KEY, false, isBoolean));
-
-  constructor() {
-    effect(() => writePreference(CLOSED_KEY, this.closed()));
-  }
+  protected readonly closed = preferenceSignal(CLOSED_KEY, false, isBoolean);
 
   private offer(): 'android' | 'windows' | 'ios' | null {
     if (isInApp()) return null;

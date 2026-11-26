@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { JigsawUserService } from '../jigsaw/jigsaw-user.service';
 import { AuthService } from './auth.service';
 import { LogonsService } from './logons.service';
+import { isLocalPath, isPlayUrl } from '../core/app-mode';
 
 /** Where the wish to verify the login for the user is kept between pressing "Sign in to protect this user" and being signed in (an e-mail link opens in another tab, so it is on the device, not in the tab), with the page it was pressed on; it runs out. */
 const INTENT_KEY = 'jigsaw.protectAfterLogin';
@@ -11,11 +12,6 @@ const INTENT_MS = 30 * 60_000;
 const EDIT_FORM = '/jigsaw/user?logins=1';
 /** The page of the account in the app: where a login that was started in the app ends (it has the logins in it). */
 const APP_ACCOUNT = '/play/account';
-/** A page of the app (the routes under `/play`). */
-const inApp = (url: string | null | undefined): boolean => !!url && /^\/play(\/|$)/.test(url);
-/** A path of this site that a login may come back to (not another site, and not a protocol-relative address). */
-const isLocal = (url: unknown): url is string => typeof url === 'string' && /^\/(?!\/)/.test(url);
-
 /**
  * Where a person goes when a login is done. A person who signed in from "Sign in to protect this user" has this login verified for that user at once (they asked for it by pressing that), and goes to the
  * edit form of the user, where the list of the verified logins is (a login started from the edit form always ends there). A person who plays as a user already goes on, and keeps that user (the server says at the first call whether this login may use it). A person who
@@ -36,7 +32,7 @@ export class LogonLanding {
 
   /** The page of the account in the module the person is in, where the logins of the user are: the edit form of the website's page of the user, or the account page of the app. */
   accountPage(): string {
-    return inApp(this.router.url) ? APP_ACCOUNT : EDIT_FORM;
+    return isPlayUrl(this.router.url) ? APP_ACCOUNT : EDIT_FORM;
   }
 
   /** The person is about to sign in to have the login verified for this user (the one who plays now): `go` does it once they are signed in, and comes back to the page they pressed it on. */
@@ -65,7 +61,7 @@ export class LogonLanding {
       const raw = localStorage.getItem(INTENT_KEY);
       localStorage.removeItem(INTENT_KEY);
       const wish = raw ? (JSON.parse(raw) as { userId?: unknown; back?: unknown; at?: unknown }) : null;
-      return wish && typeof wish.userId === 'string' && typeof wish.at === 'number' && Date.now() - wish.at < INTENT_MS ? { userId: wish.userId, back: isLocal(wish.back) ? wish.back : EDIT_FORM } : null;
+      return wish && typeof wish.userId === 'string' && typeof wish.at === 'number' && Date.now() - wish.at < INTENT_MS ? { userId: wish.userId, back: isLocalPath(wish.back) ? wish.back : EDIT_FORM } : null;
     } catch {
       return null;
     }
@@ -84,7 +80,7 @@ export class LogonLanding {
     if (!active && linked.length === 1 && !(await this.users.selectById(linked[0].id))) return void (await this.router.navigateByUrl(this.auth.landingPath(next)));
     if (!active && linked.length !== 1) {
       // to the page where the accounts are chosen, in the module the person came from: the website's page of the user, or the account page of the app
-      if (inApp(next)) return void (await this.router.navigateByUrl(APP_ACCOUNT));
+      if (isPlayUrl(next)) return void (await this.router.navigateByUrl(APP_ACCOUNT));
       const toPage = next && /^\/jigsaw(\/|$)/.test(next) && !next.startsWith('//') ? { next } : {};
       return void (await this.router.navigate(['/jigsaw/user'], { queryParams: toPage }));
     }

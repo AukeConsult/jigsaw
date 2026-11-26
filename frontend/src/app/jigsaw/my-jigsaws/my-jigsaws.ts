@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
-import { readPreference, writePreference } from '../../core/preferences';
+import { preferenceSignal } from '../../core/preferences';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { JigsawCategories } from '../../models/shared/category';
@@ -51,9 +51,6 @@ export class MyJigsaws {
   protected readonly noPicture = signal<ReadonlySet<string>>(new Set());
 
   constructor() {
-    effect(() => writePreference('jigsaw.userVisibility', this.visibilityFilter()));
-    effect(() => writePreference('jigsaw.userSort', this.sort()));
-    effect(() => writePreference('jigsaw.userJigsawText', this.jigsawText()));
     // the words are used a moment after the last key, so the list is not asked for at every key
     effect((onCleanup) => {
       const text = this.jigsawText();
@@ -87,12 +84,12 @@ export class MyJigsaws {
   /** the jigsaws that are ticked in the list, to be deleted together */
   readonly selected = signal<ReadonlySet<string>>(new Set());
   /** which jigsaws the list shows: all, or the public, the private or the hidden ones (kept on the device) */
-  readonly visibilityFilter = signal<VisibilityFilter>(readPreference('jigsaw.userVisibility', 'all', (v): v is VisibilityFilter => VISIBILITY_FILTERS.some((f) => f === v)));
+  readonly visibilityFilter = preferenceSignal<VisibilityFilter>('jigsaw.userVisibility', 'all', (v): v is VisibilityFilter => VISIBILITY_FILTERS.some((f) => f === v));
   /** the order of the list (kept on the device) */
-  readonly sort = signal<JigsawSort>(readPreference('jigsaw.userSort', 'new', (v): v is JigsawSort => JIGSAW_SORTS.some((s) => s === v)));
+  readonly sort = preferenceSignal<JigsawSort>('jigsaw.userSort', 'new', (v): v is JigsawSort => JIGSAW_SORTS.some((s) => s === v));
   protected readonly sorts = JIGSAW_SORTS;
   /** the words the names of the jigsaws are searched for (kept on the device) */
-  readonly jigsawText = signal(readPreference('jigsaw.userJigsawText', '', (v): v is string => typeof v === 'string'));
+  readonly jigsawText = preferenceSignal('jigsaw.userJigsawText', '', (v): v is string => typeof v === 'string');
   /**
    * The user can have hundreds of jigsaws, so they are read a page at a time from the server, which also finds the words, puts them in order and chooses who sees them (see
    * `JigsawSearch.mine`): this is the pages that have been read, the first when something above changes, the next when "Show more" is pressed.

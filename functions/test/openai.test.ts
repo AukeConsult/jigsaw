@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { openAiSettings } from "../src/common/openai-settings";
-import { ClassifierUnavailable, configuredClassifier, openAiClassifier } from "../src/jigsaw/classifier";
+import { configuredClassifier, openAiClassifier } from "../src/jigsaw/classifier";
 import { Classifications } from "../src/models";
+import { AiUnavailable } from "../src/common/openai-chat";
 
 // None of these calls OpenAI: the one thing that does, `fetch`, is replaced by a fake that remembers what it was asked and says what the test wants.
 
@@ -85,7 +86,7 @@ describe("the classifier that reads its settings when it is asked", () => {
   it("is unavailable, with what is missing, until the settings are there", async () => {
     const { fetchFn, calls } = fakeFetch(200, answer({}));
     const error = await configuredClassifier({}, fetchFn).classify(picture, "en").catch((e: Error) => e);
-    expect(error).toBeInstanceOf(ClassifierUnavailable);
+    expect(error).toBeInstanceOf(AiUnavailable);
     expect((error as Error).message).toMatch(/OPENAI_API_KEY and OPENAI_MODEL/);
     expect(calls).toHaveLength(0); // nothing was asked
   });

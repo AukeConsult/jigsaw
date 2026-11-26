@@ -2,6 +2,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import express from "express";
 import { JigsawUsers, UserLevel, UserLevels } from "../models";
 import type { UserStore } from "./jigsaw-users";
+import { apiRouter, askerOf, bad } from "../common/http";
+import { TtlCache } from "../common/ttl-cache";
 
 // The level of the account that asks (the header `X-Jigsaw-User`; the gate has seen that the login may act as it when it needs one), and the route an admin sets levels with.
 
@@ -26,19 +28,14 @@ export interface Levels {
 }
 
 export function userLevels(users: Pick<UserStore, "get">, now: () => number = Date.now): Levels {
-  const known = new Map<string, { at: number; level: UserLevel }>();
+  const known = new TtlCache<UserLevel>(KEEP_MS, 2000, now);
   return {
     async of(id) {
       if (byAdmin.getStore()) return "admin"; // the call comes with an admin's login: every level is admin for it (see `byAdmin`)
       if (!id || JigsawUsers.idError(id)) return "user";
-      const same = known.get(id);
-      if (same && now() - same.at < KEEP_MS) return same.level;
-      if (known.size > 2000) known.clear();
-      const level = UserLevels.of(await users.get(id));
-      known.set(id, { at: now(), level });
-      return level;
+      return known.get(id, async () => UserLevels.of(await users.get(id)));
     },
-    forget: (id) => void known.delete(id),
+    forget: (id) => known.forget(id),
   };
 }
 
@@ -48,29 +45,28 @@ export function userLevels(users: Pick<UserStore, "get">, now: () => number = Da
  * (`{ open: true }`): the page shows its admin menu to everybody then. It is not under `/jigsaw-users/:id`, so the gate asks for the login of the one who asks and not for the login of the account that is changed.
  */
 export function userLevelRouter(users: UserStore, levels: Levels, onChanged: (userId: string) => void = () => undefined): express.Router {
-  const router = express.Router();
+  const router = apiRouter();
   const noAdmin = async () => !UserLevels.hasAdmin(await users.list());
   router.get("/open", async (_req, res) => void res.json({ open: await noAdmin() }));
   router.put("/:id", async (req, res) => {
-    const bad = (error: string, status = 400) => void res.status(status).json({ error });
-    const me = req.get("X-Jigsaw-User");
+    const me = askerOf(req);
     const allowed = UserLevels.isAdmin(await levels.of(me)) || (!!me && !JigsawUsers.idError(me) && !!(await users.get(me)) && (await noAdmin()));
-    if (!allowed) return bad("Only an admin can set levels.", 403);
+    if (!allowed) return bad(res, "Only an admin can set levels.", 403);
     const idError = JigsawUsers.idError(req.params.id);
-    if (idError) return bad(idError);
+    if (idError) return bad(res, idError);
     const level = (req.body as { level?: unknown } | undefined)?.level;
-    if (!UserLevels.is(level)) return bad(UserLevels.error(level));
+    if (!UserLevels.is(level)) return bad(res, UserLevels.error(level));
     const target = await users.get(req.params.id);
-    if (!target) return bad("No such account.", 404);
+    if (!target) return bad(res, "No such account.", 404);
     const notVerified = UserLevels.setError(target, level);
-    if (notVerified) return bad(notVerified, 409);
-    const otherAdmins = (await users.list()).filter((u) => u.id !== target.id && UserLevels.isAdmin(UserLevels.of(u))).length;
+    if (notVerified) return bad(res, notVerified, 409);
+    const otherAdmins = UserLevels.otherAdmins(await users.list(), target.id);
     const why = UserLevels.changeError(UserLevels.of(target), level, otherAdmins);
-    if (why) return bad(why, 409);
+    if (why) return bad(res, why, 409);
     const changed = await users.update(target.id, { level });
     levels.forget(target.id);
     onChanged(target.id); // the gate keeps an account 10 seconds: an account that is an admin now must not be refused as what it was before
-    if (!changed || changed === "taken") return bad("No such account.", 404);
+    if (!changed || changed === "taken") return bad(res, "No such account.", 404);
     res.json(JigsawUsers.publicOf(changed));
   });
   return router;

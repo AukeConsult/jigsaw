@@ -3,6 +3,7 @@ import { DocumentReference, getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import express from "express";
 import { JIGSAW } from "../models";
+import { apiRouter, bad } from "../common/http";
 
 // The files of a jigsaw: its background picture and the graphics of its pieces. They are kept in Firebase Storage under `jigsaw/<id of the
 // jigsaw>/`, the way Seven Friends keeps its files: written and read by the backend only (the Admin SDK ignores the storage rules, which let nobody
@@ -51,19 +52,30 @@ export function storageImageStore(root: string = JIGSAW_ROOT): ImageStore {
     async put(id, data, mime) {
       await file(id).save(data, { contentType: mime, resumable: false, metadata: { cacheControl: "private, no-cache" } });
     },
-    async get(id) {
-      try {
-        const [[data], [meta]] = await Promise.all([file(id).download(), file(id).getMetadata()]);
-        return { data, mime: String(meta.contentType ?? "application/octet-stream"), etag: etagOf(data) };
-      } catch (err: any) {
-        if (err?.code === 404) return null;
-        throw err;
-      }
-    },
+    get: (id) => readStoredFile(file(id)),
     async remove(id) {
       await file(id).delete({ ignoreNotFound: true });
     },
   };
+}
+
+/** A file of the bucket with its type and tag; null when it is not there. */
+export async function readStoredFile(file: { download(): Promise<[Buffer]>; getMetadata(): Promise<unknown[]> }): Promise<Picture | null> {
+  try {
+    const [[data], [meta]] = await Promise.all([file.download(), file.getMetadata()]);
+    return { data, mime: String((meta as { contentType?: unknown }).contentType ?? "application/octet-stream"), etag: etagOf(data) };
+  } catch (err: any) {
+    if (err?.code === 404) return null;
+    throw err;
+  }
+}
+
+/** A stored picture as the answer: asked for again with the tag it has (304), kept by the browser but asked about each time, and never taken for anything but what it is. */
+export function sendPicture(req: express.Request, res: express.Response, picture: Picture): void {
+  const etag = `"${picture.etag}"`;
+  res.set({ "Content-Type": picture.mime, "Content-Length": String(picture.data.length), "Cache-Control": "private, no-cache", ETag: etag, "X-Content-Type-Options": "nosniff" });
+  if (req.headers["if-none-match"] === etag) return void res.status(304).end();
+  res.end(req.method === "HEAD" ? undefined : picture.data);
 }
 
 /** Whether a jigsaw document is there (a picture or a piece belongs to a jigsaw that exists). */
@@ -77,12 +89,12 @@ export const documentExists = async (ref: DocumentReference): Promise<boolean> =
  * GET (and HEAD): the file, or 404. DELETE: takes it away.
  */
 export function jigsawImageRouter(images: ImageStore, exists: (id: string) => Promise<boolean>): express.Router {
-  const router = express.Router();
+  const router = apiRouter();
   const body = express.raw({ type: () => true, limit: MAX_PICTURE_BYTES });
 
   router.use("/:id", (req, res, next) => {
     if (!isPictureId(req.params.id)) {
-      res.status(400).json({ error: "Not a jigsaw id." });
+      bad(res, "Not a jigsaw id.");
       return;
     }
     next();
@@ -91,16 +103,16 @@ export function jigsawImageRouter(images: ImageStore, exists: (id: string) => Pr
   router.put("/:id", body, async (req, res) => {
     const bytes = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     if (!bytes.length) {
-      res.status(400).json({ error: "Send the picture as the request body." });
+      bad(res, "Send the picture as the request body.");
       return;
     }
     const mime = pictureType(bytes);
     if (!mime) {
-      res.status(415).json({ error: "That is not a supported picture (jpeg, png or webp)." });
+      bad(res, "That is not a supported picture (jpeg, png or webp).", 415);
       return;
     }
     if (!(await exists(req.params.id))) {
-      res.status(404).json({ error: "No such jigsaw." });
+      bad(res, "No such jigsaw.", 404);
       return;
     }
     await images.put(req.params.id, bytes, mime);
@@ -110,16 +122,10 @@ export function jigsawImageRouter(images: ImageStore, exists: (id: string) => Pr
   router.get("/:id", async (req, res) => {
     const picture = await images.get(req.params.id);
     if (!picture) {
-      res.status(404).json({ error: "No picture." });
+      bad(res, "No picture.", 404);
       return;
     }
-    const etag = `"${picture.etag}"`;
-    res.set({ "Content-Type": picture.mime, "Content-Length": String(picture.data.length), "Cache-Control": "private, no-cache", ETag: etag, "X-Content-Type-Options": "nosniff" });
-    if (req.headers["if-none-match"] === etag) {
-      res.status(304).end();
-      return;
-    }
-    res.end(req.method === "HEAD" ? undefined : picture.data);
+    sendPicture(req, res, picture);
   });
 
   router.delete("/:id", async (req, res) => {

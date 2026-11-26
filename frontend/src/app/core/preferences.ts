@@ -3,7 +3,16 @@
  * for the session only is in `session-storage.ts`). Storage can be missing or refuse (a private window, blocked site data): then the choice is only kept while the page is open.
  */
 
+import { WritableSignal, effect, signal } from '@angular/core';
+
 export { isBoolean } from './session-storage';
+
+/** A choice of a page as a signal: it starts as it was left on this device, and every change is kept (rule 12 of `CLAUDE.md`). Made where a component or a service is made (it starts an effect). */
+export function preferenceSignal<T>(key: string, fallback: T, valid: (value: unknown) => value is T): WritableSignal<T> {
+  const value = signal<T>(readPreference(key, fallback, valid));
+  effect(() => writePreference(key, value()));
+  return value;
+}
 
 /** The value kept under this key, or `fallback` when there is none, it is not what it should be (`valid`), or the storage cannot be read. */
 export function readPreference<T>(key: string, fallback: T, valid: (value: unknown) => value is T): T {

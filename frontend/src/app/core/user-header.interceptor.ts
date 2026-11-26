@@ -1,8 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-
-/** The key the user who plays is kept under in this browser (see `JigsawUserService`). */
-const USER_KEY = 'jigsaw.userId';
+import { storedUserId } from './stored-user';
 
 /**
  * Every request to the API says who asks (the header `X-Jigsaw-User`, the UID of the user who plays), so the lists show a jigsaw that only its owner sees to the owner. It is read straight from the
@@ -11,11 +9,6 @@ const USER_KEY = 'jigsaw.userId';
  */
 export const userHeaderInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.startsWith(environment.jigsawApi) || req.headers.has('X-Jigsaw-User')) return next(req);
-  let id: string | null = null;
-  try {
-    id = localStorage.getItem(USER_KEY);
-  } catch {
-    /* no storage: nobody asks */
-  }
+  const id = storedUserId();
   return next(id ? req.clone({ setHeaders: { 'X-Jigsaw-User': id } }) : req);
 };

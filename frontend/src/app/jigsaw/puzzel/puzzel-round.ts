@@ -236,7 +236,7 @@ export class PuzzelRound {
     const ms = this.elapsedMs();
     if (this.viewOnly() || !this.playId || ms <= this.timeSaved) return;
     this.timeSaved = ms;
-    this.plays.saveTimeWhileLeaving(this.jigsawId, this.playId, ms);
+    void this.plays.saveTimeWhileLeaving(this.jigsawId, this.playId, ms).catch(() => (this.timeSaved = Math.min(this.timeSaved, ms - 1))); // not saved, and the page is still there: tried again at the next tick
   }
 
   /** Says something to the player (nothing: what was said is taken away). */

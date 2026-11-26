@@ -1,6 +1,9 @@
 import express from "express";
 import { JigsawSpec, JigsawVisibilities, ListedRound, Plays, RoundsList } from "../models";
 import type { PlayStore } from "./plays";
+import { apiRouter, askerOf, bad } from "../common/http";
+import { TtlCache } from "../common/ttl-cache";
+import { filterAsync } from "../common/filter-async";
 
 // The list of rounds, `GET /jigsaw-rounds?page=&limit=&whose=&status=&sort=`: what the button "Rounds" on the front page shows, the rounds of every user (the person's own too; `whose` keeps all of
 // them, only the person's or only the others'). A round is stored under its jigsaw, so there is no one question for "all the rounds of all the users" (a query over every jigsaw would need an
@@ -24,15 +27,14 @@ export interface RoundsListDeps {
 }
 
 export function roundsListRouter(plays: PlayStore, deps: RoundsListDeps): express.Router {
-  const router = express.Router();
+  const router = apiRouter();
   const now = deps.now ?? Date.now;
-  const kept = new Map<string, { at: number; list: Promise<ListedRound[]> }>();
+  const kept = new TtlCache<ListedRound[]>(KEEP_MS, KEEP_MAX, now);
 
   /** The rounds of every user on the public jigsaws (the same for every view of the list): the front page shows no round on a private or hidden jigsaw, whoever asks (an admin too); those are on the user page. */
   const read = async (me: string): Promise<ListedRound[]> => {
     const listed = (await deps.jigsaws()).filter((j) => !JigsawVisibilities.restricted(j.visibility));
-    const seen = await Promise.all(listed.map((j) => deps.canSee(j, me)));
-    const visible = listed.filter((_, i) => seen[i]);
+    const visible = await filterAsync(listed, (j) => deps.canSee(j, me));
     const found: ListedRound[] = [];
     for (let i = 0; i < visible.length; i += AT_ONCE) {
       const batch = visible.slice(i, i + AT_ONCE);
@@ -49,22 +51,12 @@ export function roundsListRouter(plays: PlayStore, deps: RoundsListDeps): expres
     return RoundsList.select(found);
   };
 
-  const listFor = (me: string): Promise<ListedRound[]> => {
-    const same = kept.get(me);
-    if (same && now() - same.at < KEEP_MS) return same.list;
-    if (kept.size >= KEEP_MAX) kept.clear();
-    const list = read(me);
-    kept.set(me, { at: now(), list });
-    list.catch(() => kept.delete(me)); // a failed read is not kept
-    return list;
-  };
-
   router.get("/", async (req, res) => {
-    const me = req.get("X-Jigsaw-User");
-    if (!me) return void res.status(401).json({ error: "Say who you are." });
+    const me = askerOf(req);
+    if (!me) return bad(res, "Say who you are.", 401);
     const parsed = RoundsList.parse(req.query as { page?: unknown; limit?: unknown; whose?: unknown; status?: unknown; sort?: unknown });
-    if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
-    res.json(RoundsList.page(RoundsList.arrange(await listFor(me), parsed, me), parsed.page, parsed.limit)); // the list that is kept is the same for every view; the view is applied to it here
+    if ("error" in parsed) return bad(res, parsed.error);
+    res.json(RoundsList.page(RoundsList.arrange(await kept.get(me, () => read(me)), parsed, me), parsed.page, parsed.limit)); // the list that is kept is the same for every view; the view is applied to it here
   });
   return router;
 }

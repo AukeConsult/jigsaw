@@ -2,6 +2,8 @@ import { RequestHandler } from "express";
 import { JigsawVisibilities } from "../models";
 import { isPictureId } from "./jigsaw-image";
 import { ViewKeys } from "./view-key";
+import { TtlCache } from "../common/ttl-cache";
+import { bad } from "../common/http";
 
 // Who may read the pictures of a jigsaw. A jigsaw that everybody sees has pictures that everybody can read, as before. A jigsaw that is private or hidden has pictures that are read only with
 // its key (`view-key.ts`); without a good key the answer is 404, the same as for a picture that is not there. The key is given, in the answers that tell about the jigsaw, to those whom the
@@ -12,28 +14,20 @@ const KEEP_MS = 30_000;
 const KEEP_MAX = 2000;
 
 export class ImageAccess {
-  private readonly kept = new Map<string, { at: number; visibility: Promise<string | undefined> }>();
+  private readonly kept: TtlCache<string | undefined>;
 
   constructor(
     readonly keys: ViewKeys,
     /** the visibility of the jigsaw with this id (nothing when it says nothing or there is no such jigsaw) */
     private readonly visibilityOf: (id: string) => Promise<string | undefined>,
-    private readonly now: () => number = Date.now,
-  ) {}
+    now: () => number = Date.now,
+  ) {
+    this.kept = new TtlCache(KEEP_MS, KEEP_MAX, now);
+  }
 
   /** What is known about who sees the jigsaws is not used again: a jigsaw was made, changed or deleted. */
   forget(): void {
-    this.kept.clear();
-  }
-
-  private visibility(id: string): Promise<string | undefined> {
-    const same = this.kept.get(id);
-    if (same && this.now() - same.at < KEEP_MS) return same.visibility;
-    if (this.kept.size >= KEEP_MAX) this.kept.clear();
-    const visibility = this.visibilityOf(id);
-    this.kept.set(id, { at: this.now(), visibility });
-    visibility.catch(() => this.kept.delete(id)); // a failed question is not kept
-    return visibility;
+    this.kept.forget();
   }
 
   /**
@@ -48,11 +42,11 @@ export class ImageAccess {
     if (!isPictureId(id)) return next(); // the route says what is wrong with it
     try {
       if (await this.keys.accepts(id, req.query.k)) return next(); // a good key needs no question about the jigsaw
-      if (!JigsawVisibilities.restricted(await this.visibility(id))) return next();
-      res.status(404).json({ error: "No picture." });
+      if (!JigsawVisibilities.restricted(await this.kept.get(id, () => this.visibilityOf(id)))) return next();
+      bad(res, "No picture.", 404);
     } catch (err) {
       console.error("Could not tell who may read a picture", err); // not answered: never let a picture through because it could not be asked
-      res.status(503).json({ error: "Try again." });
+      bad(res, "Try again.", 503);
     }
   };
 }

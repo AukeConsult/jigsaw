@@ -1,6 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { getAuth } from "firebase-admin/auth";
 import { LogonToken } from "../models";
+import { bad } from "../common/http";
 
 /** Checks a Firebase ID token and answers what it says; throws when it is not good. (In the app Firebase checks it, in the tests a fake does.) */
 export interface TokenVerifier {
@@ -43,15 +44,24 @@ export function firebaseVerifier(): TokenVerifier {
   };
 }
 
+/** The token in `Authorization: Bearer <token>`, or nothing. */
+const bearerOf = (req: Request): string | undefined => /^Bearer (.+)$/.exec(req.header("Authorization") ?? "")?.[1];
+
+/** What the token that comes with a call says, when it comes with a good one: for the places where a call may go on without (a token that is not good is no token). */
+export async function verifiedToken(req: Request, verifier: TokenVerifier): Promise<LogonToken | null> {
+  const bearer = bearerOf(req);
+  return bearer ? verifier.verify(bearer).catch(() => null) : null;
+}
+
 /** Lets a request through only with a good `Authorization: Bearer <token>`; the token is then in `res.locals.token` (see `who`). */
 export function requireAuth(verifier: TokenVerifier): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const match = (req.header("Authorization") ?? "").match(/^Bearer (.+)$/);
-    if (!match) return void res.status(401).json({ error: "Sign in first." });
+    const bearer = bearerOf(req);
+    if (!bearer) return bad(res, "Sign in first.", 401);
     try {
-      res.locals.token = await verifier.verify(match[1]);
+      res.locals.token = await verifier.verify(bearer);
     } catch {
-      return void res.status(401).json({ error: "Your sign-in is not valid any more: sign in again." });
+      return bad(res, "Your sign-in is not valid any more: sign in again.", 401);
     }
     next();
   };

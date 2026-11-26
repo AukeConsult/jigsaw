@@ -567,8 +567,20 @@ small,
   cursor: grab;
   touch-action: none;
   user-select: none;
+  -webkit-touch-callout: none; // a long press on an entry on a tablet would open a preview of the page it leads to, which takes much memory, and not move the menu
   &.dragging {
     cursor: grabbing;
+
+    > .list-group,
+    > .play-bar {
+      will-change: transform; // it is moved by a transform while it is carried
+    }
+  }
+
+  // floating, it is as wide as what is in it wherever it is put: never squeezed by an edge of the window, which would make it higher and so put it in another place again
+  &:not(.docked-top, .docked-bottom, .docked-left, .docked-right) {
+    width: max-content;
+    max-width: 100vw;
   }
 
   // stuck to an edge of the window: it lies along that edge
@@ -670,12 +682,39 @@ small,
     padding-left: 0.625rem;
   }
 
-  // while the menu is carried the edges of the window light up: that is where it can be fastened
+  // while the menu is carried the edges of the window light up: that is where it can be fastened. A plain border and a plain fill: a blurred shadow as large as the screen is slow and takes much memory on a tablet
   .play-edges {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    box-shadow: inset 0 0 0 0.25rem color-mix(in srgb, var(--app-primary) 55%, transparent), inset 0 0 2rem color-mix(in srgb, var(--app-primary) 35%, transparent);
+    border: 0.25rem solid color-mix(in srgb, var(--app-primary) 55%, transparent);
+  }
+
+  // the edge it will stick to when it is let go
+  .play-drop {
+    position: fixed;
+    pointer-events: none;
+    background-color: color-mix(in srgb, var(--app-primary) 35%, transparent);
+
+    &[data-side='top'] {
+      inset: 0 0 auto;
+      height: 4rem;
+    }
+
+    &[data-side='bottom'] {
+      inset: auto 0 0;
+      height: 4rem;
+    }
+
+    &[data-side='left'] {
+      inset: 0 auto 0 0;
+      width: 4rem;
+    }
+
+    &[data-side='right'] {
+      inset: 0 0 0 auto;
+      width: 4rem;
+    }
   }
 
   // across the top or the bottom every entry is its icon with its word under it, so a row of icons is never a riddle: the room is shared by how long the words are (a long one takes two lines at most when there is little)

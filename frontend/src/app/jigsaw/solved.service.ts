@@ -1,5 +1,5 @@
-import { Injectable, effect, inject, signal, untracked } from '@angular/core';
-import { JigsawUserService } from './jigsaw-user.service';
+import { Injectable, inject } from '@angular/core';
+import { ActingIds } from './acting-ids';
 import { PlaysService } from './plays.service';
 
 /**
@@ -7,36 +7,14 @@ import { PlaysService } from './plays.service';
  * chosen, or the rounds could not be read: none is marked.
  */
 @Injectable({ providedIn: 'root' })
-export class SolvedService {
-  private readonly users = inject(JigsawUserService);
+export class SolvedService extends ActingIds {
   private readonly plays = inject(PlaysService);
-
-  /** the ids of the jigsaws the user has solved */
-  readonly ids = signal<ReadonlySet<string>>(new Set());
-
-  constructor() {
-    effect(() => {
-      const id = this.users.acting()?.id ?? null;
-      untracked(() => void this.read(id));
-    });
-  }
-
-  /** reads the rounds again (a round may have been solved since) */
-  refresh(): void {
-    void this.read(this.users.acting()?.id ?? null);
-  }
 
   isSolved(jigsawId: string): boolean {
     return this.ids().has(jigsawId);
   }
 
-  private async read(userId: string | null): Promise<void> {
-    if (!userId) return this.ids.set(new Set());
-    try {
-      const games = await this.plays.ofUser(userId);
-      if (this.users.acting()?.id === userId) this.ids.set(new Set(games.filter((g) => g.play.status === 'solved').map((g) => g.jigsaw.id)));
-    } catch {
-      /* none marked: it is read again the next time a list is opened */
-    }
+  protected async fetch(userId: string): Promise<string[]> {
+    return (await this.plays.ofUser(userId)).filter((g) => g.play.status === 'solved').map((g) => g.jigsaw.id);
   }
 }

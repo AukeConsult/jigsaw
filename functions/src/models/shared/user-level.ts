@@ -76,6 +76,11 @@ export class UserLevels {
     return users.some((u) => UserLevels.isAdmin(UserLevels.of(u)));
   }
 
+  /** How many admins there are among these accounts besides the one with this id. */
+  static otherAdmins(users: readonly (Levelled & { id: string })[], id: string): number {
+    return users.filter((u) => u.id !== id && UserLevels.isAdmin(UserLevels.of(u))).length;
+  }
+
   /** The reason an admin may not give `to` to an account that has `from`: the last admin cannot step down (nobody could set levels then). `otherAdmins` is how many other admins there are. */
   static changeError(from: UserLevel, to: UserLevel, otherAdmins: number): string {
     return from === 'admin' && to !== 'admin' && otherAdmins === 0 ? 'This is the last admin: make another account an admin first.' : '';

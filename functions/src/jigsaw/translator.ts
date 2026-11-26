@@ -1,28 +1,16 @@
-import { AiUsage, FeedWords, JigsawLanguages, TokenUsages, FEED_LABEL_MAX, FEED_TEXT_MAX, FEED_TITLE_MAX } from "../models";
-import { OpenAiSettings, openAiSettings } from "../common/openai-settings";
+import { AiUsage, FeedWords, JigsawLanguages, FEED_LABEL_MAX, FEED_TEXT_MAX, FEED_TITLE_MAX } from "../models";
+import { AiFailed, askOpenAi, settingsNow } from "../common/openai-chat";
+import { OpenAiSettings } from "../common/openai-settings";
 
 // Translating the words of a tile of the home page. `Translator` is the port, as `Classifier` is for pictures: the OpenAI one is the real thing, a fake is what the tests use (no test calls OpenAI).
 
 export interface Translator {
   /**
-   * The words in the languages asked for, made from the words of the master language. Throws `TranslatorUnavailable` when it cannot be asked, `TranslatorFailed` when the answer cannot be used (with what
+   * The words in the languages asked for, made from the words of the master language. Throws `AiUnavailable` when it cannot be asked, `AiFailed` when the answer cannot be used (with what
    * the call used, which was spent all the same).
    */
   translate(words: FeedWords, from: string, to: readonly string[]): Promise<{ made: Record<string, FeedWords>; usage?: AiUsage }>;
 }
-
-/** The service was asked and answered, but there was nothing to use in the answer: the tokens are spent all the same, so `usage` says how many. */
-export class TranslatorFailed extends Error {
-  constructor(message: string, readonly usage?: AiUsage) {
-    super(message);
-  }
-}
-
-/** The translator cannot be used at all (the settings are not there): the route says so as it is, and the tile is saved without the translations. */
-export class TranslatorUnavailable extends Error {}
-
-const ENDPOINT = "https://api.openai.com/v1/chat/completions";
-const TIMEOUT_MS = 60_000;
 
 /** What the AI is told: the words to translate, the languages, and that a mark or a number stays as it is. */
 function prompt(from: string, to: readonly string[]): string {
@@ -67,53 +55,23 @@ export function readTranslations(json: unknown, words: FeedWords, to: readonly s
   return lacking.length ? { error: `OpenAI gave nothing in ${lacking.join(", ")}.` } : { made };
 }
 
-/** The translator that asks OpenAI (text only, the answer in strict JSON). `fetchFn` is the one thing a test replaces. */
+/** The translator that asks OpenAI (text only). `fetchFn` is the one thing a test replaces. */
 export function openAiTranslator(settings: OpenAiSettings, fetchFn: typeof fetch = fetch): Translator {
   return {
     async translate(words, from, to) {
-      const response = await fetchFn(ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${settings.apiKey}`,
-          ...(settings.orgId ? { "OpenAI-Organization": settings.orgId } : {}),
-          ...(settings.projectId ? { "OpenAI-Project": settings.projectId } : {}),
-        },
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-        body: JSON.stringify({
-          model: settings.model,
-          messages: [
-            { role: "system", content: prompt(from, to) },
-            { role: "user", content: JSON.stringify({ title: words.title, text: words.text ?? "", label: words.label ?? "" }) },
-          ],
-          response_format: { type: "json_schema", json_schema: { name: "feed_translations", strict: true, schema: schema(to) } },
-        }),
-      });
-      const body = (await response.json().catch(() => null)) as { error?: { message?: string }; choices?: { message?: { content?: string; refusal?: string } }[] } | null;
-      const usage = TokenUsages.fromOpenAi(body, { model: settings.model });
-      if (!response.ok) throw new Error(`OpenAI answered ${response.status}${body?.error?.message ? `: ${body.error.message}` : ""}`); // the key is never in what is said
-      const message = body?.choices?.[0]?.message;
-      if (message?.refusal) throw new TranslatorFailed(`OpenAI would not translate: ${message.refusal}`, usage);
-      let json: unknown;
-      try {
-        json = JSON.parse(message?.content ?? "");
-      } catch {
-        throw new TranslatorFailed("OpenAI did not answer with JSON.", usage);
-      }
+      const messages = [
+        { role: "system", content: prompt(from, to) },
+        { role: "user", content: JSON.stringify({ title: words.title, text: words.text ?? "", label: words.label ?? "" }) },
+      ];
+      const { json, usage } = await askOpenAi(settings, { messages, schema: { name: "feed_translations", schema: schema(to) }, task: "translate" }, fetchFn);
       const read = readTranslations(json, words, to);
-      if ("error" in read) throw new TranslatorFailed(read.error, usage);
+      if ("error" in read) throw new AiFailed(read.error, usage);
       return { made: read.made, ...(usage ? { usage } : {}) };
     },
   };
 }
 
-/** The translator that reads its settings when it is asked (so the functions start without them, and a missing setting is said where it matters). */
+/** The translator that reads its settings when it is asked. */
 export function configuredTranslator(env: Record<string, string | undefined> = process.env, fetchFn: typeof fetch = fetch): Translator {
-  return {
-    async translate(words, from, to) {
-      const settings = openAiSettings(env);
-      if ("error" in settings) throw new TranslatorUnavailable(settings.error);
-      return openAiTranslator(settings, fetchFn).translate(words, from, to);
-    },
-  };
+  return { translate: async (words, from, to) => openAiTranslator(settingsNow(env), fetchFn).translate(words, from, to) };
 }

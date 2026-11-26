@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, effect, inject, signal, untracked } from 
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../../../app/core/language.service';
-import { readPreference, writePreference } from '../../../app/core/preferences';
+import { preferenceSignal } from '../../../app/core/preferences';
 import { AccountAvatar } from '../../../app/jigsaw/account-avatar/account-avatar';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { AuthService } from '../../../app/logons/auth.service';
@@ -10,7 +10,7 @@ import { LogonLanding } from '../../../app/logons/logon-landing';
 import { MyLogonUsers } from '../../../app/logons/my-logon-users/my-logon-users';
 import { UserLogins } from '../../../app/logons/user-logins/user-logins';
 import { JigsawUsers, JigsawUserSpec, USERNAME_MAX, USERNAME_MIN, USER_NAME_MAX } from '../../../app/models/shared/jigsaw-user';
-import { AccountEdit } from './account-edit';
+import { AccountEdit } from '../../../app/jigsaw/account-edit';
 
 /**
  * The page of the route `/play/account`, who is on and everything about the user's account: **the app's own page, made of the real shared components** (`app-my-logon-users`, what a signed-in login can do about the accounts: play as one, make a new one, delete one, add the
@@ -41,7 +41,7 @@ export class PlayAccount implements OnInit, OnDestroy {
   protected readonly ready = signal(false);
   /** `start`: a new person says their name (or, signed in, has the box of the accounts of the login); `choose`: the list of the accounts */
   protected readonly mode = signal<'start' | 'choose'>('start');
-  protected readonly filter = signal(readPreference('play.userFilter', '', (v): v is string => typeof v === 'string'));
+  protected readonly filter = preferenceSignal('play.userFilter', '', (v): v is string => typeof v === 'string');
   protected readonly name = signal('');
   protected readonly nameMax = USER_NAME_MAX;
   protected readonly busy = signal(false);
@@ -60,7 +60,6 @@ export class PlayAccount implements OnInit, OnDestroy {
         if (this.users.acting()) untracked(() => void this.router.navigateByUrl(next));
       });
     }
-    effect(() => writePreference('play.userFilter', this.filter()));
     // the edit page of the account that plays is open as soon as there is one (and again for another account)
     let editedId: string | null = null;
     effect(() => {

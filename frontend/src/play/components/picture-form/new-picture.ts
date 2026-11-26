@@ -2,15 +2,14 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { LanguageService } from '../../../app/core/language.service';
 import { MAX_PICTURE_BYTES, fitPicture } from '../../../app/jigsaw/fit-picture';
 import { JigsawImageService } from '../../../app/jigsaw/jigsaw-image.service';
-import { JigsawPiecesService } from '../../../app/jigsaw/jigsaw-pieces.service';
-import { renderPieceGraphics } from '../../../app/jigsaw/piece-graphics';
+import { JigsawMaker } from '../../../app/jigsaw/jigsaw-maker';
 import { readPreference, writePreference } from '../../../app/core/preferences';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
 import { PlaysService } from '../../../app/jigsaw/plays.service';
 import { JigsawLanguages } from '../../../app/models/shared/language';
 import { SourceRect } from '../../../app/models/shared/geometry';
-import { JigsawCut, JigsawPieces } from '../../../app/models/shared/jigsaw';
+import { JigsawCut } from '../../../app/models/shared/jigsaw';
 import { JigsawKind, JigsawKinds } from '../../../app/models/shared/jigsaw-kind';
 import { JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JigsawInput, JigsawSettings, JigsawSpec } from '../../../app/models/shared/jigsaw-settings';
 import { JigsawMotives, MotiveLevel } from '../../../app/models/shared/motive';
@@ -48,7 +47,7 @@ const isDefaults = (v: unknown): v is NewPictureDefaults | null => {
 export class NewPicture {
   private readonly jigsaws = inject(JigsawService);
   private readonly images = inject(JigsawImageService);
-  private readonly pieceApi = inject(JigsawPiecesService);
+  private readonly maker = inject(JigsawMaker);
   private readonly users = inject(JigsawUserService);
   private readonly plays = inject(PlaysService);
   private readonly listFilter = inject(PlayListFilter);
@@ -325,17 +324,7 @@ export class NewPicture {
       if (file && cut) {
         const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut);
         await this.images.upload(id, picture);
-        if (cutting) {
-          const pieces = cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []);
-          const address = URL.createObjectURL(picture);
-          let graphics: Map<string, string>;
-          try {
-            graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, { width: this.original?.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH, color: this.original?.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR });
-          } finally {
-            URL.revokeObjectURL(address);
-          }
-          await this.pieceApi.replace(id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
-        }
+        if (cutting) await this.maker.keepPieces(id, picture, cutting, { width: this.original?.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH, color: this.original?.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR });
       }
       this.savedId.set(id);
     } catch {
@@ -360,27 +349,15 @@ export class NewPicture {
       this.error.set(cutting.error);
       return;
     }
-    const pieces = cutting ? cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []) : [];
     const withAi = analyse || this.nameMissing();
     this.error.set('');
     this.saving.set(true);
-    let madeId: string | null = null;
     let categories = this.categories();
     try {
       const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut);
-      const made = await this.jigsaws.create(this.settings(withAi ? this.nameForAi() : this.name().trim(), cutting?.storeWidth));
-      madeId = made.id;
-      await this.images.upload(made.id, picture);
-      if (cutting) {
-        const address = URL.createObjectURL(picture);
-        let graphics: Map<string, string>;
-        try {
-          graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, { width: JigsawSettings.DEFAULT_LINE_WIDTH, color: JigsawSettings.DEFAULT_LINE_COLOR });
-        } finally {
-          URL.revokeObjectURL(address);
-        }
-        await this.pieceApi.replace(made.id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
-      }
+      const made = await this.maker.createWithPicture(this.settings(withAi ? this.nameForAi() : this.name().trim(), cutting?.storeWidth), picture, async (saved) => {
+        if (cutting) await this.maker.keepPieces(saved.id, picture, cutting, { width: JigsawSettings.DEFAULT_LINE_WIDTH, color: JigsawSettings.DEFAULT_LINE_COLOR });
+      });
       if (withAi) {
         this.analysing.set(true);
         const classified = await this.jigsaws.classify(made.id, true).catch(() => null);
@@ -389,7 +366,6 @@ export class NewPicture {
       this.savedId.set(made.id);
       this.listFilter.addPicture(categories, this.visibility() === 'hidden' ? null : this.visibility() === 'owner' ? 'private' : 'public');
     } catch {
-      if (madeId) await this.jigsaws.remove(madeId).catch(() => undefined); // nothing half made is left
       this.error.set(tr('play.picture.couldNotMake', 'Could not save the picture. Nothing was saved: check the picture and try again.'));
     } finally {
       this.saving.set(false);

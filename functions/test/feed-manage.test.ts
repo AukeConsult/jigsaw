@@ -2,10 +2,11 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
 import type { FeedStore } from "../src/jigsaw/jigsaw-feed";
-import { configuredTranslator, openAiTranslator, readTranslations, Translator, TranslatorFailed, TranslatorUnavailable } from "../src/jigsaw/translator";
+import { configuredTranslator, openAiTranslator, readTranslations, Translator } from "../src/jigsaw/translator";
 import { FeedItemData, FeedItemInput, JIGSAW_LANGUAGES, UserLevel } from "../src/models";
 import type { AiUsage, TokenUsageSpec } from "../src/models";
 import { memoryUsers } from "./memory-plays";
+import { AiFailed, AiUnavailable } from "../src/common/openai-chat";
 
 // Publishers and admins write the information and the offers of the home page: their own (an admin any), with the words in the master language that the author writes and in the others that the AI makes
 // when the tile is saved. The home page reads the collections and shows what is active. No test calls Firestore or OpenAI.
@@ -54,8 +55,8 @@ function fakeTranslator(mode: "ok" | "unavailable" | "failed" = "ok"): Translato
     asked,
     async translate(words, from, to) {
       asked.push({ from, to, title: words.title });
-      if (mode === "unavailable") throw new TranslatorUnavailable("OPENAI_API_KEY is not set.");
-      if (mode === "failed") throw new TranslatorFailed("OpenAI did not answer with JSON.", usage);
+      if (mode === "unavailable") throw new AiUnavailable("OPENAI_API_KEY is not set.");
+      if (mode === "failed") throw new AiFailed("OpenAI did not answer with JSON.", usage);
       return { made: Object.fromEntries(to.map((l) => [l, { title: `${words.title} ${l}`, ...(words.text ? { text: `${words.text} ${l}` } : {}), ...(words.label ? { label: `${words.label} ${l}` } : {}) }])), usage };
     },
   };
@@ -309,12 +310,12 @@ describe("the translator", () => {
     const asked = (f: unknown) => openAiTranslator({ apiKey: "k", model: "m", detail: "low" }, f as typeof fetch).translate(words, "en", ["nb", "sv"]);
     await expect(asked(async () => answer([{ language: "nb", title: "Høst", text: "x", label: "y" }]))).rejects.toMatchObject({ message: expect.stringMatching(/nothing in sv/), usage: { totalTokens: 30 } });
     await expect(asked(async () => answer([{ language: "nb", title: "", text: "x", label: "y" }, { language: "sv", title: "H", text: "x", label: "y" }]))).rejects.toThrow(/no title in nb/);
-    await expect(asked(async () => ({ ok: true, json: async () => ({ usage: { total_tokens: 3 }, choices: [{ message: { refusal: "no" } }] }) }))).rejects.toBeInstanceOf(TranslatorFailed);
+    await expect(asked(async () => ({ ok: true, json: async () => ({ usage: { total_tokens: 3 }, choices: [{ message: { refusal: "no" } }] }) }))).rejects.toBeInstanceOf(AiFailed);
     await expect(asked(async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: "not json" } }] }) }))).rejects.toThrow(/JSON/);
     await expect(asked(async () => ({ ok: false, status: 401, json: async () => ({ error: { message: "bad key" } }) }))).rejects.toThrow(/401: bad key/);
   });
 
   it("cannot be used without its settings, and says what is missing", async () => {
-    await expect(configuredTranslator({}).translate(words, "en", ["nb"])).rejects.toBeInstanceOf(TranslatorUnavailable);
+    await expect(configuredTranslator({}).translate(words, "en", ["nb"])).rejects.toBeInstanceOf(AiUnavailable);
   });
 });

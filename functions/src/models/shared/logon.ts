@@ -115,6 +115,11 @@ export class LinkCodes {
 }
 
 export class LogonAccounts {
+  /** An account a login is verified for, as the page is told of it: only these fields of it. */
+  static linkedUser(user: LinkedUser): LinkedUser {
+    return { id: user.id, name: user.name, username: user.username, ...(user.pictureAt ? { pictureAt: user.pictureAt } : {}), ...(user.level ? { level: user.level } : {}) };
+  }
+
   /** A trimmed text, or null when it is empty or not a text. */
   static text(value: unknown, max = MAX_TEXT): string | null {
     if (typeof value !== 'string') return null;

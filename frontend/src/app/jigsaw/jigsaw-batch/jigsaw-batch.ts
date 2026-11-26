@@ -12,6 +12,7 @@ import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { SNAP_LEVELS, SnapLevelKey } from '../snap-level';
 import { CategoryTags } from '../category-tags/category-tags';
+import { apiError } from '../../core/api-error';
 
 /** How many pictures can be made into jigsaws at one time (each is cut and drawn in the browser, so many at once would take long). */
 export const BATCH_MAX = 30;
@@ -196,6 +197,6 @@ export class JigsawBatch implements OnDestroy {
 
 /** Why something failed, in words (the API says why when it can). */
 function reasonOf(err: unknown): string {
-  if (err instanceof HttpErrorResponse) return (err.error as { error?: string } | null)?.error ?? `${err.status} ${err.statusText}`.trim();
+  if (err instanceof HttpErrorResponse) return apiError(err) ?? `${err.status} ${err.statusText}`.trim();
   return err instanceof Error ? err.message : 'Something went wrong.';
 }

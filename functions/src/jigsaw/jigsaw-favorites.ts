@@ -1,6 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { JIGSAW_FAVORITES, JigsawFavorites } from "../models";
+import { apiRouter, askerOf, bad } from "../common/http";
 
 // The favorites of the users: `/jigsaw-favorites`. Whose favorites they are is said by the header `X-Jigsaw-User` (the UID of the user who plays; there is no sign-in yet, so this
 // keeps the app honest, it is not a lock). GET / gives the ids of the jigsaws the user has as favorites; PUT /:jigsawId makes one a favorite and DELETE /:jigsawId takes it away.
@@ -44,12 +45,11 @@ export interface FavoriteDeps {
 }
 
 export function jigsawFavoritesRouter(store: FavoriteStore, deps: FavoriteDeps): express.Router {
-  const router = express.Router();
-  const bad = (res: express.Response, error: string, status = 400) => void res.status(status).json({ error });
+  const router = apiRouter();
 
   /** who asks, when it is a user that exists */
   const userOf = async (req: express.Request, res: express.Response): Promise<string | null> => {
-    const userId = req.get("X-Jigsaw-User");
+    const userId = askerOf(req);
     const error = JigsawFavorites.error(userId, "x"); // only the user is looked at here
     if (error) {
       bad(res, error, 401);

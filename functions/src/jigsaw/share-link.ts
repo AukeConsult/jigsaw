@@ -4,6 +4,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { JigsawSpec, JigsawVisibilities } from "../models";
 import { isPictureId } from "./jigsaw-image";
 import { SecretSource } from "./view-key";
+import { apiRouter, askerOf, bad } from "../common/http";
 
 // **A link to one picture that opens it for whoever gets it**: the owner of a private picture sends it, and the person who has it may see that picture and play it, and nothing else. The link carries a key, worked out
 // from the id of the picture and a number (how many times the owner has made a new link) with a secret only the server has: **the key itself is never kept**, only the number. Making a new link raises the number,
@@ -67,18 +68,18 @@ export class ShareKeys {
 
 /** `/jigsaw/:id/share`: GET gives the key of the picture's link, POST makes a new one (the old stops working). Its owner only (the header `X-Jigsaw-User`); for anyone else the picture's link is not there. */
 export function shareLinkRouter(keys: ShareKeys, jigsawById: (id: string) => Promise<JigsawSpec | null>): express.Router {
-  const router = express.Router({ mergeParams: true });
+  const router = apiRouter({ mergeParams: true });
   const answer = (make: (jigsawId: string) => Promise<string>): express.RequestHandler => async (req, res) => {
     try {
       const id = String((req.params as { id?: string }).id);
-      const me = req.get("X-Jigsaw-User");
+      const me = askerOf(req);
       const jigsaw = isPictureId(id) ? await jigsawById(id) : null;
-      if (!jigsaw || !me || jigsaw.ownerUid !== me) return void res.status(404).json({ error: "No such jigsaw." });
-      if (!ShareKeys.shareable(jigsaw)) return void res.status(409).json({ error: "A hidden picture and a picture of a package have no link to send." });
+      if (!jigsaw || !me || jigsaw.ownerUid !== me) return bad(res, "No such jigsaw.", 404);
+      if (!ShareKeys.shareable(jigsaw)) return bad(res, "A hidden picture and a picture of a package have no link to send.", 409);
       res.json({ key: await make(id) });
     } catch (err) {
       console.error("Could not make a link to a picture", err);
-      res.status(503).json({ error: "Try again." });
+      bad(res, "Try again.", 503);
     }
   };
   router.get("/", answer((id) => keys.keyFor(id)));

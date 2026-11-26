@@ -1,8 +1,9 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { ImageStore, documentExists, pictureType } from "./jigsaw-image";
-import { JIGSAW_USERS, JigsawFilter, JigsawSetup, JigsawUserSpec, JigsawUsers, UserLevel, UserLevels, PlayLookSetup, TextLookSetup, PartSize } from "../models";
+import { JIGSAW_USERS, JigsawUserSpec, JigsawUsers, UserLevel, UserLevels, UserSettings } from "../models";
 import type { Levels } from "./user-levels";
+import { apiRouter, askerOf, bad } from "../common/http";
 
 // The users of the jigsaws: one document each in the collection `jigsaw-users`, with an id the database makes (the UID, the one a play is kept by), the user name the
 // person chose (the extra, for looking a user up and showing who is who: unique) and a name. There is no sign-in: knowing a user name is enough to play as that user, for
@@ -39,41 +40,24 @@ export interface UserStore {
   remove(id: string): Promise<boolean>;
 }
 
-/** Whether another account is an admin (one that counts: it needs a login). */
-async function hasOtherAdmin(store: UserStore, id: string): Promise<boolean> {
-  return (await store.list()).some((u) => u.id !== id && UserLevels.isAdmin(UserLevels.of(u)));
-}
-
 /** What is attached to a user, so the page can be told whether it may be deleted: the jigsaws it owns and the rounds it has played; `clearFresh` takes away its rounds nobody moved a piece in. */
 export interface UserUse {
   count(userId: string): Promise<{ jigsaws: number; rounds: number }>;
   clearFresh(userId: string): Promise<void>;
 }
 
-/** What can be changed of a user. */
-export interface UserChange {
+/** What can be changed of a user: the settings the person chooses, and what only the server sets. */
+export type UserChange = UserSettings & {
   /** when the picture was set (null: it was taken away); the picture itself is a file in Storage */
   pictureAt?: number | null;
   /** set by the server when the account is chosen, never by a body from the page */
   lastUsedAt?: number;
-  name?: string;
-  username?: string;
-  language?: string;
-  search?: JigsawSetup;
-  /** what the app's picture list is filtered by, kept with the user */
-  listFilter?: JigsawFilter;
-  /** how the user likes the play area */
-  playLook?: PlayLookSetup;
-  /** how big the user likes the text and in which letters */
-  textLook?: TextLookSetup;
-  /** how big the user likes the picture tiles and the small labels */
-  tileSize?: PartSize;
-  labelSize?: PartSize;
-  /** whether the picture tiles tell their details */
-  tileDetails?: boolean;
   /** set by an admin only (`userLevelRouter`), never by a body that changes a user; `user` takes the kept level away */
   level?: UserLevel;
-}
+};
+
+/** The fields of a change that are written as they are, every one of them (the type sees to it): nothing else of a change is ever saved. `level` and `pictureAt` have rules of their own. */
+const WRITTEN: Record<keyof UserSettings | "lastUsedAt", true> = { name: true, username: true, language: true, search: true, listFilter: true, playLook: true, textLook: true, tileSize: true, labelSize: true, tileDetails: true, lastUsedAt: true };
 
 /** The collection `jigsaw-users`. */
 export function firestoreUserStore(): UserStore {
@@ -147,22 +131,14 @@ export function firestoreUserStore(): UserStore {
           taken = (!same.empty && same.docs[0].id !== id) || (!!legacy?.exists && legacy.id !== id);
         }
         if (taken) return "taken" as const;
-        const data: Record<string, unknown> = {};
-        if (change.name !== undefined) data.name = change.name;
-        if (change.username !== undefined) data.username = change.username;
-        if (change.language !== undefined) data.language = change.language;
-        if (change.search !== undefined) data.search = change.search;
-        if (change.listFilter !== undefined) data.listFilter = change.listFilter;
-        if (change.playLook !== undefined) data.playLook = change.playLook;
-        if (change.textLook !== undefined) data.textLook = change.textLook;
-        if (change.tileSize !== undefined) data.tileSize = change.tileSize;
-        if (change.labelSize !== undefined) data.labelSize = change.labelSize;
-        if (change.tileDetails !== undefined) data.tileDetails = change.tileDetails;
-        if (change.lastUsedAt !== undefined) data.lastUsedAt = change.lastUsedAt;
-        if (change.level !== undefined) data.level = change.level === "user" ? FieldValue.delete() : change.level;
-        if (change.pictureAt !== undefined) data.pictureAt = change.pictureAt ?? FieldValue.delete();
+        const plain = Object.fromEntries((Object.keys(WRITTEN) as (keyof typeof WRITTEN)[]).filter((field) => change[field] !== undefined).map((field) => [field, change[field]]));
+        const data = {
+          ...plain,
+          ...(change.level !== undefined ? { level: change.level === "user" ? FieldValue.delete() : change.level } : {}),
+          ...(change.pictureAt !== undefined ? { pictureAt: change.pictureAt ?? FieldValue.delete() } : {}),
+        };
         if (Object.keys(data).length) tx.update(ref, data);
-        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.listFilter !== undefined ? { listFilter: change.listFilter } : {}), ...(change.playLook !== undefined ? { playLook: change.playLook } : {}), ...(change.textLook !== undefined ? { textLook: change.textLook } : {}), ...(change.tileSize !== undefined ? { tileSize: change.tileSize } : {}), ...(change.labelSize !== undefined ? { labelSize: change.labelSize } : {}), ...(change.tileDetails !== undefined ? { tileDetails: change.tileDetails } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}), ...(change.level !== undefined ? { level: change.level } : {}) };
+        const next: Partial<JigsawUserSpec> = { ...(doc.data() as object), ...plain, ...(change.level !== undefined ? { level: change.level } : {}) };
         if (change.pictureAt !== undefined) {
           if (change.pictureAt) next.pictureAt = change.pictureAt;
           else delete next.pictureAt;
@@ -179,8 +155,16 @@ export function firestoreUserStore(): UserStore {
  * GET / lists the users (id, alias, name and when the picture was set), to choose who plays from.
  */
 export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: UserUse, now: () => number = Date.now, levels?: Levels): express.Router {
-  const router = express.Router();
-  const bad = (res: express.Response, error: string, status = 400) => void res.status(status).json({ error });
+  const router = apiRouter();
+
+  /** The account of the address; else the answer says why not and nothing is given. */
+  const accountOf = async (req: express.Request, res: express.Response): Promise<JigsawUserSpec | null> => {
+    const id = String(req.params.id);
+    const idError = JigsawUsers.idError(id);
+    const user = idError ? null : await store.get(id);
+    if (!user) bad(res, idError || "No such account.", idError ? 400 : 404);
+    return user;
+  };
 
   router.get("/", async (_req, res) => {
     res.json((await store.list()).map(JigsawUsers.publicOf)); // to choose who plays from: without what is private (the logins, the picture itself)
@@ -205,17 +189,14 @@ export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: 
   });
 
   router.get("/:id", async (req, res) => {
-    const error = JigsawUsers.idError(req.params.id);
-    if (error) return bad(res, error);
-    const user = await store.get(req.params.id);
-    if (!user) return bad(res, "No such account.", 404);
-    res.json(JigsawUsers.publicOf(user));
+    const user = await accountOf(req, res);
+    if (user) res.json(JigsawUsers.publicOf(user));
   });
 
   router.put("/:id", async (req, res) => {
     const idError = JigsawUsers.idError(req.params.id);
     if (idError) return bad(res, idError);
-    const read = JigsawUsers.change((req.body ?? {}) as { name?: unknown; username?: unknown; language?: unknown; search?: unknown; listFilter?: unknown; playLook?: unknown; textLook?: unknown; tileSize?: unknown; labelSize?: unknown; tileDetails?: unknown; picture?: unknown });
+    const read = JigsawUsers.change(req.body);
     if ("error" in read) return bad(res, read.error);
     const { picture, ...rest } = read.change;
     let pictureAt: number | null | undefined;
@@ -245,10 +226,8 @@ export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: 
 
   // POST /:id/used: the account was chosen to play as (the gate has seen that the login may); written at most once a minute
   router.post("/:id/used", async (req, res) => {
-    const idError = JigsawUsers.idError(req.params.id);
-    if (idError) return bad(res, idError);
-    const user = await store.get(req.params.id);
-    if (!user) return bad(res, "No such account.", 404);
+    const user = await accountOf(req, res);
+    if (!user) return;
     const at = now();
     if (at - (user.lastUsedAt ?? 0) >= JigsawUsers.USED_KEEP_MS) await store.update(user.id, { lastUsedAt: at });
     res.status(204).end();
@@ -256,17 +235,15 @@ export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: 
 
   // DELETE /:id: a user with nothing attached (see `JigsawUsers.removeError`); the gate has already seen that the login is one of its logins when it has any
   router.delete("/:id", async (req, res) => {
-    const idError = JigsawUsers.idError(req.params.id);
-    if (idError) return bad(res, idError);
-    const user = await store.get(req.params.id);
-    if (!user) return bad(res, "No such account.", 404);
+    const user = await accountOf(req, res);
+    if (!user) return;
     const attached = use ? await use.count(user.id) : { jigsaws: 0, rounds: 0 };
     // an admin deleting the account of another is not one of its logins and cannot take them away: the logins do not count then; the last admin is not deleted
-    const me = req.get("X-Jigsaw-User");
+    const me = askerOf(req);
     const byAdmin = !!levels && me !== user.id && UserLevels.isAdmin(await levels.of(me));
     const why = JigsawUsers.removeError({ ...attached, logins: byAdmin ? 0 : JigsawUsers.logonsOf(user).length });
     if (why) return bad(res, why, 409);
-    if (levels && UserLevels.isAdmin(UserLevels.of(user)) && !(await hasOtherAdmin(store, user.id))) return bad(res, UserLevels.changeError("admin", "user", 0), 409);
+    if (levels && UserLevels.isAdmin(UserLevels.of(user)) && !UserLevels.otherAdmins(await store.list(), user.id)) return bad(res, UserLevels.changeError("admin", "user", 0), 409);
     await use?.clearFresh(user.id);
     await pictures.remove(user.id);
     await store.remove(user.id);

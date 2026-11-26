@@ -98,8 +98,8 @@ export function memoryUsers(...names: string[]): UserStore {
       const user = users.get(id);
       if (!user) return null;
       if (change.username !== undefined && [...users.values()].some((u) => u.id !== id && u.username === change.username)) return "taken";
-      const rest = user;
-      users.set(id, { ...rest, ...(change.name !== undefined ? { name: change.name } : {}), ...(change.username !== undefined ? { username: change.username } : {}), ...(change.language !== undefined ? { language: change.language } : {}), ...(change.search !== undefined ? { search: change.search } : {}), ...(change.listFilter !== undefined ? { listFilter: change.listFilter } : {}), ...(change.lastUsedAt !== undefined ? { lastUsedAt: change.lastUsedAt } : {}), ...(change.level !== undefined ? { level: change.level } : {}) });
+      const { pictureAt: _picture, ...plain } = change; // the picture has a rule of its own, below
+      users.set(id, { ...user, ...Object.fromEntries(Object.entries(plain).filter(([, value]) => value !== undefined)) });
       if (change.level === "user") {
         const { level: _was, ...bare } = users.get(id)!; // `user` is what none says, as in the database
         users.set(id, bare);

@@ -1,9 +1,8 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, input, model, signal } from '@angular/core';
+import { Component, computed, inject, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
-import { isBoolean, readPreference, writePreference } from '../../core/preferences';
+import { isBoolean, preferenceSignal } from '../../core/preferences';
 import { LANGUAGES } from '../../core/language.service';
 import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME } from '../../models/shared/jigsaw-settings';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
@@ -11,6 +10,7 @@ import { MOTIVES } from '../../models/shared/motive';
 import { CategoryPicker } from '../category-picker/category-picker';
 import { VisibilityChoice } from '../visibility-choice/visibility-choice';
 import { JigsawService } from '../jigsaw.service';
+import { apiError } from '../../core/api-error';
 
 /** Where the choice to have "More options" open is kept on the device. */
 const MORE_OPTIONS_KEY = 'jigsaw.formMore';
@@ -63,11 +63,7 @@ export class JigsawFields {
   readonly busy = input(false);
 
   /** "More options" is open (kept on the device, so a person who uses them finds them open again) */
-  protected readonly moreOpen = signal(readPreference(MORE_OPTIONS_KEY, false, isBoolean));
-
-  constructor() {
-    effect(() => writePreference(MORE_OPTIONS_KEY, this.moreOpen()));
-  }
+  protected readonly moreOpen = preferenceSignal(MORE_OPTIONS_KEY, false, isBoolean);
 
   /** open by choice, or because the author still has to be chosen (that choice is not kept) */
   protected readonly moreIsOpen = computed(() => this.moreOpen() || (this.authorRequired() && !this.ownerUid()));
@@ -106,8 +102,7 @@ export class JigsawFields {
       if (found.categories.length) this.categories.set(found.categories);
       if (found.motive) this.motive.set(found.motive);
     } catch (err) {
-      const why = err instanceof HttpErrorResponse ? ((err.error as { error?: string } | null)?.error ?? '') : '';
-      this.classifyError.set(why || tr('jigsawNew.classifyFailed', 'The AI could not do it: try again.'));
+      this.classifyError.set(apiError(err) ?? tr('jigsawNew.classifyFailed', 'The AI could not do it: try again.'));
     } finally {
       this.classifying.set(false);
     }

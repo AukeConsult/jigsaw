@@ -19,6 +19,7 @@ import { environment } from '../../environments/environment';
 import { tr } from '../core/i18n';
 import { LinkedUser, LogonSession } from '../models/shared/logon';
 import { auth } from './firebase';
+import { isLocalPath } from '../core/app-mode';
 
 /** Where the email is kept between asking for a sign-in link and opening it (the same device). */
 const EMAIL_KEY = 'jigsaw.emailForSignIn';
@@ -146,7 +147,7 @@ export class AuthService {
 
   /** Where to go after signing in: the page the person came from (only an address inside the app), else the front page. */
   landingPath(next: string | null): string {
-    return next && /^\/(?!\/)/.test(next) ? next : '/';
+    return isLocalPath(next) ? next : '/';
   }
 
   logout(): Promise<void> {

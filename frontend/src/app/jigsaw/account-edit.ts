@@ -1,15 +1,15 @@
 import { Injectable, effect, inject, signal, untracked } from '@angular/core';
-import { pictureFromFile } from '../../../app/jigsaw/account-picture';
-import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
-import { JigsawUsers } from '../../../app/models/shared/jigsaw-user';
+import { JigsawUsers, UserEdit } from '../models/shared/jigsaw-user';
+import { pictureFromFile } from './account-picture';
+import { JigsawUserService } from './jigsaw-user.service';
 
 /** how long the account form waits after the last change before it saves it */
 const EDIT_PAUSE_MS = 800;
 
 /**
- * Editing the account that plays (a fresh copy of what the website's user page does when its account is edited): the form has the alias, the name, a picture and a language, and **saves by itself** a pause after the
- * last change (there is no Save and nothing to press: what is waiting is saved when the page is left, `close`). Nothing is saved while the name is empty, or the alias is not allowed or, when it is a new one, has not been looked up and found free.
- * The page of the account (`/play/account`) has the fields, open as soon as an account plays, and only shows it and calls it; the page provides its own, so it starts new each time the page is opened.
+ * Editing the account that plays, **the same for the website's page of the user and the app's page of the account**: the form has the alias, the name, a picture and a language, and **saves by itself** a pause after the
+ * last change (there is no Save and nothing to press: what is waiting is saved when the form is closed or the page is left, `close`). Nothing is saved while the name is empty, or the alias is not allowed or, when it is a new one, has not been looked up and found free.
+ * The page shows the fields and calls this; it provides its own, so it starts new each time the page is opened.
  */
 @Injectable()
 export class AccountEdit {
@@ -27,6 +27,9 @@ export class AccountEdit {
   readonly usernameCheck = signal<'' | 'free' | 'taken'>('');
   readonly error = signal('');
   readonly busy = signal(false);
+
+  /** told after a save that went through (a page that lists the accounts reads them again) */
+  onSaved: () => unknown = () => undefined;
 
   private checkTimer: ReturnType<typeof setTimeout> | undefined;
   private editTimer: ReturnType<typeof setTimeout> | undefined;
@@ -102,9 +105,9 @@ export class AccountEdit {
   }
 
   /** What the form changes in the account: only what differs from it (nothing: an empty object). */
-  private change(): { name?: string; username?: string; language?: string; picture?: string | null } {
+  private change(): UserEdit {
     const me = this.users.user();
-    const change: { name?: string; username?: string; language?: string; picture?: string | null } = {};
+    const change: UserEdit = {};
     if (!me) return change;
     if (this.name().trim() !== me.name) change.name = this.name();
     if (this.username().trim().toLowerCase() !== me.username) change.username = this.username();
@@ -129,5 +132,6 @@ export class AccountEdit {
     const error = await this.users.update(change);
     this.busy.set(false);
     if (error) this.error.set(error);
+    else await this.onSaved();
   }
 }

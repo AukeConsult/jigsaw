@@ -19,7 +19,7 @@
       @if (users.user()) {
         <span class="toolbar flex-grow-1 flex-md-grow-0 justify-content-center justify-content-md-end">
           <!-- a switch: pressed it opens the form of the user, and pressed again it closes it without saving -->
-          <button type="button" class="link-action" [class.fw-semibold]="editing()" [attr.aria-pressed]="editing()" (click)="toggleEdit()"><i class="bi" [class.bi-pencil]="!editing()" [class.bi-pencil-fill]="editing()" aria-hidden="true"></i>{{ t('jigsawUser.editAccount') || 'Edit account' }}</button>
+          <button type="button" class="link-action" [class.fw-semibold]="edit.editing()" [attr.aria-pressed]="edit.editing()" (click)="toggleEdit()"><i class="bi" [class.bi-pencil]="!edit.editing()" [class.bi-pencil-fill]="edit.editing()" aria-hidden="true"></i>{{ t('jigsawUser.editAccount') || 'Edit account' }}</button>
           <!-- a button, not a plain word: this is how another person gets to play on this device -->
           <button type="button" class="btn btn-sm btn-outline-primary" (click)="leave()"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>{{ t('jigsawUser.chooseAnother') || 'Choose another account' }}</button>
           <button type="button" class="link-action" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>{{ t('jigsawUser.logout') || 'Sign out' }}</button>
@@ -48,23 +48,23 @@
     }
 
     @if (users.user(); as me) {
-      @if (editing()) {
+      @if (edit.editing()) {
         <form (submit)="$event.preventDefault()">
           <h2 class="form-section first"><i class="bi bi-person" aria-hidden="true"></i>{{ t('jigsawUser.sectionWho') || 'Who you are' }}</h2>
           <div class="mb-3">
             <label class="form-label" for="edit-username">{{ t('jigsawUser.usernameLabel') || 'Account alias' }}</label>
             <input id="edit-username" name="username" class="form-control text-input" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
-                   [ngModel]="username()" (ngModelChange)="onUsernameTyped($event)">
-            @if (usernameCheck() === 'free') {
+                   [ngModel]="edit.username()" (ngModelChange)="edit.onUsernameTyped($event)">
+            @if (edit.usernameCheck() === 'free') {
               <div class="form-text text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('jigsawUser.usernameFree') || 'Free: nobody else has this alias.' }}</div>
-            } @else if (usernameCheck() === 'taken') {
+            } @else if (edit.usernameCheck() === 'taken') {
               <div class="form-text text-danger"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>{{ t('jigsawUser.usernameTaken') || 'Taken: somebody else has this alias.' }}</div>
             }
             <div class="form-text">{{ t('jigsawUser.usernameHelpEdit', { min: usernameMin, max: usernameMax }) || usernameMin + ' to ' + usernameMax + ' characters. Nobody else can have the same. Your rounds stay yours when you change it.' }}</div>
           </div>
           <div class="mb-3">
             <label class="form-label" for="edit-name">{{ t('jigsawUser.accountName') || 'Account name' }}</label>
-            <input id="edit-name" name="name" class="form-control text-input-name" type="text" [attr.maxlength]="nameMax" required [ngModel]="name()" (ngModelChange)="name.set($event)">
+            <input id="edit-name" name="name" class="form-control text-input-name" type="text" [attr.maxlength]="nameMax" required [ngModel]="edit.name()" (ngModelChange)="edit.name.set($event)">
           </div>
           <!-- the picture and the language side by side (half of the width each, the text wrapping in its half; under each other on a phone) -->
           <div class="row g-3 mb-3">
@@ -73,23 +73,23 @@
             <div class="d-flex align-items-center gap-3">
               <!-- what the account will have after Save: the new picture, none, or the one it has; pressing it chooses a file (the file field itself is never shown); the plus on it says so, and it is not there once there is a picture -->
               <button type="button" class="avatar-upload" [title]="t('jigsawUser.pictureLabel') || 'Picture'" [attr.aria-label]="t('jigsawUser.pictureLabel') || 'Picture'" (click)="pictureFile.click()">
-                @if (picture(); as chosen) {
+                @if (edit.picture(); as chosen) {
                   <img class="rounded-circle object-fit-cover" [src]="chosen" width="48" height="48" alt="">
-                } @else if (picture() === undefined) {
+                } @else if (edit.picture() === undefined) {
                   <app-account-avatar [id]="me.id" [at]="me.pictureAt" size="lg" />
                 } @else {
                   <app-account-avatar [id]="me.id" size="lg" />
                 }
-                @if (!picture() && !(picture() === undefined && me.pictureAt)) {
+                @if (!edit.picture() && !(edit.picture() === undefined && me.pictureAt)) {
                   <span class="avatar-plus" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
                 }
               </button>
-              <input #pictureFile id="edit-picture" name="picture" class="d-none" type="file" accept="image/*" (change)="onPicture($event)">
-              @if (picture() || (picture() === undefined && me.pictureAt)) {
-                <button type="button" class="link-action text-nowrap" (click)="picture.set(null)"><i class="bi bi-x-lg" aria-hidden="true"></i>{{ t('jigsawUser.pictureRemove') || 'Remove' }}</button>
+              <input #pictureFile id="edit-picture" name="picture" class="d-none" type="file" accept="image/*" (change)="edit.onPicture($event)">
+              @if (edit.picture() || (edit.picture() === undefined && me.pictureAt)) {
+                <button type="button" class="link-action text-nowrap" (click)="edit.picture.set(null)"><i class="bi bi-x-lg" aria-hidden="true"></i>{{ t('jigsawUser.pictureRemove') || 'Remove' }}</button>
               }
             </div>
-            @if (pictureFailed()) {
+            @if (edit.pictureFailed()) {
               <div class="form-text text-danger">{{ t('jigsawUser.pictureFailed') || 'That file could not be used as a picture.' }}</div>
             } @else {
               <div class="form-text">{{ t('jigsawUser.pictureHelp') || 'A small picture shown with your account. It is cut square and made small.' }}</div>
@@ -97,7 +97,7 @@
           </div>
           <div class="col-12 col-sm-6">
             <label class="form-label" for="edit-language">{{ t('jigsawUser.language') || 'Language' }}</label>
-            <select id="edit-language" name="language" class="form-select" [ngModel]="language()" (ngModelChange)="language.set($event)">
+            <select id="edit-language" name="language" class="form-select" [ngModel]="edit.language()" (ngModelChange)="edit.language.set($event)">
               @for (l of languages; track l.code) {
                 <option [value]="l.code">{{ l.name }}</option>
               }
@@ -107,18 +107,18 @@
           </div>
           <!-- the Firebase logins that verify this user: the list of them, and what can be done with it (the folder of the logons) -->
           <app-user-logins />
-          @if (error()) {
-            <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
+          @if (edit.error()) {
+            <div class="alert alert-warning py-2 small" role="alert">{{ edit.error() }}</div>
           }
           <!-- there is no Save: every change is saved by itself a moment after the last one; Close saves what is waiting and closes the form -->
           <div class="d-flex flex-wrap justify-content-center gap-2">
-            <button type="button" class="btn btn-outline-secondary" [disabled]="busy()" (click)="closeEdit()">{{ t('jigsawUser.close') || 'Close' }}</button>
+            <button type="button" class="btn btn-outline-secondary" [disabled]="edit.busy()" (click)="edit.close()">{{ t('jigsawUser.close') || 'Close' }}</button>
           </div>
         </form>
       }
 
       <!-- the lists are not shown while the user is being edited -->
-      @if (!editing()) {
+      @if (!edit.editing()) {
       <!-- the two lists of the user, as a switch: the rounds played and the jigsaws made -->
       <div class="toolbar justify-content-center mt-2 mt-md-4 mb-2">
         <div class="segmented tabs" role="group" [attr.aria-label]="t('jigsawUser.lists') || 'Lists'">

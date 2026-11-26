@@ -1,7 +1,9 @@
 import express from "express";
 import { AiUsage, JigsawInput, JigsawLanguages, JigsawSettings, JigsawSpec, TokenUsages } from "../models";
-import { Classifier, ClassifierFailed, ClassifierUnavailable } from "./classifier";
+import { AiFailed, AiUnavailable } from "../common/openai-chat";
+import { Classifier } from "./classifier";
 import { Picture } from "./jigsaw-image";
+import { apiRouter, askerOf, bad } from "../common/http";
 
 /** What the route needs from the app. */
 export interface ClassifyDeps {
@@ -22,14 +24,13 @@ export interface ClassifyDeps {
  * and the description (when it said one); nothing else of the jigsaw changes. `?language=sv` asks for the texts in that language instead of the language of the jigsaw (and with `apply` the jigsaw gets that language). Only its owner may (a jigsaw from before owners is anybody's; the header `X-Jigsaw-User` is the UID of who asks).
  */
 export function jigsawClassifyRouter(deps: ClassifyDeps): express.Router {
-  const router = express.Router({ mergeParams: true });
-  const bad = (res: express.Response, error: string, status: number) => void res.status(status).json({ error });
+  const router = apiRouter({ mergeParams: true });
 
   router.post("/", async (req, res) => {
     const id = (req.params as { id: string }).id;
     const jigsaw = await deps.jigsawById(id);
     if (!jigsaw) return bad(res, "No such jigsaw.", 404);
-    if (jigsaw.ownerUid && req.get("X-Jigsaw-User") !== jigsaw.ownerUid) return bad(res, "Only the owner of a jigsaw can classify it.", 403);
+    if (jigsaw.ownerUid && askerOf(req) !== jigsaw.ownerUid) return bad(res, "Only the owner of a jigsaw can classify it.", 403);
     const asked = req.query.language;
     if (asked !== undefined && !JigsawLanguages.is(asked)) return bad(res, "That is not a language the jigsaws are written in.", 400);
     const language = asked ?? JigsawLanguages.of(jigsaw); // the language that is asked for, else the one of the jigsaw
@@ -37,7 +38,7 @@ export function jigsawClassifyRouter(deps: ClassifyDeps): express.Router {
     if (!picture) return bad(res, "This jigsaw has no picture to look at.", 409);
 
     // the user who pays is the one who asks (the owner; a jigsaw from before owners has the header's user, or nobody)
-    const payer = req.get("X-Jigsaw-User") || jigsaw.ownerUid;
+    const payer = askerOf(req) || jigsaw.ownerUid;
     const keep = async (usage: AiUsage | undefined, status: "ok" | "failed", applied: boolean) => {
       if (!usage || !payer || !deps.keepUsage) return;
       await deps.keepUsage(payer, TokenUsages.record(usage, { userId: payer, kind: "classify", jigsawId: id, status, applied, now: (deps.now ?? Date.now)() })).catch(() => undefined);
@@ -47,8 +48,8 @@ export function jigsawClassifyRouter(deps: ClassifyDeps): express.Router {
     try {
       found = await deps.classifier.classify({ data: picture.data, mime: picture.mime }, language);
     } catch (err) {
-      if (err instanceof ClassifierUnavailable) return bad(res, err.message, 503);
-      if (err instanceof ClassifierFailed) await keep(err.usage, "failed", false);
+      if (err instanceof AiUnavailable) return bad(res, err.message, 503);
+      if (err instanceof AiFailed) await keep(err.usage, "failed", false);
       return bad(res, `The classification failed: ${err instanceof Error ? err.message : "unknown error"}`, 502);
     }
 

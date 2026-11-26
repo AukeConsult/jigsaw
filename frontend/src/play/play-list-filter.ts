@@ -49,7 +49,7 @@ export class PlayListFilter {
     this.filter.set(filter);
     writeFinderPreferences(PLAY_LIST_KEY, { view: 'cards', filter });
     clearTimeout(this.timer);
-    this.timer = setTimeout(() => void this.users.saveListFilter(this.filter()), SAVE_PAUSE_MS);
+    this.timer = setTimeout(() => void this.users.keep({ listFilter: this.filter() }), SAVE_PAUSE_MS);
   }
 
   /**

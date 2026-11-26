@@ -21,6 +21,8 @@ import { PackageItem } from '../../../app/models/shared/feed-item';
 import { PlayChoice } from '../../../app/models/shared/play';
 import { SharePicture } from '../../components/share-picture/share-picture';
 import { goBack } from '../../go-back';
+import { apiError } from '../../../app/core/api-error';
+import { tr } from '../../../app/core/i18n';
 
 /**
  * The page of the route `/play/round/:id`, where **a card leads when it is pressed**: what comes before putting it together, with Cancel back to where the person came from. It is also **where a link to a picture leads** (the key of a
@@ -124,7 +126,7 @@ export class PlayRound implements OnInit {
       const round = await this.plays.start(this.id, me.id, choice);
       await this.router.navigate(['/play/jigsaw', this.id], { queryParams: { round: round.id }, replaceUrl: true }); // a round with no piece moved is not in the lists: the puzzle is told which one to open
     } catch (err) {
-      this.error.set((err as { error?: { error?: string } })?.error?.error || 'Could not start a round: try again.');
+      this.error.set(apiError(err) ?? tr('jigsawPage.couldNotStart', 'Could not start a round: try again.'));
       this.busy.set(false);
     }
   }

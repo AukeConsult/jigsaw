@@ -63,6 +63,7 @@
     "email-already-in-use": "Une connexion avec cet e-mail existe déjà. Connecte-toi plutôt.",
     "weak-password": "Le mot de passe doit contenir au moins 6 caractères.",
     "too-many-requests": "Trop de tentatives. Réessaie plus tard.",
+    "popup-blocked": "Le navigateur a bloqué la fenêtre de connexion. Autorise les fenêtres pop-up, puis réessaie.",
     "operation-not-allowed": "Cette façon de se connecter n'est pas disponible. Essaie une autre façon.",
     "requires-recent-login": "Reconnecte-toi, puis réessaie.",
     "invalid-action-code": "Ce lien n'est plus valide. Demande-en un nouveau.",

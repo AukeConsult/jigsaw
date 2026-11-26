@@ -1,5 +1,5 @@
 import { Injectable, effect, signal } from '@angular/core';
-import { isBoolean, readPreference, writePreference } from '../core/preferences';
+import { isBoolean, readPreference, writePreference, preferenceSignal } from '../core/preferences';
 import { readSession, writeSession } from '../core/session-storage';
 
 const HELPER_KEY = 'jigsaw.helperByJigsaw';
@@ -19,9 +19,9 @@ const isStateMap = (v: unknown): v is Record<string, HelperState> =>
 @Injectable({ providedIn: 'root' })
 export class JigsawHelper {
   /** whether the helper picture is shown (on to begin with) */
-  readonly helper = signal(readPreference('jigsaw.helper', true, isBoolean));
+  readonly helper = preferenceSignal('jigsaw.helper', true, isBoolean);
   /** whether only the corner and edge pieces are shown (off to begin with) */
-  readonly edgesOnly = signal(readPreference('jigsaw.edgesOnly', false, isBoolean));
+  readonly edgesOnly = preferenceSignal('jigsaw.edgesOnly', false, isBoolean);
 
   /** whether the sidebar of the jigsaw is open: on a narrow screen it is folded away until the menu opens it (on a wide screen it is always there) */
   readonly sidebarOpen = signal(readSession('jigsaw.sidebarOpen', false, isBoolean));
@@ -54,8 +54,6 @@ export class JigsawHelper {
   }
 
   constructor() {
-    effect(() => writePreference('jigsaw.helper', this.helper()));
-    effect(() => writePreference('jigsaw.edgesOnly', this.edgesOnly()));
     effect(() => {
       const state = { helper: this.helper(), edgesOnly: this.edgesOnly() };
       const id = this.jigsawId;

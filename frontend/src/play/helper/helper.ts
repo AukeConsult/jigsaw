@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, WritableSignal, afterRenderEffect, computed, inject, input, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, WritableSignal, afterRenderEffect, computed, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -10,11 +10,8 @@ import { ListView } from '../list-view';
 import { JigsawFilters } from '../../app/models/shared/jigsaw-filter';
 import { PlayListFilter } from '../play-list-filter';
 import { PuzzelToggle, PuzzelView } from '../puzzel-view';
+import { Drop, MenuDrag, SIDES, Side, insideWindow } from './menu-drag';
 import { PlayMenuItem } from './menus';
-
-/** The edges of the window the helper can stick to. */
-const SIDES = ['top', 'bottom', 'left', 'right'] as const;
-type Side = (typeof SIDES)[number];
 
 /** Where the helper was put: its top left corner, in pixels of the window, or the edge it is stuck to (the corner then says nothing). */
 interface Spot {
@@ -27,17 +24,13 @@ const SPOT_KEY = 'play.helperSpot';
 /** the person has moved the menu at least once: its grip does not call for attention any more */
 const MOVED_KEY = 'play.helperMoved';
 const isSpot = (value: unknown): value is Spot => !!value && typeof value === 'object' && Number.isFinite((value as Spot).x) && Number.isFinite((value as Spot).y) && ((value as Spot).side === undefined || SIDES.includes((value as Spot).side!));
-/** how far the pointer must go (pixels) before a press is a drag and not a click */
-const DRAG_FROM = 4;
-/** a drag with the pointer this near an edge of the window (in rem, so it follows the text size) sticks the helper to it */
-const STICK_REM = 2;
-const rem = (): number => parseFloat(getComputedStyle(document.documentElement).fontSize);
+const sameSpot = (a: Spot | null, b: Spot | null): boolean => a?.x === b?.x && a?.y === b?.y && a?.side === b?.side;
 
 /**
  * **The helper: it lives always on the main level (in the frame of `PlayMain`), one of it, and what it shows is a menu.** Main gives it the proper menu (`menus.ts`: a list of entries, each an icon, the words and the page a press goes to),
  * different for nobody and for a user, and the helper shows it; a press is plain routing (`routerLink`): there are no helper views and no subclasses. **The helper can be moved**: it is dragged to where the person wants it (by pressing
- * anywhere on it, on an entry too, and going a few pixels; a press that ends a drag is not a click, since the helper then holds the pointer), it can never be dragged, or left by a smaller window or by a change of its own size, outside the window,
- * and where it was put is kept on the device (rule 12 of `CLAUDE.md`). **Dragged to an edge of the window (top, bottom, left or right) it sticks there as a bar** along that edge, and the page makes room for it (`--app-play-bar-top` and the others), until it is dragged away again. Until it is moved it is in the bottom right corner (`.play-helper` in `styles.scss`). **That it can be moved is shown without words**: it has a grip (on the top of the floating menu, on the edge of a bar that faces the page), the grip grows and takes colour a few times until the person has moved it once, and while it is carried the edges of the window light up where it can be fastened. It always shows all of its entries (there is no folding), and is not shown while it has no menu.
+ * anywhere on it, on an entry too, and going a few pixels; a press that ends a drag is not a click; how a drag is followed is in `menu-drag.ts`), it can never be dragged, or left by a smaller window or by a change of its own size, outside the window,
+ * and where it was put is kept on the device (rule 12 of `CLAUDE.md`). **Dragged to an edge of the window (top, bottom, left or right) and let go it sticks there as a bar** along that edge, and the page makes room for it (`--app-play-bar-top` and the others), until it is dragged away again. Until it is moved it is in the bottom right corner (`.play-helper` in `styles.scss`). **That it can be moved is shown without words**: it has a grip (on the top of the floating menu, on the edge of a bar that faces the page), the grip grows and takes colour a few times until the person has moved it once, and while it is carried the edges of the window light up where it can be fastened, and the one it will stick to is filled. It always shows all of its entries (there is no folding), and is not shown while it has no menu.
  */
 @Component({
   selector: 'play-helper',
@@ -89,7 +82,7 @@ export class Helper implements OnInit, OnDestroy {
   readonly menu = input<readonly PlayMenuItem[] | null>(null);
 
   /** where it was put (nothing: it has not been moved, and the stylesheet puts it in the corner) */
-  protected readonly spot = signal<Spot | null>(readPreference<Spot | null>(SPOT_KEY, null, (v): v is Spot | null => v === null || isSpot(v)));
+  protected readonly spot = signal<Spot | null>(readPreference<Spot | null>(SPOT_KEY, null, (v): v is Spot | null => v === null || isSpot(v)), { equal: sameSpot });
   /** the edge of the window it is stuck to, drawn as a bar along it (null: it floats) */
   protected readonly docked = computed(() => this.spot()?.side ?? null);
   /** the person has moved it before (or it is stuck to an edge now) */
@@ -101,11 +94,16 @@ export class Helper implements OnInit, OnDestroy {
   /** it is being dragged */
   protected readonly dragging = signal(false);
 
-  /** where on the helper the pointer took hold of it, where it started, and what holds the pointer once the press has become a drag */
-  private grab: { inside: Spot; from: Spot; pointer: number } | null = null;
-  private readonly onMove = (event: PointerEvent): void => this.move(event);
-  private readonly onUp = (): void => this.up();
-  private moved = false;
+  /** the edge it will stick to if it is let go now, while it is carried */
+  protected readonly aim = signal<Side | null>(null);
+
+  private readonly drag = new MenuDrag(this.host.nativeElement, inject(NgZone), {
+    docked: () => this.docked(),
+    started: () => this.dragging.set(true),
+    aim: (side) => this.aim.set(side),
+    lift: (corner) => this.spot.set(corner),
+    drop: (place) => this.drop(place),
+  });
 
   /** the helper changes size when what is in it changes (another text, another language): where it was put is checked again, so it never goes over the edge */
   private readonly sizeWatch = new ResizeObserver(() => this.resized());
@@ -117,6 +115,7 @@ export class Helper implements OnInit, OnDestroy {
    * lower corner opens upwards, and keeps the same room to that edge. It is then kept inside the window. Where it is now is kept, as if it had been dragged there.
    */
   private resized(): void {
+    if (this.dragging()) return; // the drag has it: the page and its place are seen to when it is let go
     const { width, height } = this.host.nativeElement.getBoundingClientRect();
     this.reserve();
     if (this.docked()) {
@@ -149,9 +148,10 @@ export class Helper implements OnInit, OnDestroy {
 
   constructor() {
     // moved from one edge to another it can keep its size, which the watch of the size would not see
+    // (not while it is carried: the page makes room when it is let go)
     afterRenderEffect(() => {
       this.docked();
-      this.reserve();
+      if (!this.dragging()) this.reserve();
     });
   }
 
@@ -160,85 +160,37 @@ export class Helper implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.up(); // no listener is left on the document
+    this.drag.dispose(); // no listener is left on the document
     this.sizeWatch.disconnect();
     this.reserve(null);
   }
 
   @HostListener('pointerdown', ['$event'])
   protected down(event: PointerEvent): void {
-    if (event.button !== 0) return;
-    const box = this.host.nativeElement.getBoundingClientRect();
-    this.grab = { inside: { x: event.clientX - box.left, y: event.clientY - box.top }, from: { x: event.clientX, y: event.clientY }, pointer: event.pointerId };
-    this.moved = false; // the pointer is held only when the press becomes a drag, so what is pressed in the helper stays a click
-    // the press is followed on the document, not on the helper: a quick drag leaves the helper before its first move is seen there, and would never start. The listeners are there only while the press lasts.
-    document.addEventListener('pointermove', this.onMove);
-    document.addEventListener('pointerup', this.onUp);
-    document.addEventListener('pointercancel', this.onUp);
+    this.drag.down(event);
   }
 
-  private move(event: PointerEvent): void {
-    if (!this.grab) return;
-    if (!this.moved && Math.hypot(event.clientX - this.grab.from.x, event.clientY - this.grab.from.y) < DRAG_FROM) return;
-    if (!this.moved) {
-      this.host.nativeElement.setPointerCapture(this.grab.pointer);
-      this.dragging.set(true);
-    }
-    this.moved = true;
-    const side = this.edgeAt(event);
-    if (side) {
-      this.spot.set({ x: 0, y: 0, side });
-      return;
-    }
-    if (this.docked()) {
-      // pulled away from the edge: the small box is held near its upper left corner, wherever the long bar was pressed (its size is the box's only once it is drawn, so it is not kept inside before the next move)
-      this.grab.inside = { x: Math.min(this.grab.inside.x, 4 * rem()), y: Math.min(this.grab.inside.y, 1.5 * rem()) };
-      this.spot.set({ x: event.clientX - this.grab.inside.x, y: event.clientY - this.grab.inside.y });
-      return;
-    }
-    this.spot.set(this.inside({ x: event.clientX - this.grab.inside.x, y: event.clientY - this.grab.inside.y }));
-  }
-
-  private up(): void {
-    document.removeEventListener('pointermove', this.onMove);
-    document.removeEventListener('pointerup', this.onUp);
-    document.removeEventListener('pointercancel', this.onUp);
-    if (!this.grab) return;
-    this.grab = null;
+  /** It was let go: where it is now is kept. */
+  private drop(place: Drop): void {
+    const next: Spot = 'side' in place ? { x: 0, y: 0, side: place.side } : place.corner;
+    this.lastSize = 'side' in place ? null : place.size;
+    this.spot.set(next);
+    this.aim.set(null);
     this.dragging.set(false);
-    if (this.moved) {
-      writePreference(SPOT_KEY, this.spot());
-      this.hasMoved.set(true);
-      writePreference(MOVED_KEY, true);
-    }
+    this.hasMoved.set(true);
+    writePreference(SPOT_KEY, next);
+    writePreference(MOVED_KEY, true);
   }
 
   /** A smaller window, or a change of the helper's own size, takes a helper that was put near the old edge back inside. */
   @HostListener('window:resize')
   protected keepInside(): void {
     const spot = this.spot();
-    if (spot && !spot.side) this.spot.set(this.inside(spot));
-  }
-
-  /**
-   * The edge of the window the drag sticks the helper to: the one the pointer is at (the nearest, in a corner). A bar stays on its edge until the pointer has left it, so it can be taken hold of anywhere along it, also at an
-   * end that is at another edge.
-   */
-  private edgeAt(event: PointerEvent): Side | null {
-    const away: Record<Side, number> = { top: event.clientY, bottom: window.innerHeight - event.clientY, left: event.clientX, right: window.innerWidth - event.clientX };
-    const near = STICK_REM * rem();
-    const now = this.docked();
-    if (now) {
-      const { width, height } = this.host.nativeElement.getBoundingClientRect();
-      if (away[now] <= (now === 'left' || now === 'right' ? width : height) + near) return now;
-    }
-    const closest = SIDES.reduce((best, side) => (away[side] < away[best] ? side : best));
-    return away[closest] <= near ? closest : null;
+    if (spot && !spot.side && !this.dragging()) this.spot.set(this.inside(spot));
   }
 
   /** The corner moved to the nearest place where the whole helper is in the window. */
   private inside(spot: Spot): Spot {
-    const { width, height } = this.host.nativeElement.getBoundingClientRect();
-    return { x: Math.min(Math.max(0, spot.x), Math.max(0, window.innerWidth - width)), y: Math.min(Math.max(0, spot.y), Math.max(0, window.innerHeight - height)) };
+    return insideWindow(spot, this.host.nativeElement.getBoundingClientRect(), { width: window.innerWidth, height: window.innerHeight });
   }
 }

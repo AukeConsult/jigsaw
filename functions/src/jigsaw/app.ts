@@ -21,6 +21,9 @@ import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users
 import { LogonDeps, createLogons } from "../logons";
 import { PlayStore, firestorePlayStore, playsRouter, userPlaysRouter } from "./plays";
 import { Levels, intoAccount, userLevelRouter, userLevels } from "./user-levels";
+import { answerFailure, apiRouter, askerOf, bad } from "../common/http";
+import { findById } from "../common/document-store";
+import { filterAsync } from "../common/filter-async";
 
 /** The address the API of Karins jigsaw answers on (Hosting forwards the full path to the function). */
 export const JIGSAW_API = "/jigsaw/api";
@@ -33,7 +36,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   const json = express.json({ limit: "600kb" });
   app.use((req, res, next) => (req.path.startsWith(`${JIGSAW_API}/jigsaw-pieces/`) ? next() : json(req, res, next)));
 
-  const router = express.Router();
+  const router = apiRouter();
   router.get("/health", (_req, res) => {
     res.json({ status: "ok", app: "jigsaw" });
   });
@@ -47,7 +50,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // the newest jigsaws without what is placed on their boards: for lists that only name, count or rank them
   const heads = () => jigsawHeads(jigsaw);
   // one jigsaw by its id: read by itself (the list is only the newest), so an old jigsaw is found too
-  const jigsawById = async (id: string) => (jigsaw.get ? jigsaw.get(id) : ((await jigsaw.list()).find((c) => c.id === id) ?? null));
+  const jigsawById = (id: string) => findById(jigsaw, id);
   // the plays of a jigsaw: one game each, by one user; a play chooses only the difficulty and the look, never the size, the picture or the pieces
   const users = stores.users ?? firestoreUserStore();
   // a jigsaw user that has verified Firebase accounts is used only by somebody signed in with one of them: the gate looks at the token that comes with every call, and the user the call acts as decides
@@ -81,18 +84,19 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // the packages of the home page, and what each account has got or bought of them (`jigsaw-users/<id>/bought-packages`): the pictures of a package are for those who have it
   const feedPackages = stores.feedPackages ?? firestoreFeedStore(JIGSAW_PACKAGES, "package");
   const bought = boughtPackages(stores.bought ?? firestoreBoughtStore(), stores.now ?? Date.now);
+  const packageById = (id: string) => findById(feedPackages, id);
   /** whether the account is one this picture is for as far as packages go: it owns the picture or the package, or has the package (a picture in no package is for anybody) */
   const ownsOrHas = async (c: { packageId?: string; ownerUid?: string }, me: string | undefined): Promise<boolean> => {
     if (!c.packageId || BoughtPackages.mayUse(c, me, await bought.ids(me))) return true;
     if (!me) return false;
-    const pack = await (feedPackages.get ? feedPackages.get(c.packageId) : feedPackages.list().then((all) => all.find((p) => p.id === c.packageId) ?? null));
+    const pack = await packageById(c.packageId);
     return BoughtPackages.mayUse(c, me, new Set(), (pack as { ownerUid?: string } | null)?.ownerUid);
   };
   /** whether the account may see this picture as far as packages go: as above, and an admin */
   const hasPicture = async (c: { packageId?: string; ownerUid?: string }, me: string | undefined) => (await ownsOrHas(c, me)) || (await isAdmin(me));
   /** the package of this id as the home page has it, when this account may get it now */
   const packageFor = async (packageId: string, me: string): Promise<PackageItem | null> => {
-    const found = await (feedPackages.get ? feedPackages.get(packageId) : feedPackages.list().then((all) => all.find((p) => p.id === packageId) ?? null));
+    const found = await packageById(packageId);
     return (FeedItems.shown(found ? [found as unknown as Record<string, unknown>] : [], (stores.now ?? Date.now)(), me)[0] as PackageItem | undefined) ?? null;
   };
   const packagesOfAccount = boughtRouter({ bought, packageFor, accountOf: async (userId) => (await users.get(userId)) ?? null, isAdmin: (me) => isAdmin(me), now: stores.now ?? Date.now });
@@ -119,11 +123,11 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   router.use("/jigsaw/:id/plays", async (req, res, next) => {
     const c = await jigsawById(req.params.id);
     if (!c || (!JigsawVisibilities.restricted(c.visibility) && !c.packageId)) return next();
-    const me = req.get("X-Jigsaw-User");
+    const me = askerOf(req);
     const linked = await byLink(c, req);
-    if (!linked && !(await canSee(c, me))) return void res.status(404).json({ error: "No such jigsaw." });
+    if (!linked && !(await canSee(c, me))) return bad(res, "No such jigsaw.", 404);
     if (JigsawVisibilities.restricted(c.visibility) && req.method === "POST" && !isOwnerOf(c, me) && !(await isAdmin(me))) {
-      if (!linked) return void res.status(403).json({ error: "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have." });
+      if (!linked) return bad(res, "Only its owner can start a round of a jigsaw only they see: you can go on with the round you have.", 403);
       res.locals.privateRound = true; // a round through a link is the player's own: nobody else looks at it
     }
     next();
@@ -135,7 +139,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     const body = (req.body ?? {}) as { ownerUid?: unknown; author?: unknown };
     if (body.ownerUid === undefined) return next();
     const user = typeof body.ownerUid === "string" && !JigsawUsers.idError(body.ownerUid) ? await users.get(body.ownerUid) : null;
-    if (!user) return void res.status(400).json({ error: "The owner must be an account that exists: choose the author from the accounts." });
+    if (!user) return bad(res, "The owner must be an account that exists: choose the author from the accounts.");
     body.author = user.name;
     next();
   };
@@ -146,11 +150,11 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   //  - once somebody has started a round of it, nobody (the owner too) changes what every round shares: its size, pieces, picture, difficulty and clock.
   const ownerOnly = (what: string): express.RequestHandler => async (req, res, next) => {
     const now = await jigsawById(req.params.id);
-    if (now?.ownerUid && req.get("X-Jigsaw-User") !== now.ownerUid && !(await isAdmin(req.get("X-Jigsaw-User")))) return void res.status(403).json({ error: `Only the owner of a jigsaw can ${what} it.` });
+    if (now?.ownerUid && askerOf(req) !== now.ownerUid && !(await isAdmin(askerOf(req)))) return bad(res, `Only the owner of a jigsaw can ${what} it.`, 403);
     next();
   };
   const notWhenPlayed: express.RequestHandler = async (req, res, next) => {
-    if (await plays.has(req.params.id)) return void res.status(409).json({ error: JigsawSettings.PLAYED_MESSAGE });
+    if (await plays.has(req.params.id)) return bad(res, JigsawSettings.PLAYED_MESSAGE, 409);
     next();
   };
   // the rounds that the users have played (the person's own too), on the jigsaws the person may see (the button "Rounds" on the front page); before the routes of one jigsaw
@@ -158,9 +162,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // the popular jigsaws, for the front page: the ones the person may see, ranked by the rounds played and by being new (`Popularity`); before the routes of one jigsaw
   router.get("/jigsaw-popular", async (req, res) => {
     const all = await heads();
-    const me = req.get("X-Jigsaw-User");
-    const seen = await Promise.all(all.map(async (j) => (!j.packageId || BoughtPackages.mayUse(j, me, await bought.ids(me))) && (j.visibility === "owner" ? await canFind(j, me) : JigsawVisibilities.listed(j.visibility)))); // public ones, and a private one for its owner and its players; a hidden one never
-    const visible = all.filter((_, i) => seen[i]);
+    const me = askerOf(req);
+    const visible = await filterAsync(all, async (j) => (!j.packageId || BoughtPackages.mayUse(j, me, await bought.ids(me))) && (j.visibility === "owner" ? await canFind(j, me) : JigsawVisibilities.listed(j.visibility))); // public ones, and a private one for its owner and its players; a hidden one never
     const counted = await Promise.all(visible.map(async (j) => ({ jigsaw: j, rounds: await plays.count(j.id) })));
     res.json(await Promise.all(Popularity.rank(counted, (stores.now ?? Date.now)()).map(imageAccess.keyed)));
   });
@@ -196,7 +199,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   router.use("/jigsaw-packages", feedManageRouter("package", feedPackages, feedDeps, packagePictures));
   router.use("/jigsaw-feed", jigsawFeedRouter([() => feedInfo.list(), () => feedOffers.list(), () => feedPackages.list()], stores.now ?? Date.now, packagePictures, stores.random, {
     ids: (me) => bought.ids(me),
-    find: (id) => (feedPackages.get ? feedPackages.get(id) : feedPackages.list().then((all) => all.find((p) => p.id === id) ?? null)),
+    find: packageById,
     isAdmin: (me) => isAdmin(me),
   }));
   router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canFind(c, me), () => (users.ids ? users.ids() : users.list().then((all) => all.map((u) => u.id))), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed, (userId) => bought.ids(userId)));
@@ -215,7 +218,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   router.delete("/jigsaw/:id", ownerOnly("delete"));
   // the owner takes away all the rounds of a jigsaw (also other players'), so its picture, size, pieces and difficulty can be changed again
   router.delete("/jigsaw/:id/plays", ownerOnly("take away the rounds of"), async (req, res) => {
-    if (!(await jigsawById(req.params.id))) return void res.status(404).json({ error: "No such jigsaw." });
+    if (!(await jigsawById(req.params.id))) return bad(res, "No such jigsaw.", 404);
     await plays.removeAll(req.params.id);
     res.status(204).end();
   });
@@ -223,23 +226,23 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   const publishing: express.RequestHandler = async (req, res, next) => {
     const was = req.method === "PUT" ? await jigsawById(req.params.id) : null;
     if (req.method === "PUT" && !was) return next(); // no such jigsaw: the route says so
-    const error = UserLevels.publishError(await levels.of(req.get("X-Jigsaw-User")), (req.body as { visibility?: unknown } | undefined)?.visibility, was);
-    if (error) return void res.status(403).json({ error });
+    const error = UserLevels.publishError(await levels.of(askerOf(req)), (req.body as { visibility?: unknown } | undefined)?.visibility, was);
+    if (error) return bad(res, error, 403);
     next();
   };
   // a picture that belongs to a package says which (`packageId`): the package has to be there, and the one who makes the picture has to be the one who may change the package (its owner, or an admin)
   const inPackage: express.RequestHandler = async (req, res, next) => {
     const id = (req.body as { packageId?: unknown } | undefined)?.packageId;
     if (id === undefined || id === null || id === "") return next();
-    const me = req.get("X-Jigsaw-User");
-    const pack = typeof id === "string" ? await (feedPackages.get ? feedPackages.get(id) : feedPackages.list().then((all) => all.find((p) => p.id === id) ?? null)) : null;
-    if (!pack) return void res.status(400).json({ error: "That package does not exist." });
-    if (!FeedItems.mayChange(pack, me, await isAdmin(me))) return void res.status(403).json({ error: "Only the owner of a package can put pictures in it." });
+    const me = askerOf(req);
+    const pack = typeof id === "string" ? await packageById(id) : null;
+    if (!pack) return bad(res, "That package does not exist.");
+    if (!FeedItems.mayChange(pack, me, await isAdmin(me))) return bad(res, "Only the owner of a package can put pictures in it.", 403);
     next();
   };
   // how many pictures an account can have (`AccountLimits`: few when it is not verified; a user who is no publisher has a limit on the ones that are not public): a new one for it is refused when it is full, and so is giving it one that was another's (an admin is not stopped)
   const pictureLimit: express.RequestHandler = async (req, res, next) => {
-    const me = req.get("X-Jigsaw-User");
+    const me = askerOf(req);
     if (await isAdmin(me)) return next();
     const given = (req.body as { ownerUid?: unknown } | undefined)?.ownerUid;
     const owner = typeof given === "string" ? given : req.method === "POST" ? me : undefined;
@@ -253,12 +256,12 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
       if (UserLevels.mayPublish(level) || !JigsawVisibilities.restricted(visibility)) return next();
       const mine = jigsaw.countNotPublic ? await jigsaw.countNotPublic(owner) : (await jigsaw.list()).filter((j) => j.ownerUid === owner && JigsawVisibilities.restricted(j.visibility)).length;
       const full = AccountLimits.privateError(level, visibility, mine);
-      if (full) return void res.status(403).json({ error: full });
+      if (full) return bad(res, full, 403);
       return next();
     }
     const has = jigsaw.countOwned ? await jigsaw.countOwned(owner) : (await jigsaw.list()).filter((j) => j.ownerUid === owner).length;
     const error = AccountLimits.pictureError(account, has);
-    if (error) return void res.status(403).json({ error });
+    if (error) return bad(res, error, 403);
     next();
   };
   router.post("/jigsaw", publishing, stampOwner, inPackage, pictureLimit);
@@ -266,7 +269,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // a jigsaw only its owner sees can be changed by its owner only (for anyone else it is not there)
   router.put("/jigsaw/:id", async (req, res, next) => {
     const now = await jigsawById(req.params.id);
-    if (now && JigsawVisibilities.restricted(now.visibility) && req.get("X-Jigsaw-User") !== now.ownerUid && !(await isAdmin(req.get("X-Jigsaw-User")))) return void res.status(404).json({ error: "No such jigsaw." });
+    if (now && JigsawVisibilities.restricted(now.visibility) && askerOf(req) !== now.ownerUid && !(await isAdmin(askerOf(req)))) return bad(res, "No such jigsaw.", 404);
     next();
   });
   router.put("/jigsaw/:id", ownerOnly("change"), publishing, pictureLimit);
@@ -284,7 +287,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
       await plays.removeFresh(req.params.id); // not played: the rounds that are only opened go, their pieces would be out of date after the change
       return next();
     }
-    if (JigsawSettings.changesWhatPlayersShare(now, (req.body ?? {}) as Record<string, unknown>)) return void res.status(409).json({ error: JigsawSettings.PLAYED_MESSAGE });
+    if (JigsawSettings.changesWhatPlayersShare(now, (req.body ?? {}) as Record<string, unknown>)) return bad(res, JigsawSettings.PLAYED_MESSAGE, 409);
     next();
   });
   // nor can its picture or its cut into pieces be put in again, taken away or moved once it has been played (the pieces of every round are the ones it has); a jigsaw that
@@ -292,7 +295,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // a picture is not cut: its pieces are cut in each round, so none is put in, moved or taken away for the picture itself
   const notPicture: express.RequestHandler = async (req, res, next) => {
     const now = await jigsawById(req.params.id);
-    if (now && JigsawKinds.isPicture(now)) return void res.status(409).json({ error: "A picture is not cut: its rounds are." });
+    if (now && JigsawKinds.isPicture(now)) return bad(res, "A picture is not cut: its rounds are.", 409);
     next();
   };
   router.put(["/jigsaw-image/:id", "/jigsaw-pieces/:id"], notWhenPlayed);
@@ -333,5 +336,6 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // signing in with Firebase, beside the users above (which are not changed): the account is shared with Seven Friends
   router.use("/session", logons.session);
   app.use(JIGSAW_API, router);
+  app.use(answerFailure); // what nothing caught: the page is told at once, not left waiting
   return app;
 }

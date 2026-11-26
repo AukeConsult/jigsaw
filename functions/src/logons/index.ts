@@ -6,7 +6,8 @@ import { AccountStore, firestoreAccountStore } from "./account-store";
 import { createGate } from "./gate";
 import { linkRouter } from "./link";
 import { LinkCodeStore, firestoreLinkCodes } from "./link-codes";
-import { TokenVerifier, firebaseVerifier, requireAuth, tokenOf } from "./require-auth";
+import { TokenVerifier, firebaseVerifier, requireAuth, tokenOf, verifiedToken } from "./require-auth";
+import { apiRouter, bad } from "../common/http";
 
 // Everything about people who sign in with Firebase lives in this folder: the check of the token (`require-auth.ts`), the account kept for each person, shared with Seven Friends
 // (`account-store.ts`, the model is `models/shared/logon.ts`), the route that the page calls after it has signed in, and what makes a jigsaw user verified by Firebase accounts: the gate in
@@ -46,23 +47,23 @@ export function createLogons(users: UserStore, deps: LogonDeps = {}): Logons {
   const gate = createGate({ verifier, users, directory: deps.directory ?? firebaseDirectory(), now });
 
   /** `POST /session`: the person has signed in (the page sends the Firebase ID token); the account is made or updated, and the page is told who it is and which users it is verified for. */
-  const session = express.Router();
+  const session = apiRouter();
   session.post("/", requireAuth(verifier), async (_req, res) => {
     try {
       const token = tokenOf(res);
       const { account, created } = await accounts.sync(token);
-      const linked = (await users.linkedTo(token.uid)).map((u) => ({ id: u.id, name: u.name, username: u.username, ...(u.pictureAt ? { pictureAt: u.pictureAt } : {}), ...(u.level ? { level: u.level } : {}) }));
+      const linked = (await users.linkedTo(token.uid)).map(LogonAccounts.linkedUser);
       const answer: LogonSession = { ok: true, accountId: account.accountId, created, user: LogonAccounts.publicOf(account), users: linked };
       res.json(answer);
     } catch (err) {
       console.error("Could not keep the account", err);
-      res.status(500).json({ error: "Could not keep your account: try again." });
+      bad(res, "Could not keep your account: try again.", 500);
     }
   });
 
   /** `GET /session`: the jigsaw users the account that is signed in is verified for (the page asks when it has been signed in since before, without making a login of it). */
   session.get("/", requireAuth(verifier), async (_req, res) => {
-    const linked = (await users.linkedTo(tokenOf(res).uid)).map((u) => ({ id: u.id, name: u.name, username: u.username, ...(u.pictureAt ? { pictureAt: u.pictureAt } : {}), ...(u.level ? { level: u.level } : {}) }));
+    const linked = (await users.linkedTo(tokenOf(res).uid)).map(LogonAccounts.linkedUser);
     res.json({ users: linked });
   });
 
@@ -75,14 +76,8 @@ export function createLogons(users: UserStore, deps: LogonDeps = {}): Logons {
   };
 
   const identify: RequestHandler = async (req, res, next) => {
-    const bearer = /^Bearer (.+)$/.exec(req.get("Authorization") ?? "")?.[1];
-    if (bearer) {
-      try {
-        res.locals.logonUid = (await verifier.verify(bearer)).uid;
-      } catch {
-        /* a token that is not good is no token */
-      }
-    }
+    const token = await verifiedToken(req, verifier);
+    if (token) res.locals.logonUid = token.uid;
     next();
   };
 

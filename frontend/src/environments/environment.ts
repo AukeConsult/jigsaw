@@ -5,7 +5,8 @@ export const environment = {
   jigsawApi: '/jigsaw/api',
   firebase: {
     apiKey: 'AIzaSyDy-ZStO1xAoNpPHU5EGFaRHD7dUHLtPdQ',
-    authDomain: 'sevenfriends.io',
+    // the sign-in handler is on the site's own address: a browser on a phone or pad blocks the way back from another one
+    authDomain: 'karins-jigsaw.web.app',
     projectId: 'sevenfriends',
     storageBucket: 'sevenfriends.firebasestorage.app',
     messagingSenderId: '757442652591',

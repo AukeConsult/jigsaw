@@ -11,8 +11,8 @@ const RETRY_MS = 5000;
 export interface PieceSyncApi {
   /** where pieces are now */
   move(id: string, moves: PieceMove[]): Promise<unknown>;
-  /** the same, for the moment the page is being closed: nothing waits for the answer */
-  moveWhileLeaving(id: string, moves: PieceMove[]): void;
+  /** the same, for the moment the page is being closed or hidden: nothing waits for it, and it is rejected when nothing was saved (the page may live on and try again) */
+  moveWhileLeaving(id: string, moves: PieceMove[]): Promise<unknown>;
 }
 
 export interface PieceSyncOptions {
@@ -25,6 +25,8 @@ export interface PieceSyncOptions {
 
 /** where a piece is, as text: what is saved of a piece while the game is played */
 const placeOf = (p: JigsawPiece) => `${p.centerX},${p.centerY},${p.layer}`;
+/** the same, as it is sent */
+const movesOf = (pieces: readonly JigsawPiece[]): PieceMove[] => pieces.map((p) => ({ id: p.id, centerX: p.centerX, centerY: p.centerY, layer: p.layer }));
 
 /**
  * Keeps where the pieces of the open round are in the database, a pause after the last change: only the pieces that were moved are sent. Nothing is saved while there is no round to save
@@ -67,17 +69,25 @@ export class PieceSync {
 
   /**
    * The page is being closed or hidden: the moves that wait for the pause are sent at once, so what the person did is not lost (the game is as they
-   * left it when they come back).
+   * left it when they come back). They count as saved at once; when the save turns out to have failed and the page is still there, they count as not saved again and are tried again after a while.
    */
   leaving(): void {
     const id = this.options.jigsawId();
     if (!id) return;
-    const moves: PieceMove[] = this.moved(this.options.pieces()).map((p) => ({ id: p.id, centerX: p.centerX, centerY: p.centerY, layer: p.layer }));
-    if (!moves.length) return;
+    const pieces = this.moved(this.options.pieces());
+    if (!pieces.length) return;
     clearTimeout(this.timer);
-    this.options.api.moveWhileLeaving(id, moves);
-    for (const p of this.options.pieces()) if (this.saved.has(p.id)) this.saved.set(p.id, placeOf(p));
+    const saved = this.saved; // `markSaved` makes a new one: a failure that comes after belongs to what was open then
+    const sent = pieces.map((p) => ({ id: p.id, before: saved.get(p.id)!, after: placeOf(p) }));
+    for (const p of sent) saved.set(p.id, p.after);
     this.state.set('saved');
+    this.options.api.moveWhileLeaving(id, movesOf(pieces)).catch(() => {
+      if (saved !== this.saved) return;
+      for (const p of sent) if (saved.get(p.id) === p.after) saved.set(p.id, p.before); // not what has been saved since
+      this.state.set('failed');
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => void this.flush(), RETRY_MS);
+    });
   }
 
   /** the pieces that are not where the database has them */
@@ -92,7 +102,7 @@ export class PieceSync {
     this.state.set('saving');
     try {
       const pieces = this.options.pieces();
-      const moves: PieceMove[] = this.moved(pieces).map((p) => ({ id: p.id, centerX: p.centerX, centerY: p.centerY, layer: p.layer }));
+      const moves = movesOf(this.moved(pieces));
       if (moves.length) await this.options.api.move(id, moves);
       for (const p of pieces) if (this.saved.has(p.id)) this.saved.set(p.id, placeOf(p));
       this.state.set('saved');

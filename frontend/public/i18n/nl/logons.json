@@ -63,6 +63,7 @@
     "email-already-in-use": "Er bestaat al een login met dit e-mailadres. Log liever in.",
     "weak-password": "Het wachtwoord moet minstens 6 tekens hebben.",
     "too-many-requests": "Te veel pogingen. Probeer het later opnieuw.",
+    "popup-blocked": "De browser heeft het aanmeldvenster geblokkeerd. Sta pop-ups toe en probeer het opnieuw.",
     "operation-not-allowed": "Deze manier van inloggen is niet beschikbaar. Probeer een andere manier.",
     "requires-recent-login": "Log opnieuw in en probeer het dan nog eens.",
     "invalid-action-code": "Deze link is niet meer geldig. Vraag een nieuwe aan.",

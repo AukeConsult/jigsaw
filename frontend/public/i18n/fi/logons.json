@@ -63,6 +63,7 @@
     "email-already-in-use": "Tällä sähköpostilla on jo kirjautuminen. Kirjaudu sisään.",
     "weak-password": "Salasanassa pitää olla vähintään 6 merkkiä.",
     "too-many-requests": "Liian monta yritystä. Yritä myöhemmin uudelleen.",
+    "popup-blocked": "Selain esti kirjautumisikkunan. Salli ponnahdusikkunat ja yritä uudelleen.",
     "operation-not-allowed": "Tämä kirjautumistapa ei ole käytettävissä. Kokeile toista tapaa.",
     "requires-recent-login": "Kirjaudu sisään uudelleen ja yritä sitten vielä kerran.",
     "invalid-action-code": "Tämä linkki ei ole enää voimassa. Pyydä uusi.",

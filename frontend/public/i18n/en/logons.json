@@ -63,6 +63,7 @@
     "email-already-in-use": "A sign-in with this email already exists. Sign in instead.",
     "weak-password": "Password must be at least 6 characters.",
     "too-many-requests": "Too many attempts. Try again later.",
+    "popup-blocked": "The browser blocked the sign-in window. Allow pop-ups, then try again.",
     "operation-not-allowed": "This way of signing in is not available. Try another way.",
     "requires-recent-login": "Please sign in again, then try once more.",
     "invalid-action-code": "This link is not valid any more. Ask for a new one.",

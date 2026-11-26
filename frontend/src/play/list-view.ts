@@ -1,5 +1,5 @@
-import { Injectable, effect, signal } from '@angular/core';
-import { isBoolean, readPreference, writePreference } from '../app/core/preferences';
+import { Injectable } from '@angular/core';
+import { isBoolean, preferenceSignal } from '../app/core/preferences';
 
 /** The switch of the home page that the menu of the helper has: only the user's favorites. */
 export type ListToggle = 'favorites';
@@ -11,12 +11,7 @@ export type ListToggle = 'favorites';
 @Injectable({ providedIn: 'root' })
 export class ListView {
   /** the rounds that are going are on the top of the list (on to begin with) */
-  readonly ongoing = signal(readPreference('play.listOngoing', true, isBoolean));
+  readonly ongoing = preferenceSignal('play.listOngoing', true, isBoolean);
   /** only the favorites of the user are listed (off to begin with) */
-  readonly favorites = signal(readPreference('play.listFavorites', false, isBoolean));
-
-  constructor() {
-    effect(() => writePreference('play.listOngoing', this.ongoing()));
-    effect(() => writePreference('play.listFavorites', this.favorites()));
-  }
+  readonly favorites = preferenceSignal('play.listFavorites', false, isBoolean);
 }

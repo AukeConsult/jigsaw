@@ -16,7 +16,7 @@ export class PlayLook {
   readonly table = signal<Table>(readPreference<Table>('jigsaw.table', DEFAULT_PLAY_LOOK.table, PlayLooks.isTable));
   readonly sound = signal(readPreference('jigsaw.sound', DEFAULT_PLAY_LOOK.sound, isBoolean));
 
-  private readonly keep = keptWithAccount(this.users, (account) => account.playLook, (look) => this.show(look), () => void this.users.savePlayLook(this.value()));
+  private readonly keep = keptWithAccount(this.users, (account) => account.playLook, (look) => this.show(look), () => void this.users.keep({ playLook: this.value() }));
 
   /** the preference as one value */
   readonly value = computed<PlayLookSetup>(() => ({ table: this.table(), sound: this.sound() }));

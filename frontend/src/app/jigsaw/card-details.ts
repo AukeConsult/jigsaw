@@ -1,5 +1,5 @@
-import { Injectable, effect, signal } from '@angular/core';
-import { isBoolean, readPreference, writePreference } from '../core/preferences';
+import { Injectable } from '@angular/core';
+import { isBoolean, preferenceSignal } from '../core/preferences';
 
 /** Where the choice to show the details of the jigsaws is kept on the device (also another day). */
 const CARD_DETAILS_KEY = 'jigsaw.cardDetailsOn';
@@ -10,9 +10,5 @@ const CARD_DETAILS_KEY = 'jigsaw.cardDetailsOn';
  */
 @Injectable({ providedIn: 'root' })
 export class CardDetails {
-  readonly on = signal(readPreference(CARD_DETAILS_KEY, true, isBoolean));
-
-  constructor() {
-    effect(() => writePreference(CARD_DETAILS_KEY, this.on()));
-  }
+  readonly on = preferenceSignal(CARD_DETAILS_KEY, true, isBoolean);
 }

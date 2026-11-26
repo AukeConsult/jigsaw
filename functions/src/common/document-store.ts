@@ -13,6 +13,11 @@ export interface DocumentStore<Input, Item> {
   remove(id: string): Promise<boolean>;
 }
 
+/** One document by its id, also an old one: asked for by itself; a store that cannot (a fake) has its list searched. Null when there is no such document. */
+export async function findById<Item extends { id: string }>(store: Pick<DocumentStore<unknown, Item>, "list" | "get">, id: string): Promise<Item | null> {
+  return store.get ? store.get(id) : ((await store.list()).find((d) => d.id === id) ?? null);
+}
+
 /** The part of a Firestore collection that the store uses (the real one fits it, so a test can give a small fake). */
 export interface CollectionLike {
   orderBy(field: string, direction: "desc"): { limit(count: number): { get(): Promise<{ docs: { id: string; data(): unknown }[] }>; select?(...fields: string[]): { get(): Promise<{ docs: { id: string; data(): unknown }[] }> } } };

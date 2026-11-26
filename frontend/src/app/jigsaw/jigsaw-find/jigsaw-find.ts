@@ -81,7 +81,7 @@ export class JigsawFind implements OnInit {
   protected go(): void {
     const setup = { view: this.view(), filter: this.filter() };
     writeFinderPreferences(FRONT_FINDER_KEY, setup); // on this device
-    void this.users.saveSearch(setup).catch(() => undefined); // and with the user, so it is the same on every device
+    void this.users.keep({ search: setup }).catch(() => undefined); // and with the user, so it is the same on every device
     void this.router.navigate(['/']);
   }
 }

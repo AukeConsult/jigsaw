@@ -5,6 +5,7 @@ import { JigsawUsers, LOGONS_MAX, LinkCodes, LogonAccounts, UserLogon } from "..
 import { AccountStore } from "./account-store";
 import { LinkCodeStore, hashOf, newCode } from "./link-codes";
 import { TokenVerifier, requireAuth, tokenOf } from "./require-auth";
+import { apiRouter, bad } from "../common/http";
 
 // The logins of one jigsaw user, `/jigsaw-users/:id/logons` (the gate has already seen to it that the person is signed in with one of the user's accounts, except for `/redeem`):
 //   GET /                the verified logins, each as {ref, you, provider, name, email, phone, photoURL}, and how many there can be;
@@ -32,10 +33,9 @@ export interface LinkDeps {
 }
 
 export function linkRouter(deps: LinkDeps): express.Router {
-  const router = express.Router({ mergeParams: true });
+  const router = apiRouter({ mergeParams: true });
   const wrong = new Map<string, { count: number; since: number }>();
   const idOf = (req: express.Request) => String((req.params as { id?: string }).id);
-  const bad = (res: express.Response, error: string, status = 400) => void res.status(status).json({ error });
 
   router.use((req, res, next) => {
     const error = JigsawUsers.idError(idOf(req));
@@ -52,17 +52,21 @@ export function linkRouter(deps: LinkDeps): express.Router {
     res.json({ items, max: LOGONS_MAX });
   });
 
-  router.put("/", async (req, res) => {
+  /** Verifies the account that is signed in for the account of the address, and answers how it went. */
+  const addLogon = async (req: express.Request, res: express.Response): Promise<void> => {
+    const id = idOf(req);
     const uid = tokenOf(res).uid;
-    const done = await deps.users.changeLogons(idOf(req), (now) => {
+    const done = await deps.users.changeLogons(id, (now) => {
       const next = JigsawUsers.withLogon(now, uid);
       return "error" in next ? next : next.list;
     });
-    deps.changed(idOf(req));
+    deps.changed(id);
     if (!done) return bad(res, "No such account.", 404);
     if (!Array.isArray(done)) return bad(res, done.error, 409);
     res.json({ linked: true, count: done.length });
-  });
+  };
+
+  router.put("/", addLogon);
 
   router.post("/codes", async (req, res) => {
     const user = await deps.users.get(idOf(req));
@@ -88,15 +92,7 @@ export function linkRouter(deps: LinkDeps): express.Router {
       return bad(res, "That code is not right, or it has run out: ask for a new one.", 400);
     }
     wrong.delete(id);
-    const uid = tokenOf(res).uid;
-    const done = await deps.users.changeLogons(id, (now) => {
-      const next = JigsawUsers.withLogon(now, uid);
-      return "error" in next ? next : next.list;
-    });
-    deps.changed(id);
-    if (!done) return bad(res, "No such account.", 404);
-    if (!Array.isArray(done)) return bad(res, done.error, 409);
-    res.json({ linked: true, count: done.length });
+    await addLogon(req, res);
   });
 
   router.delete("/:ref", async (req, res) => {

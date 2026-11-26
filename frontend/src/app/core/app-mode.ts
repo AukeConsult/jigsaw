@@ -12,6 +12,12 @@ export type AppMode = 'play' | 'jigsaw';
 const MODE_KEY = 'app.mode';
 const isMode = (value: unknown): value is AppMode => value === 'play' || value === 'jigsaw';
 
+/** whether an address is a page of the app (under `/play`) */
+export const isPlayUrl = (url: string | null | undefined): boolean => !!url && /^\/play(\/|$)/.test(url);
+
+/** a path of this site that a login may come back to (not another site, and not a protocol-relative address) */
+export const isLocalPath = (url: unknown): url is string => typeof url === 'string' && /^\/(?!\/)/.test(url);
+
 /** The mode that was set last (the new app to begin with). */
 export const appMode = (): AppMode => readPreference<AppMode>(MODE_KEY, 'play', isMode);
 

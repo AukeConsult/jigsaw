@@ -1,6 +1,9 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { JigsawIndex, JigsawSearch, JigsawSummary, JigsawVisibilities, SEARCH_MAX_READ, SUMMARY_FIELDS } from "../models";
+import { apiRouter, askerOf, bad } from "../common/http";
+import { TtlCache } from "../common/ttl-cache";
+import { filterAsync } from "../common/filter-async";
 
 // Looking for jigsaws. Firestore is asked for the newest jigsaws overall (an order on one field) and for the jigsaws of each owner (one equality), all at the same time, and only for the
 // fields a list needs (`select`): the pieces and the objects of a jigsaw (`placed`) are never read. What matches, the counts, the order and the pages are worked out here on those
@@ -38,7 +41,7 @@ export function firestoreJigsawSearch(
   query: () => SearchCollectionLike = () => getFirestore().collection(collection) as unknown as SearchCollectionLike,
   now: () => number = Date.now,
 ): JigsawSearchStore {
-  const kept = new Map<string, { at: number; found: Promise<JigsawSummary[]> }>();
+  const kept = new TtlCache<JigsawSummary[]>(KEEP_MS, Infinity, now);
   const read = async (owners: readonly string[], limit: number): Promise<JigsawSummary[]> => {
     const asks = [query().orderBy("createdAt", "desc"), ...owners.map((owner) => query().where("ownerUid", "==", owner))];
     const answers = await Promise.all(asks.map((ask) => ask.limit(limit).select(...SUMMARY_FIELDS).get())); // all at the same time
@@ -47,18 +50,8 @@ export function firestoreJigsawSearch(
     return [...found.values()].sort((a, b) => b.createdAt - a.createdAt);
   };
   return {
-    load(owners, limit) {
-      const key = `${limit}:${[...owners].sort().join(",")}`;
-      const same = kept.get(key);
-      if (same && now() - same.at < KEEP_MS) return same.found;
-      const found = read(owners, limit);
-      kept.set(key, { at: now(), found });
-      found.catch(() => kept.delete(key)); // a failed read is not kept
-      return found;
-    },
-    forget() {
-      kept.clear();
-    },
+    load: (owners, limit) => kept.get(`${limit}:${[...owners].sort().join(",")}`, () => read(owners, limit)),
+    forget: () => kept.forget(),
   };
 }
 
@@ -81,15 +74,14 @@ export function jigsawSearchRouter(
   /** the packages the person has got or bought: their pictures are found by the person, and by nobody else */
   packagesOf: (userId: string | undefined) => Promise<ReadonlySet<string>> = async () => new Set(),
 ): express.Router {
-  const router = express.Router();
+  const router = apiRouter();
   /** The jigsaws the person finds, the newest first: the public ones and the private ones that are the person's (owner or player); with `only.favorites`, those the person has ticked, with `only.solved`, those the person has solved (none for nobody). */
   const visible = async (me: string | undefined, only: { favorites?: boolean; solved?: boolean } = {}): Promise<JigsawSummary[]> => {
     // who the owners are, the jigsaws and the favorites: the favorites are asked for while the owners are, and the jigsaws as soon as the owners are known
     const [all, mine] = await Promise.all([owners().then((who) => store.load(who, SEARCH_MAX_READ)), only.favorites && me ? favorites(me) : Promise.resolve([] as string[])]);
     // what the person has got is asked only when there is a picture of a package to ask about
     const packages = all.some((j) => j.packageId) ? await packagesOf(me) : new Set<string>();
-    const seen = await Promise.all(all.map((j) => (!JigsawVisibilities.listed(j.visibility) || (j.packageId && !packages.has(j.packageId)) ? false : j.visibility !== "owner" ? true : me ? canFind(j, me) : false))); // a hidden one is never found; the private ones are asked about at the same time
-    const seeable = all.filter((_, i) => seen[i]);
+    const seeable = await filterAsync(all, (j) => (!JigsawVisibilities.listed(j.visibility) || (j.packageId && !packages.has(j.packageId)) ? false : j.visibility !== "owner" ? true : me ? canFind(j, me) : false)); // a hidden one is never found; the private ones are asked about at the same time
     const favored = new Set(mine);
     const solved = new Set(only.solved && me ? await solvedOf(me, seeable) : []);
     return seeable.filter((j) => (!only.favorites || favored.has(j.id)) && (!only.solved || (!!me && solved.has(j.id))));
@@ -97,12 +89,12 @@ export function jigsawSearchRouter(
   // the jigsaws of the user who asks (`X-Jigsaw-User`), all of them also the private and the hidden ones, with words, a choice of who sees them, an order and a page: the page where a
   // user looks after their jigsaws (up to `SEARCH_MAX_READ` of them are read); 401 without the header
   router.get("/mine", async (req, res) => {
-    const me = req.get("X-Jigsaw-User");
-    if (!me) return void res.status(401).json({ error: "Say who you are." });
+    const me = askerOf(req);
+    if (!me) return bad(res, "Say who you are.", 401);
     const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
-    if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
+    if ("error" in parsed) return bad(res, parsed.error);
     const visibility = req.query.visibility;
-    if (visibility !== undefined && visibility !== "" && visibility !== "everyone" && visibility !== "owner" && visibility !== "hidden") return void res.status(400).json({ error: "The visibility must be everyone, owner or hidden." });
+    if (visibility !== undefined && visibility !== "" && visibility !== "everyone" && visibility !== "owner" && visibility !== "hidden") return bad(res, "The visibility must be everyone, owner or hidden.");
     const own = (await store.load([me], SEARCH_MAX_READ)).filter((j) => j.ownerUid === me);
     const answer = JigsawSearch.mine(own, parsed.query, visibility === "everyone" || visibility === "owner" || visibility === "hidden" ? visibility : undefined);
     res.json({ ...answer, items: await Promise.all(answer.items.map(({ description: _description, ...summary }) => keyed(summary))) });
@@ -110,13 +102,13 @@ export function jigsawSearchRouter(
   // how many jigsaws there are for each choice of the filter, with the rest of it kept (what the Find page shows beside each tick)
   router.get("/facets", async (req, res) => {
     const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
-    if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
-    res.json(JigsawSearch.facets(await visible(req.get("X-Jigsaw-User"), { favorites: parsed.query.favorites, solved: parsed.query.solved }), parsed.query));
+    if ("error" in parsed) return bad(res, parsed.error);
+    res.json(JigsawSearch.facets(await visible(askerOf(req), { favorites: parsed.query.favorites, solved: parsed.query.solved }), parsed.query));
   });
   router.get("/", async (req, res) => {
     const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
-    if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
-    const found = (await visible(req.get("X-Jigsaw-User"), { favorites: parsed.query.favorites, solved: parsed.query.solved })).filter((j) => JigsawSearch.matches(j, parsed.query));
+    if ("error" in parsed) return bad(res, parsed.error);
+    const found = (await visible(askerOf(req), { favorites: parsed.query.favorites, solved: parsed.query.solved })).filter((j) => JigsawSearch.matches(j, parsed.query));
     const page = JigsawSearch.page(found, parsed.query);
     res.json({ ...page, items: await Promise.all(page.items.map(({ description: _description, ...summary }) => keyed(summary))) }); // the description was read to look for words in it: a list does not show it
   });

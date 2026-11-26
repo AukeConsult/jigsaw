@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +7,7 @@ import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
 import { USER_LEVELS, UserLevel, UserLevels } from '../../models/shared/user-level';
 import { AccountAvatar } from '../account-avatar/account-avatar';
 import { JigsawUserService } from '../jigsaw-user.service';
+import { apiError } from '../../core/api-error';
 
 /**
  * **The levels of the accounts, a component that is framed into different pages**: `/jigsaw/admin` in the website and `/play/admin` in the app, for an admin (or for every account that plays while there is no admin, so the first one can be made). Each
@@ -88,7 +88,7 @@ export class AccountLevels implements OnInit {
       this.accounts.update((all) => (all ?? []).filter((a) => a.id !== account.id));
       this.confirming.set(null);
     } catch (err) {
-      this.error.set((err instanceof HttpErrorResponse ? (err.error as { error?: string } | null)?.error : undefined) ?? tr('userLevels.couldNotSave', 'Could not save the level: try again.'));
+      this.error.set(apiError(err) ?? tr('userLevels.couldNotSave', 'Could not save the level: try again.'));
       this.confirming.set(null);
     }
     this.saving.set(null);

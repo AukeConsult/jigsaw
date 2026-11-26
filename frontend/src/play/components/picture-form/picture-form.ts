@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { UploadLimit } from '../../../app/jigsaw/upload-limit/upload-limit';
 import { LANGUAGES } from '../../../app/core/language.service';
-import { isBoolean, readPreference, writePreference } from '../../../app/core/preferences';
+import { isBoolean, preferenceSignal } from '../../../app/core/preferences';
 import { CategoryPicker } from '../../../app/jigsaw/category-picker/category-picker';
 import { JigsawExample } from '../../../app/jigsaw/jigsaw-example/jigsaw-example';
 import { JigsawHeader } from '../../../app/jigsaw/jigsaw-header/jigsaw-header';
@@ -51,10 +51,9 @@ export class PictureForm implements OnInit, OnDestroy {
   protected readonly editingName = signal(false);
   protected readonly editingDescription = signal(false);
   /** "Advanced" (the categories and the motive difficulty) is open: kept on the device (rule 12 of `CLAUDE.md`), closed to begin with */
-  protected readonly advancedOpen = signal(readPreference('play.addPictureAdvanced', false, isBoolean));
+  protected readonly advancedOpen = preferenceSignal('play.addPictureAdvanced', false, isBoolean);
 
   constructor() {
-    effect(() => writePreference('play.addPictureAdvanced', this.advancedOpen()));
     effect(() => {
       if (this.n.editId() && !this.n.loading() && !this.n.missing()) this.access.emit(this.n.mayChange());
     });

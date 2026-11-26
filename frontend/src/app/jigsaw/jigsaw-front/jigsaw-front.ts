@@ -1,6 +1,6 @@
-import { Component, ElementRef, computed, effect, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { isBoolean, readPreference, writePreference } from '../../core/preferences';
+import { isBoolean, preferenceSignal } from '../../core/preferences';
 import { scrollParent } from '../../core/theme';
 import { JigsawFilter, JigsawFilters } from '../../models/shared/jigsaw-filter';
 import { JigsawFinder } from '../jigsaw-finder/jigsaw-finder';
@@ -29,13 +29,12 @@ export class JigsawFront {
   private readonly solved = inject(SolvedService);
   protected readonly users = inject(JigsawUserService);
   /** the button "Rounds" is on: the rounds of the users are shown in place of the jigsaws (kept on the device, as the other choices of a page) */
-  protected readonly roundsOn = signal(readPreference('jigsaw.roundsList', false, isBoolean));
+  protected readonly roundsOn = preferenceSignal('jigsaw.roundsList', false, isBoolean);
   /** the list of rounds is shown: the button is on, and somebody plays (the API says who asks, so it needs a user) */
   protected readonly roundsShown = computed(() => this.roundsOn() && !!this.users.acting());
 
   constructor() {
     this.solved.refresh(); // a round may have been solved since the list was last shown
-    effect(() => writePreference('jigsaw.roundsList', this.roundsOn()));
   }
 
   /** A click anywhere on the background of the page (not on a card, a button, a link, a field or the menu) takes the list back to the top. */

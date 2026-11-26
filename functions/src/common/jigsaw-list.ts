@@ -1,7 +1,9 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
-import { DocumentStore, documentStore } from "./document-store";
+import { DocumentStore, documentStore, findById } from "./document-store";
 import { JIGSAW_HEAD_FIELDS, JigsawSettings, JigsawInput, JigsawSpec, JigsawVisibilities } from "../models";
+import { apiRouter, askerOf, bad } from "./http";
+import { filterAsync } from "./filter-async";
 
 /** Where the jigsaws are kept (Firestore in the app, a memory store in the tests). */
 export type JigsawStore = DocumentStore<JigsawInput, JigsawSpec> & {
@@ -46,28 +48,27 @@ export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec
   /** whether the jigsaw is in the LIST for the person (the front page's rule: a private one for its owner and its players, a hidden one for its owner; an admin who may open it does not find it in the list); it defaults to `canSee` */
   canList: (jigsaw: JigsawSpec, me: string | undefined) => Promise<boolean> = (jigsaw, me) => canSee(jigsaw, me),
 ): express.Router {
-  const router = express.Router();
+  const router = apiRouter();
 
   // a jigsaw its owner keeps to themselves is listed for those `canSee` says (the owner, and whoever the app adds: the header `X-Jigsaw-User` is the UID of who asks; there is no
   // sign-in yet, so this keeps the lists honest, it is not a lock)
   router.get("/", async (req, res) => {
-    const me = req.get("X-Jigsaw-User");
+    const me = askerOf(req);
     const all = await jigsawHeads(store); // the page does not need what is placed on each board: the jigsaw itself is read by its id
-    const seen = await Promise.all(all.map((j) => canList(j, me)));
-    res.json(await Promise.all(all.filter((_, i) => seen[i]).map(keyed)));
+    res.json(await Promise.all((await filterAsync(all, (j) => canList(j, me))).map(keyed)));
   });
 
   // one jigsaw by its id (for the page of a jigsaw, a round and the forms: they do not need the whole list); a jigsaw the person may not see is not there
   router.get("/:id", async (req, res) => {
-    const one = store.get ? await store.get(req.params.id) : ((await store.list()).find((j) => j.id === req.params.id) ?? null);
-    if (!one || !(await canSee(one, req.get("X-Jigsaw-User"), req))) return void res.status(404).json({ error: "No such jigsaw." });
+    const one = await findById(store, req.params.id);
+    if (!one || !(await canSee(one, askerOf(req), req))) return bad(res, "No such jigsaw.", 404);
     res.json(await keyed(one));
   });
 
   router.post("/", async (req, res) => {
     const read = readInput((req.body ?? {}) as Record<string, unknown>);
     if ("error" in read) {
-      res.status(400).json({ error: read.error });
+      bad(res, read.error);
       return;
     }
     res.status(201).json(await keyed(await store.add(read.input)));
@@ -76,12 +77,12 @@ export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec
   router.put("/:id", async (req, res) => {
     const read = readInput((req.body ?? {}) as Record<string, unknown>);
     if ("error" in read) {
-      res.status(400).json({ error: read.error });
+      bad(res, read.error);
       return;
     }
     const saved = await store.update(req.params.id, read.input);
     if (!saved) {
-      res.status(404).json({ error: "No such jigsaw." });
+      bad(res, "No such jigsaw.", 404);
       return;
     }
     res.json(await keyed(saved));
@@ -89,7 +90,7 @@ export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec
 
   router.delete("/:id", async (req, res) => {
     if (!(await store.remove(req.params.id))) {
-      res.status(404).json({ error: "No such jigsaw." });
+      bad(res, "No such jigsaw.", 404);
       return;
     }
     res.status(204).end();

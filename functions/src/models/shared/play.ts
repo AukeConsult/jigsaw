@@ -200,7 +200,7 @@ export class Plays {
     const layout = JigsawCut.layoutOf(jigsaw.width, jigsaw.height, choice.columns, choice.rows);
     const cutting = JigsawCut.cut(layout.width, layout.height, layout.grid, random);
     if ('error' in cutting) return { error: cutting.error };
-    const pieces = cutting.placed.flatMap((p) => JigsawPieces.of(p, cutting.columns) ?? []);
+    const pieces = JigsawPieces.ofCut(cutting);
     const started = Plays.start({ id: jigsaw.id, width: layout.width, height: layout.height, gridSize: layout.grid }, user, pieces, now, random);
     if ('error' in started) return started;
     return { play: { ...started.play, cut: { columns: layout.columns, rows: layout.rows, grid: layout.grid }, snapPercent: choice.snapPercent, ...(choice.timed === false ? { timed: false as const } : {}) }, positions: started.positions, pieces };

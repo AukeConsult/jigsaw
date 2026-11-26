@@ -11,6 +11,7 @@ import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { PlayChoice, PlaySpec } from '../../models/shared/play';
 import { RoundChoice } from '../round-choice/round-choice';
+import { apiError } from '../../core/api-error';
 
 /**
  * A jigsaw (`/jigsaw/:id`): its picture and what it is, and the games the user has played of it. A game is continued where it was left, or a new one is started
@@ -134,7 +135,7 @@ export class JigsawPage implements OnInit {
       const game = await this.plays.start(this.id, userId, choice);
       await this.router.navigate(['/jigsaw', this.id, 'play', game.id]);
     } catch (err) {
-      this.error.set((err as { error?: { error?: string } })?.error?.error || tr('jigsawPage.couldNotStart', 'Could not start a round: try again.'));
+      this.error.set(apiError(err) ?? tr('jigsawPage.couldNotStart', 'Could not start a round: try again.'));
       this.busy.set(false);
     }
   }

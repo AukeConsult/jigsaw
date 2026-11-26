@@ -12,6 +12,7 @@ import { LinkCodes, LinkedUser } from '../../models/shared/logon';
 import { AuthService } from '../auth.service';
 import { LogonLanding } from '../logon-landing';
 import { LogonsService } from '../logons.service';
+import { apiError } from '../../core/api-error';
 
 /**
  * What the login that is signed in can do about the users, for a person who has chosen no user yet (or wants another): play as one of the users that the login is verified for, make a new user
@@ -134,8 +135,7 @@ export class MyLogonUsers {
     try {
       await action();
     } catch (err) {
-      const body = err instanceof HttpErrorResponse ? (err.error as { error?: string } | null) : null;
-      this.error.set(body?.error ?? (err instanceof Error && !(err instanceof HttpErrorResponse) ? err.message : tr('logons.userLogins.failed', 'That did not work: try again.')));
+      this.error.set(apiError(err) ?? (err instanceof Error && !(err instanceof HttpErrorResponse) ? err.message : tr('logons.userLogins.failed', 'That did not work: try again.')));
     } finally {
       this.busy.set(false);
     }

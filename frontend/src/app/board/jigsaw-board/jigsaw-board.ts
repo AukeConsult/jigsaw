@@ -6,7 +6,7 @@ import { TranslocoService, provideTranslocoScope } from '@jsverse/transloco';
 import { switchMap } from 'rxjs';
 import { tr } from '../../core/i18n';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
-import { isBoolean, readPreference, writePreference } from '../../core/preferences';
+import { isBoolean, readPreference, writePreference, preferenceSignal } from '../../core/preferences';
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
 import { PlayLook } from '../../jigsaw/play-look';
 import { playSnap } from '../snap-sound';
@@ -150,7 +150,7 @@ export class JigsawBoard {
   /** the helper picture is shown: the switch is on, and the round is not completed (a completed round has no helper) */
   readonly helperShown = computed(() => this.helper() && !this.jigsawHelper.solved());
   /** where the floating frame of the helper picture is on the window (its top left corner, in pixels): it can be moved by its title */
-  readonly helperFrame = signal(readPreference('jigsaw.helperFrame', { x: Math.max(8, window.innerWidth - 260), y: 70 }, isPlace));
+  readonly helperFrame = preferenceSignal('jigsaw.helperFrame', { x: Math.max(8, window.innerWidth - 260), y: 70 }, isPlace);
   /** how big the window is now (it can change after the page was opened: a phone turned, a window made smaller) */
   private readonly viewport = signal({ width: window.innerWidth, height: window.innerHeight });
   /** where the helper picture frame is drawn: where it was put, but always on the window as it is now (so it is never left outside it when the window gets smaller) */
@@ -300,7 +300,7 @@ export class JigsawBoard {
   });
 
   /** how big the helper picture is, as a share of the size of the picture (from 1/10 to 1/2) */
-  readonly helperScale = signal(readPreference('jigsaw.helperScale', HELPER_SCALE_START, isScale));
+  readonly helperScale = preferenceSignal('jigsaw.helperScale', HELPER_SCALE_START, isScale);
   /** the corner of the frame that is being dragged to change the size: where the pointer was, and the scale then */
   private helperSizing: { x: number; scale: number } | null = null;
 
@@ -826,8 +826,6 @@ export class JigsawBoard {
         if (this.room() && this.hasPieces()) this.collect(true);
       });
     });
-    effect(() => writePreference('jigsaw.helperFrame', this.helperFrame()));
-    effect(() => writePreference('jigsaw.helperScale', this.helperScale()));
     // draw the grid again whenever the size or the grid changes (a new width or height clears the canvas)
     effect(() => {
       const element = this.canvas()?.nativeElement;

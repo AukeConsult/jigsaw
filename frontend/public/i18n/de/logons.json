@@ -63,6 +63,7 @@
     "email-already-in-use": "Mit dieser E-Mail gibt es schon eine Anmeldung. Melde dich stattdessen an.",
     "weak-password": "Das Passwort muss mindestens 6 Zeichen haben.",
     "too-many-requests": "Zu viele Versuche. Versuch es später noch einmal.",
+    "popup-blocked": "Der Browser hat das Anmeldefenster blockiert. Erlaube Pop-ups und versuch es noch einmal.",
     "operation-not-allowed": "Diese Art der Anmeldung ist nicht verfügbar. Versuche eine andere Art.",
     "requires-recent-login": "Bitte melde dich erneut an und versuch es dann noch einmal.",
     "invalid-action-code": "Dieser Link ist nicht mehr gültig. Fordere einen neuen an.",

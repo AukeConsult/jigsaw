@@ -100,17 +100,19 @@ export class PlaysService {
   }
 
   /** The same, for the moment the page is being closed (see `sendWhileLeaving`). */
-  moveWhileLeaving(jigsawId: string, playId: string, moves: PieceMove[]): void {
-    this.sendWhileLeaving(jigsawId, playId, { moves });
+  moveWhileLeaving(jigsawId: string, playId: string, moves: PieceMove[]): Promise<void> {
+    return this.sendWhileLeaving(jigsawId, playId, { moves });
   }
 
   /**
-   * A save of the positions that goes on after the page is gone (`keepalive`; nothing waits for the answer). It is not an `HttpClient` call, so no interceptor sees it: it says who asks and carries the token of the
-   * login itself, without which an account that needs a login is turned down.
+   * A save of the positions that goes on after the page is gone (`keepalive`; nothing waits for it before the page goes). It is not an `HttpClient` call, so no interceptor sees it: it says who asks and carries the
+   * token of the login itself, without which an account that needs a login is turned down. Rejected when nothing was saved, for a page that is only hidden and tries again.
    */
-  private sendWhileLeaving(jigsawId: string, playId: string, body: { moves: PieceMove[]; elapsedMs?: number }): void {
+  private async sendWhileLeaving(jigsawId: string, playId: string, body: { moves: PieceMove[]; elapsedMs?: number }): Promise<void> {
     const headers = { 'Content-Type': 'application/json', ...this.whoAsks(), ...this.auth.headersNow() };
-    fetch(`${this.one(jigsawId, playId)}/positions`, { method: 'PATCH', headers, body: JSON.stringify(body), keepalive: true }).catch(() => undefined);
+    // sent before the first wait, while the page is still there to send it
+    const response = await fetch(`${this.one(jigsawId, playId)}/positions`, { method: 'PATCH', headers, body: JSON.stringify(body), keepalive: true });
+    if (!response.ok) throw new Error(`Not saved: ${response.status}`);
   }
 
   /** how long the round has been played, so far (it only grows on the server) */
@@ -119,8 +121,8 @@ export class PlaysService {
   }
 
   /** The same, for the moment the page is being closed or hidden: the request goes on after the page is gone. */
-  saveTimeWhileLeaving(jigsawId: string, playId: string, elapsedMs: number): void {
-    this.sendWhileLeaving(jigsawId, playId, { moves: [], elapsedMs });
+  saveTimeWhileLeaving(jigsawId: string, playId: string, elapsedMs: number): Promise<void> {
+    return this.sendWhileLeaving(jigsawId, playId, { moves: [], elapsedMs });
   }
 
   /** Takes away all the rounds of a jigsaw, also other players' (only its owner can): the jigsaw can then be changed again. */

@@ -63,6 +63,7 @@
     "email-already-in-use": "Det finns redan en inloggning med den här e-postadressen. Logga in i stället.",
     "weak-password": "Lösenordet måste vara minst 6 tecken.",
     "too-many-requests": "För många försök. Försök igen senare.",
+    "popup-blocked": "Webbläsaren blockerade inloggningsfönstret. Tillåt popup-fönster och försök igen.",
     "operation-not-allowed": "Det här sättet att logga in är inte tillgängligt. Prova ett annat sätt.",
     "requires-recent-login": "Logga in igen och försök sedan en gång till.",
     "invalid-action-code": "Länken är inte giltig längre. Be om en ny.",

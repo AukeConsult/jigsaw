@@ -1,6 +1,7 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { JIGSAW_TOKEN_USAGE, JIGSAW_USERS, TokenUsageSpec, TokenUsages } from "../models";
+import { apiRouter, askerOf, bad } from "../common/http";
 
 // What the AI uses for a user is kept under the user, one document for each call: `jigsaw-users/<uid>/token-usage/<id>` (`TokenUsages.record`), so it can be paid for later.
 
@@ -36,10 +37,10 @@ export function firestoreTokenUsageStore(): TokenUsageStore {
 
 /** `GET /jigsaw-users/:id/token-usage`: what the AI has used for the user and what it adds up to. Only the user themself (the header `X-Jigsaw-User` is the UID of who asks). */
 export function tokenUsageRouter(store: TokenUsageStore): express.Router {
-  const router = express.Router({ mergeParams: true });
+  const router = apiRouter({ mergeParams: true });
   router.get("/", async (req, res) => {
     const id = (req.params as { id: string }).id;
-    if (req.get("X-Jigsaw-User") !== id) return void res.status(403).json({ error: "The use of the AI is only shown to the account it is for." });
+    if (askerOf(req) !== id) return bad(res, "The use of the AI is only shown to the account it is for.", 403);
     const items = await store.list(id);
     res.json({ items, totals: TokenUsages.totals(items) });
   });

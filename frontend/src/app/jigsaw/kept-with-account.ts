@@ -1,4 +1,5 @@
-import { effect, untracked } from '@angular/core';
+import { Signal, effect, signal, untracked } from '@angular/core';
+import { readPreference, writePreference } from '../core/preferences';
 import { JigsawUserSpec } from '../models/shared/jigsaw-user';
 import { JigsawUserService } from './jigsaw-user.service';
 
@@ -28,5 +29,31 @@ export function keptWithAccount<T>(users: JigsawUserService, theirs: (account: J
   return () => {
     clearTimeout(timer);
     timer = setTimeout(save, SAVE_PAUSE_MS);
+  };
+}
+
+/** A choice that is one value: what it is, and choosing another. */
+export interface AccountChoice<T> {
+  readonly value: Signal<T>;
+  set(value: T): void;
+}
+
+/** One choice of the player that is one value, kept on the device under `key` and with the account (see `keptWithAccount`). */
+export function accountChoice<T>(
+  users: JigsawUserService,
+  choice: { key: string; fallback: T; valid: (value: unknown) => value is T; theirs: (account: JigsawUserSpec) => T | undefined; save: (value: T) => Promise<unknown> },
+): AccountChoice<T> {
+  const value = signal<T>(readPreference<T>(choice.key, choice.fallback, choice.valid));
+  const show = (next: T): void => {
+    value.set(next);
+    writePreference(choice.key, next);
+  };
+  const keep = keptWithAccount(users, choice.theirs, show, () => void choice.save(value()));
+  return {
+    value: value.asReadonly(),
+    set: (next) => {
+      show(next);
+      keep();
+    },
   };
 }

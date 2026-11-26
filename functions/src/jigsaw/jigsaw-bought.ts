@@ -1,6 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { AccountLimits, BoughtPackage, BoughtPackages, JIGSAW_BOUGHT, JIGSAW_USERS, PackageItem, Verifiable } from "../models";
+import { apiRouter, askerOf, bad } from "../common/http";
+import { TtlCache } from "../common/ttl-cache";
 
 // The packages a person has got or bought: `jigsaw-users/<id>/bought-packages`. No money is taken (payment is not built, see `BoughtPackages`).
 
@@ -29,24 +31,16 @@ const KEEP_MS = 5_000;
 
 /** What the accounts have, as the app asks: the ids of the packages, read once for a few seconds and again after one is got here. */
 export function boughtPackages(store: BoughtStore, now: () => number) {
-  const kept = new Map<string, { at: number; ids: Promise<ReadonlySet<string>> }>();
-  const ids = (userId: string | undefined): Promise<ReadonlySet<string>> => {
-    if (!userId) return Promise.resolve(new Set<string>());
-    const same = kept.get(userId);
-    if (same && now() - same.at < KEEP_MS) return same.ids;
-    if (kept.size > 2000) kept.clear();
-    const found = store.list(userId).then((all) => new Set(all.map((b) => b.packageId)));
-    kept.set(userId, { at: now(), ids: found });
-    found.catch(() => kept.delete(userId));
-    return found;
-  };
+  const kept = new TtlCache<ReadonlySet<string>>(KEEP_MS, 2000, now);
+  const ids = (userId: string | undefined): Promise<ReadonlySet<string>> =>
+    userId ? kept.get(userId, () => store.list(userId).then((all) => new Set(all.map((b) => b.packageId)))) : Promise.resolve(new Set<string>());
   return {
     ids,
     /** whether the account has got the package */
     has: async (userId: string | undefined, packageId: string) => (await ids(userId)).has(packageId),
     async add(userId: string, bought: BoughtPackage): Promise<void> {
       await store.add(userId, bought);
-      kept.delete(userId);
+      kept.forget(userId);
     },
   };
 }
@@ -68,12 +62,11 @@ export interface BoughtDeps {
  * header `X-Jigsaw-User` is that account (the gate has seen that the login may act as it, when it needs one). A package that is had already is left as it was.
  */
 export function boughtRouter(deps: BoughtDeps): express.Router {
-  const router = express.Router({ mergeParams: true });
-  const bad = (res: express.Response, error: string, status: number) => void res.status(status).json({ error });
+  const router = apiRouter({ mergeParams: true });
 
   router.use(async (req, res, next) => {
     const id = (req.params as { id: string }).id;
-    const me = req.get("X-Jigsaw-User");
+    const me = askerOf(req);
     if (me !== id && !(await deps.isAdmin(me))) return bad(res, "These are another account's packages.", 403);
     const account = await deps.accountOf(id);
     if (!account) return bad(res, "No such account.", 404);
@@ -88,7 +81,7 @@ export function boughtRouter(deps: BoughtDeps): express.Router {
   router.put("/:packageId", async (req, res) => {
     const { id, packageId } = req.params as { id: string; packageId: string };
     if (await deps.bought.has(id, packageId)) return void res.json({ packageId }); // what is had stays, also of an account that is not verified
-    const limit = (await deps.isAdmin(req.get("X-Jigsaw-User"))) ? "" : AccountLimits.packageError(res.locals.account as Verifiable);
+    const limit = (await deps.isAdmin(askerOf(req))) ? "" : AccountLimits.packageError(res.locals.account as Verifiable);
     if (limit) return bad(res, limit, 403);
     const pack = await deps.packageFor(packageId, id);
     if (!pack) return bad(res, "No such package.", 404);
