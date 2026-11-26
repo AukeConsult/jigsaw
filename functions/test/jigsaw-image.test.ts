@@ -114,11 +114,8 @@ describe("the background picture of a jigsaw", () => {
     expect(files.size).toBe(0);
   });
 
-  it("is 404 when there is none, and DELETE takes it away", async () => {
+  it("is 404 when there is none", async () => {
     const { app } = setup();
-    expect((await request(app).get(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(404);
-    await request(app).put(`/jigsaw/api/jigsaw-image/${id}`).set("Content-Type", "image/webp").send(webp);
-    expect((await request(app).delete(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(204);
     expect((await request(app).get(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(404);
   });
 

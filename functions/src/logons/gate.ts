@@ -48,7 +48,7 @@ function open(req: Request): boolean {
 function looking(req: Request): boolean {
   if (req.method !== "GET" && req.method !== "HEAD") return false;
   const p = req.path;
-  if (/^\/jigsaw-users(\/|$)/.test(p) || p.startsWith("/jigsaw-favorites") || p.startsWith("/jigsaw-rounds") || p.startsWith("/jigsaw-search/mine") || p.startsWith("/session")) return false;
+  if (/^\/jigsaw-users(\/|$)/.test(p) || p.startsWith("/jigsaw-favorites") || p.startsWith("/jigsaw-search/mine") || p.startsWith("/session")) return false;
   if (/^\/jigsaw\/[^/]+\/plays\/[^/]+/.test(p)) return false; // entering a round
   return true;
 }

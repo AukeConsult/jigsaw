@@ -236,5 +236,6 @@
   "linkPlays": "Anybody who gets this link can see this picture and play it.",
   "newLink": "Make a new link: the old one stops working",
   "newLinkMade": "A new link is made. Share it again.",
-  "close": "Close"
+  "close": "Close",
+  "infoBack": "Back"
 }

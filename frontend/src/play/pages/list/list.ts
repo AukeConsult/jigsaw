@@ -17,7 +17,7 @@ import { ListView } from '../../list-view';
   host: { class: 'd-block' },
   template: `
     @if (view.ongoing()) {
-      <app-my-rounds [inApp]="true" />
+      <app-my-rounds />
     }
     <main class="container-fluid page-margin" *transloco="let t">
       <section class="mb-4" [attr.aria-label]="t('play.jigsaws') || 'Jigsaws'">

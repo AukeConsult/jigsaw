@@ -12,7 +12,6 @@
   "intro": "Convierte cualquier imagen en un puzle y móntalo, estés donde estés.",
   "intro2": "Elige una imagen, di cuántas piezas quieres y empieza.",
   "note": "Me encanta hacer puzles y rompecabezas, y espero que mi sistema también te encante.",
-  "seeAll": "Elige una imagen para jugar",
   "addNew": "Crea tu propio puzle",
   "continue": "En curso",
   "yourRounds": "Tus partidas",
@@ -28,8 +27,5 @@
   "step1": "Elige una imagen abajo y púlsala.",
   "step2": "Arrastra las piezas a su sitio.",
   "step3": "¿Quieres uno propio? Haz uno a partir de una imagen:",
-  "makeOwn": "Hacer un puzle",
-  "hide": "Ocultar",
-  "showBand": "Mostrar",
-  "hideBand": "Ocultar"
+  "makeOwn": "Hacer un puzle"
 }

@@ -42,11 +42,14 @@ function readInput(body: Record<string, unknown>): { input: JigsawInput } | { er
 }
 
 /** The routes of the list of jigsaws (mounted at `/jigsaw`). GET: the saved jigsaws, newest first. POST: save a new one. PUT /:id: change a saved one (the page autosaves with these). DELETE /:id: delete one. */
-export function jigsawListRouter(store: JigsawStore, canSee: (jigsaw: JigsawSpec, me: string | undefined, req?: express.Request) => Promise<boolean> = async (j, me) => !JigsawVisibilities.restricted(j.visibility) || (!!me && j.ownerUid === me),
+export function jigsawListRouter(
+  store: JigsawStore,
+  /** whether the person may see this one jigsaw (the request may carry the key of a link that opens it) */
+  canSee: (jigsaw: JigsawSpec, me: string | undefined, req?: express.Request) => Promise<boolean>,
   /** the jigsaw as an answer for somebody who may see it: with the key of its pictures when it is private or hidden (it is never kept) */
-  keyed: (jigsaw: JigsawSpec) => Promise<JigsawSpec> = async (j) => j,
-  /** whether the jigsaw is in the LIST for the person (the front page's rule: a private one for its owner and its players, a hidden one for its owner; an admin who may open it does not find it in the list); it defaults to `canSee` */
-  canList: (jigsaw: JigsawSpec, me: string | undefined) => Promise<boolean> = (jigsaw, me) => canSee(jigsaw, me),
+  keyed: (jigsaw: JigsawSpec) => Promise<JigsawSpec>,
+  /** whether the jigsaw is in the LIST for the person (the front page's rule: a private one for its owner and its players, a hidden one for its owner; an admin who may open it does not find it in the list) */
+  canList: (jigsaw: JigsawSpec, me: string | undefined) => Promise<boolean>,
 ): express.Router {
   const router = apiRouter();
 

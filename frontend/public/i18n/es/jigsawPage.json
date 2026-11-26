@@ -9,7 +9,6 @@
   "confirmDelete": "¿Eliminar este puzle para siempre? También se eliminan su imagen y todas sus partidas, incluidas las de otros jugadores.",
   "yesDelete": "Sí, eliminar",
   "cancel": "Cancelar",
-  "pieces": "{{ count }} piezas, {{ width }} × {{ height }} px",
   "difficulty": "Dificultad",
   "rounds": "Partidas",
   "nobody": "Nadie ha jugado todavía a este puzle.",

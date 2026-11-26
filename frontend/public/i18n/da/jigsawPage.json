@@ -9,7 +9,6 @@
   "confirmDelete": "Slet dette puslespil for altid? Billedet og alle runderne, også de andre spilleres, bliver slettet med.",
   "yesDelete": "Ja, slet",
   "cancel": "Annuller",
-  "pieces": "{{ count }} brikker, {{ width }} × {{ height }} px",
   "difficulty": "Sværhedsgrad",
   "rounds": "Runder",
   "nobody": "Ingen har spillet dette puslespil endnu.",

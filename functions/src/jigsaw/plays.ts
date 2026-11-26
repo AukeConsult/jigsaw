@@ -194,8 +194,6 @@ export interface PlayDeps {
   pieces: PieceStore;
   /** the user with this UID, or null (a play is played by a user that exists: it keeps the UID and the name of the user) */
   userOf: (userId: string) => Promise<{ id: string; name: string; firebaseUids?: string[] } | null>;
-  /** the time now, in milliseconds (the tests give their own) */
-  now?: () => number;
   /** whether the account that asks may change and delete the rounds of others too (an admin) */
   mayManage?: (me: string | undefined) => Promise<boolean>;
   /** whether this PLAYER may start a round of it as far as packages go: a picture of a package is for its owner, the owner of the package (to try it out) and an account that has the package. Nobody else, an admin neither (`BoughtPackages.mayUse`) */
@@ -213,7 +211,6 @@ export interface PlayDeps {
  */
 export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
   const router = apiRouter({ mergeParams: true });
-  const now = () => (deps.now ?? Date.now)();
   const idOf = (req: express.Request) => String(req.params.id);
 
   /** the jigsaw of the request, or the answer that there is none */
@@ -273,7 +270,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     // opening a jigsaw again does not make another round: the player's round with no piece moved in it is the one to go on with
     const waiting = theirs.find((p) => p.fresh);
     if (waiting) return void res.status(200).json(Plays.publicOf(waiting));
-    const started = Plays.start(jigsaw, { id: user.id, name: user.name }, await deps.pieces.list(jigsaw.id), now());
+    const started = Plays.start(jigsaw, { id: user.id, name: user.name }, await deps.pieces.list(jigsaw.id), Date.now());
     if ("error" in started) return bad(res, started.error, 409);
     await keepStarted(res, jigsaw.id, user, started, body.private);
   });
@@ -299,7 +296,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     const same = waiting.find((p) => p.cut?.columns === choice.columns && p.cut?.rows === choice.rows && p.snapPercent === choice.snapPercent && (p.timed === false) === (choice.timed === false) && (p.private === true) === (choice.private === true));
     if (same) return void res.status(200).json(Plays.publicOf(same));
     await Promise.all(waiting.map((p) => plays.remove(jigsaw.id, p.id))); // nothing was moved in them: nothing is lost
-    const started = Plays.startOwn(jigsaw, { id: user.id, name: user.name }, choice, now(), deps.random);
+    const started = Plays.startOwn(jigsaw, { id: user.id, name: user.name }, choice, Date.now(), deps.random);
     if ("error" in started) return bad(res, started.error, 409);
     await keepStarted(res, jigsaw.id, user, started, choice.private);
   };
@@ -337,7 +334,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
         solved = true; // a solved round stays solved: it is not played over
         return cur;
       }
-      const again = Plays.restart(cur.play, layout, pieces, now());
+      const again = Plays.restart(cur.play, layout, pieces, Date.now());
       if ("error" in again) {
         failed = again.error;
         return cur;
@@ -367,7 +364,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     let saved;
     try {
       saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {
-      const next = Plays.moved(cur.play, pieces, cur.positions, moves as PieceMove[], now());
+      const next = Plays.moved(cur.play, pieces, cur.positions, moves as PieceMove[], Date.now());
       const broken = Plays.bondsError(pieces, cur.positions, next.positions); // a bond between pieces is never broken
       if (broken) throw new BondBroken(broken);
       const grown = typeof storeWidth === "number" ? { ...next, play: { ...next.play, storeWidth } } : next; // the store of this game grew (pieces were collected over the whole frame)

@@ -12,7 +12,6 @@
   "intro": "Maak van elke afbeelding een puzzel en leg hem, waar je ook bent.",
   "intro2": "Kies een afbeelding, kies hoeveel stukjes, en begin.",
   "note": "Ik maak dolgraag puzzels, en ik hoop dat je mijn systeem ook geweldig vindt.",
-  "seeAll": "Kies een afbeelding om te spelen",
   "addNew": "Maak je eigen puzzel",
   "continue": "Lopend",
   "yourRounds": "Je rondes",
@@ -28,8 +27,5 @@
   "step1": "Kies hieronder een afbeelding en tik erop.",
   "step2": "Sleep de stukjes naar hun plek.",
   "step3": "Wil je een eigen puzzel? Maak er een van een afbeelding:",
-  "makeOwn": "Puzzel maken",
-  "hide": "Verbergen",
-  "showBand": "Tonen",
-  "hideBand": "Verbergen"
+  "makeOwn": "Puzzel maken"
 }

@@ -36,11 +36,5 @@
   "share": {
     "title": "Anderen Bescheid sagen",
     "text": "Teile diese Seite mit Freunden, die die App haben möchten."
-  },
-  "hint": {
-    "android": "Karins jigsaw als Android-App holen",
-    "windows": "Karins jigsaw als Windows-App holen",
-    "ios": "Karins jigsaw auf den Home-Bildschirm legen",
-    "close": "Schließen"
   }
 }

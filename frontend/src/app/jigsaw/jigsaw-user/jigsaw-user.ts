@@ -125,7 +125,7 @@ export class JigsawUser implements OnInit, OnDestroy {
    * elsewhere). Without one the person came to this page on purpose (to choose another user, say) and stays here, with the user they chose and their rounds shown.
    */
   private async goOn(): Promise<void> {
-    if (this.next && /^\/jigsaw(\/|$|\?)/.test(this.next) && !this.next.startsWith('//')) await this.router.navigateByUrl(this.next);
+    if (this.next && /^\/jigsaw(\/|$|\?)/.test(this.next)) await this.router.navigateByUrl(this.next);
   }
 
   /** the users who already have the name that was typed (none: nobody): the person is asked which of them is them (or none) before a new user is made */

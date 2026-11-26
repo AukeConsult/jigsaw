@@ -7,7 +7,6 @@ import { AuthService } from '../logons/auth.service';
 import { JigsawUserService } from './jigsaw-user.service';
 import { JigsawPiece, PieceMove } from '../models/shared/jigsaw';
 import { PlayChoice, PlaySettings, PlaySpec } from '../models/shared/play';
-import { ListedRoundsPage, RoundsView } from '../models/shared/rounds-list';
 
 /** A play as it is opened: the play, the settings it is played with, and the pieces of the jigsaw as this play has them. */
 export interface PlayDetail {
@@ -53,11 +52,6 @@ export class PlaysService {
   /** the games of a user (by UID) over all the jigsaws, newest first */
   ofUser(userId: string): Promise<UserGame[]> {
     return firstValueFrom(this.http.get<UserGame[]>(`${environment.jigsawApi}/jigsaw-users/${encodeURIComponent(userId)}/plays`));
-  }
-
-  /** the rounds the users have played on the jigsaws the person may see (everybody's, only the person's own or only the others'; the finished, the ongoing or all; in the order of the view), a page at a time (the API says who asks from the header) */
-  listRounds(page: number, limit: number, view: RoundsView): Promise<ListedRoundsPage> {
-    return firstValueFrom(this.http.get<ListedRoundsPage>(`${environment.jigsawApi}/jigsaw-rounds?page=${page}&limit=${limit}&whose=${view.whose}&status=${view.status}&sort=${view.sort}`, { headers: this.whoAsks() }));
   }
 
   /** whether anyone has started a game of the jigsaw (if not, the whole jigsaw can still be edited) */

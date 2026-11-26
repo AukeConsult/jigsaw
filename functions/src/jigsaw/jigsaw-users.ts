@@ -57,7 +57,7 @@ export type UserChange = UserSettings & {
 };
 
 /** The fields of a change that are written as they are, every one of them (the type sees to it): nothing else of a change is ever saved. `level` and `pictureAt` have rules of their own. */
-const WRITTEN: Record<keyof UserSettings | "lastUsedAt", true> = { name: true, username: true, language: true, search: true, listFilter: true, playLook: true, textLook: true, tileSize: true, labelSize: true, tileDetails: true, lastUsedAt: true };
+const WRITTEN: Record<keyof UserSettings | "lastUsedAt", true> = { name: true, username: true, language: true, listFilter: true, playLook: true, textLook: true, tileSize: true, labelSize: true, tileDetails: true, lastUsedAt: true };
 
 /** The collection `jigsaw-users`. */
 export function firestoreUserStore(): UserStore {
@@ -151,7 +151,7 @@ export function firestoreUserStore(): UserStore {
 
 /**
  * The users, `/jigsaw-users`: POST {username, name} makes a user and gives it a UID (409 when the user name is taken); GET /by-username/:username finds a user by the user
- * name (404 when there is none: that is how the page finds out whether a user name exists); GET /:id reads a user by its UID; PUT /:id {name?, username?, language?, search?, listFilter?, picture?} changes a user (`search` is how the user looks for jigsaws, kept when Go is pressed on the Find page, and `listFilter` what the app's picture list is filtered by; an empty e-mail takes it away; 409 when the new user name is taken).
+ * name (404 when there is none: that is how the page finds out whether a user name exists); GET /:id reads a user by its UID; PUT /:id {name?, username?, language?, listFilter?, picture?} changes a user (`listFilter` what the app's picture list is filtered by; an empty e-mail takes it away; 409 when the new user name is taken).
  * GET / lists the users (id, alias, name and when the picture was set), to choose who plays from.
  */
 export function jigsawUsersRouter(store: UserStore, pictures: ImageStore, use?: UserUse, now: () => number = Date.now, levels?: Levels): express.Router {

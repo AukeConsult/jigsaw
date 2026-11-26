@@ -36,11 +36,5 @@
   "share": {
     "title": "Fortæl det til andre",
     "text": "Del denne side med venner, der gerne vil have appen."
-  },
-  "hint": {
-    "android": "Hent Karins jigsaw som Android-app",
-    "windows": "Hent Karins jigsaw som Windows-app",
-    "ios": "Læg Karins jigsaw på hjemmeskærmen",
-    "close": "Luk"
   }
 }

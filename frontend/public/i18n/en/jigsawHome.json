@@ -12,7 +12,6 @@
   "intro": "Turn any picture into a jigsaw puzzle and put it together, wherever you are.",
   "intro2": "Choose a picture, say how many pieces, and start.",
   "note": "I love making jigsaws and puzzles, and I hope you will love my system too.",
-  "seeAll": "Pick a picture to play",
   "addNew": "Make your own jigsaw",
   "continue": "Ongoing",
   "yourRounds": "Your rounds",
@@ -28,8 +27,5 @@
   "step1": "Pick a picture below and press it.",
   "step2": "Drag the pieces to where they belong.",
   "step3": "Want your own? Make one from a picture:",
-  "makeOwn": "Make a jigsaw",
-  "hide": "Hide",
-  "showBand": "Show",
-  "hideBand": "Hide"
+  "makeOwn": "Make a jigsaw"
 }

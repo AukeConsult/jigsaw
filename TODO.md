@@ -34,7 +34,7 @@ The app will get style sheets (a way to choose how it looks: colours, fonts, sha
 
 What is ready for it:
 
-- **The choices** (`.choice-group`, `.choice-block`, `.choice-count`, the colours `--app-choice-1` … `--app-choice-6`): the row of small buttons of the Find page (what it is, category, language, size, difficulty, motive difficulty, made by) and of the forms (the categories, the motive difficulty, who sees it). Each choice has the next colour of six in its row: a soft tint when it is not chosen, the full colour when it is. One format for every page that has choices.
+- **The choices** (`.choice-group`, `.choice-block`, `.choice-count`, the colours `--app-choice-1` … `--app-choice-6`): the row of small buttons of the filter of pictures (what it is, category, language, size, difficulty, motive difficulty, made by) and of the forms (the categories, the motive difficulty, who sees it). Each choice has the next colour of six in its row: a soft tint when it is not chosen, the full colour when it is. One format for every page that has choices.
 - **The menu** (`.menu-style`, `--app-nav-*`): the text size and the colours of the links in the menu and the bars.
 - **The layers** (`--app-z-*`, rule 13), **the sizes of the text** (`--app-fs-*`) and **the colours** (`--app-primary` and the others in `:root`).
 
@@ -71,13 +71,13 @@ Built (the rule is in `docs/guide/users-and-logon.md`). What is left:
 
 ## Packages
 
-There is a button "Select packages" in the row of quick filters on the front page (after "Filter pictures"), and the page it opens, `/jigsaw/packages` (`jigsaw-packages/`), is a dummy: a title, a line that says it is not ready, and a way back. What a package is is not decided yet.
+The page `/jigsaw/packages` (`jigsaw-packages/`) is a dummy: a title, a line that says it is not ready, and a way back. What a package is is not decided yet. Nothing links to it since the old front page was removed.
 
 To do:
 
 - [ ] Decide what a package is (a named collection of pictures: made by whom, who sees it, how a picture gets into it) and write it in `docs/guide/jigsaws-and-sharing.md`.
 - [ ] Make the page: the packages to choose from, and the choice (one or more) kept on the device and in the account (`readPreference`, rule 12 in `CLAUDE.md`).
-- [ ] Let the choice of packages limit what the front page and the finder show (`JigsawFilters`, the model), with a test.
+- [ ] Let the choice of packages limit what the lists of pictures show (`JigsawFilters`, the model), with a test.
 
 ## Levels (user, publisher, admin)
 
@@ -96,12 +96,12 @@ Playing a round will later give a **score**. Now a round has only the pieces mat
 
 ## News and offers
 
-The front page has an area for news and offers under the steps of the welcome: the component `app-news` (`jigsaw/news/`), a dummy that says there is nothing new. What a news item or an offer is, who writes it, where it is kept and who sees it is not decided yet.
+The old front page had an area for news and offers under the steps of the welcome (a dummy, `app-news`); it was removed with that page. What a news item or an offer is, who writes it, where it is kept, who sees it and where it is shown is not decided yet.
 
 To do:
 
 - [ ] Decide what a news item and an offer are (a title, a text, perhaps a picture and a link; for everybody or for some; from when to when), and who may write them (an admin, a publisher).
-- [ ] Keep them (the model, the API and a test), and show them in `app-news`; the welcome is shown for one minute, so decide if the news also has a place that stays.
+- [ ] Keep them (the model, the API and a test), and show them on a page that stays.
 - [ ] **A second mark for an admin, on the user (the login) itself** (decided: later, not now; decided where: a field owned by the jigsaw in `user-account/<uid>`, e.g. `jigsawAdmin: true`; Seven Friends' own fields are not used and not changed). An admin is then on two places: the **account** (the level here, set on the page `/jigsaw/admin`) and the **user itself** (the login's record), and a login is an admin only when **both** say so; one without the other is refused (never let through). **The mark on the user is added by hand, directly in the document, for now** (Seven Friends has no user admin page yet; when it gets one, that page sets it). So the jigsaw only **reads** it and never writes it. Design notes, so it is not worked out twice:
   - `isAdminLogin` (`functions/src/logons/gate.ts`) keeps asking the database fresh at every call (never kept, see `users-and-logon.md`, "Why it cannot leak"): it asks `linkedTo(uid)` for a real admin account, **and** reads `user-account/<uid>`; the mark counts only when it is exactly `true`, and a login with no document, or a database that cannot answer, is refused (503 for the latter). The mark is read only when the first answer is yes.
   - A small read-only store of its own (`AdminMarks.has(uid)`), injected like the other stores so tests give memory. Nothing is written to `user-account` for this, so the rule in `CLAUDE.md` (the jigsaw writes only the sign-in fields of `user-account`) stays as it is, and there is nothing to keep in sync when a level or a login changes.

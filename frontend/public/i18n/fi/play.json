@@ -236,5 +236,6 @@
   "linkPlays": "Jokainen tämän linkin saanut voi nähdä kuvan ja pelata sitä.",
   "newLink": "Tee uusi linkki: vanha lakkaa toimimasta",
   "newLinkMade": "Uusi linkki on tehty. Jaa se uudelleen.",
-  "close": "Sulje"
+  "close": "Sulje",
+  "infoBack": "Takaisin"
 }

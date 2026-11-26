@@ -1,23 +1,19 @@
-import { Component, DestroyRef, ElementRef, effect, inject, input, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { News } from '../news/news';
 import { WELCOME_ART } from '../welcome-art';
 
 /**
- * **Karin's welcome** (the content, with no band round it): the almost finished jigsaws one after the other, the welcome and the three first steps, the news and Karin's picture with her note. The website's band of the rounds frames it
- * when no round is going (`app-my-rounds`, with its Hide button), and the app's info page frames it as its first document. With `inApp` the third step leads to the app's Add picture, and Help, About and Install are direct buttons under the steps; under them the app has a short description of how to play, where the website's welcome has the news.
+ * **Karin's welcome**, the first document of the app's info page: the almost finished jigsaws one after the other, the welcome and the three first steps (the third leads to the app's Add picture), under them a short description of how to play
+ * with Help, About and Install as direct buttons, and Karin's picture with her note.
  */
 @Component({
   selector: 'app-welcome',
-  imports: [RouterLink, TranslocoDirective, News],
+  imports: [RouterLink, TranslocoDirective],
   providers: [provideTranslocoScope('jigsawHome', 'guide', 'play')],
   templateUrl: './welcome.html',
 })
 export class Welcome {
-  /** the app frames it: the step that makes a picture leads to the app's page */
-  readonly inApp = input(false);
-
   /** the pictures of the welcome (jigsaws almost put together), and which one is shown: they follow each other, round and round, every few seconds */
   protected readonly art = WELCOME_ART;
   protected readonly artIndex = signal(0);

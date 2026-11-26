@@ -13,7 +13,6 @@
   "details": "Tiedot",
   "language": "Kieli",
   "timePlayed": "Peliaika",
-  "find": "Suodata kuvia",
   "showPictures": "Näytä kuvat",
   "share": "Jaa",
   "copyLink": "Kopioi linkki",
@@ -24,7 +23,6 @@
   "home": "Etusivu",
   "addPicture": "Lisää kuva",
   "more": "Lisää",
-  "fromMe": "Minulta",
   "info": "Info",
   "about": "Tietoa",
   "installApp": "Asenna sovellus"

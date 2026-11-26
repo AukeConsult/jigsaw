@@ -12,7 +12,6 @@
   "lookingRounds": "Letar efter dina omgångar…",
   "roundsFailed": "Kunde inte läsa dina omgångar: ladda om sidan.",
   "noRounds": "Du har inte spelat något pussel än.",
-  "findJigsaw": "Filtrera bilder",
   "solved": "Löst",
   "playing": "Pågår",
   "ofTotal": "{{ matched }} av {{ total }}",

@@ -12,7 +12,6 @@
   "intro": "Gør et hvilket som helst billede til et puslespil, og læg det, uanset hvor du er.",
   "intro2": "Vælg et billede, sig hvor mange brikker du vil have, og gå i gang.",
   "note": "Jeg elsker at lave puslespil og gåder, og jeg håber, du også vil kunne lide mit system.",
-  "seeAll": "Vælg et billede at spille",
   "addNew": "Lav dit eget puslespil",
   "continue": "Igangværende",
   "yourRounds": "Dine runder",
@@ -28,8 +27,5 @@
   "step1": "Vælg et billede nedenfor og tryk på det.",
   "step2": "Træk brikkerne derhen, hvor de hører hjemme.",
   "step3": "Vil du have dit eget? Lav et af et billede:",
-  "makeOwn": "Lav et puslespil",
-  "hide": "Skjul",
-  "showBand": "Vis",
-  "hideBand": "Skjul"
+  "makeOwn": "Lav et puslespil"
 }

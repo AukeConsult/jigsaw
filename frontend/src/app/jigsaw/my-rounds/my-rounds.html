@@ -1,32 +1,11 @@
 <ng-container *transloco="let t">
-  @if (welcome()) {
-    <!-- the band is Karin's welcome (for a minute after the app is opened, when no round is going; or when Welcome in the menu was pressed). On a wide screen: the jigsaws that are almost put together (one after the other), the welcome in the middle, and Karin's picture with her note under it; on a narrow one the welcome is under the jigsaws -->
-    <section class="my-rounds welcome-band position-relative" [attr.aria-label]="t('jigsawHome.welcomeLabel') || 'Welcome'">
-      <div class="container pt-3 pb-2 pb-lg-5 px-4">
-        <app-welcome />
-      </div>
-      <!-- Hide: takes the welcome away at once (until the app is opened again, or From me in the menu is pressed). Under the text on a narrow screen, so it never lies over it; in the lower right corner on a wide one -->
-      <div class="welcome-hide">
-        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="hideWelcome()"><i class="bi bi-eye-slash" aria-hidden="true"></i>{{ t('jigsawHome.hide') || 'Hide' }}</button>
-      </div>
-    </section>
-  }
   @if (mine().length) {
-    <section class="my-rounds ongoing" [class.folded]="folded() && !inApp()" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
+    <section class="my-rounds ongoing" [attr.aria-label]="t('jigsawHome.yourRounds') || 'Your rounds'">
       <div class="band-inner">
-        <!-- (the app has no badge: its menu has the switch that shows the band and takes it away) the heading is a badge on the middle of the band's top border (half over it); pressed, it folds the band to the badge and opens it again -->
-        @if (!inApp()) {
-        <h2 class="position-absolute top-0 start-50 translate-middle m-0 z-1">
-          <button type="button" class="badge band-badge rounded-pill" [attr.aria-expanded]="!folded()" [title]="folded() ? (t('jigsawHome.showBand') || 'Show') : (t('jigsawHome.hideBand') || 'Hide')" (click)="toggleFolded()">
-            {{ t('jigsawHome.continue') || 'Ongoing' }}<i class="bi ms-1" [class]="folded() ? 'bi-chevron-down' : 'bi-chevron-up'" aria-hidden="true"></i>
-          </button>
-        </h2>
-        }
-        @if (inApp() || !folded()) {
         <div class="position-relative">
           <div #row class="card-row" (scroll)="update()">
             @for (item of mine(); track item.game.play.id) {
-              <app-jigsaw-card [jigsaw]="item.jigsaw" [pictureOnly]="true" [route]="routeOf(item.jigsaw.id, item.game.play.id)">
+              <app-jigsaw-card [jigsaw]="item.jigsaw" [route]="['/play/jigsaw', item.jigsaw.id]">
                 <!-- when the round was started and the time played, under the picture -->
                 <div class="tiny text-body-secondary mt-1 d-none d-lg-block">
                   <span [title]="t('jigsawHome.started') || 'Started'"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ item.game.play.startedAt | date: 'MMM d, HH:mm' }}</span>
@@ -45,7 +24,6 @@
             <button type="button" class="btn btn-overlay card-row-button end-0 me-1" [title]="t('jigsawHome.scrollForward') || 'Scroll forward'" [attr.aria-label]="t('jigsawHome.scrollForward') || 'Scroll forward'" (click)="scroll(1)"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
           }
         </div>
-        }
       </div>
     </section>
   }

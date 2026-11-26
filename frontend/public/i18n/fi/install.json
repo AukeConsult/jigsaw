@@ -36,11 +36,5 @@
   "share": {
     "title": "Kerro muille",
     "text": "Jaa tämä sivu ystäville, jotka haluavat sovelluksen."
-  },
-  "hint": {
-    "android": "Hanki Karins jigsaw Android-sovelluksena",
-    "windows": "Hanki Karins jigsaw Windows-sovelluksena",
-    "ios": "Lisää Karins jigsaw Koti-valikkoon",
-    "close": "Sulje"
   }
 }

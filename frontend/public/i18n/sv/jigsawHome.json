@@ -12,7 +12,6 @@
   "intro": "Förvandla vilken bild som helst till ett pussel och lägg det, var du än är.",
   "intro2": "Välj en bild, säg hur många bitar du vill ha, och sätt igång.",
   "note": "Jag älskar att göra pussel och gåtor, och jag hoppas att du också kommer att tycka om mitt system.",
-  "seeAll": "Välj en bild att spela",
   "addNew": "Gör ditt eget pussel",
   "continue": "Pågående",
   "yourRounds": "Dina omgångar",
@@ -28,8 +27,5 @@
   "step1": "Välj en bild nedan och tryck på den.",
   "step2": "Dra bitarna dit de hör hemma.",
   "step3": "Vill du ha ett eget? Gör ett av en bild:",
-  "makeOwn": "Gör ett pussel",
-  "hide": "Dölj",
-  "showBand": "Visa",
-  "hideBand": "Dölj"
+  "makeOwn": "Gör ett pussel"
 }

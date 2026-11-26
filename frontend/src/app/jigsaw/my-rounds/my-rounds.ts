@@ -1,22 +1,19 @@
 import { DatePipe } from '@angular/common';
-import { Component, ElementRef, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { isBoolean, readPreference, writePreference } from '../../core/preferences';
-import { WelcomeTime } from '../../core/welcome-time';
 import { AuthService } from '../../logons/auth.service';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { Plays } from '../../models/shared/play';
 import { clockOf } from '../duration';
 import { JigsawCard } from '../jigsaw-card/jigsaw-card';
 import { JigsawService } from '../jigsaw.service';
-import { Welcome } from '../welcome/welcome';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
 
-/** A band stuck to the top of the page with the user's rounds that are not solved (with `inApp`, the same band in the app, with no welcome): the picture of each (press it to go straight on with the round), and under it, in tiny text, when it was started and the time played. Scrolls sideways; shows nothing when there are no rounds. */
+/** A band stuck to the top of the app's list with the user's rounds that are not solved: the picture of each (press it to go straight on with the round, in the puzzle of the app), and under it, in tiny text, when it was started and the time played. Scrolls sideways; shows nothing when there are no rounds. */
 @Component({
   selector: 'app-my-rounds',
-  imports: [DatePipe, TranslocoDirective, JigsawCard, Welcome],
+  imports: [DatePipe, TranslocoDirective, JigsawCard],
   providers: [provideTranslocoScope('jigsawHome')],
   templateUrl: './my-rounds.html',
   host: { '(window:resize)': 'update()' },
@@ -25,7 +22,6 @@ export class MyRounds {
   private readonly plays = inject(PlaysService);
   private readonly users = inject(JigsawUserService);
   private readonly jigsawService = inject(JigsawService);
-  private readonly welcomeTime = inject(WelcomeTime);
   private readonly auth = inject(AuthService);
 
   /** the jigsaws of the open rounds, each read by itself (a round only names its jigsaw, so the cards are made from these) */
@@ -40,33 +36,6 @@ export class MyRounds {
       return jigsaw ? [{ game, jigsaw }] : [];
     });
   });
-
-  /** the user has no round going (or nobody has been chosen yet): the band welcomes instead; not while the rounds are being read, or when they could not be */
-  /** Hide, in the corner of the welcome: it goes away at once */
-  protected hideWelcome(): void {
-    this.welcomeTime.hide();
-  }
-
-  /** the app's band: only the rounds that are going (no welcome, no news, and no badge to fold it: the menu of the helper has the switch that shows the band and takes it away), and a round opens the puzzle of the app, `/play/jigsaw/:id`, where the round that is going is gone on with */
-  readonly inApp = input(false);
-
-  /** where a round opens: the page of the round in the website, or the puzzle of the app */
-  protected routeOf(jigsawId: string, playId: string): string[] {
-    return this.inApp() ? ['/play/jigsaw', jigsawId] : ['/jigsaw', jigsawId, 'play', playId];
-  }
-
-  protected readonly welcome = computed(() => !this.inApp() && this.welcomeTime.visible() && (this.going()?.length === 0 || this.welcomeTime.forced())); // for a minute after the app is opened; also with a round going when Welcome in the menu was pressed (`WelcomeTime`)
-
-  /** the rounds are read (also when there are none, nobody is chosen, or they could not be read): the page waits for this before it asks for the jigsaws, so the band is there first and nothing below it jumps */
-  readonly loaded = output<void>();
-
-  /** the band is folded to its badge (kept on the device, so it stays as the person left it): only the heading is left, and a press on it opens the band again */
-  protected readonly folded = signal(readPreference('jigsaw.roundsFolded', false, isBoolean));
-
-  protected toggleFolded(): void {
-    this.folded.update((now) => !now);
-    writePreference('jigsaw.roundsFolded', this.folded());
-  }
 
   protected readonly clock = clockOf;
   private readonly row = viewChild<ElementRef<HTMLElement>>('row');
@@ -98,14 +67,6 @@ export class MyRounds {
   }
 
   private async readRounds(): Promise<void> {
-    try {
-      await this.readOpenRounds();
-    } finally {
-      this.loaded.emit();
-    }
-  }
-
-  private async readOpenRounds(): Promise<void> {
     await this.users.load();
     await this.auth.ready; // a sign-in of an earlier visit is restored first
     const me = this.users.acting(); // nobody chosen, or one that needs a login and is not signed in: no rounds of one's own
@@ -118,7 +79,7 @@ export class MyRounds {
       this.jigsaws.set(read.filter((j): j is JigsawSpec => !!j));
       this.going.set(open.sort((a, b) => Plays.lastActive(b.play) - Plays.lastActive(a.play)));
     } catch {
-      /* no band without the rounds (and no welcome: it would say there are none) */
+      /* no band without the rounds */
     }
   }
 }

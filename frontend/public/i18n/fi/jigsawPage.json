@@ -9,7 +9,6 @@
   "confirmDelete": "Poistetaanko tämä palapeli lopullisesti? Myös sen kuva ja kaikki sen kierrokset, myös muiden pelaajien, poistetaan.",
   "yesDelete": "Kyllä, poista",
   "cancel": "Peruuta",
-  "pieces": "{{ count }} palaa, {{ width }} × {{ height }} px",
   "difficulty": "Vaikeustaso",
   "rounds": "Kierrokset",
   "nobody": "Kukaan ei ole vielä pelannut tätä palapeliä.",

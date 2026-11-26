@@ -12,7 +12,6 @@
   "lookingRounds": "Etsitään kierroksiasi…",
   "roundsFailed": "Kierroksiasi ei voitu lukea: lataa sivu uudelleen.",
   "noRounds": "Et ole vielä pelannut yhtään palapeliä.",
-  "findJigsaw": "Suodata kuvia",
   "solved": "Ratkaistu",
   "playing": "Kesken",
   "ofTotal": "{{ matched }} / {{ total }}",

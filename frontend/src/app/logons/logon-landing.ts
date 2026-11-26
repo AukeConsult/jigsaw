@@ -81,7 +81,7 @@ export class LogonLanding {
     if (!active && linked.length !== 1) {
       // to the page where the accounts are chosen, in the module the person came from: the website's page of the user, or the account page of the app
       if (isPlayUrl(next)) return void (await this.router.navigateByUrl(APP_ACCOUNT));
-      const toPage = next && /^\/jigsaw(\/|$)/.test(next) && !next.startsWith('//') ? { next } : {};
+      const toPage = next && /^\/jigsaw(\/|$)/.test(next) ? { next } : {};
       return void (await this.router.navigate(['/jigsaw/user'], { queryParams: toPage }));
     }
     await this.router.navigateByUrl(this.auth.landingPath(next));

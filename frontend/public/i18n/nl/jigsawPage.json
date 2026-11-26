@@ -9,7 +9,6 @@
   "confirmDelete": "Deze puzzel definitief verwijderen? De afbeelding en alle rondes, ook die van andere spelers, worden ook verwijderd.",
   "yesDelete": "Ja, verwijderen",
   "cancel": "Annuleren",
-  "pieces": "{{ count }} stukjes, {{ width }} × {{ height }} px",
   "difficulty": "Moeilijkheid",
   "rounds": "Rondes",
   "nobody": "Niemand heeft deze puzzel nog gespeeld.",

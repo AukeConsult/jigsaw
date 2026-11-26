@@ -1,10 +1,9 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LANGUAGES, LanguageService } from '../core/language.service';
 import { LabelFit } from '../core/label-fit';
-import { WelcomeTime } from '../core/welcome-time';
 import { JigsawHelper } from './jigsaw-helper';
 import { isInApp } from '../core/platform';
 import { AdminBanner } from './admin-banner/admin-banner';
@@ -74,9 +73,6 @@ import { ShareButton } from './share-button/share-button';
             <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [title]="t('jigsawShell.showPictures') || 'Show pictures'"><i class="bi bi-images me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.showPictures') || 'Show pictures' }}</span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/jigsaw/find" routerLinkActive="active" [title]="t('jigsawShell.find') || 'Find a jigsaw'"><i class="bi bi-search me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.find') || 'Find' }}</span></a>
-          </li>
-          <li class="nav-item">
             <!-- a direct way to make a new picture: the form of a new jigsaw, as a picture -->
             <a class="nav-link" routerLink="/jigsaw/new" [queryParams]="{ kind: 'picture' }" routerLinkActive="active" [title]="t('jigsawShell.addPicture') || 'Add picture'"><i class="bi bi-plus-circle me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.addPicture') || 'Add picture' }}</span></a>
           </li>
@@ -103,10 +99,6 @@ import { ShareButton } from './share-button/share-button';
                   }
                 </ul>
               }
-            </li>
-            <li class="nav-item">
-              <!-- the welcome of the front page, brought back (and its counting started again) -->
-              <a class="nav-link" href="/" (click)="showWelcome($event)" [title]="t('jigsawShell.fromMe') || 'From me'"><i class="bi bi-house-heart me-md-1 d-block d-md-inline" aria-hidden="true"></i><span class="nav-label">{{ t('jigsawShell.fromMe') || 'From me' }}</span></a>
             </li>
             @if (users.mayOpenLevels()) {
               <li class="nav-item">
@@ -164,9 +156,6 @@ import { ShareButton } from './share-button/share-button';
                   <li role="none"><a class="dropdown-item d-flex align-items-center gap-2 ps-4" role="menuitem" routerLink="/install" (click)="moreOpen.set(false)"><i class="bi bi-download" aria-hidden="true"></i>{{ t('jigsawShell.installApp') || 'Install the app' }}</a></li>
                 }
               }
-              <li role="none">
-                <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" href="/" (click)="showWelcome($event); moreOpen.set(false)"><i class="bi bi-house-heart" aria-hidden="true"></i>{{ t('jigsawShell.fromMe') || 'From me' }}</a>
-              </li>
               @if (users.mayOpenLevels()) {
                 <li role="none">
                   <a class="dropdown-item d-flex align-items-center gap-2" role="menuitem" routerLink="/jigsaw/admin" (click)="moreOpen.set(false)"><i class="bi bi-shield-lock" aria-hidden="true"></i>{{ t('userLevels.menu') || 'Admin' }}</a>
@@ -204,17 +193,6 @@ export class JigsawShell {
   protected readonly tools = inject(JigsawHelper);
   protected readonly users = inject(JigsawUserService);
   protected readonly language = inject(LanguageService);
-  private readonly router = inject(Router);
-  /** the minute of the welcome begins when the app is opened, on whatever page (it is made here, with the menu); the menu brings it back */
-  private readonly welcomeTime = inject(WelcomeTime);
-
-  /** The welcome comes back (and its counting starts again), on the front page. */
-  protected showWelcome(event: Event): void {
-    event.preventDefault();
-    this.welcomeTime.show();
-    void this.router.navigateByUrl('/');
-  }
-
   protected readonly languages = LANGUAGES;
   /** the list of languages is open */
   protected readonly languageOpen = signal(false);

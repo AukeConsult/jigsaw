@@ -122,7 +122,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
   it("writes every setting of a change of a user, and nothing it was not given", async () => {
     const users = firestoreUserStore();
     const made = await users.create({ username: "change-test", name: "Change", language: "en", createdAt: 1 });
-    const settings = { name: "Changed", username: "changed-test", language: "nb", search: { view: "list" as const, filter: JigsawFilters.empty() }, listFilter: JigsawFilters.empty(), playLook: { ...DEFAULT_PLAY_LOOK, sound: false }, textLook: DEFAULT_TEXT_LOOK, tileSize: "large" as const, labelSize: "small" as const, tileDetails: false };
+    const settings = { name: "Changed", username: "changed-test", language: "nb", listFilter: JigsawFilters.empty(), playLook: { ...DEFAULT_PLAY_LOOK, sound: false }, textLook: DEFAULT_TEXT_LOOK, tileSize: "large" as const, labelSize: "small" as const, tileDetails: false };
     const changed = await users.update(made!.id, { ...settings, lastUsedAt: 5, pictureAt: 7 });
     expect(changed).toMatchObject({ ...settings, lastUsedAt: 5, pictureAt: 7 });
     expect(await users.get(made!.id)).toEqual(changed);
@@ -212,14 +212,6 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect(await pieces.graphic(made.id, list[5].id)).toBeNull();
     expect((await picture.get(made.id))?.data.equals(jpeg)).toBe(true);
 
-    // moving a piece onto its own place makes it matched, moving it away makes it not matched
-    const piece = read[5]; // column 1, row 1: its place is 75, 75
-    await pieces.move(made.id, [{ id: piece.id, centerX: 75, centerY: 75, layer: 40 }]);
-    expect((await pieces.list(made.id))[5]).toMatchObject({ centerX: 75, centerY: 75, layer: 40, matched: true });
-    await pieces.move(made.id, [{ id: piece.id, centerX: 300, centerY: 20, layer: 41 }, { id: "piece-9-9", centerX: 1, centerY: 1, layer: 1 }]);
-    expect((await pieces.list(made.id))[5]).toMatchObject({ centerX: 300, matched: false, number: 6 });
-    expect(await pieces.list(made.id)).toHaveLength(12); // nothing was made for a piece that is not there
-
     // cut again: the old pieces and graphics are gone
     expect(await pieces.replaceAll(made.id, list.slice(0, 3), new Map())).toBe(true);
     expect(await pieces.list(made.id)).toHaveLength(3);
@@ -249,12 +241,10 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     const cut = JigsawCut.cut(200, 150, 50, () => 0.4);
     if ("error" in cut) throw new Error(cut.error);
     const pieces = cut.placed.map((p) => ({ ...JigsawPieces.of(p, cut.columns)!, graphic: `data:image/webp;base64,${webp.toString("base64")}` }));
+    const own = pieces.find((p) => p.number === 6)!; // column 1, row 1: its place is 75, 75
+    Object.assign(own, { centerX: 75, centerY: 75, layer: 50 }); // sent lying on its own place
     const put = await request(app).put(`/jigsaw/api/jigsaw-pieces/${id}`).send({ pieces });
     expect(put.body).toEqual({ pieces: 12, graphics: 12 });
-
-    // play: one piece is put on its own place
-    const own = pieces.find((p) => p.number === 6)!; // column 1, row 1: its place is 75, 75
-    expect((await request(app).patch(`/jigsaw/api/jigsaw-pieces/${id}`).send({ moves: [{ id: own.id, centerX: 75, centerY: 75, layer: 50 }] })).status).toBe(200);
 
     // reopen: the game is as it was left
     const list = (await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}`)).body.pieces as { id: string; number: number; matched: boolean; layer: number }[];

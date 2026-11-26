@@ -15,7 +15,6 @@ import { ImageStore, JIGSAW_ROOT, firestoreJigsawExists, jigsawImageRouter, stor
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
 import { AccountLimits, BoughtPackages, PackageItem, JIGSAW_INFO, JIGSAW_OFFERS, JIGSAW_PACKAGES, FeedItems, JigsawKinds, JigsawSettings, JigsawSpec, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity, UserLevels } from "../models";
 import { ImageAccess } from "./image-access";
-import { roundsListRouter } from "./rounds-list";
 import { SecretSource, ViewKeys, firestoreSecret } from "./view-key";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
 import { LogonDeps, createLogons } from "../logons";
@@ -157,8 +156,6 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (await plays.has(req.params.id)) return bad(res, JigsawSettings.PLAYED_MESSAGE, 409);
     next();
   };
-  // the rounds that the users have played (the person's own too), on the jigsaws the person may see (the button "Rounds" on the front page); before the routes of one jigsaw
-  router.use("/jigsaw-rounds", roundsListRouter(plays, { jigsaws: () => heads(), canSee: (c, me) => canSee(c, me), imageKeyFor: (c, me) => keyIfSeen(c, me), now: stores.now }));
   // the popular jigsaws, for the front page: the ones the person may see, ranked by the rounds played and by being new (`Popularity`); before the routes of one jigsaw
   router.get("/jigsaw-popular", async (req, res) => {
     const all = await heads();
@@ -290,9 +287,9 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (JigsawSettings.changesWhatPlayersShare(now, (req.body ?? {}) as Record<string, unknown>)) return bad(res, JigsawSettings.PLAYED_MESSAGE, 409);
     next();
   });
-  // nor can its picture or its cut into pieces be put in again, taken away or moved once it has been played (the pieces of every round are the ones it has); a jigsaw that
+  // nor can its picture or its cut into pieces be put in again once it has been played (the pieces of every round are the ones it has); a jigsaw that
   // is not played can have them put in by whoever is making it (a jigsaw can be made for another user, who is then its owner)
-  // a picture is not cut: its pieces are cut in each round, so none is put in, moved or taken away for the picture itself
+  // a picture is not cut: its pieces are cut in each round, so none is put in for the picture itself
   const notPicture: express.RequestHandler = async (req, res, next) => {
     const now = await jigsawById(req.params.id);
     if (now && JigsawKinds.isPicture(now)) return bad(res, "A picture is not cut: its rounds are.", 409);
@@ -300,10 +297,6 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   };
   router.put(["/jigsaw-image/:id", "/jigsaw-pieces/:id"], notWhenPlayed);
   router.put("/jigsaw-pieces/:id", notPicture);
-  router.patch("/jigsaw-pieces/:id", notPicture);
-  router.delete("/jigsaw-pieces/:id", notPicture);
-  router.delete(["/jigsaw-image/:id", "/jigsaw-pieces/:id"], ownerOnly("change"), notWhenPlayed);
-  router.patch("/jigsaw-pieces/:id", ownerOnly("change"), notWhenPlayed);
   router.use(
     "/jigsaw",
     jigsawListRouter(

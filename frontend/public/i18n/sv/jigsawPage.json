@@ -9,7 +9,6 @@
   "confirmDelete": "Ta bort det här pusslet för alltid? Bilden och alla omgångar, även de andra spelarnas, tas bort också.",
   "yesDelete": "Ja, ta bort",
   "cancel": "Avbryt",
-  "pieces": "{{ count }} bitar, {{ width }} × {{ height }} px",
   "difficulty": "Svårighet",
   "rounds": "Omgångar",
   "nobody": "Ingen har spelat det här pusslet ännu.",

@@ -75,16 +75,6 @@ describe("a private round", () => {
     expect((await request(app).post(base(ready.id)).send({ userId: "bo", private: "yes" })).status).toBe(400);
   });
 
-  it("is not on the front page, whoever asks, while a public round is", async () => {
-    const { started, picture, ready, get } = await setup();
-    await started(picture.id, "anna", choiceOf(small, { private: true }));
-    await started(ready.id, "bo");
-    for (const asking of ["anna", "bo"]) {
-      const rounds = (await get("/jigsaw/api/jigsaw-rounds", asking)).body.items as { play: PlaySpec }[];
-      expect(rounds.map((r) => r.play.userId)).toEqual(["bo"]);
-    }
-  });
-
   it("is seen among the rounds of its jigsaw by its player only", async () => {
     const { started, picture, base, get } = await setup();
     const mine = await started(picture.id, "anna", choiceOf(small, { private: true }));
@@ -117,11 +107,9 @@ describe("a private round", () => {
     const made = await patch("anna", { private: true });
     expect(made.status).toBe(200);
     expect(made.body).toMatchObject({ private: true });
-    expect(((await get("/jigsaw/api/jigsaw-rounds", "bo")).body.items as unknown[]).length).toBe(0);
     clock.t += 20_000;
     const back = await patch("anna", { private: false });
     expect(back.body).not.toHaveProperty("private");
-    expect(((await get("/jigsaw/api/jigsaw-rounds", "bo")).body.items as unknown[]).length).toBe(1);
   });
 });
 

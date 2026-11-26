@@ -2,7 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import express from "express";
 import { JIGSAW_ROOT, Picture, documentExists, isPictureId, pictureType, readStoredFile, sendPicture } from "./jigsaw-image";
-import { JIGSAW, JIGSAW_MAX_PIECES, JIGSAW_PIECES, JigsawPiece, JigsawPieces, PieceMove } from "../models";
+import { JIGSAW, JIGSAW_MAX_PIECES, JIGSAW_PIECES, JigsawPiece, JigsawPieces } from "../models";
 import { apiRouter, bad } from "../common/http";
 
 // The pieces of a jigsaw: one document each in the subcollection `jigsaw/<id>/pieces`, with its number, its edges, where it is, on which layer and
@@ -26,8 +26,6 @@ export interface PieceStore {
   list(jigsawId: string): Promise<JigsawPiece[]>;
   /** Replaces all the pieces of a jigsaw (the old ones and their graphics are gone): the jigsaw is cut again. False when there is no such jigsaw. */
   replaceAll(jigsawId: string, pieces: JigsawPiece[], graphics: ReadonlyMap<string, PieceGraphic>): Promise<boolean>;
-  /** Saves where pieces are and on which layer (whether they are matched follows from that). False when there is no such jigsaw; pieces that are not there are left out. */
-  move(jigsawId: string, moves: PieceMove[]): Promise<boolean>;
   graphic(jigsawId: string, pieceId: string): Promise<Picture | null>;
   /** Takes away everything of a jigsaw that is kept in these two places: its pieces, their graphics and its picture. */
   removeAll(jigsawId: string): Promise<void>;
@@ -69,26 +67,6 @@ export function firestorePieceStore(): PieceStore {
       }
       return true;
     },
-    async move(id, moves) {
-      if (!(await exists(id))) return false;
-      const chunks: PieceMove[][] = [];
-      for (let i = 0; i < moves.length; i += BATCH) chunks.push(moves.slice(i, i + BATCH));
-      // the chunks do not touch the same pieces, so they go at the same time; only what says where a piece belongs is read (the cut: column, row and size), not its edges or anything else
-      await Promise.all(
-        chunks.map(async (chunk) => {
-          const refs = chunk.map((m) => pieces(id).doc(m.id));
-          const snaps = await db().getAll(...refs, { fieldMask: ["col", "row", "size"] });
-          const batch = db().batch();
-          snaps.forEach((snap, k) => {
-            if (!snap.exists) return;
-            const now = { ...(snap.data() as Pick<JigsawPiece, "col" | "row" | "size">), centerX: chunk[k].centerX, centerY: chunk[k].centerY };
-            batch.update(refs[k], { centerX: now.centerX, centerY: now.centerY, layer: chunk[k].layer, matched: JigsawPieces.matched(now) });
-          });
-          await batch.commit();
-        }),
-      );
-      return true;
-    },
     graphic: (id, pieceId) => readStoredFile(graphicFile(id, pieceId)),
     async removeAll(id) {
       await db().recursiveDelete(pieces(id));
@@ -111,7 +89,7 @@ export function readGraphic(value: unknown): PieceGraphic | { error: string } {
 /**
  * The pieces of a jigsaw, `/jigsaw-pieces/:id`:
  *  GET: its pieces (without the graphics). PUT {pieces: [...with `graphic`: a data address]}: cut again, all the pieces are replaced.
- *  PATCH {moves: [{id, centerX, centerY, layer}]}: where pieces are now. GET /graphic/:pieceId: the graphic of a piece. DELETE: takes all the pieces away.
+ *  GET /graphic/:pieceId: the graphic of a piece. (Where the pieces are while a game is played is kept with the round, and a jigsaw's pieces go when it is deleted.)
  */
 export function jigsawPiecesRouter(store: PieceStore, exists: (id: string) => Promise<boolean>): express.Router {
   const router = apiRouter();
@@ -148,28 +126,11 @@ export function jigsawPiecesRouter(store: PieceStore, exists: (id: string) => Pr
     res.json({ pieces: list.length, graphics: graphics.size });
   });
 
-  router.patch("/:id", json, async (req, res) => {
-    const moves = (req.body as { moves?: PieceMove[] } | undefined)?.moves;
-    if (!Array.isArray(moves)) return bad(res, "Send the moves as a list.");
-    if (moves.length > JIGSAW_MAX_PIECES) return bad(res, `At most ${JIGSAW_MAX_PIECES} pieces fit in a jigsaw.`);
-    for (const move of moves) {
-      const error = JigsawPieces.moveError(move);
-      if (error) return bad(res, error);
-    }
-    if (!(await store.move(req.params.id, moves.map((m) => ({ id: m.id, centerX: m.centerX, centerY: m.centerY, layer: m.layer }))))) return bad(res, "No such jigsaw.", 404);
-    res.json({ moved: moves.length });
-  });
-
   router.get("/:id/graphic/:pieceId", async (req, res) => {
     if (!isPictureId(req.params.pieceId) && !/^piece-\d{1,4}-\d{1,4}$/.test(req.params.pieceId)) return bad(res, "Not a piece id.");
     const graphic = await store.graphic(req.params.id, req.params.pieceId);
     if (!graphic) return bad(res, "No graphic.", 404);
     sendPicture(req, res, graphic);
-  });
-
-  router.delete("/:id", async (req, res) => {
-    await store.removeAll(req.params.id);
-    res.status(204).end();
   });
 
   return router;

@@ -176,9 +176,6 @@ export function memoryPieces(): PieceStore & { docs: Map<string, JigsawPiece[]>;
       docs.set(id, pieces);
       return true;
     },
-    async move() {
-      return true;
-    },
     async graphic() {
       return null;
     },

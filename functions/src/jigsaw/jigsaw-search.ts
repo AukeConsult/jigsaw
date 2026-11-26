@@ -70,9 +70,9 @@ export function jigsawSearchRouter(
   favorites: (userId: string) => Promise<string[]>,
   solvedOf: (userId: string, among: readonly JigsawSummary[]) => Promise<string[]>,
   /** a jigsaw of the answer for somebody who may see it: with the key of its pictures when it is private or hidden */
-  keyed: (jigsaw: JigsawSummary) => Promise<JigsawSummary> = async (j) => j,
+  keyed: (jigsaw: JigsawSummary) => Promise<JigsawSummary>,
   /** the packages the person has got or bought: their pictures are found by the person, and by nobody else */
-  packagesOf: (userId: string | undefined) => Promise<ReadonlySet<string>> = async () => new Set(),
+  packagesOf: (userId: string | undefined) => Promise<ReadonlySet<string>>,
 ): express.Router {
   const router = apiRouter();
   /** The jigsaws the person finds, the newest first: the public ones and the private ones that are the person's (owner or player); with `only.favorites`, those the person has ticked, with `only.solved`, those the person has solved (none for nobody). */

@@ -36,11 +36,5 @@
   "share": {
     "title": "En parler aux autres",
     "text": "Partagez cette page avec des amis qui voudraient l’appli."
-  },
-  "hint": {
-    "android": "Obtenir Karins jigsaw comme appli Android",
-    "windows": "Obtenir Karins jigsaw comme appli Windows",
-    "ios": "Mettre Karins jigsaw sur l’écran d’accueil",
-    "close": "Fermer"
   }
 }

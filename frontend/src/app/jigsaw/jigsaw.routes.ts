@@ -3,7 +3,6 @@ import { adminGuard, adminOnlyGuard } from './admin.guard';
 import { AiUse } from './ai-use/ai-use';
 import { JigsawAdmin } from './jigsaw-admin/jigsaw-admin';
 import { JigsawBatch } from './jigsaw-batch/jigsaw-batch';
-import { JigsawFind } from './jigsaw-find/jigsaw-find';
 import { JigsawHome } from './jigsaw-home/jigsaw-home';
 import { JigsawNew } from './jigsaw-new/jigsaw-new';
 import { JigsawPackages } from './jigsaw-packages/jigsaw-packages';
@@ -19,12 +18,11 @@ import { JigsawShell } from './jigsaw-shell';
 /**
  * The jigsaw module, `/jigsaw`: the module the app opens with.
  *  - `/jigsaw`: the front page: what Karins jigsaw is, where to start, and the newest jigsaws.
- *  - `/jigsaw/find`: find a jigsaw: choose what to look for (category, size, difficulty, owner), press Go, and the jigsaws that match are shown.
  *  - `/jigsaw/admin`: the levels of the accounts (user, publisher, admin), for an admin.
  *  - `/jigsaw/ai-use`: what the AI has used for the account, for an admin.
  *  - `/jigsaw/packages/make`: make a package (a dummy for now), for a publisher or an admin.
  *  - `/jigsaw/packages`: select packages: a dummy page for now.
- *  - `/jigsaw/list`: gone; the jigsaws are looked for on the front page (`/`), so an old address goes there.
+ *  - `/jigsaw/list` and `/jigsaw/find`: gone; an old address goes home.
  *  - `/jigsaw/new`: a new jigsaw: the settings are filled in in the main frame, then saved, and a game of it is started.
  *  - `/jigsaw/batch`: many jigsaws at once: how many pieces and how hard, many pictures chosen from the computer, each made into a jigsaw and classified by the AI.
  *  - `/jigsaw/user`: who plays: the accounts to choose from; `/jigsaw/user/new`: make an account of one's own (only a name).
@@ -40,7 +38,7 @@ export const JIGSAW_ROUTES: Routes = [
     component: JigsawShell,
     children: [
       { path: '', component: JigsawHome, title: 'Karins jigsaw' },
-      { path: 'find', component: JigsawFind, title: 'Filter pictures' }, // before ':id'
+      { path: 'find', redirectTo: '/' }, // the Find page is gone with the front page it filtered; before ':id'
       { path: 'admin', component: JigsawAdmin, title: 'Account levels', canActivate: [adminGuard] }, // before ':id'
       { path: 'ai-use', component: AiUse, title: 'AI use', canActivate: [adminOnlyGuard] }, // before ':id'
       { path: 'packages/make', component: MakePackages, title: 'Make packages', canActivate: [publisherGuard] }, // before ':id'

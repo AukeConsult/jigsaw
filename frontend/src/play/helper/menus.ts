@@ -10,6 +10,8 @@ export interface PlayMenuItem {
   readonly icon: string;
   /** the page a press goes to (an entry that is a switch has none) */
   readonly route?: string;
+  /** the press takes the place of the page that is open in the history of the browser, instead of coming after it */
+  readonly replace?: boolean;
   /** the entry is a switch of the page that is open (the puzzle, or the home page), not a link */
   readonly toggle?: PuzzelToggle | ListToggle;
   /** the entry can carry a dot on its icon that says something about the app is on: `filter`, that the filter of the list has choices set */
@@ -89,13 +91,18 @@ export const listMenu: PlayMenu = (user) => {
   return [...entries.slice(0, at), { icon: 'bi-heart', toggle: 'favorites', key: 'play.myFavorites', english: 'My favorites' }, ...entries.slice(at), HELP];
 };
 
-/** The menu of the info pages (`/play/info/...`): the way home (the brand) and every page of the info, one entry each (the welcome, the help, the about page and, when this is not the installed app already, how to install it). */
+/**
+ * The menu of the info pages (`/play/info/...`): the way home (the brand), **Back** to the page the person came from (the whole menu changed when they pressed Help, and the logo alone does not say how to get back), and every page of the info,
+ * one entry each (the welcome, the help, the about page and, when this is not the installed app already, how to install it). **They all take each other's place in the history** (`replace`), so the back button of the device also leaves the
+ * info in one press, to where the person came from, however many of its pages were opened. (A link from one info page to another does the same.)
+ */
 export const infoMenu: PlayMenu = () => [
   BRAND,
-  { icon: 'bi-stars', route: '/play/info/welcome', key: 'play.infoWelcome', english: 'Welcome' },
-  { icon: 'bi-book', route: '/play/info/help', key: 'play.infoHelp', english: 'Help' },
-  { icon: 'bi-info-circle', route: '/play/info/about', key: 'play.infoAbout', english: 'About' },
-  ...(isInApp() ? [] : [{ icon: 'bi-download', route: '/play/info/install', key: 'play.infoInstall', english: 'Install' }]),
+  { icon: 'bi-arrow-left', route: '/play/info/back', replace: true, key: 'play.infoBack', english: 'Back' },
+  { icon: 'bi-stars', route: '/play/info/welcome', replace: true, key: 'play.infoWelcome', english: 'Welcome' },
+  { icon: 'bi-book', route: '/play/info/help', replace: true, key: 'play.infoHelp', english: 'Help' },
+  { icon: 'bi-info-circle', route: '/play/info/about', replace: true, key: 'play.infoAbout', english: 'About' },
+  ...(isInApp() ? [] : [{ icon: 'bi-download', route: '/play/info/install', replace: true, key: 'play.infoInstall', english: 'Install' }]),
 ];
 
 /**

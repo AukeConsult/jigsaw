@@ -9,7 +9,6 @@
   "confirmDelete": "Slette dette puslespillet for godt? Bildet og alle rundene, også de andre spillernes, blir slettet også.",
   "yesDelete": "Ja, slett",
   "cancel": "Avbryt",
-  "pieces": "{{ count }} brikker, {{ width }} × {{ height }} px",
   "difficulty": "Vanskelighet",
   "rounds": "Runder",
   "nobody": "Ingen har spilt dette puslespillet ennå.",

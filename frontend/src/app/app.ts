@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Activity } from './core/activity';
 import { AppUpdate } from './core/app-update';
 
 /**
@@ -16,7 +15,6 @@ import { AppUpdate } from './core/app-update';
 export class App {
   /** starts to note when the person is active (the front page welcomes them back only after an hour away), and to look for a newer version of the web app */
   constructor() {
-    inject(Activity);
     inject(AppUpdate);
   }
 

@@ -12,7 +12,6 @@
   "lookingRounds": "Looking for your rounds…",
   "roundsFailed": "Could not read your rounds: reload the page.",
   "noRounds": "You have not played any jigsaw yet.",
-  "findJigsaw": "Filter pictures",
   "solved": "Solved",
   "playing": "Playing",
   "ofTotal": "{{ matched }} of {{ total }}",

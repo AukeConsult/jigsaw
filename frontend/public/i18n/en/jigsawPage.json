@@ -9,7 +9,6 @@
   "confirmDelete": "Delete this jigsaw for good? Its picture and all its rounds, also other players', are deleted too.",
   "yesDelete": "Yes, delete",
   "cancel": "Cancel",
-  "pieces": "{{ count }} pieces, {{ width }} × {{ height }} px",
   "difficulty": "Difficulty",
   "rounds": "Rounds",
   "nobody": "Nobody has played this jigsaw yet.",

@@ -184,7 +184,7 @@ describe("the gate: a user with verified accounts is used only by one of them", 
       expect(res.status, path).not.toBe(403);
     }
     // the user's own, and opening a round, need the login
-    for (const path of ["/jigsaw-users/u1/plays", "/jigsaw-rounds", "/jigsaw/j1/plays/p1"]) {
+    for (const path of ["/jigsaw-users/u1/plays", "/jigsaw/j1/plays/p1"]) {
       const res = await call("get", path, undefined, "u1");
       expect(res.status, path).toBe(401);
       expect(res.body.code, path).toBe("logon-required");

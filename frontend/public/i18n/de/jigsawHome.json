@@ -12,7 +12,6 @@
   "intro": "Mach aus jedem Bild ein Puzzle und setz es zusammen, wo du auch bist.",
   "intro2": "Such ein Bild aus, wähl die Anzahl der Teile und leg los.",
   "note": "Ich liebe es, Puzzles zu machen und zu lösen, und ich hoffe, dir gefällt mein System genauso gut.",
-  "seeAll": "Wähle ein Bild zum Spielen",
   "addNew": "Mach dein eigenes Puzzle",
   "continue": "Laufend",
   "yourRounds": "Deine Runden",
@@ -28,8 +27,5 @@
   "step1": "Wähle unten ein Bild und tippe darauf.",
   "step2": "Ziehe die Teile an ihren Platz.",
   "step3": "Du willst ein eigenes? Mach eins aus einem Bild:",
-  "makeOwn": "Puzzle erstellen",
-  "hide": "Ausblenden",
-  "showBand": "Anzeigen",
-  "hideBand": "Ausblenden"
+  "makeOwn": "Puzzle erstellen"
 }

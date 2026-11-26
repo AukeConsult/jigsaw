@@ -12,7 +12,6 @@
   "intro": "Transforme n'importe quelle image en puzzle et assemble-le, où que tu sois.",
   "intro2": "Choisis une image, dis combien de pièces tu veux, et c'est parti.",
   "note": "J'adore faire des puzzles et des casse-têtes, et j'espère que tu aimeras aussi mon système.",
-  "seeAll": "Choisir une image à jouer",
   "addNew": "Crée ton propre puzzle",
   "continue": "En cours",
   "yourRounds": "Tes parties",
@@ -28,8 +27,5 @@
   "step1": "Choisissez une image ci-dessous et appuyez dessus.",
   "step2": "Glisse les pièces à leur place.",
   "step3": "Envie du tien ? Fais-en un à partir d'une image :",
-  "makeOwn": "Faire un puzzle",
-  "hide": "Masquer",
-  "showBand": "Afficher",
-  "hideBand": "Masquer"
+  "makeOwn": "Faire un puzzle"
 }

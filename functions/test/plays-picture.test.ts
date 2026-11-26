@@ -43,13 +43,12 @@ describe("a picture entry", () => {
     expect(res.status).toBe(400);
   });
 
-  it("has no cut of its own: no piece is put in, moved or taken away for it", async () => {
+  it("has no cut of its own: no piece is put in for it", async () => {
     const { app, picture, pieces } = await setup();
     expect((await request(app).get(`/jigsaw/api/jigsaw-pieces/${picture.id}`)).body).toEqual({ pieces: [] });
-    for (const res of [await request(app).put(`/jigsaw/api/jigsaw-pieces/${picture.id}`).send({ pieces: [] }), await request(app).patch(`/jigsaw/api/jigsaw-pieces/${picture.id}`).send({ moves: [] }), await request(app).delete(`/jigsaw/api/jigsaw-pieces/${picture.id}`)]) {
-      expect(res.status).toBe(409);
-      expect(res.body.error).toMatch(/not cut/);
-    }
+    const put = await request(app).put(`/jigsaw/api/jigsaw-pieces/${picture.id}`).send({ pieces: [] });
+    expect(put.status).toBe(409);
+    expect(put.body.error).toMatch(/not cut/);
     expect(pieces.docs.has(picture.id)).toBe(false);
   });
 

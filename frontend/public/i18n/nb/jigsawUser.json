@@ -12,7 +12,6 @@
   "lookingRounds": "Leter etter rundene dine…",
   "roundsFailed": "Kunne ikke lese rundene dine: last siden på nytt.",
   "noRounds": "Du har ikke spilt noe puslespill ennå.",
-  "findJigsaw": "Filtrer bilder",
   "solved": "Løst",
   "playing": "Spiller",
   "ofTotal": "{{ matched }} av {{ total }}",

@@ -80,7 +80,6 @@ $fluid-to: 87.5; // 1400px in rem
   --app-fs-small: #{fluid(0.8125, 0.9375)}; // labels and the help under a field, notes, the text of every button
   --app-fs-menu: #{fluid(0.75, 1.125, 64)}; // not one of the five: the text of the menu of the app (class `.menu-font`): follows the width in a straight line from 12 px on a phone (375 px) to 18 px on a pad (1024 px) and wider. Its own token, so the menu is tuned alone
   --app-fs-compact: #{fluid(0.75, 0.9375)}; // not one of the five: the name on a card, smaller than `small` on a phone (12 px) and the same as it on a wide screen (class `.card-name`)
-  --app-fs-band: #{fluid(0.8125, 1.125)}; // not one of the five: the heading badge of a band (Ongoing): from the size of `small` on a phone to 18 px on a wide screen, so it follows the screen
   --app-fs-tiny: #{fluid(0.6875, 0.8125)}; // the tiniest text: dates, details, badges, a hint on the board (class `.tiny`): 11 px on a phone, 13 px on a big screen
   --app-fs-hint: #{fluid(0.5625, 0.8125, 64)}; // not one of the five: the word under an icon of a menu stuck to the top or the bottom: from 9 px on a phone to 13 px on a pad and wider
   // the buttons: the text of every button is `--app-fs-small` (the main one `--app-fs-text`); what makes them three sizes is the room round the text, in em, so it
@@ -116,7 +115,6 @@ $fluid-to: 87.5; // 1400px in rem
   --app-nav-green: #198754;
   --app-nav-amber: #d9680a;
   --app-nav-purple: #6f42c1;
-  --app-nav-teal: #0b8fa8;
   --app-nav-red: #dc3545;
   // the colours of the choices (`.choice-group`): each choice in a row has the next colour, a soft tint when it is not chosen and the full colour when it is. The one place to change them (a style sheet of the app will set them)
   --app-choice-1: #0d6efd;
@@ -187,7 +185,6 @@ $fluid-to: 87.5; // 1400px in rem
   --app-vis-private-bg: rgba(13, 110, 253, 0.1);
   --app-vis-public-bg: rgba(25, 135, 84, 0.1);
   --app-form-width-wide: 56rem; // a form page with lists in it (the page of the user)
-  --app-list-width: 48rem;
   --app-grip-size: 1.75rem; // the corner that sizes the helper picture
   --app-tile-gap: 0.25rem;
   --app-navbar-height: 3.5rem; // the menu at the top of a wide screen: what a band stuck under it leaves room for
@@ -293,7 +290,7 @@ $fluid-to: 87.5; // 1400px in rem
 
 // how big the person of the app likes the small labels (`data-labels`): their text, and with it the room round it, which is in `em`
 @each $size, $scale in ("small", 0.85), ("large", 1.35) {
-  play-main[data-labels='#{$size}'] .badge:not(.band-badge) {
+  play-main[data-labels='#{$size}'] .badge {
     --bs-badge-font-size: calc(var(--app-fs-tiny) * #{$scale});
   }
 }
@@ -1066,26 +1063,6 @@ app-category-picker {
   --bs-badge-padding-y: 0.3em;
 }
 
-.band-badge {
-  cursor: pointer; // the heading is a button: it folds the band and opens it again
-  // the heading of a band (Ongoing) is a soft white pill with the blue of the look round it and in its words, in a size that follows the screen (`--app-fs-band`), and its room is in `em`, so the whole badge follows the text
-  --bs-badge-font-size: var(--app-fs-band);
-  --bs-badge-padding-x: 0.9em;
-  --bs-badge-padding-y: 0.4em;
-  --bs-badge-font-weight: 600;
-  color: var(--app-primary);
-  background-color: var(--bs-body-bg);
-  border: 1px solid color-mix(in srgb, var(--app-primary) 35%, transparent);
-  box-shadow: 0 0.125rem 0.5rem color-mix(in srgb, var(--app-primary) 18%, transparent);
-  transition: background-color 0.2s, box-shadow 0.2s;
-
-  &:hover,
-  &:focus-visible {
-    background-color: color-mix(in srgb, var(--app-primary) 9%, var(--bs-body-bg));
-    box-shadow: 0 0.1875rem 0.75rem color-mix(in srgb, var(--app-primary) 28%, transparent);
-  }
-}
-
 .btn-lg,
 .btn-main {
   --bs-btn-font-size: var(--app-fs-text);
@@ -1155,7 +1132,7 @@ app-category-picker {
 // ---- the toolbar: a row of plain words (no boxes, no padding at the sides) -----------------------------------------------------------------------------
 // The one standard for a row of choices and actions at the top of a page or a part of it. Every text in it starts exactly where it looks to start, so it lines up
 // with what is above and below it (a list, a note under it), and the gaps between the parts are one size. Use:
-//   <div class="toolbar">  <div class="segmented"> ... </div>  <a class="link-action"> ... </a>  <button class="link-action toolbar-end"> ... </button>  </div>
+//   <div class="toolbar">  <div class="segmented"> ... </div>  <a class="link-action"> ... </a>  <button class="link-action"> ... </button>  </div>
 //   <div class="toolbar-note"> a tiny line under it, like how many there are </div>
 //   <button class="link-inline"> a word in a sentence that does something </button>
 .toolbar {
@@ -1164,11 +1141,6 @@ app-category-picker {
   align-items: center;
   column-gap: 1rem;
   row-gap: 0.25rem;
-}
-
-/** push this part of a toolbar to its right end */
-.toolbar-end {
-  margin-left: auto;
 }
 
 // the choices of a search (Find page, the filter of a list) are packed close: small gaps between the rows and under the headings, so more of them are seen at once
@@ -1216,16 +1188,6 @@ app-jigsaw-filter {
   font-size: var(--app-fs-small); // not the tiniest: it is read on the soft pattern of the page
   font-weight: 500;
   color: var(--bs-body-color);
-}
-
-// the quick filters sit on the soft pattern of the page: the ones that are not on have a plain background and the colour of the text, so they can be read
-.quick-filters .btn-outline-secondary {
-  --bs-btn-color: var(--bs-body-color);
-  --bs-btn-bg: var(--bs-body-bg);
-  --bs-btn-border-color: var(--bs-secondary-color);
-  --bs-btn-hover-color: var(--bs-body-color);
-  --bs-btn-hover-bg: var(--bs-tertiary-bg);
-  --bs-btn-hover-border-color: var(--bs-secondary-color);
 }
 
 // a text that does something, in the toolbar: an icon and words, no box (`danger` for one that deletes)
@@ -1480,21 +1442,6 @@ app-welcome {
   }
 }
 
-// the Hide button of the welcome: in the lower right corner of the band. On a narrow screen it is in the flow under the content (right-aligned) so it cannot cover it; from `$bp-lg`, where the three columns leave room, it is in the corner itself
-.welcome-hide {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 0.5rem 0.5rem;
-
-  @include from($bp-lg) {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    padding: 0;
-    margin: 0.5rem;
-  }
-}
-
 .welcome-news {
   grid-area: news;
   display: block;
@@ -1572,20 +1519,6 @@ app-welcome {
   gap: 0.5rem;
 }
 
-/* the welcome at the top of the front page: it fades away and gives its room back (`StartWelcome` takes it away when the fade is over) */
-.start-welcome {
-  max-height: 12rem;
-  overflow: hidden;
-  transition:
-    opacity 1s ease,
-    max-height 1s ease;
-
-  &.fading {
-    opacity: 0;
-    max-height: 0;
-  }
-}
-
 /* the element of the band takes no box of its own: the band inside it is sticky, and a sticky box only sticks inside its parent, so its parent has to be the whole page */
 app-my-rounds {
   display: contents;
@@ -1596,8 +1529,8 @@ app-my-rounds {
   position: sticky;
   top: 0.5rem; // a little below the top of the page, so the pattern shows above it
   z-index: var(--app-z-band);
-  margin: 1rem 0.75rem 0; // room round it, so the soft pattern of the page shows (it is a frame of its own, like the lists); the top is room for the badge on the border
-  padding: 0.875rem 0 0.25rem; // a little room under the badge that sits half over the top border
+  margin: 1rem 0.75rem 0; // room round it, so the soft pattern of the page shows (it is a frame of its own, like the lists)
+  padding: 0.875rem 0 0.25rem;
   border-radius: var(--bs-border-radius-lg);
   box-shadow: var(--bs-box-shadow-sm);
 
@@ -1637,29 +1570,6 @@ app-my-rounds {
   background-size: 9.375rem 9.375rem, auto, auto;
   background-origin: border-box;
   background-clip: padding-box, padding-box, border-box;
-}
-
-/* folded (the badge was pressed): the band is gone, there is only a hairline across the page with the badge on it (pressing the badge opens the band again) */
-.my-rounds.ongoing.folded {
-  padding: 0;
-  min-height: 0;
-  background: none;
-  border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--app-primary) 30%, transparent);
-  border-radius: 0;
-  box-shadow: none;
-}
-
-/* the welcome (no round going) is big: it is not stuck, it scrolls up and away with the list under it */
-.my-rounds.welcome-band {
-  position: static;
-  margin-top: 0; // no badge on its top border (the "Ongoing" band has one), so no room for it above the band or under the border
-  padding-top: 0;
-  margin-bottom: 0.5rem; // a small gap between the band and the row of quick filters under it
-  border: var(--bs-border-width) solid var(--bs-border-color);
-  background-color: var(--bs-tertiary-bg);
-  background-image: $soft-pattern;
-  background-size: $soft-pattern-size;
 }
 /* a touch screen (phone, tablet): the page is fixed sideways, it only moves up and down (pinch to zoom stays). The cards of the band are moved with its two buttons.
    Only `html` is set, so the page scrolls as the window does and the sticky bands keep working. */
@@ -1803,11 +1713,7 @@ app-my-rounds {
   --nav-accent: var(--app-nav-amber);
 }
 
-// the links at the left of the menu have a colour each too: Find is teal, Add picture green and Admin red
-.app-navbar .nav-link[href='/jigsaw/find'] {
-  --nav-accent: var(--app-nav-teal);
-}
-
+// the links at the left of the menu have a colour each too: Add picture green and Admin red
 .app-navbar .nav-link[href^='/jigsaw/new'] {
   --nav-accent: var(--app-nav-green);
 }
@@ -1871,13 +1777,6 @@ app-my-rounds {
     flex: 0 0 auto;
     width: clamp(2.75rem, calc((100vw - 3rem) / 6.6), 7.5rem); // follows the width of the page, half as big as before: at least six cards are in view (and a bit of the next): small on a phone, bigger on a wide screen
   }
-}
-
-/* a grid of jigsaw cards: as many 11 rem columns as fit, the page scrolls to the rest */
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0.75rem;
 }
 
 .thumb-tile {
@@ -2231,22 +2130,6 @@ app-my-rounds {
 img {
   -webkit-user-drag: none;
   user-select: none;
-}
-
-.touch-none {
-  touch-action: none; // a finger drags instead of scrolling the page
-}
-
-.cursor-move {
-  cursor: move;
-}
-
-.cursor-grab {
-  cursor: grab;
-}
-
-.cursor-crosshair {
-  cursor: crosshair;
 }
 
 // ---- the top menus of the two modules --------------------------------------------------------------------------------------------------------------
@@ -2701,9 +2584,9 @@ body:has(play-main:is([data-table='felt'], [data-table='wood'], [data-table='sum
   pointer-events: none;
 }
 
-// Every other background of the app is the theme's too: the band of the rounds going, the welcome band and the header of the floating menu, with the edges round them. (Jigsaw has its own looks for these, the ones
+// Every other background of the app is the theme's too: the band of the rounds going and the header of the floating menu, with the edges round them. (Jigsaw has its own looks for these, the ones
 // the website has.) A white inner shadow lifts them off the page and lets what lies on them be read: a little on a light theme, much where words lie straight on a dark one.
-$themed-places: ".my-rounds.ongoing:not(.folded), .my-rounds.welcome-band, .play-helper .brand-item";
+$themed-places: ".my-rounds.ongoing, .play-helper .brand-item";
 
 @each $table in "felt", "wood", "linen", "spring", "summer", "autumn", "winter", "calm", "angry" {
   play-main[data-table='#{$table}'] :is(#{$themed-places}) {
@@ -2727,13 +2610,11 @@ play-main:not([data-table='jigsaw']) {
   --app-theme-lift: 0.35;
   --app-theme-lift-words: 0.4;
 
-  .my-rounds.ongoing:not(.folded),
-  .my-rounds.welcome-band {
+  .my-rounds.ongoing {
     border-color: var(--app-theme-edge);
     box-shadow: inset 0 0 0 100vmax rgba(255, 255, 255, var(--app-theme-lift)), var(--bs-box-shadow-sm);
   }
 
-  .my-rounds.welcome-band,
   .play-helper .brand-item {
     --app-theme-lift: var(--app-theme-lift-words);
   }
@@ -3164,10 +3045,6 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   .piece-svg.blink {
     animation: none;
   }
-
-  .start-welcome {
-    transition: none; // it goes at once, without the fade
-  }
 }
 
 .piece-outline {
@@ -3273,15 +3150,6 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   h3 { margin-top: 1.5rem; }
   pre { overflow-x: auto; }
   li { margin-bottom: 0.35rem; }
-}
-
-.list-thumb {
-  width: 3.5rem;
-  height: 2.6rem; // the small picture of a jigsaw in the list
-}
-
-.page-list {
-  max-width: var(--app-list-width);
 }
 
 // the description of a jigsaw, as the owner typed it: the line breaks stay, and a long word wraps inside the view

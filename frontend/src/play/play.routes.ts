@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { adminGuard } from '../app/jigsaw/admin.guard';
 import { publisherGuard } from '../app/jigsaw/publisher.guard';
 import { modeGuard } from '../app/core/app-mode';
@@ -22,7 +23,7 @@ import { PlayRound } from './pages/round/round';
 import { PlayJigsaw } from './pages/jigsaw/jigsaw';
 import { PlayAccountPrefs } from './pages/account-prefs/account-prefs';
 import { PlayMain } from './play-main/play-main';
-import { lastPage } from './last-page';
+import { lastPage, pageBeforeInfo } from './last-page';
 
 /**
  * The routes of the app, under `/play`: **the main page is the main route, and the pages are its sub routes**, each shown in the one router outlet of the main page: `/play/list` the picture list, `/play/account` the account (who is on, and all that has to
@@ -55,6 +56,7 @@ export const PLAY_ROUTES: Routes = [
         data: { menu: infoMenu },
         children: [
           { path: '', pathMatch: 'full', redirectTo: () => lastPage('info') }, // /play/info has no page of its own: it opens the page of the info that was open last, the help to begin with
+          { path: 'back', redirectTo: () => inject(Router).parseUrl(pageBeforeInfo()) }, // Back, in the menu and on the pages: to where the person was before the info
           { path: 'welcome', component: PlayInfo, title: 'Welcome', data: { doc: 'welcome' } },
           { path: 'help', component: PlayInfo, title: 'Help', data: { doc: 'help' } },
           { path: 'about', component: PlayInfo, title: 'About', data: { doc: 'about' } },

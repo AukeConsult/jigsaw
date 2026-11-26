@@ -12,7 +12,6 @@
   "lookingRounds": "Buscando tus partidas…",
   "roundsFailed": "No se pudieron leer tus partidas: recarga la página.",
   "noRounds": "Todavía no has jugado a ningún puzle.",
-  "findJigsaw": "Filtrar imágenes",
   "solved": "Resuelto",
   "playing": "Jugando",
   "ofTotal": "{{ matched }} de {{ total }}",

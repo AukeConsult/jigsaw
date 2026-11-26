@@ -6,7 +6,7 @@ import { memoryPlays } from "./memory-plays";
 import type { JigsawStore } from "../src/common/jigsaw-list";
 import type { JigsawSpec } from "../src/models";
 import { MAX_PIECE_GRAPHIC_BYTES, PieceGraphic, PieceStore } from "../src/jigsaw/jigsaw-pieces";
-import { JIGSAW_MAX_PIECES, DEFAULT_OBJECT, JigsawCut, JigsawPiece, JigsawPieces, PieceMove } from "../src/models";
+import { JIGSAW_MAX_PIECES, DEFAULT_OBJECT, JigsawCut, JigsawPiece, JigsawPieces } from "../src/models";
 
 /** the pieces in memory: what the subcollection and the bucket are in the app */
 function memoryPieces(jigsaws: string[]) {
@@ -20,14 +20,6 @@ function memoryPieces(jigsaws: string[]) {
       if (!jigsaws.includes(id)) return false;
       docs.set(id, new Map(pieces.map((p) => [p.id, p])));
       graphics.set(id, new Map(g));
-      return true;
-    },
-    async move(id, moves: PieceMove[]) {
-      if (!jigsaws.includes(id)) return false;
-      for (const m of moves) {
-        const was = docs.get(id)?.get(m.id);
-        if (was) docs.get(id)!.set(m.id, JigsawPieces.stored({ ...was, centerX: m.centerX, centerY: m.centerY, layer: m.layer }));
-      }
       return true;
     },
     async graphic(id, pieceId) {
@@ -86,22 +78,6 @@ describe("the pieces of a jigsaw in the database", () => {
     expect(got.find((p) => p.id === wrong.id)?.matched).toBe(false);
   });
 
-  it("saves where pieces are and on which layer, and the matched status follows from that", async () => {
-    const { app } = setup();
-    const pieces = cutPieces();
-    await request(app).put(`/jigsaw/api/jigsaw-pieces/${id}`).send({ pieces });
-    const piece = pieces[5]; // its own place is 75, 75
-    const moved = await request(app).patch(`/jigsaw/api/jigsaw-pieces/${id}`).send({ moves: [{ id: piece.id, centerX: 75, centerY: 75, layer: 99 }, { id: "piece-9-9", centerX: 1, centerY: 1, layer: 1 }] });
-    expect(moved.status).toBe(200);
-    let got = (await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}`)).body.pieces as JigsawPiece[];
-    expect(got.find((p) => p.id === piece.id)).toMatchObject({ centerX: 75, centerY: 75, layer: 99, matched: true });
-    expect(got).toHaveLength(12); // a piece that is not there is left out, not made
-    await request(app).patch(`/jigsaw/api/jigsaw-pieces/${id}`).send({ moves: [{ id: piece.id, centerX: 500, centerY: 20, layer: 100 }] });
-    got = (await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}`)).body.pieces as JigsawPiece[];
-    expect(got.find((p) => p.id === piece.id)).toMatchObject({ centerX: 500, layer: 100, matched: false });
-    expect(got.find((p) => p.id === piece.id)?.number).toBe(6); // what it is does not change
-  });
-
   it("replaces all the pieces and their graphics when the jigsaw is cut again", async () => {
     const { app, graphics, docs } = setup();
     await request(app).put(`/jigsaw/api/jigsaw-pieces/${id}`).send({ pieces: cutPieces(dataAddress(webp)) });
@@ -129,7 +105,7 @@ describe("the pieces of a jigsaw in the database", () => {
     expect((await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}/graphic/${pieces[0].id}`).set("If-None-Match", tag)).status).toBe(304);
   });
 
-  it("refuses bad pieces, bad graphics, bad moves and too many", async () => {
+  it("refuses bad pieces, bad graphics and too many", async () => {
     const { app, docs } = setup();
     const pieces = cutPieces();
     const put = (list: unknown) => request(app).put(`/jigsaw/api/jigsaw-pieces/${id}`).send({ pieces: list });
@@ -145,11 +121,6 @@ describe("the pieces of a jigsaw in the database", () => {
     expect((await put([{ ...pieces[0], graphic: dataAddress(Buffer.from("just text, not a picture")) }])).status).toBe(400);
     expect((await put([{ ...pieces[0], graphic: dataAddress(Buffer.concat([webp, Buffer.alloc(MAX_PIECE_GRAPHIC_BYTES)])) }])).status).toBe(400);
     expect((await put(Array.from({ length: JIGSAW_MAX_PIECES + 1 }, (_, i) => ({ ...pieces[0], id: `p${i}` })))).status).toBe(400);
-    const patch = (moves: unknown) => request(app).patch(`/jigsaw/api/jigsaw-pieces/${id}`).send({ moves });
-    expect((await patch("no")).status).toBe(400);
-    expect((await patch([{ id: "x", centerX: -1, centerY: 0, layer: 5 }])).status).toBe(400);
-    expect((await patch([{ id: "x", centerX: 1, centerY: 1, layer: 0 }])).status).toBe(400);
-    expect((await patch([{ id: "x", centerX: 1.3, centerY: 1, layer: 5 }])).status).toBe(400); // whole or half pixels
     expect((await request(app).get("/jigsaw/api/jigsaw-pieces/short")).status).toBe(400);
     expect(docs.size).toBe(0);
   });
@@ -158,15 +129,7 @@ describe("the pieces of a jigsaw in the database", () => {
     const { app, docs } = setup([]);
     expect((await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}`)).status).toBe(404);
     expect((await request(app).put(`/jigsaw/api/jigsaw-pieces/${id}`).send({ pieces: cutPieces() })).status).toBe(404);
-    expect((await request(app).patch(`/jigsaw/api/jigsaw-pieces/${id}`).send({ moves: [] })).status).toBe(404);
     expect(docs.size).toBe(0);
-  });
-
-  it("takes all the pieces away with DELETE", async () => {
-    const { app, docs } = setup();
-    await request(app).put(`/jigsaw/api/jigsaw-pieces/${id}`).send({ pieces: cutPieces() });
-    expect((await request(app).delete(`/jigsaw/api/jigsaw-pieces/${id}`)).status).toBe(204);
-    expect(docs.has(id)).toBe(false);
   });
 
   it("takes a body big enough for all the graphics of a jigsaw", async () => {

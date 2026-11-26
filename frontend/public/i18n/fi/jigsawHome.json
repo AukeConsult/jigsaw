@@ -12,7 +12,6 @@
   "intro": "Muuta mikä tahansa kuva palapeliksi ja kokoa se missä vain.",
   "intro2": "Valitse kuva, kerro palojen määrä ja aloita.",
   "note": "Rakastan palapelien ja pulmien tekemistä, ja toivon, että sinäkin pidät järjestelmästäni.",
-  "seeAll": "Valitse pelattava kuva",
   "addNew": "Tee oma palapeli",
   "continue": "Käynnissä",
   "yourRounds": "Kierroksesi",
@@ -28,8 +27,5 @@
   "step1": "Valitse alta kuva ja paina sitä.",
   "step2": "Vedä palat paikoilleen.",
   "step3": "Haluatko oman? Tee sellainen kuvasta:",
-  "makeOwn": "Tee palapeli",
-  "hide": "Piilota",
-  "showBand": "Näytä",
-  "hideBand": "Piilota"
+  "makeOwn": "Tee palapeli"
 }

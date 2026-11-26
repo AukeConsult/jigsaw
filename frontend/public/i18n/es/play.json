@@ -236,5 +236,6 @@
   "linkPlays": "Quien reciba este enlace puede ver la imagen y jugarla.",
   "newLink": "Crear un enlace nuevo: el antiguo dejará de funcionar",
   "newLinkMade": "Hay un enlace nuevo. Compártelo otra vez.",
-  "close": "Cerrar"
+  "close": "Cerrar",
+  "infoBack": "Volver"
 }

@@ -36,11 +36,5 @@
   "share": {
     "title": "Tell others",
     "text": "Share this page with friends who would like the app."
-  },
-  "hint": {
-    "android": "Get Karins jigsaw as an Android app",
-    "windows": "Get Karins jigsaw as a Windows app",
-    "ios": "Put Karins jigsaw on your home screen",
-    "close": "Close"
   }
 }

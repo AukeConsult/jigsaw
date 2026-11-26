@@ -12,9 +12,6 @@
           <p class="text-body-secondary mb-3">{{ t('jigsawUser.noRounds') || 'You have not played any jigsaw yet.' }}</p>
         <div class="d-flex flex-wrap justify-content-center gap-2">
           <a class="btn btn-main btn-primary" routerLink="/"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawUser.startButton') || 'Start playing' }}</a>
-          @if (!inApp()) {
-            <a class="btn btn-main btn-outline-primary" routerLink="/jigsaw/find"><i class="bi bi-search" aria-hidden="true"></i>{{ t('jigsawUser.findJigsaw') || 'Filter pictures' }}</a>
-          }
         </div>
         </div>
       } @else {

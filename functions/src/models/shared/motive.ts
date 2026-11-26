@@ -14,9 +14,6 @@ export const MOTIVES = [
 ] as const;
 export type MotiveLevel = (typeof MOTIVES)[number]['key'];
 
-/** The Bootstrap icon of the motive difficulty. */
-export const MOTIVE_ICON = 'bi-bullseye';
-
 /** The rules of the motive difficulty. One place, so the forms, the pages, the search and the API cannot disagree. */
 export class JigsawMotives {
   /** The keys of the levels, the easiest first. */

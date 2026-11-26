@@ -27,7 +27,7 @@
       } @else if (item.language) {
         <app-language-select [inBar]="docked()" />
       } @else if (item.route) {
-        <a class="nav-link d-flex align-items-center gap-1" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route" [title]="label">
+        <a class="nav-link d-flex align-items-center gap-1" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route" [replaceUrl]="item.replace ?? false" [title]="label">
           <span class="menu-icon"><i class="bi" [class]="item.icon" aria-hidden="true"></i>@if (item.mark && filterOn()) {<span class="menu-mark" [title]="t('play.filterOn') || 'The filter is on'"><span class="visually-hidden">{{ t('play.filterOn') || 'The filter is on' }}</span></span>}</span><span class="fit-label">{{ label }}</span>
         </a>
       }
@@ -65,7 +65,7 @@
         <!-- the language of the app: the flag and name of the language in use, and the list one step down (the same choice as in the menu of the website) -->
         <app-language-select />
       } @else if (item.route) {
-        <a class="list-group-item list-group-item-action" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route">
+        <a class="list-group-item list-group-item-action" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route" [replaceUrl]="item.replace ?? false">
           <span class="menu-icon me-2"><i class="bi" [class]="item.icon" aria-hidden="true"></i>@if (item.mark && filterOn()) {<span class="menu-mark" [title]="t('play.filterOn') || 'The filter is on'"><span class="visually-hidden">{{ t('play.filterOn') || 'The filter is on' }}</span></span>}</span>{{ item.text || (item.key ? (t(item.key) || item.english) : '') }}
         </a>
       }

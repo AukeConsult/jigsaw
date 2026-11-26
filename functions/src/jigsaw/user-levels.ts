@@ -44,7 +44,7 @@ export function userLevels(users: Pick<UserStore, "get">, now: () => number = Da
  * admin can be made from the page; the account that gets a level above `user` must have a verified login (409), and the last admin cannot step down (409). GET /open says whether there is no admin
  * (`{ open: true }`): the page shows its admin menu to everybody then. It is not under `/jigsaw-users/:id`, so the gate asks for the login of the one who asks and not for the login of the account that is changed.
  */
-export function userLevelRouter(users: UserStore, levels: Levels, onChanged: (userId: string) => void = () => undefined): express.Router {
+export function userLevelRouter(users: UserStore, levels: Levels, onChanged: (userId: string) => void): express.Router {
   const router = apiRouter();
   const noAdmin = async () => !UserLevels.hasAdmin(await users.list());
   router.get("/open", async (_req, res) => void res.json({ open: await noAdmin() }));

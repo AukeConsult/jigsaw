@@ -1,7 +1,7 @@
 import { PlayLookSetup, PlayLooks } from './play-look';
 import { TextLookSetup, TextLooks } from './text-look';
 import { PartSize, PartSizes, SIZED_PARTS } from './part-size';
-import { JigsawFilter, JigsawFilters, JigsawSetup } from './jigsaw-filter';
+import { JigsawFilter, JigsawFilters } from './jigsaw-filter';
 import { DEFAULT_LANGUAGE, JigsawLanguages } from './language';
 import { UserLevel, UserLevels } from './user-level';
 
@@ -27,8 +27,6 @@ export interface JigsawUserSpec {
   name: string;
   /** the language the app is shown in for the user (a code of `JIGSAW_LANGUAGES`; English when the user has not chosen) */
   language: string;
-  /** how the user looks for jigsaws (the Find page: cards or list, and the filter), kept when Go is pressed, so it is the same on every device; none until Go has been pressed */
-  search?: JigsawSetup;
   /** what the app's picture list is filtered by (the preferences of the app), kept with the user so it is the same on every device; none until the user has chosen something */
   listFilter?: JigsawFilter;
   /** how the user likes the play area: the table and the sound of a click (`PlayLooks`); none until the user has chosen */
@@ -61,7 +59,7 @@ export interface JigsawUserSpec {
 }
 
 /** What a person chooses about their account (besides its picture): the fields of a change that are kept just as they are. A new setting is added here, and the compiler says where else. */
-export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'username' | 'language' | 'search' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'labelSize' | 'tileDetails'>>;
+export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'username' | 'language' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'labelSize' | 'tileDetails'>>;
 
 /** A change of an account as the page asks for it: the settings, and the picture (a data address; null takes it away). */
 export type UserEdit = UserSettings & { picture?: string | null };
@@ -175,10 +173,6 @@ export class JigsawUsers {
       if (!JigsawLanguages.is(body.language)) return { error: JigsawLanguages.error(body.language) || 'Choose a language.' };
       change.language = body.language;
     }
-    if (body.search !== undefined) {
-      if (!JigsawFilters.isSetup(body.search)) return { error: 'The search is not one the Find page makes.' };
-      change.search = { view: body.search.view, filter: body.search.filter };
-    }
     if (body.listFilter !== undefined) {
       if (!JigsawFilters.is(body.listFilter)) return { error: 'The filter of the list is not one the preferences make.' };
       change.listFilter = JigsawFilters.stored(body.listFilter);
@@ -201,7 +195,7 @@ export class JigsawUsers {
       if (typeof body.tileDetails !== 'boolean') return { error: 'Say whether the tiles show their details: yes or no.' };
       change.tileDetails = body.tileDetails;
     }
-    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture, the search, the filter of the list, the play area, the text or the sizes.' };
+    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture, the filter of the list, the play area, the text or the sizes.' };
   }
 
   /** The order of the accounts in a list: the one used last first; those never used after those that were, newest made first; then by name. */
@@ -259,6 +253,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.isSetup(doc.search) ? { search: doc.search } : {}), ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(PartSizes.is(doc.labelSize) ? { labelSize: doc.labelSize } : {}), ...(typeof doc.tileDetails === 'boolean' ? { tileDetails: doc.tileDetails } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
+    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(PartSizes.is(doc.labelSize) ? { labelSize: doc.labelSize } : {}), ...(typeof doc.tileDetails === 'boolean' ? { tileDetails: doc.tileDetails } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
   }
 }

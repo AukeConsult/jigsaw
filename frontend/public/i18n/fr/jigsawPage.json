@@ -9,7 +9,6 @@
   "confirmDelete": "Supprimer ce puzzle définitivement ? Son image et toutes ses parties, y compris celles des autres joueurs, seront aussi supprimées.",
   "yesDelete": "Oui, supprimer",
   "cancel": "Annuler",
-  "pieces": "{{ count }} pièces, {{ width }} × {{ height }} px",
   "difficulty": "Difficulté",
   "rounds": "Parties",
   "nobody": "Personne n'a encore joué à ce puzzle.",

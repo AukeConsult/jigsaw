@@ -7,8 +7,6 @@ import { LanguageService } from '../core/language.service';
 import { environment } from '../../environments/environment';
 import { JigsawUserSpec, JigsawUsers, UserEdit, UserSettings } from '../models/shared/jigsaw-user';
 import { UserLevel, UserLevels } from '../models/shared/user-level';
-import { FRONT_FINDER_KEY, hasFinderPreferences, readFinderPreferences, writeFinderPreferences } from './jigsaw-finder/finder-preferences';
-import { JigsawFilters } from '../models/shared/jigsaw-filter';
 import { apiError } from '../core/api-error';
 import { rememberUserId, storedUserId } from '../core/stored-user';
 
@@ -96,7 +94,6 @@ export class JigsawUserService {
           const user = await this.read(id);
           this.user.set(user);
           this.language.use(user.language); // the app is shown in the language of the user
-          if (user.search && !hasFinderPreferences(FRONT_FINDER_KEY)) writeFinderPreferences(FRONT_FINDER_KEY, user.search); // a device that has no search of its own takes the user's
           return user;
         } catch (err) {
           if (err instanceof HttpErrorResponse && err.status === 404) rememberUserId(null); // the user is gone: choose again
@@ -166,7 +163,6 @@ export class JigsawUserService {
     if (!this.adminAccount() || this.user()?.id === id) return tr('userLevels.into.notAllowed', 'Only an admin can go into an account.');
     try {
       const account = await this.read(id);
-      this.emptyFinder();
       rememberUserId(account.id);
       this.user.set(account);
       this.loaded = Promise.resolve(account);
@@ -180,7 +176,6 @@ export class JigsawUserService {
   async backToAdmin(): Promise<string> {
     const admin = this.admin();
     if (!admin) return '';
-    this.emptyFinder();
     return this.selectById(admin.id);
   }
 
@@ -287,22 +282,12 @@ export class JigsawUserService {
 
   /** Stops playing as this user (the user stays in the database). */
   leave(): void {
-    this.emptyFinder();
     rememberUserId(null);
     this.user.set(null);
     this.loaded = Promise.resolve(null);
   }
 
-  /**
-   * What was looked for belongs to the person who looked: when the user changes (another account is chosen, or none plays any more) the filter of the front page is emptied, so the next person sees all the
-   * pictures. How they are shown (cards or list) stays. An empty setup is written, not nothing, so a device that has been emptied is not given the search of the user again when the page opens.
-   */
-  private emptyFinder(): void {
-    writeFinderPreferences(FRONT_FINDER_KEY, { view: readFinderPreferences(FRONT_FINDER_KEY).view, filter: JigsawFilters.empty() });
-  }
-
   private choose(user: JigsawUserSpec): void {
-    if (this.user()?.id !== user.id) this.emptyFinder();
     rememberUserId(user.id);
     // the account was chosen: the lists put it first the next time (a failure is not worth telling the person about)
     void firstValueFrom(this.http.post(`${this.url(user.id)}/used`, {})).catch(() => undefined);

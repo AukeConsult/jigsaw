@@ -236,5 +236,6 @@
   "linkPlays": "Alle, der får dette link, kan se billedet og spille det.",
   "newLink": "Lav et nyt link: det gamle holder op med at virke",
   "newLinkMade": "Et nyt link er lavet. Del det igen.",
-  "close": "Luk"
+  "close": "Luk",
+  "infoBack": "Tilbage"
 }

@@ -86,7 +86,7 @@ export const documentExists = async (ref: DocumentReference): Promise<boolean> =
 
 /**
  * PUT /jigsaw-image/:id: the picture of a jigsaw (the request body is the file, replacing one that is there; 404 when there is no such jigsaw).
- * GET (and HEAD): the file, or 404. DELETE: takes it away.
+ * GET (and HEAD): the file, or 404. (The picture goes when its jigsaw is deleted.)
  */
 export function jigsawImageRouter(images: ImageStore, exists: (id: string) => Promise<boolean>): express.Router {
   const router = apiRouter();
@@ -126,11 +126,6 @@ export function jigsawImageRouter(images: ImageStore, exists: (id: string) => Pr
       return;
     }
     sendPicture(req, res, picture);
-  });
-
-  router.delete("/:id", async (req, res) => {
-    await images.remove(req.params.id);
-    res.status(204).end();
   });
 
   return router;
