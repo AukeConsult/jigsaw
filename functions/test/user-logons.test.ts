@@ -74,7 +74,7 @@ function setup() {
   /** u1 is verified by these accounts from the start */
   const protect = (id: string, ...uids: string[]) => users.changeLogons(id, () => uids);
   const logonsOf = async (id: string) => JigsawUsers.logonsOf(await users.get(id));
-  const call = (method: "get" | "put" | "post" | "delete", path: string, auth?: string, as?: string) => {
+  const call = (method: "get" | "put" | "post" | "patch" | "delete", path: string, auth?: string, as?: string) => {
     const r = request(app)[method](`/jigsaw/api${path}`);
     if (auth) r.set("Authorization", `Bearer ${auth}`);
     if (as) r.set("X-Jigsaw-User", as);
@@ -194,6 +194,16 @@ describe("the gate: a user with verified accounts is used only by one of them", 
     expect((await call("put", "/jigsaw/j1", undefined, "u1").send({})).status).toBe(401);
     // the right login is let through as before
     expect((await call("get", "/jigsaw-users/u1/plays", "a", "u1")).status).toBe(200);
+  });
+
+  it("needs the login also for the saves a page sends as it is left (they are changes of a round)", async () => {
+    const { call, protect } = setup();
+    await protect("u1", "fb-a");
+    const save = (auth?: string) => call("patch", "/jigsaw/j1/plays/p1/positions", auth, "u1").send({ moves: [], elapsedMs: 1000 });
+    const without = await save();
+    expect(without.status).toBe(401);
+    expect(without.body.code).toBe("logon-required");
+    expect((await save("a")).status).toBe(404); // through the gate: there is just no such jigsaw here
   });
 
   it("lets any one of the verified accounts through, and answers 403 wrong-logon for another good token", async () => {

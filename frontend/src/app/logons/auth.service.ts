@@ -5,6 +5,7 @@ import {
   createUserWithEmailAndPassword,
   isSignInWithEmailLink,
   onAuthStateChanged,
+  onIdTokenChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
@@ -48,6 +49,36 @@ export class AuthService {
     );
     setTimeout(resolve, 4000); // never keep the app waiting for good
   });
+
+  /** the ID token of who is signed in, at hand for a request that cannot wait for it (see `headersNow`) */
+  private idToken: string | null = null;
+  private renewal: ReturnType<typeof setTimeout> | undefined;
+
+  constructor() {
+    onIdTokenChanged(auth, (user) => void this.keepToken(user)); // a sign-in, a sign-out and every new token
+  }
+
+  /** The login of a request that must be sent at once (the page is being closed or hidden, so nothing can be waited for): the header `authTokenInterceptor` adds, or none when nobody is signed in. */
+  headersNow(): { Authorization?: string } {
+    return this.idToken ? { Authorization: `Bearer ${this.idToken}` } : {};
+  }
+
+  private async keepToken(user: User | null): Promise<void> {
+    clearTimeout(this.renewal);
+    if (!user) {
+      this.idToken = null;
+      return;
+    }
+    try {
+      const { token, expirationTime } = await user.getIdTokenResult();
+      if (auth.currentUser !== user) return; // signed out, or in as another, while it was read
+      this.idToken = token;
+      // a token lasts an hour and Firebase renews it only when asked: ask just before it runs out (the new one comes back here)
+      this.renewal = setTimeout(() => void user.getIdToken().catch(() => undefined), Date.parse(expirationTime) - Date.now() - 20_000);
+    } catch {
+      this.idToken = null; // no token now: the server says so if it is needed
+    }
+  }
 
   async signInWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider();

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { AuthService } from '../logons/auth.service';
 import { JigsawUserService } from './jigsaw-user.service';
 import { JigsawPiece, PieceMove } from '../models/shared/jigsaw';
 import { PlayChoice, PlaySettings, PlaySpec } from '../models/shared/play';
@@ -29,6 +30,7 @@ export interface UserGame {
 export class PlaysService {
   private readonly http = inject(HttpClient);
   private readonly users = inject(JigsawUserService);
+  private readonly auth = inject(AuthService);
 
   /** Changing or deleting a round says who asks (the UID of the user who plays): only the player of a round may. */
   private whoAsks(): { 'X-Jigsaw-User': string } {
@@ -97,9 +99,18 @@ export class PlaysService {
     return firstValueFrom(this.http.patch<{ matched: number; total: number; status: string }>(`${this.one(jigsawId, playId)}/positions`, { moves, ...(storeWidth ? { storeWidth } : {}) }, { headers: this.whoAsks() }));
   }
 
-  /** The same, for the moment the page is being closed: the request goes on after the page is gone (`keepalive`; nothing waits for the answer). */
+  /** The same, for the moment the page is being closed (see `sendWhileLeaving`). */
   moveWhileLeaving(jigsawId: string, playId: string, moves: PieceMove[]): void {
-    fetch(`${this.one(jigsawId, playId)}/positions`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...this.whoAsks() }, body: JSON.stringify({ moves }), keepalive: true }).catch(() => undefined);
+    this.sendWhileLeaving(jigsawId, playId, { moves });
+  }
+
+  /**
+   * A save of the positions that goes on after the page is gone (`keepalive`; nothing waits for the answer). It is not an `HttpClient` call, so no interceptor sees it: it says who asks and carries the token of the
+   * login itself, without which an account that needs a login is turned down.
+   */
+  private sendWhileLeaving(jigsawId: string, playId: string, body: { moves: PieceMove[]; elapsedMs?: number }): void {
+    const headers = { 'Content-Type': 'application/json', ...this.whoAsks(), ...this.auth.headersNow() };
+    fetch(`${this.one(jigsawId, playId)}/positions`, { method: 'PATCH', headers, body: JSON.stringify(body), keepalive: true }).catch(() => undefined);
   }
 
   /** how long the round has been played, so far (it only grows on the server) */
@@ -109,7 +120,7 @@ export class PlaysService {
 
   /** The same, for the moment the page is being closed or hidden: the request goes on after the page is gone. */
   saveTimeWhileLeaving(jigsawId: string, playId: string, elapsedMs: number): void {
-    fetch(`${this.one(jigsawId, playId)}/positions`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...this.whoAsks() }, body: JSON.stringify({ moves: [], elapsedMs }), keepalive: true }).catch(() => undefined);
+    this.sendWhileLeaving(jigsawId, playId, { moves: [], elapsedMs });
   }
 
   /** Takes away all the rounds of a jigsaw, also other players' (only its owner can): the jigsaw can then be changed again. */

@@ -29,7 +29,7 @@ Everything goes through `Puzzle` (`functions/src/models/shared/puzzle.ts`), and 
 2. **Moving** (`moveMove`): the pointer is kept on the board with the middle of the piece half a piece in (`onBoard`), turned into a stored place (`areaPoint`: over the store frame it is the frame's place, scroll and slice or band included; beside the picture, in the free space, its own place; elsewhere on the picture area), and the piece moves in steps 50 times smaller than the grid, without snapping (`moveFigure`; `moveGroup` moves a group by the same amount for every piece).
 3. **Dropping** (`endMove` -> `dropPieces`): a group dropped within the snap range (`snapPercent`) of its own place, or of the place where it fits a neighbour, moves by the smallest such step and clicks (it blinks, the device vibrates). Groups that now fit are one group.
 4. **Collecting** (`collectPieces`): a click on the empty store packs the pieces in the store at its top, groups as blocks.
-5. **Saving**: the board gives the new places to the page (`[(placed)]`); `PieceSync` sends the moved pieces a pause (0.8 s) after the last move, and at once when the page is hidden (`keepalive`). The server sets `matched` itself from the places.
+5. **Saving**: the board gives the new places to the page (`[(placed)]`); `PieceSync` sends the moved pieces a pause (0.8 s) after the last move, and at once when the page is hidden (`keepalive`; no interceptor sees that request, so it carries the token of the login itself, `AuthService.headersNow`). The server sets `matched` itself from the places.
 
 ## 4. Checks, in the order a piece meets them
 
