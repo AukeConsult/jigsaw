@@ -9,6 +9,7 @@ import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
 import { PlaysService } from '../../../app/jigsaw/plays.service';
 import { Classifications } from '../../../app/models/shared/classification';
 import { JigsawLanguages } from '../../../app/models/shared/language';
+import { CutShape, CutShapes } from '../../../app/models/shared/cut-shape';
 import { PictureCrop, SourceRect } from '../../../app/models/shared/geometry';
 import { JigsawCut } from '../../../app/models/shared/jigsaw';
 import { JigsawKind, JigsawKinds } from '../../../app/models/shared/jigsaw-kind';
@@ -32,11 +33,13 @@ interface NewPictureDefaults {
   timed: boolean;
   /** the size: 'whole' or a standard size (a form kept before it was kept has none) */
   shape?: string;
+  /** the shape of the pieces of a ready jigsaw (a form kept before there was one has none: classic) */
+  cutShape?: CutShape;
 }
 const DEFAULTS_KEY = 'play.newPicture';
 const isDefaults = (v: unknown): v is NewPictureDefaults | null => {
   const d = v as Partial<NewPictureDefaults> | null;
-  return v === null || (!!d && typeof d === 'object' && JigsawKinds.is(d.kind) && typeof d.pieces === 'string' && typeof d.snapPercent === 'number' && Number.isFinite(d.snapPercent) && typeof d.timed === 'boolean' && (d.shape === undefined || typeof d.shape === 'string'));
+  return v === null || (!!d && typeof d === 'object' && JigsawKinds.is(d.kind) && typeof d.pieces === 'string' && typeof d.snapPercent === 'number' && Number.isFinite(d.snapPercent) && typeof d.timed === 'boolean' && (d.shape === undefined || typeof d.shape === 'string') && (d.cutShape === undefined || CutShapes.is(d.cutShape)));
 };
 
 /**
@@ -143,10 +146,11 @@ export class NewPicture {
       this.choice.choosePieces(saved.pieces);
       this.choice.snapPercent.set(saved.snapPercent);
       this.choice.timed.set(saved.timed);
+      this.choice.cutShape.set(CutShapes.of(saved.cutShape));
     }
     effect(() => {
       if (this.editId()) return; // what a saved picture has is not what was chosen for a new one
-      writePreference(DEFAULTS_KEY, { kind: this.kind(), pieces: this.choice.pieceChoice(), snapPercent: this.choice.snapPercent(), timed: this.choice.timed(), shape: this.sizeKey() } satisfies NewPictureDefaults);
+      writePreference(DEFAULTS_KEY, { kind: this.kind(), pieces: this.choice.pieceChoice(), snapPercent: this.choice.snapPercent(), timed: this.choice.timed(), shape: this.sizeKey(), cutShape: this.choice.cutShape() } satisfies NewPictureDefaults);
     });
   }
 
@@ -223,6 +227,12 @@ export class NewPicture {
     this.choice.choosePieces(key);
     const file = this.file();
     if (file) await this.fit(file);
+  }
+
+  /** A shape of the pieces was chosen. A saved jigsaw is cut again. */
+  async chooseCutShape(shape: CutShape): Promise<void> {
+    if (!this.canChangePicture() || !(await this.useSaved())) return;
+    this.choice.cutShape.set(shape);
   }
 
   /** To cut a saved picture again when no new file is chosen, the saved picture is read and stands as the chosen file, whole (it is cut to its shape already). False when it could not be read. */
@@ -365,6 +375,7 @@ export class NewPicture {
       ...(this.original ? { ...(this.original.author ? { author: this.original.author } : {}), ...(ownerId ? { ownerUid: ownerId } : {}) } : owner ? { author: owner.name, ownerUid: owner.id } : {}),
       ...(this.visibility() !== 'everyone' && ownerId ? { visibility: this.visibility() as 'owner' | 'hidden' } : {}),
       ...(!this.isPicture() && !this.choice.timed() ? { timed: false } : {}), // timed is what none says
+      ...(!this.isPicture() && CutShapes.kept(this.choice.cutShape()) ? { cutShape: this.choice.cutShape() } : {}), // classic is what none says
       ...(this.pictureName() || this.original?.pictureName ? { pictureName: this.pictureName() || this.original?.pictureName } : {}), // kept with the jigsaw as information
       ...(this.description().trim() ? { description: this.description().trim() } : {}),
       language: this.language(),
@@ -390,6 +401,7 @@ export class NewPicture {
       ...(JigsawKinds.isPicture(item) ? { kind: 'picture' as const } : {}),
       ...(item.storeWidth ? { storeWidth: item.storeWidth } : {}),
       ...(item.snapPercent !== undefined ? { snapPercent: item.snapPercent } : {}),
+      ...(item.cutShape ? { cutShape: item.cutShape } : {}),
     };
   }
 
@@ -402,7 +414,7 @@ export class NewPicture {
     const file = this.file();
     const cut = this.cut();
     if (!id || !this.canSave()) return;
-    const cutting = file && cut && !this.isPicture() ? JigsawCut.cut(this.width(), this.height(), this.choice.gridSize()) : null;
+    const cutting = file && cut && !this.isPicture() ? JigsawCut.cut(this.width(), this.height(), this.choice.gridSize(), Math.random, this.choice.cutShape()) : null;
     if (cutting && 'error' in cutting) {
       this.error.set(cutting.error);
       return;
@@ -432,7 +444,7 @@ export class NewPicture {
     const cut = this.cut();
     if (!file || !cut || !this.canSave()) return;
     // a picture is not cut here (each round cuts it as chosen): only a ready jigsaw is cut into pieces
-    const cutting = this.isPicture() ? null : JigsawCut.cut(this.width(), this.height(), this.choice.gridSize());
+    const cutting = this.isPicture() ? null : JigsawCut.cut(this.width(), this.height(), this.choice.gridSize(), Math.random, this.choice.cutShape());
     if (cutting && 'error' in cutting) {
       this.error.set(cutting.error);
       return;

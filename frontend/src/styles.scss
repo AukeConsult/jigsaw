@@ -394,6 +394,13 @@ play-main[data-tile-details='none'] play-card > .card {
   @include quiet-button(var(--bs-danger));
 }
 
+// the sample piece of a shape of the pieces (`app-cut-shape-choice`), in the colour of its button
+.cut-sample {
+  width: 2.5em;
+  height: 2.5em;
+  fill: currentColor;
+}
+
 // choices of which one is taken, joined in one row in one frame (the preferences: `btn-check` and a `btn` label for each, inside); where there is no room the row goes on, on a second line in the same frame
 .choice-joined {
   display: inline-flex;

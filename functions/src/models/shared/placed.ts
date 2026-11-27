@@ -1,5 +1,6 @@
 import { BaseObject, ObjectInput } from './base-object';
 import { Box, Point } from './geometry';
+import { CutShape, CutShapes } from './cut-shape';
 
 // The objects placed on a picture area: what is stored (`PlacedObject`) and the class that works on it. The jigsaw places pieces: square figures with a `piece`.
 
@@ -33,6 +34,8 @@ export interface PiecePlace {
   right: -1 | 0 | 1;
   bottom: -1 | 0 | 1;
   left: -1 | 0 | 1;
+  /** what its tabs look like (`CutShapes`); none: classic */
+  shape?: CutShape;
 }
 
 /** The most columns or rows of pieces. */
@@ -69,7 +72,7 @@ export class PlacedFigure {
       centerY: data.centerY,
       object: BaseObject.stored(data.object),
       ...(data.layer !== undefined ? { layer: data.layer } : {}),
-      ...(data.piece ? { piece: { col: data.piece.col, row: data.piece.row, top: data.piece.top, right: data.piece.right, bottom: data.piece.bottom, left: data.piece.left } } : {}),
+      ...(data.piece ? { piece: { col: data.piece.col, row: data.piece.row, top: data.piece.top, right: data.piece.right, bottom: data.piece.bottom, left: data.piece.left, ...(CutShapes.kept(data.piece.shape) ? { shape: data.piece.shape } : {}) } } : {}),
     };
   }
 
@@ -162,7 +165,7 @@ export class PlacedFigure {
     if (piece === undefined) return '';
     const index = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < MAX_PIECE_INDEX;
     const edge = (v: unknown) => v === -1 || v === 0 || v === 1;
-    if (!piece || typeof piece !== 'object' || !index(piece.col) || !index(piece.row) || ![piece.top, piece.right, piece.bottom, piece.left].every(edge)) {
+    if (!piece || typeof piece !== 'object' || !index(piece.col) || !index(piece.row) || ![piece.top, piece.right, piece.bottom, piece.left].every(edge) || (piece.shape !== undefined && !CutShapes.is(piece.shape))) {
       return `"${this.object.name}" has a bad jigsaw piece.`;
     }
     return '';

@@ -6,6 +6,7 @@ import { cameraWay } from '../../../app/core/platform';
 import { isBoolean, preferenceSignal } from '../../../app/core/preferences';
 import { CameraCapture } from '../../../app/jigsaw/camera-capture/camera-capture';
 import { CategoryPicker } from '../../../app/jigsaw/category-picker/category-picker';
+import { CutShapeChoice } from '../../../app/jigsaw/cut-shape-choice/cut-shape-choice';
 import { JigsawExample } from '../../../app/jigsaw/jigsaw-example/jigsaw-example';
 import { JigsawHeader } from '../../../app/jigsaw/jigsaw-header/jigsaw-header';
 import { PictureCropper } from '../../../app/jigsaw/picture-cropper/picture-cropper';
@@ -24,7 +25,7 @@ import { PhotoShot } from '../../photo-shot';
  */
 @Component({
   selector: 'play-picture-form',
-  imports: [TranslocoDirective, RouterLink, UploadLimit, JigsawHeader, JigsawExample, PictureCropper, CameraCapture, CategoryPicker, VisibilityChoice],
+  imports: [TranslocoDirective, RouterLink, UploadLimit, JigsawHeader, JigsawExample, PictureCropper, CameraCapture, CategoryPicker, VisibilityChoice, CutShapeChoice],
   providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('play'), NewPicture],
   host: { class: 'd-block' },
   templateUrl: './picture-form.html',

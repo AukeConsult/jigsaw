@@ -10,5 +10,13 @@
     "normal": "Normal",
     "hard": "Schwer",
     "expert": "Experte"
+  },
+  "cut": "Form der Teile",
+  "cuts": {
+    "classic": "Klassisch",
+    "round": "Rund",
+    "pointed": "Spitz",
+    "square": "Eckig",
+    "wave": "Welle"
   }
 }

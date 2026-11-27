@@ -24,6 +24,9 @@
         <!-- what the three words mean: how far from its place a piece may be and still snap in -->
         <div class="form-text mt-2">{{ t('jigsawPage.snapHelp') || 'How close a piece must be to its place before it snaps in. Easy: from far away. Hard: only right next to it.' }}</div>
       </div>
+      <div class="col-12">
+        <app-cut-shape-choice name="round-cut" [value]="cutShape()" (valueChange)="setCutShape($event)" />
+      </div>
     </div>
     @if (askWho()) {
       <!-- who sees the round: public (others see it among the rounds of the picture) or private (only its player) -->

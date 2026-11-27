@@ -5,6 +5,7 @@ import { DIFFICULTIES } from './jigsaw-search';
 import { JigsawCut, JigsawPiece, JigsawPieces, PieceChoice, PieceMove, JIGSAW_MAX_PIECES } from './jigsaw';
 import { STICK_TOLERANCE_PX } from './puzzle';
 import { JigsawUsers } from './jigsaw-user';
+import { CutShape, CutShapes } from './cut-shape';
 
 // A play: one game of a jigsaw, by one user. The jigsaw is what is fixed (its picture, size, grid and the cut into pieces, and the defaults of difficulty and look);
 // a play holds what a person changes while playing: where the pieces are, how far the game has come, and the few settings a player may choose for themselves.
@@ -34,6 +35,8 @@ export interface PlayCut {
   columns: number;
   rows: number;
   grid: number;
+  /** what the tabs look like; none: classic */
+  shape?: CutShape;
 }
 
 /** What a person chooses when a round of a picture starts: the cut (a whole number of columns and rows), the difficulty (the snap range, in percent of the grid) and whether the round is timed. */
@@ -43,6 +46,8 @@ export interface PlayChoice {
   snapPercent: number;
   /** `false`: no clock in this round (left out: it follows the picture, which has a clock unless it says it has none) */
   timed?: boolean;
+  /** what the tabs look like (`CutShapes`; left out: classic) */
+  cutShape?: CutShape;
   /** `true`: a private round (see `PlaySpec.private`) */
   private?: boolean;
 }
@@ -150,6 +155,7 @@ export class Plays {
     if (!JigsawCut.pieceChoices(jigsaw.width, jigsaw.height).some((o) => o.columns === c.columns && o.rows === c.rows)) return 'Choose one of the numbers of pieces that are offered for this picture.';
     if (!DIFFICULTIES.some((d) => d.percent === c.snapPercent)) return 'Choose the difficulty: hard, medium or easy.';
     if (c.timed !== undefined && typeof c.timed !== 'boolean') return 'Say whether the round is timed: yes or no.';
+    if (c.cutShape !== undefined && !CutShapes.is(c.cutShape)) return 'Choose one of the shapes of the pieces.';
     return Plays.privateError(c.private);
   }
 
@@ -198,12 +204,13 @@ export class Plays {
     const bad = Plays.choiceError(jigsaw, choice);
     if (bad) return { error: bad };
     const layout = JigsawCut.layoutOf(jigsaw.width, jigsaw.height, choice.columns, choice.rows);
-    const cutting = JigsawCut.cut(layout.width, layout.height, layout.grid, random);
+    const shape = CutShapes.kept(choice.cutShape);
+    const cutting = JigsawCut.cut(layout.width, layout.height, layout.grid, random, shape);
     if ('error' in cutting) return { error: cutting.error };
     const pieces = JigsawPieces.ofCut(cutting);
     const started = Plays.start({ id: jigsaw.id, width: layout.width, height: layout.height, gridSize: layout.grid }, user, pieces, now, random);
     if ('error' in started) return started;
-    return { play: { ...started.play, cut: { columns: layout.columns, rows: layout.rows, grid: layout.grid }, snapPercent: choice.snapPercent, ...(choice.timed === false ? { timed: false as const } : {}) }, positions: started.positions, pieces };
+    return { play: { ...started.play, cut: { columns: layout.columns, rows: layout.rows, grid: layout.grid, ...(shape ? { shape } : {}) }, snapPercent: choice.snapPercent, ...(choice.timed === false ? { timed: false as const } : {}) }, positions: started.positions, pieces };
   }
 
   /** The number of pieces to have chosen when the round is started: the offered one nearest to the one the person chose last time, one that is not in `avoid` (sizes already solved) if there is one; none when nothing is offered. */
@@ -384,7 +391,7 @@ export class Plays {
       total: play.total,
       storeWidth: play.storeWidth,
       ...(play.fresh ? { fresh: true } : {}),
-      ...(play.cut ? { cut: { columns: play.cut.columns, rows: play.cut.rows, grid: play.cut.grid } } : {}),
+      ...(play.cut ? { cut: { columns: play.cut.columns, rows: play.cut.rows, grid: play.cut.grid, ...(CutShapes.kept(play.cut.shape) ? { shape: play.cut.shape } : {}) } } : {}),
       ...(typeof play.snapPercent === 'number' ? { snapPercent: play.snapPercent } : {}),
       ...(play.timed === false ? { timed: false as const } : {}),
       ...(play.private ? { private: true as const } : {}),

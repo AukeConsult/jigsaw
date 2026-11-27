@@ -1,6 +1,7 @@
 import { JIGSAW_MAX_SIDE, JigsawSettings, STORE_HEIGHT_FACTOR } from './jigsaw-settings';
 import { DEFAULT_OBJECT, OBJECT_MAX_SIDE } from './base-object';
 import { DEFAULT_LAYER, MAX_LAYER, MAX_PIECE_INDEX, PiecePlace, PlacedObject } from './placed';
+import { CutShape, CutShapes, EdgePoint } from './cut-shape';
 
 // The jigsaw: a picture cut into pieces, one for each cell of the grid, with the edges of a jigsaw puzzle.
 
@@ -137,9 +138,9 @@ export class JigsawCut {
    * Cuts a picture area into pieces of `grid` × `grid` pixels. Each piece is a placed square (so it moves, saves and snaps like any figure) that says which
    * cell of the picture it is (`piece`: column, row and its four edges). Every edge between two pieces is a tab on one and the matching blank on the
    * other, chosen by chance; the edges on the border of the picture area are flat. The pieces are put in the store frame beside the picture area (see
-   * `JigsawSettings.storeFrame`), scattered over it (see `scatter`), none over another and each on a random layer; `storeWidth` is how wide the frame has to be. `random` gives numbers from 0 up to 1.
+   * `JigsawSettings.storeFrame`), scattered over it (see `scatter`), none over another and each on a random layer; `storeWidth` is how wide the frame has to be. `random` gives numbers from 0 up to 1. `shape` is what the tabs look like (`CutShapes`), and every piece carries it.
    */
-  static cut(width: number, height: number, grid: number, random: () => number = Math.random): JigsawCutResult {
+  static cut(width: number, height: number, grid: number, random: () => number = Math.random, shape?: CutShape): JigsawCutResult {
     const { columns, rows } = pieceGrid(width, height, grid);
     if (columns * rows < 2) return { error: 'The jigsaw needs a grid and room for at least two pieces.' };
     if (columns * rows > JIGSAW_MAX_PIECES) return { error: `That would be ${columns * rows} pieces, and at most ${JIGSAW_MAX_PIECES} fit in a jigsaw: use a bigger grid.` };
@@ -163,7 +164,7 @@ export class JigsawCut {
         object: { ...DEFAULT_OBJECT, name: `Piece ${col + 1},${row + 1}`, width: grid, height: grid },
         centerX: 0,
         centerY: 0,
-        piece: { col, row, ...edges(col, row) },
+        piece: { col, row, ...edges(col, row), ...(CutShapes.kept(shape) ? { shape } : {}) },
       };
     });
     const { placed, storeWidth } = JigsawCut.scatterPieces(pieces, width, height, grid, random);
@@ -233,18 +234,13 @@ export class JigsawCut {
    * The outline of a piece as an SVG path in a square of `size` pixels (the tabs reach outside the square, about a quarter of its side): its four edges,
    * a tab (1) goes out, a blank (-1) goes in, flat (0) is straight.
    */
-  static path(size: number, piece: Pick<PiecePlace, 'top' | 'right' | 'bottom' | 'left'>): string {
+  static path(size: number, piece: Pick<PiecePlace, 'top' | 'right' | 'bottom' | 'left' | 'shape'>): string {
     const s = size;
-    // a tab in local coordinates: u along the edge (0..1), v out of the piece (units of the side)
-    const knob: [number, number][][] = [
-      [[0.38, 0.1], [0.28, 0.12], [0.3, 0.22]],
-      [[0.32, 0.32], [0.68, 0.32], [0.7, 0.22]],
-      [[0.72, 0.12], [0.62, 0.1], [0.62, 0]],
-    ];
+    const tab = CutShapes.outline(piece.shape);
     const edge = (ax: number, ay: number, bx: number, by: number, ox: number, oy: number, k: number): string => {
-      const at = (u: number, v: number) => `${(ax + (bx - ax) * u + ox * v * k * s).toFixed(2)},${(ay + (by - ay) * u + oy * v * k * s).toFixed(2)}`;
+      const at = ([u, v]: EdgePoint) => `${(ax + (bx - ax) * u + ox * v * k * s).toFixed(2)},${(ay + (by - ay) * u + oy * v * k * s).toFixed(2)}`;
       if (!k) return `L ${bx},${by}`;
-      return `L ${at(0.38, 0)} ${knob.map((c) => `C ${c.map(([u, v]) => at(u, v)).join(' ')}`).join(' ')} L ${bx},${by}`;
+      return `L ${at([tab.from, 0])} ${tab.steps.map((step) => `${step.curve ? 'C' : 'L'} ${step.points.map(at).join(' ')}`).join(' ')} L ${bx},${by}`;
     };
     return [
       `M 0,0`,
@@ -271,6 +267,8 @@ export interface JigsawPiece {
   right: -1 | 0 | 1;
   bottom: -1 | 0 | 1;
   left: -1 | 0 | 1;
+  /** what its tabs look like (`CutShapes`); none: classic */
+  shape?: CutShape;
   /** the side of the piece in pixels (the size of a cell of the grid when it was cut) */
   size: number;
   /** where its centre is on the jigsaw pieces area, in pixels */
@@ -329,6 +327,7 @@ export class JigsawPieces {
       right: piece.right,
       bottom: piece.bottom,
       left: piece.left,
+      ...(piece.shape ? { shape: piece.shape } : {}),
       size: placed.object.width,
       centerX: placed.centerX,
       centerY: placed.centerY,
@@ -345,7 +344,7 @@ export class JigsawPieces {
       centerX: piece.centerX,
       centerY: piece.centerY,
       layer: piece.layer,
-      piece: { col: piece.col, row: piece.row, top: piece.top, right: piece.right, bottom: piece.bottom, left: piece.left },
+      piece: { col: piece.col, row: piece.row, top: piece.top, right: piece.right, bottom: piece.bottom, left: piece.left, ...(piece.shape ? { shape: piece.shape } : {}) },
     };
   }
 
@@ -360,6 +359,7 @@ export class JigsawPieces {
       right: piece.right,
       bottom: piece.bottom,
       left: piece.left,
+      ...(CutShapes.kept(piece.shape) ? { shape: piece.shape } : {}),
       size: piece.size,
       centerX: piece.centerX,
       centerY: piece.centerY,
@@ -388,7 +388,7 @@ export class JigsawPieces {
     if (moved) return moved;
     const index = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < MAX_PIECE_INDEX;
     const edge = (v: unknown) => v === -1 || v === 0 || v === 1;
-    if (!index(p.col) || !index(p.row) || ![p.top, p.right, p.bottom, p.left].every(edge)) return `Piece ${p.id} has a bad place in the picture or bad edges.`;
+    if (!index(p.col) || !index(p.row) || ![p.top, p.right, p.bottom, p.left].every(edge) || (p.shape !== undefined && !CutShapes.is(p.shape))) return `Piece ${p.id} has a bad place in the picture or bad edges.`;
     if (typeof p.number !== 'number' || !Number.isInteger(p.number) || p.number < 1 || p.number > MAX_PIECE_INDEX * MAX_PIECE_INDEX) return `Piece ${p.id} has a bad number.`;
     if (typeof p.size !== 'number' || !Number.isFinite(p.size) || p.size < 1 || p.size > OBJECT_MAX_SIDE) return `Piece ${p.id} has a bad size.`;
     return '';

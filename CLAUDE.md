@@ -33,6 +33,7 @@ A saved jigsaw is a `JigsawSpec` and is checked by `JigsawSettings`; the pieces 
 | `jigsaw-settings.ts` | a saved jigsaw as a document (`JigsawSpec`: name, size, grid, difficulty, line and colours, owner, visibility, timed) and `JigsawSettings`, which checks one |
 | `jigsaw-kind.ts` | the kind of an entry (`JigsawKinds`): a ready jigsaw (what a document that says nothing is) or a **picture** (only the stored picture; the pieces and the difficulty are chosen in each round), and the size of a picture (`pictureSize`) |
 | `jigsaw.ts` | the cut into pieces (`JigsawCut`), `JigsawPieces`, `pieceGrid`, limits |
+| `cut-shape.ts` | the shapes of the tabs (`CutShapes`: classic, round, pointed, square, wave): each piece carries its own (`shape`), chosen at the start of a round of a picture (`PlayChoice.cutShape`) or for a ready jigsaw (`cutShape`); the pieces are squares on a grid whatever the shape |
 | `play.ts` | a round (`Plays`, `PlaySpec`): positions, settings of the player, time played; a round of a picture also has its own cut, difficulty and pieces (`Plays.jigsawFor`, `startOwn`, `choiceError`) |
 | `popularity.ts` | what makes a jigsaw popular (`Popularity`: rounds played and being new) |
 | `jigsaw-user.ts` | the users who play (`JigsawUsers`) |

@@ -10,5 +10,13 @@
     "normal": "Normal",
     "hard": "Vanskelig",
     "expert": "Ekspert"
+  },
+  "cut": "Form på brikkene",
+  "cuts": {
+    "classic": "Klassisk",
+    "round": "Rund",
+    "pointed": "Spiss",
+    "square": "Firkantet",
+    "wave": "Bølge"
   }
 }

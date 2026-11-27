@@ -10,5 +10,13 @@
     "normal": "Normaal",
     "hard": "Moeilijk",
     "expert": "Expert"
+  },
+  "cut": "Vorm van de stukjes",
+  "cuts": {
+    "classic": "Klassiek",
+    "round": "Rond",
+    "pointed": "Puntig",
+    "square": "Vierkant",
+    "wave": "Golf"
   }
 }

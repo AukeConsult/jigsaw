@@ -4,6 +4,7 @@ import { JigsawCategories } from './category';
 import { JigsawLanguages } from './language';
 import { JigsawMotives, MotiveLevel } from './motive';
 import { JigsawKind, JigsawKinds, PICTURE_MAX_SIDE } from './jigsaw-kind';
+import { CutShape, CutShapes } from './cut-shape';
 
 // A saved jigsaw: its settings, and the check of what comes from outside.
 
@@ -89,6 +90,8 @@ export interface JigsawSpec {
   storeWidth?: number;
   /** a jigsaw, a game setting: how close to the grid point it belongs on a piece has to be dropped to click into place, in percent of the grid size (0: never; without it, `JigsawSettings.DEFAULT_SNAP_PERCENT`) */
   snapPercent?: number;
+  /** what the tabs of a ready jigsaw look like (`CutShapes`); none: classic */
+  cutShape?: CutShape;
   /** a jigsaw: how thick the frame around the picture area is, in pixels (0: no frame; without it, `JigsawSettings.DEFAULT_FRAME_WIDTH`); chosen when the jigsaw is made */
   frameWidth?: number;
   /** a jigsaw: how thick the line round each piece is, in pixels (0: none; without it, `JigsawSettings.DEFAULT_LINE_WIDTH`) */
@@ -107,14 +110,14 @@ export interface JigsawSpec {
 }
 
 /** What the page sends to make a jigsaw. */
-export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'pictureName' | 'packageId' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'pictureName' | 'packageId' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'cutShape' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** The stored fields of a jigsaw except `placed` (the objects on its board, most of a big document) and the id: what a list that only names, counts or ranks jigsaws reads. A test keeps it in step with `JigsawInput`. */
-export const JIGSAW_HEAD_FIELDS = ['name', 'author', 'ownerUid', 'kind', 'visibility', 'timed', 'pictureName', 'packageId', 'description', 'categories', 'motive', 'language', 'width', 'height', 'gridSize', 'gridVisible', 'storeWidth', 'snapPercent', 'frameWidth', 'lineWidth', 'lineColor', 'backColor', 'createdAt'] as const satisfies readonly (keyof JigsawInput | 'createdAt')[];
+export const JIGSAW_HEAD_FIELDS = ['name', 'author', 'ownerUid', 'kind', 'visibility', 'timed', 'pictureName', 'packageId', 'description', 'categories', 'motive', 'language', 'width', 'height', 'gridSize', 'gridVisible', 'storeWidth', 'snapPercent', 'cutShape', 'frameWidth', 'lineWidth', 'lineColor', 'backColor', 'createdAt'] as const satisfies readonly (keyof JigsawInput | 'createdAt')[];
 
 /** A jigsaw as it comes from outside (the page, the API): it checks itself. */
 export class JigsawSettings {
-  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; kind?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; packageId?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; kind?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; packageId?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; cutShape?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a jigsaw whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -187,8 +190,8 @@ export class JigsawSettings {
    * (the name, the description, the author, who sees it, the look) can still change.
    */
   static changesWhatPlayersShare(
-    before: Pick<JigsawSpec, 'width' | 'height' | 'gridSize' | 'storeWidth' | 'snapPercent' | 'timed'> & { kind?: unknown },
-    after: { width?: unknown; height?: unknown; gridSize?: unknown; storeWidth?: unknown; snapPercent?: unknown; timed?: unknown; kind?: unknown },
+    before: Pick<JigsawSpec, 'width' | 'height' | 'gridSize' | 'storeWidth' | 'snapPercent' | 'timed' | 'cutShape'> & { kind?: unknown },
+    after: { width?: unknown; height?: unknown; gridSize?: unknown; storeWidth?: unknown; snapPercent?: unknown; timed?: unknown; cutShape?: unknown; kind?: unknown },
   ): boolean {
     return (
       JigsawKinds.of(after) !== JigsawKinds.of(before) ||
@@ -197,7 +200,8 @@ export class JigsawSettings {
       after.gridSize !== before.gridSize ||
       (after.storeWidth ?? 0) !== (before.storeWidth ?? 0) ||
       (after.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT) !== (before.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT) ||
-      (after.timed !== false) !== (before.timed !== false)
+      (after.timed !== false) !== (before.timed !== false) ||
+      CutShapes.of(after.cutShape) !== CutShapes.of(before.cutShape)
     );
   }
 
@@ -230,6 +234,7 @@ export class JigsawSettings {
       placed: picture ? [] : (i.placed as PlacedObject[]).map((p) => PlacedFigure.stored(p)),
       ...(i.storeWidth && !picture ? { storeWidth: i.storeWidth as number } : {}),
       ...(i.snapPercent !== undefined && !picture ? { snapPercent: i.snapPercent as number } : {}),
+      ...(CutShapes.kept(i.cutShape) && !picture ? { cutShape: i.cutShape as CutShape } : {}),
       ...(i.frameWidth !== undefined ? { frameWidth: i.frameWidth as number } : {}),
       ...(i.lineWidth !== undefined ? { lineWidth: i.lineWidth as number } : {}),
       ...(i.lineColor !== undefined ? { lineColor: (i.lineColor as string).toLowerCase() } : {}),
@@ -260,6 +265,7 @@ export class JigsawSettings {
       placed: (doc.placed ?? []).map((p) => PlacedFigure.fromStored(p)),
       ...(doc.storeWidth ? { storeWidth: doc.storeWidth } : {}),
       ...(doc.snapPercent !== undefined ? { snapPercent: doc.snapPercent } : {}),
+      ...(CutShapes.kept(doc.cutShape) ? { cutShape: doc.cutShape } : {}),
       ...(doc.frameWidth !== undefined ? { frameWidth: doc.frameWidth } : {}),
       ...(doc.lineWidth !== undefined ? { lineWidth: doc.lineWidth } : {}),
       ...(doc.lineColor !== undefined ? { lineColor: doc.lineColor } : {}),
@@ -314,6 +320,7 @@ export class JigsawSettings {
     if (range !== undefined && (typeof range !== 'number' || !Number.isInteger(range) || range < 0 || range > 100)) {
       return 'The snap range must be a whole number of percent of the grid size, from 0 (a piece never clicks into place) to 100.';
     }
+    if (input.cutShape !== undefined && !CutShapes.is(input.cutShape)) return 'Choose one of the shapes of the pieces.';
     const frame = input.frameWidth;
     if (frame !== undefined && (typeof frame !== 'number' || !Number.isInteger(frame) || frame < 0 || frame > JigsawSettings.MAX_FRAME_WIDTH)) {
       return `The frame must be a whole number of pixels from 0 (no frame) to ${JigsawSettings.MAX_FRAME_WIDTH}.`;

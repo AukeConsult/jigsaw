@@ -2,7 +2,9 @@ import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { readPreference, writePreference } from '../../core/preferences';
+import { CutShape, CutShapes, DEFAULT_CUT_SHAPE } from '../../models/shared/cut-shape';
 import { JigsawCut } from '../../models/shared/jigsaw';
+import { CutShapeChoice } from '../cut-shape-choice/cut-shape-choice';
 import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { Plays, PlayChoice } from '../../models/shared/play';
 import { SNAP_LEVELS, snapPercentOf } from '../snap-level';
@@ -16,8 +18,10 @@ interface RoundDefaults {
   timed?: boolean;
   /** `true`: the round is private (a choice kept before there was one has none: public) */
   private?: boolean;
+  /** the shape of the pieces (none: classic) */
+  cutShape?: CutShape;
 }
-const isRoundDefaults = (v: unknown): v is RoundDefaults => !!v && typeof v === 'object' && Number.isInteger((v as RoundDefaults).pieces) && (v as RoundDefaults).pieces > 0 && SNAP_LEVELS.some((l) => l.percent === (v as RoundDefaults).snapPercent) && ((v as RoundDefaults).timed === undefined || typeof (v as RoundDefaults).timed === 'boolean');
+const isRoundDefaults = (v: unknown): v is RoundDefaults => !!v && typeof v === 'object' && Number.isInteger((v as RoundDefaults).pieces) && (v as RoundDefaults).pieces > 0 && SNAP_LEVELS.some((l) => l.percent === (v as RoundDefaults).snapPercent) && ((v as RoundDefaults).timed === undefined || typeof (v as RoundDefaults).timed === 'boolean') && ((v as RoundDefaults).cutShape === undefined || CutShapes.is((v as RoundDefaults).cutShape));
 const FIRST_TIME: RoundDefaults = { pieces: 24, snapPercent: 25 };
 
 /**
@@ -27,7 +31,7 @@ const FIRST_TIME: RoundDefaults = { pieces: 24, snapPercent: 25 };
  */
 @Component({
   selector: 'app-round-choice',
-  imports: [FormsModule, TranslocoDirective],
+  imports: [FormsModule, TranslocoDirective, CutShapeChoice],
   providers: [provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawNew')],
   templateUrl: './round-choice.html',
 })
@@ -63,6 +67,14 @@ export class RoundChoice {
   private readonly privatePicked = signal<boolean | null>(null);
   protected readonly isPrivate = computed(() => this.privatePicked() ?? this.last.private === true);
 
+  /** the shape of the pieces, as it was last time */
+  protected readonly cutShape = signal<CutShape>(this.last.cutShape ?? DEFAULT_CUT_SHAPE);
+
+  protected setCutShape(shape: CutShape): void {
+    this.cutShape.set(shape);
+    this.remember();
+  }
+
   protected setPrivate(on: boolean): void {
     this.privatePicked.set(on);
     this.remember();
@@ -94,7 +106,7 @@ export class RoundChoice {
 
   /** What is chosen now is kept on the device for the next time. */
   private remember(): void {
-    writePreference(ROUND_DEFAULTS_KEY, { pieces: this.selected()?.count ?? this.last.pieces, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}) } satisfies RoundDefaults);
+    writePreference(ROUND_DEFAULTS_KEY, { pieces: this.selected()?.count ?? this.last.pieces, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}), ...(CutShapes.kept(this.cutShape()) ? { cutShape: this.cutShape() } : {}) } satisfies RoundDefaults);
   }
 
   protected level(): string {
@@ -105,6 +117,6 @@ export class RoundChoice {
     const o = this.selected();
     if (!o || !this.canStart()) return;
     this.remember();
-    this.chosen.emit({ columns: o.columns, rows: o.rows, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}) });
+    this.chosen.emit({ columns: o.columns, rows: o.rows, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}), ...(CutShapes.kept(this.cutShape()) ? { cutShape: this.cutShape() } : {}) });
   }
 }

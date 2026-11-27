@@ -1,11 +1,12 @@
 import { computed, signal } from '@angular/core';
 import { SIZE_PRESETS } from '../../../app/jigsaw/size-presets';
 import { SNAP_LEVELS, snapLevelOf, snapPercentOf } from '../../../app/jigsaw/snap-level';
+import { CutShape, CutShapes } from '../../../app/models/shared/cut-shape';
 import { JigsawCut, PieceLayout, pieceGrid } from '../../../app/models/shared/jigsaw';
 import { JigsawSettings } from '../../../app/models/shared/jigsaw-settings';
 
 /**
- * How a **ready jigsaw** is cut into pieces, as it is chosen in the form (the size of the picture area is the one the form asks for, `fitTo`, the same as for a picture): how many pieces, how easy it is to click a piece into place, and whether a clock counts the rounds. The picture area is
+ * How a **ready jigsaw** is cut into pieces, as it is chosen in the form (the size of the picture area is the one the form asks for, `fitTo`, the same as for a picture): how many pieces, how easy it is to click a piece into place, the shape of the pieces, and whether a clock counts the rounds. The picture area is
  * made a whole number of pieces wide and high (`JigsawCut.layoutOf`), so the size and the grid that come out can differ a little from the size asked for. (A picture has none of this: each round chooses its own cut.)
  */
 export class CutChoice {
@@ -28,13 +29,15 @@ export class CutChoice {
   readonly level = computed(() => snapLevelOf(this.snapPercent()));
   /** a clock counts how long each round takes */
   readonly timed = signal(true);
+  /** what the tabs of the pieces look like */
+  readonly cutShape = signal<CutShape>('classic');
 
   constructor() {
     this.choosePieces(this.pieceChoice());
   }
 
   /** A saved jigsaw is changed: the choices show what it has. */
-  show(saved: { width: number; height: number; gridSize: number; snapPercent?: number; timed?: boolean }): void {
+  show(saved: { width: number; height: number; gridSize: number; snapPercent?: number; timed?: boolean; cutShape?: CutShape }): void {
     const { width, height, gridSize } = saved;
     const grid = pieceGrid(width, height, gridSize);
     this.asked.set({ width, height });
@@ -44,6 +47,7 @@ export class CutChoice {
     this.gridSize.set(gridSize);
     this.snapPercent.set(saved.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT);
     this.timed.set(saved.timed !== false);
+    this.cutShape.set(CutShapes.of(saved.cutShape));
   }
 
   /** This size is asked for: the picture area gets that shape, and the standard number of pieces nearest to the one there was is kept. */

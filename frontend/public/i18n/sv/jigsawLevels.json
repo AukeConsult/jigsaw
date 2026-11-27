@@ -10,5 +10,13 @@
     "normal": "Normal",
     "hard": "Svår",
     "expert": "Expert"
+  },
+  "cut": "Bitarnas form",
+  "cuts": {
+    "classic": "Klassisk",
+    "round": "Rund",
+    "pointed": "Spetsig",
+    "square": "Fyrkantig",
+    "wave": "Våg"
   }
 }

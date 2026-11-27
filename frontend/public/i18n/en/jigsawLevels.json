@@ -10,5 +10,13 @@
     "normal": "Normal",
     "hard": "Hard",
     "expert": "Expert"
+  },
+  "cut": "Shape of the pieces",
+  "cuts": {
+    "classic": "Classic",
+    "round": "Round",
+    "pointed": "Pointed",
+    "square": "Square",
+    "wave": "Wave"
   }
 }

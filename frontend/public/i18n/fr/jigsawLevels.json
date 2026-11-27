@@ -10,5 +10,13 @@
     "normal": "Normal",
     "hard": "Difficile",
     "expert": "Expert"
+  },
+  "cut": "Forme des pièces",
+  "cuts": {
+    "classic": "Classique",
+    "round": "Ronde",
+    "pointed": "Pointue",
+    "square": "Carrée",
+    "wave": "Vague"
   }
 }

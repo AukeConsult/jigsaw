@@ -27,4 +27,5 @@ export * from './play-look';
 export * from './text-look';
 export * from './part-size';
 export * from './tile-details';
+export * from './cut-shape';
 export * from './menu-place';

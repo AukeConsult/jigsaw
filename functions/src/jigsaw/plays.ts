@@ -2,7 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { documentExists } from "./jigsaw-image";
 import { PieceStore } from "./jigsaw-pieces";
-import { JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays, PlayLookSetup } from "../models";
+import { CutShapes, JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays, PlayLookSetup } from "../models";
 import { apiRouter, askerOf, bad } from "../common/http";
 
 // The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`.
@@ -258,9 +258,9 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     // a round of a picture of a package is only for a player who has it: asked for the player of the round, not for who sends the request
     if (deps.mayStart && !(await deps.mayStart(jigsaw, user.id))) return bad(res, "This picture is in a package you do not have: add the package to your pictures first.", 403);
     // a picture is cut in the round: the person chooses the number of pieces and the difficulty (a ready jigsaw has its own and refuses a choice)
-    const body = req.body as { columns?: unknown; rows?: unknown; snapPercent?: unknown; timed?: unknown; private?: unknown };
+    const body = req.body as { columns?: unknown; rows?: unknown; snapPercent?: unknown; timed?: unknown; private?: unknown; cutShape?: unknown };
     if (res.locals.privateRound) body.private = true; // started through a link to a private picture: nobody else looks at it
-    const asked = body.columns !== undefined || body.rows !== undefined || body.snapPercent !== undefined ? { columns: body.columns, rows: body.rows, snapPercent: body.snapPercent, ...(body.timed !== undefined ? { timed: body.timed } : {}), ...(body.private !== undefined ? { private: body.private } : {}) } : undefined;
+    const asked = body.columns !== undefined || body.rows !== undefined || body.snapPercent !== undefined ? { columns: body.columns, rows: body.rows, snapPercent: body.snapPercent, ...(body.timed !== undefined ? { timed: body.timed } : {}), ...(body.private !== undefined ? { private: body.private } : {}), ...(body.cutShape !== undefined ? { cutShape: body.cutShape } : {}) } : undefined;
     const wrong = Plays.choiceError(jigsaw, asked) || Plays.privateError(body.private);
     if (wrong) return bad(res, wrong);
     // a jigsaw that the user has solved is not played again by them (it can be looked at, or the solved round deleted)
@@ -293,7 +293,7 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     const blocked = Plays.blockedBy(theirs, choice.columns * choice.rows) || Plays.goingError(theirs);
     if (blocked) return bad(res, blocked, 409);
     const waiting = theirs.filter((p) => p.fresh);
-    const same = waiting.find((p) => p.cut?.columns === choice.columns && p.cut?.rows === choice.rows && p.snapPercent === choice.snapPercent && (p.timed === false) === (choice.timed === false) && (p.private === true) === (choice.private === true));
+    const same = waiting.find((p) => p.cut?.columns === choice.columns && p.cut?.rows === choice.rows && p.snapPercent === choice.snapPercent && (p.timed === false) === (choice.timed === false) && (p.private === true) === (choice.private === true) && CutShapes.of(p.cut?.shape) === CutShapes.of(choice.cutShape));
     if (same) return void res.status(200).json(Plays.publicOf(same));
     await Promise.all(waiting.map((p) => plays.remove(jigsaw.id, p.id))); // nothing was moved in them: nothing is lost
     const started = Plays.startOwn(jigsaw, { id: user.id, name: user.name }, choice, Date.now(), deps.random);

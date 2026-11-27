@@ -32,7 +32,7 @@
       <!-- a ready jigsaw: an example of it in place of the plain picture, the cut picture in pieces -->
       <div draft-picture>
         @if (n.preview(); as src) {
-          <app-jigsaw-example [picture]="src" [width]="n.width()" [height]="n.height()" [gridSize]="n.choice.gridSize()" [lineWidth]="lineWidth" [lineColor]="lineColor" />
+          <app-jigsaw-example [picture]="src" [width]="n.width()" [height]="n.height()" [gridSize]="n.choice.gridSize()" [cutShape]="n.choice.cutShape()" [lineWidth]="lineWidth" [lineColor]="lineColor" />
         }
       </div>
       <!-- what is made, over the name: a picture (the person who plays chooses the pieces and the difficulty) or a ready jigsaw (chosen here) -->
@@ -121,6 +121,7 @@
               </div>
             </div>
           </div>
+          <app-cut-shape-choice class="mt-2" name="play-cut" [value]="n.choice.cutShape()" (valueChange)="n.chooseCutShape($event)" [disabled]="!n.canChangePicture()" />
           <div class="form-text mt-1 mb-0" role="status">{{ t('jigsawNew.gridInfo', { grid: n.choice.gridSize(), columns: n.choice.pieceInfo().columns, rows: n.choice.pieceInfo().rows }) || 'Grid ' + n.choice.gridSize() + ' px: ' + n.choice.pieceInfo().columns + ' × ' + n.choice.pieceInfo().rows + ' pieces (worked out from the number of pieces).' }}</div>
         </div>
       }

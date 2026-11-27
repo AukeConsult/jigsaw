@@ -1,6 +1,7 @@
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, input, signal, viewChild } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { PuzzlePiece } from '../puzzle-piece/puzzle-piece';
+import { CutShape } from '../../models/shared/cut-shape';
 import { JigsawCut } from '../../models/shared/jigsaw';
 import { PiecePlace } from '../../models/shared/placed';
 
@@ -11,7 +12,7 @@ const BOARD_HEIGHT_LEFT_PX = 160;
 const BOARD_SCALE_MAX = 4;
 
 /**
- * An example of the jigsaw before it is made, shown in the form of a picture: the cut picture put together from the pieces the jigsaw will have (their number and shape, drawn as on the board with its line). The shape of
+ * An example of the jigsaw before it is made, shown in the form of a picture: the cut picture put together from the pieces the jigsaw will have (their number and the shape of their tabs, drawn as on the board with its line). The shape of
  * each piece is chosen by chance, so this is an example, not the pieces the jigsaw will get. The example is as wide as the room it is in, and the lines keep their thickness on the screen.
  */
 @Component({
@@ -27,6 +28,8 @@ export class JigsawExample {
   readonly width = input.required<number>();
   readonly height = input.required<number>();
   readonly gridSize = input.required<number>();
+  /** the shape of the pieces */
+  readonly cutShape = input<CutShape>('classic');
   /** the line round the pieces */
   readonly lineWidth = input.required<number>();
   readonly lineColor = input.required<string>();
@@ -35,9 +38,9 @@ export class JigsawExample {
   /** how wide the room for the example is, in pixels */
   private readonly room = signal(0);
 
-  /** the pieces the settings give (the edges are drawn by chance, and only again when the size or the grid changes) */
+  /** the pieces the settings give (the edges are drawn by chance, and only again when the size, the grid or the shape changes) */
   private readonly cut = computed(() => {
-    const result = JigsawCut.cut(this.width(), this.height(), this.gridSize());
+    const result = JigsawCut.cut(this.width(), this.height(), this.gridSize(), Math.random, this.cutShape());
     return 'error' in result ? null : result;
   });
 

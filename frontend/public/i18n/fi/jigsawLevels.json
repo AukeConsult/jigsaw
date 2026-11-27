@@ -10,5 +10,13 @@
     "normal": "Normaali",
     "hard": "Vaikea",
     "expert": "Asiantuntija"
+  },
+  "cut": "Palojen muoto",
+  "cuts": {
+    "classic": "Klassinen",
+    "round": "Pyöreä",
+    "pointed": "Terävä",
+    "square": "Kulmikas",
+    "wave": "Aalto"
   }
 }
