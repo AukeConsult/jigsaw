@@ -15,7 +15,7 @@
     @case ('package') {
       @if (jigsaw(); as j) {
         <!-- a picture of a package the account has not got: no choice and no start, only the picture and the way to the package -->
-        <h1 class="page-title text-break">{{ j.name }}</h1>
+        <h1 class="page-title text-center text-break">{{ j.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <p class="text-center mb-3" role="status"><i class="bi bi-lock-fill me-1" aria-hidden="true"></i>{{ t('play.notYourPackage') || 'This picture is in a package you do not have.' }}</p>
         <div class="d-flex flex-wrap justify-content-center gap-2">
@@ -27,7 +27,7 @@
     @case ('view') {
       @if (jigsaw(); as j) {
         <!-- a ready jigsaw is looked at first: its picture, what is told about it, and the button that opens the puzzle -->
-        <h1 class="page-title text-break">{{ j.name }}</h1>
+        <h1 class="page-title text-center text-break">{{ j.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <div class="card card-body gap-2">
           <ng-container *ngTemplateOutlet="facts; context: { $implicit: j }" />
@@ -51,7 +51,7 @@
     @case ('logon') {
       @if (jigsaw(); as j) {
         <!-- nobody is logged on: they may look; in place of the start is the way to log on -->
-        <h1 class="page-title text-break">{{ j.name }}</h1>
+        <h1 class="page-title text-center text-break">{{ j.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <div class="card card-body gap-2">
           <ng-container *ngTemplateOutlet="facts; context: { $implicit: j }" />
@@ -69,7 +69,7 @@
     @case ('choose') {
       @if (jigsaw(); as j) {
         <!-- the picture and its name, and under them the choice of the pieces and the difficulty, which starts the round -->
-        <h1 class="page-title text-break">{{ j.name }}</h1>
+        <h1 class="page-title text-center text-break">{{ j.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <app-round-choice [jigsaw]="j" [solved]="solved()" [busy]="busy()" [askWho]="!byLink()" (chosen)="start($event)" (cancelled)="back()" />
         <ng-container *ngTemplateOutlet="howMany" />
@@ -86,7 +86,16 @@
     @if (!noPicture()) {
       <img class="round-picture d-block mx-auto rounded" [src]="pictureUrl()" alt="" (error)="noPicture.set(true)">
     }
-    <div class="tiny text-body-secondary text-center mt-1 mb-3">{{ j.width }} × {{ j.height }} px</div>
+    <!-- under the picture: its size, when it was added and, for a picture of a package, the package, which is a way to it -->
+    <div class="tiny text-body-secondary text-center mt-1 mb-3">
+      <span class="text-nowrap">{{ j.width }} × {{ j.height }} px</span>
+      @if (j.createdAt) {
+        <span class="ms-3 text-nowrap"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ j.createdAt | date: 'mediumDate' }}</span>
+      }
+      @if (j.packageId) {
+        <a class="ms-3 badge text-bg-warning text-decoration-none text-wrap" [routerLink]="['/play/package', j.packageId]"><i class="bi bi-box-seam me-1" aria-hidden="true"></i>{{ packageName() || t('play.feed.packageOne') || 'Package' }}</a>
+      }
+    </div>
   </ng-template>
   <!-- what is told about it: the pieces, the difficulty and the clock of a ready jigsaw (a picture is cut in each round), the motive difficulty, the words, the categories, who made it and when -->
   <ng-template #facts let-j>

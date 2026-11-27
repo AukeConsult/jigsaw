@@ -1,17 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { JigsawUsers } from "../src/models";
+import { JigsawUsers, TileDetailLevels } from "../src/models";
 
-// Whether the picture tiles tell their details is a preference of the account: only yes or no is taken and kept.
+// How much the picture tiles tell is a preference of the account: none, short, details or full.
 
-describe("showing the details on the tiles as a preference of the account", () => {
-  it("takes yes and no, and nothing else", () => {
-    expect(JigsawUsers.change({ tileDetails: false })).toEqual({ change: { tileDetails: false } });
-    expect(JigsawUsers.change({ tileDetails: true })).toEqual({ change: { tileDetails: true } });
-    expect(JigsawUsers.change({ tileDetails: "no" })).toHaveProperty("error");
+describe("how much the tiles tell as a preference of the account", () => {
+  it("takes none, short, details and full, and nothing else", () => {
+    for (const level of ["none", "short", "details", "full"] as const) expect(JigsawUsers.change({ tileDetails: level })).toEqual({ change: { tileDetails: level } });
+    expect(JigsawUsers.change({ tileDetails: true })).toHaveProperty("error");
+    expect(JigsawUsers.change({ tileDetails: "all" })).toHaveProperty("error");
   });
 
-  it("is read back when it is yes or no", () => {
-    expect(JigsawUsers.fromStored("a", { tileDetails: false }).tileDetails).toBe(false);
+  it("reads what an earlier version kept: details shown is full, left out is short", () => {
+    expect(TileDetailLevels.of(true)).toBe("full");
+    expect(TileDetailLevels.of(false)).toBe("short");
+    expect(JigsawUsers.fromStored("a", { tileDetails: false as never }).tileDetails).toBe("short");
+    expect(JigsawUsers.fromStored("a", { tileDetails: "none" }).tileDetails).toBe("none");
     expect(JigsawUsers.fromStored("a", { tileDetails: "x" as never }).tileDetails).toBeUndefined();
     expect(JigsawUsers.fromStored("a", {}).tileDetails).toBeUndefined();
   });

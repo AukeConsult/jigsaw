@@ -57,7 +57,7 @@ export type UserChange = UserSettings & {
 };
 
 /** The fields of a change that are written as they are, every one of them (the type sees to it): nothing else of a change is ever saved. `level` and `pictureAt` have rules of their own. */
-const WRITTEN: Record<keyof UserSettings | "lastUsedAt", true> = { name: true, username: true, language: true, listFilter: true, playLook: true, textLook: true, tileSize: true, labelSize: true, tileDetails: true, lastUsedAt: true };
+const WRITTEN: Record<keyof UserSettings | "lastUsedAt", true> = { name: true, username: true, language: true, listFilter: true, playLook: true, textLook: true, tileSize: true, tileDetails: true, menuPlace: true, showOngoing: true, lastUsedAt: true };
 
 /** The collection `jigsaw-users`. */
 export function firestoreUserStore(): UserStore {

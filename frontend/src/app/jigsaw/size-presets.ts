@@ -8,3 +8,9 @@ export const SIZE_PRESETS = [
   { key: 'panorama', label: 'Panorama 3:1 (1200 × 400)', width: 1200, height: 400 },
   { key: 'large', label: 'Large 4:3 (1200 × 900)', width: 1200, height: 900 },
 ] as const;
+
+/** The standard size nearest to a picture area (a saved one is a whole number of pieces, so it can differ a little from the size that was asked for). */
+export function nearestSize(width: number, height: number): string {
+  const apart = (p: { width: number; height: number }) => Math.abs(p.width - width) + Math.abs(p.height - height);
+  return SIZE_PRESETS.reduce((best: (typeof SIZE_PRESETS)[number], p) => (apart(p) < apart(best) ? p : best), SIZE_PRESETS[0]).key;
+}

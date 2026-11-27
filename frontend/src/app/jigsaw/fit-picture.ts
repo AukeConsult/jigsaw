@@ -1,5 +1,5 @@
 import { cssVar } from '../core/theme';
-import { SourceRect } from '../models/shared/geometry';
+import { PictureCrop, SourceRect } from '../models/shared/geometry';
 
 /** The biggest picture the API keeps for a jigsaw (about 5 MB; a larger one is made smaller first). */
 export const MAX_PICTURE_BYTES = 5 * 1024 * 1024 - 64 * 1024;
@@ -25,12 +25,8 @@ function inside(cut: SourceRect, width: number, height: number): SourceRect {
 export async function fitPicture(file: Blob, width: number, height: number, maxBytes: number, cut?: SourceRect): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const shape = width > 0 && height > 0 ? width / height : bitmap.width / bitmap.height;
-  // the part of the picture that is used: the cut the person found, or what covers the picture area: all of one side, the middle of the other
-  const wide = bitmap.width / bitmap.height > shape;
-  const covering = wide
-    ? { w: bitmap.height * shape, h: bitmap.height, x: (bitmap.width - bitmap.height * shape) / 2, y: 0 }
-    : { w: bitmap.width, h: bitmap.width / shape, x: 0, y: (bitmap.height - bitmap.width / shape) / 2 };
-  const source = cut ? inside(cut, bitmap.width, bitmap.height) : covering;
+  // the part of the picture that is used: the cut that was found, or what covers the picture area: all of one side, the middle of the other
+  const source = cut ? inside(cut, bitmap.width, bitmap.height) : PictureCrop.covering(bitmap.width, bitmap.height, shape);
   let side = Math.min(FIRST_SIDE_PX, Math.max(width, height) * 2, Math.max(source.w, source.h)); // the longest side of the result
   for (let round = 0; round < 6; round++, side = Math.round(side * 0.75)) {
     const scale = side / Math.max(source.w, source.h);

@@ -11,7 +11,7 @@ Scores will come later.
 
 ## Make your own
 
-* Press **Add picture** in the menu, give it a name, choose a picture and press **Save**.
+* Press **Add picture** in the menu, give it a name, choose a picture (or take a photo) and press **Save**.
 * A picture you add is **Private**: only you see it.
 * To make pictures **Public**, so that everybody can play them, you must be approved as **Publisher**: send an e-mail to [karinauke2@gmail.com](mailto:karinauke2@gmail.com) and ask.
 * You can also share a private picture with friends: press **Share** under it. Anybody who gets the link can play it.

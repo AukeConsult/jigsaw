@@ -259,7 +259,19 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (error) return bad(res, error, 403);
     next();
   };
-  router.post("/jigsaw", publishing, stampOwner, inPackage, pictureLimit);
+  // an owner has only a few pictures in the category Recommended (`AccountLimits`): one more is refused when there are that many, whoever asks; one that is recommended already stays so
+  const recommendedLimit: express.RequestHandler = async (req, res, next) => {
+    const body = (req.body ?? {}) as { categories?: unknown; ownerUid?: unknown };
+    if (!Array.isArray(body.categories) || !body.categories.includes("recommended")) return next();
+    const now = req.method === "PUT" ? await jigsawById(req.params.id) : null;
+    const owner = typeof body.ownerUid === "string" ? body.ownerUid : now?.ownerUid ?? askerOf(req);
+    if (!owner || (now?.ownerUid === owner && now.categories?.includes("recommended"))) return next();
+    const marked = jigsaw.recommendedOf ? await jigsaw.recommendedOf(owner) : (await jigsaw.list()).filter((j) => j.ownerUid === owner && j.categories?.includes("recommended")).map((j) => j.id);
+    const full = AccountLimits.recommendedError(marked.filter((id) => id !== req.params.id).length);
+    if (full) return bad(res, full, 403);
+    next();
+  };
+  router.post("/jigsaw", publishing, stampOwner, inPackage, pictureLimit, recommendedLimit);
   router.put("/jigsaw/:id", stampOwner, inPackage);
   // a jigsaw only its owner sees can be changed by its owner only (for anyone else it is not there)
   router.put("/jigsaw/:id", async (req, res, next) => {
@@ -267,7 +279,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     if (now && JigsawVisibilities.restricted(now.visibility) && askerOf(req) !== now.ownerUid && !(await isAdmin(askerOf(req)))) return bad(res, "No such jigsaw.", 404);
     next();
   });
-  router.put("/jigsaw/:id", ownerOnly("change"), publishing, pictureLimit);
+  router.put("/jigsaw/:id", ownerOnly("change"), publishing, pictureLimit, recommendedLimit);
   // a picture of a package stays in it: a change replaces the whole document, and the forms do not send `packageId`, so what the picture has is put back (a change does not move it to another package)
   router.put("/jigsaw/:id", async (req, _res, next) => {
     const now = await jigsawById(req.params.id);

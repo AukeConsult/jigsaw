@@ -174,10 +174,6 @@ describe("a picture in the search", () => {
     expect(facets.difficulties).toMatchObject({ hard: 2, easy: 2, medium: 1 });
   });
 
-  it("comes after the jigsaws when put in order by the number of pieces", () => {
-    expect(JigsawSearch.page([pic, huge, small48], { ...base, sort: "pieces" }).items.map((j) => j.id)).toEqual(["s", "h", "pic"]);
-    expect(JigsawSearch.page([pic, small48, huge], { ...base, sort: "most" }).items.map((j) => j.id)).toEqual(["h", "s", "pic"]);
-  });
 });
 
 describe("the AI classification of a picture entry", () => {

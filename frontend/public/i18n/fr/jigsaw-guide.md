@@ -11,7 +11,7 @@ Les scores arriveront plus tard.
 
 ## Fais le tien
 
-* Appuie sur **Ajouter une image** dans le menu, donne un nom, choisis une image et appuie sur **Enregistrer**.
+* Appuie sur **Ajouter une image** dans le menu, donne un nom, choisis une image (ou prends une photo) et appuie sur **Enregistrer**.
 * Une image que tu ajoutes est **Privé** : toi seul la vois.
 * Pour rendre des images **Public**, afin que tout le monde puisse y jouer, il faut être approuvé comme **Éditeur** : envoie un e-mail à [karinauke2@gmail.com](mailto:karinauke2@gmail.com) et demande-le.
 * Tu peux aussi partager une image privée avec des amis : appuie sur **Partager** en dessous. Toute personne qui reçoit le lien peut y jouer.

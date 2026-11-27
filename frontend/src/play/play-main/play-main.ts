@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, tap } from 'rxjs';
 import { AdminBanner } from '../../app/jigsaw/admin-banner/admin-banner';
+import { CameraCapture } from '../../app/jigsaw/camera-capture/camera-capture';
 import { JigsawUserService } from '../../app/jigsaw/jigsaw-user.service';
 import { PlayLook } from '../../app/jigsaw/play-look';
 import { TextLook } from '../../app/jigsaw/text-look';
@@ -11,26 +12,32 @@ import { TileDetails } from '../../app/jigsaw/tile-details';
 import { AuthService } from '../../app/logons/auth.service';
 import { PlayMenuItem } from '../helper/menus';
 import { rememberPage } from '../last-page';
+import { PhotoShot } from '../photo-shot';
 import { PlayFrame } from '../play-frame/play-frame';
 import { menuOfRoute } from '../play-route';
 
 /**
  * The main page of the app: **one router outlet, for the page that is open, and the frame that lies over it and shows the helper.** Main is what finds out whether a user is logged on (a user is logged on when an account plays) and gives
  * the helper, which is always there in the frame, its menu: the menu that goes with the page that is open (every route carries one), for who is logged on. It finds out as it is shown (`ngOnInit`: the earlier login is restored and
- * the account that played last is read), and gives the menu again whenever the page or the answer changes. Until it knows the helper has no menu and is not shown. It also says the theme of the app and the size and font of its text and the sizes of its tiles and labels (`data-table`, `data-text-size`, `data-font`, `data-tiles`, `data-labels`, and `data-tile-details`: the account's preferences).
+ * the account that played last is read), and gives the menu again whenever the page or the answer changes. Until it knows the helper has no menu and is not shown. It also says the theme of the app and the size and font of its text and the size of its tiles (`data-table`, `data-text-size`, `data-font`, `data-tiles`, and `data-tile-details`: the account's preferences).
  */
 @Component({
   selector: 'play-main',
-  imports: [RouterOutlet, PlayFrame, AdminBanner],
-  host: { class: 'd-block', '[attr.data-table]': 'look.table()', '[attr.data-text-size]': 'text.value().size', '[attr.data-font]': 'text.value().font', '[attr.data-tiles]': 'sizes.tileSize.value()', '[attr.data-labels]': 'sizes.labelSize.value()', '[attr.data-tile-details]': 'details.shown()' },
-  template: '<app-admin-banner /><router-outlet></router-outlet><play-frame [menu]="menu()" />',
+  imports: [RouterOutlet, PlayFrame, AdminBanner, CameraCapture],
+  host: { class: 'd-block', '[attr.data-table]': 'look.table()', '[attr.data-text-size]': 'text.value().size', '[attr.data-font]': 'text.value().font', '[attr.data-tiles]': 'sizes.tileSize.value()', '[attr.data-tile-details]': 'details.value()' },
+  // the window with the camera of a computer (Take a photo in the menu) is framed here: in the menu, which is moved about, it would not lie over the whole page
+  template: `<app-admin-banner /><router-outlet></router-outlet><play-frame [menu]="menu()" />
+    @if (photo.filming()) {
+      <app-camera-capture (taken)="photo.receive($event)" (cancelled)="photo.filming.set(false)" />
+    }`,
 })
 export class PlayMain implements OnInit {
+  protected readonly photo = inject(PhotoShot);
   /** the theme of the app, the account's preference: the stylesheet paints it behind the pages and the menu */
   protected readonly look = inject(PlayLook);
   /** how big the text is and in which letters, said the same way */
   protected readonly text = inject(TextLook);
-  /** how big the picture tiles and the small labels are */
+  /** how big the picture tiles are */
   protected readonly sizes = inject(PartSizeChoice);
   /** whether the picture tiles tell their details */
   protected readonly details = inject(TileDetails);

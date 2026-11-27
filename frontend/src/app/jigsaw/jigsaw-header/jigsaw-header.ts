@@ -7,7 +7,7 @@ import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 
 /**
  * The top of the form of a picture (`play-picture-form`): the picture as it will look, and under and beside it the places where the form puts its own parts (`draft-*` and `draft` content): what is made, the name, the
- * description, the AI, the choices and the buttons. It shows the author and the facts the form says so far.
+ * description, the size, the choices and the buttons. It shows the author and the facts the form says so far.
  */
 @Component({
   selector: 'app-jigsaw-header',
@@ -24,11 +24,19 @@ export class JigsawHeader {
   readonly chooseLabel = input('');
   /** the words of the button over the lower right corner of the picture that chooses another (empty: no button; it presses `choose` too) */
   readonly changeLabel = input('');
+  /** the words of the button that takes a photo (empty: no button; it presses `shoot`) */
+  readonly cameraLabel = input('');
+  /** what the small icon in the upper right corner of the picture does, adjusting its cut (empty: no icon; it presses `adjust`) */
+  readonly adjustLabel = input('');
   /** the address of the picture (null: none chosen yet) */
   readonly pictureSrc = input<string | null>(null);
 
   /** a button that chooses a picture was pressed */
   readonly choose = output<void>();
+  /** the button that takes a photo was pressed */
+  readonly shoot = output<void>();
+  /** the icon that adjusts the cut was pressed */
+  readonly adjust = output<void>();
 
   /** the picture could not be read: the empty place is shown */
   protected readonly hasPicture = signal(true);

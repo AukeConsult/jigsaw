@@ -11,7 +11,7 @@ Point kommer senere.
 
 ## Lav dit eget
 
-* Tryk på **Tilføj billede** i menuen, giv det et navn, vælg et billede og tryk på **Gem**.
+* Tryk på **Tilføj billede** i menuen, giv det et navn, vælg et billede (eller tag et foto) og tryk på **Gem**.
 * Et billede, du tilføjer, er **Privat**: kun du ser det.
 * For at gøre billeder **Offentlig**, så alle kan spille dem, skal du godkendes som **Udgiver**: send en e-mail til [karinauke2@gmail.com](mailto:karinauke2@gmail.com) og bed om det.
 * Du kan også dele et privat billede med venner: tryk på **Del** under det. Alle, der får linket, kan spille det.

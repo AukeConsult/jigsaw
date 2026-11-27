@@ -26,3 +26,5 @@ export * from './account-limits';
 export * from './play-look';
 export * from './text-look';
 export * from './part-size';
+export * from './tile-details';
+export * from './menu-place';

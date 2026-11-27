@@ -16,7 +16,7 @@ import { ListView } from '../../list-view';
   providers: [provideTranslocoScope('play')],
   host: { class: 'd-block' },
   template: `
-    @if (view.ongoing()) {
+    @if (view.ongoing.value()) {
       <app-my-rounds />
     }
     <main class="container-fluid page-margin" *transloco="let t">

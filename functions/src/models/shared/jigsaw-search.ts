@@ -108,15 +108,18 @@ export class JigsawIndex {
   }
 }
 
-export type SearchSort = 'new' | 'old' | 'name' | 'pieces' | 'most';
+export type SearchSort = 'new' | 'old' | 'name';
 
 /** The page of the jigsaws of one user (see `JigsawSearch.mine`): the page, and how many jigsaws there are for each choice of who sees them (with the words kept). */
 export interface MineAnswer {
   items: JigsawSummary[];
   total: number;
   hasMore: boolean;
-  counts: { all: number; everyone: number; owner: number; hidden: number };
+  counts: { all: number; everyone: number; owner: number; hidden: number; recommended: number };
 }
+
+/** what the list of the user's own pictures can be narrowed to: who sees them, or the recommended ones */
+export type MineShown = 'everyone' | 'owner' | 'hidden' | 'recommended';
 
 /** Who sees a jigsaw, as a filter asks for it: public (everybody) or private (only the owner and the players). A hidden jigsaw is neither: it is only found when no choice is made. */
 export const FILTER_VISIBILITIES = ['public', 'private'] as const;
@@ -212,7 +215,7 @@ export class JigsawSearch {
     if (words.length > SEARCH_MAX_TEXT) return { error: `The text can be at most ${SEARCH_MAX_TEXT} characters.` };
     if (f.favorites !== undefined && f.favorites !== 'true' && f.favorites !== '1') return { error: 'The favorites must be true.' };
     if (f.solved !== undefined && f.solved !== 'true' && f.solved !== '1') return { error: 'The solved must be true.' };
-    if (f.sort !== undefined && !['new', 'old', 'name', 'pieces', 'most'].includes(f.sort)) return { error: 'The sort must be new, old, name, pieces or most.' };
+    if (f.sort !== undefined && !['new', 'old', 'name'].includes(f.sort)) return { error: 'The sort must be new, old or name.' };
     const whole = (v: string | undefined, name: string, min: number, max: number): number | { error: string } => {
       if (v === undefined) return -1;
       const n = Number(v);
@@ -303,34 +306,25 @@ export class JigsawSearch {
 
   /**
    * The jigsaws of one user, for the page where the user looks after them (these are all of that user's, also the private and the hidden ones): those with the words of the query in
-   * the name, the author or the description, and, when `visibility` is said, only those that this one sees; in the order asked for, and a page of them. The counts say how many there
+   * the name, the author or the description, and, when `only` is said, only those that this one sees or the recommended ones; in the order asked for, and a page of them. The counts say how many there
    * are for each choice of who sees them, with the words kept (so they add up to what the list would show with no choice made).
    */
-  static mine(items: readonly JigsawSummary[], query: Pick<JigsawQuery, 'text' | 'sort' | 'limit' | 'page'>, visibility?: 'everyone' | 'owner' | 'hidden'): MineAnswer {
+  static mine(items: readonly JigsawSummary[], query: Pick<JigsawQuery, 'text' | 'sort' | 'limit' | 'page'>, only?: MineShown): MineAnswer {
     const withWords = items.filter((j) => JigsawSearch.hasWords(j, query.text));
-    const counts = { all: withWords.length, everyone: 0, owner: 0, hidden: 0 };
+    const recommended = (j: JigsawSummary) => !!j.categories?.includes('recommended');
+    const counts = { all: withWords.length, everyone: 0, owner: 0, hidden: 0, recommended: withWords.filter(recommended).length };
     for (const j of withWords) counts[j.visibility ?? 'everyone']++;
-    const shown = visibility ? withWords.filter((j) => (j.visibility ?? 'everyone') === visibility) : withWords;
+    const shown = only === 'recommended' ? withWords.filter(recommended) : only ? withWords.filter((j) => (j.visibility ?? 'everyone') === only) : withWords;
     const page = JigsawSearch.page(shown, query as JigsawQuery);
     return { ...page, counts };
   }
 
-  /** The order by number of pieces (`direction` 1: the fewest first, -1: the most first); a picture has no number of pieces of its own, so it comes after the jigsaws that have one. */
-  private static byPieces(a: JigsawSummary, b: JigsawSummary, direction: 1 | -1): number {
-    const pa = JigsawKinds.isPicture(a);
-    const pb = JigsawKinds.isPicture(b);
-    if (pa || pb) return Number(pa) - Number(pb);
-    return direction * (JigsawIndex.piecesOf(a) - JigsawIndex.piecesOf(b));
-  }
-
-  /** The jigsaws in the order asked for (the newest first, the oldest first, by name, or the fewest or the most pieces first; the newer first when they are the same), and the page of them. */
+  /** The jigsaws in the order asked for (the newest first, the oldest first, or by name; the newer first when they are the same), and the page of them. */
   static page(items: readonly JigsawSummary[], query: JigsawQuery): { items: JigsawSummary[]; total: number; hasMore: boolean } {
     const order: Record<SearchSort, (a: JigsawSummary, b: JigsawSummary) => number> = {
       new: (a, b) => b.createdAt - a.createdAt,
       old: (a, b) => a.createdAt - b.createdAt,
       name: (a, b) => a.name.localeCompare(b.name),
-      pieces: (a, b) => JigsawSearch.byPieces(a, b, 1),
-      most: (a, b) => JigsawSearch.byPieces(a, b, -1),
     };
     const sorted = [...items].sort((a, b) => order[query.sort](a, b) || b.createdAt - a.createdAt);
     const from = (query.page - 1) * query.limit;

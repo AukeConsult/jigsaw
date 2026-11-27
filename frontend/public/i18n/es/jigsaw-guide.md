@@ -11,7 +11,7 @@ Las puntuaciones llegarán más adelante.
 
 ## Haz el tuyo
 
-* Pulsa **Añadir imagen** en el menú, ponle un nombre, elige una imagen y pulsa **Guardar**.
+* Pulsa **Añadir imagen** en el menú, ponle un nombre, elige una imagen (o haz una foto) y pulsa **Guardar**.
 * Una imagen que añades es **Privado**: solo tú la ves.
 * Para hacer imágenes **Público**, de modo que todos puedan jugarlas, hace falta que te aprueben como **Editor**: envía un correo a [karinauke2@gmail.com](mailto:karinauke2@gmail.com) y pídelo.
 * También puedes compartir una imagen privada con amigos: pulsa **Compartir** debajo de ella. Cualquiera que reciba el enlace puede jugarla.

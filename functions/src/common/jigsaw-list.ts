@@ -11,6 +11,8 @@ export type JigsawStore = DocumentStore<JigsawInput, JigsawSpec> & {
   countOwned?(ownerUid: string): Promise<number>;
   /** how many of them are not public (private or hidden; a fake store may leave it out) */
   countNotPublic?(ownerUid: string): Promise<number>;
+  /** the ids of the ones in the category Recommended (a fake store may leave it out) */
+  recommendedOf?(ownerUid: string): Promise<string[]>;
 };
 
 /** The jigsaws in a Firestore collection (`jigsaw`): the newest 100; a jigsaw that an older version saved is read as the model says (see `JigsawSettings.fromStored`). */
@@ -28,6 +30,8 @@ export function firestoreJigsawStore(collection: string): JigsawStore {
     countOwned: async (ownerUid) => (await getFirestore().collection(collection).where("ownerUid", "==", ownerUid).count().get()).data().count,
     // (only who sees each is read, and counted here: no composite index)
     countNotPublic: async (ownerUid) => (await getFirestore().collection(collection).where("ownerUid", "==", ownerUid).select("visibility").get()).docs.filter((d) => JigsawVisibilities.restricted(d.data().visibility as string | undefined)).length,
+    // (only the categories of each are read, and looked at here: no composite index)
+    recommendedOf: async (ownerUid) => (await getFirestore().collection(collection).where("ownerUid", "==", ownerUid).select("categories").get()).docs.filter((d) => (d.data().categories as string[] | undefined)?.includes("recommended")).map((d) => d.id),
   };
 }
 

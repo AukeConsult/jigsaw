@@ -2,8 +2,8 @@ import { DestroyRef, Directive, ElementRef, afterNextRender, inject } from '@ang
 
 /**
  * A bar that must stay on ONE line (the bar of the admin): the words in it are shown only while everything fits on one line. It measures instead of guessing from the width of the
- * screen: first everything is shown; if the bar then wraps, the words of the buttons are hidden (`fit-1`: the icons stay, and the words stay for a screen reader); if it still wraps, the name
- * beside the logo goes too (`fit-2`). What the classes hide is in `styles.scss` (`.fit-label`, `.brand-text`). It measures again whenever the bar or what is in it changes size or text.
+ * screen: first everything is shown; if the bar then wraps, the words of the buttons are hidden (`fit-1`: the icons stay, and the words stay for a screen reader). The name beside the logo
+ * always stays. What the class hides is in `styles.scss` (`.fit-label`). It measures again whenever the bar or what is in it changes size or text.
  */
 @Directive({ selector: '[appLabelFit]' })
 export class LabelFit {
@@ -43,9 +43,7 @@ export class LabelFit {
 
   private fit(): void {
     const classes = this.host.classList;
-    classes.remove('fit-1', 'fit-2');
-    if (!this.wraps()) return;
-    classes.add('fit-1');
-    if (this.wraps()) classes.add('fit-2');
+    classes.remove('fit-1');
+    if (this.wraps()) classes.add('fit-1');
   }
 }

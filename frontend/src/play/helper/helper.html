@@ -8,27 +8,26 @@
 @if (docked()) {
   <!-- stuck to an edge: a bar along it. Across the top or the bottom the entries are side by side on one line, each icon with its word under it; down a side they are one under the other. It is moved by pressing anywhere on it: dragged away from its edge it is the small menu again. -->
   <div class="play-bar nav nav-pills menu-font gap-1" [class.align-items-center]="!upright()" [class.flex-column]="upright()" [class.flex-nowrap]="upright()" [class.h-100]="upright()" role="group" *transloco="let t">
-    @for (item of menu(); track item.route ?? item.toggle ?? 'language') {
+    @for (item of menu(); track item.route ?? item.toggle ?? (item.photo ? 'photo' : 'language')) {
       @let label = item.text || (item.key ? (t(item.key) || item.english) : '');
       @if (item.brand) {
-        <a class="nav-link brand-lockup scaled d-flex align-items-center gap-2" draggable="false" [routerLink]="item.route!">
-          <span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32" /><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span>
-          @if (atHome()) {
-            <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
-          }
-        </a>
+        <app-home class="nav-link scaled" />
       } @else if (item.toggle; as toggle) {
         @if (!hidden(toggle)) {
           <!-- a switch of the page: no little control in a bar, the icon itself is marked when it is on -->
           <button type="button" class="nav-link d-flex align-items-center gap-1" role="switch" [attr.aria-checked]="stateOf(toggle)()" [title]="label" (click)="stateOf(toggle).set(!stateOf(toggle)())">
-            <i class="bi" [class]="item.icon" aria-hidden="true"></i><span class="fit-label">{{ label }}</span>
+            <i class="bi" [class]="item.icon" aria-hidden="true"></i><span class="fit-label" [class.menu-label]="!upright()">{{ label }}</span>
           </button>
         }
+      } @else if (item.photo) {
+        <button type="button" class="nav-link d-flex align-items-center gap-1" [title]="label" (click)="takePhoto()">
+          <span class="menu-icon"><i class="bi" [class]="item.icon" aria-hidden="true"></i></span><span class="fit-label" [class.menu-label]="!upright()">{{ label }}</span>
+        </button>
       } @else if (item.language) {
         <app-language-select [inBar]="docked()" />
       } @else if (item.route) {
         <a class="nav-link d-flex align-items-center gap-1" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route" [replaceUrl]="item.replace ?? false" [title]="label">
-          <span class="menu-icon"><i class="bi" [class]="item.icon" aria-hidden="true"></i>@if (item.mark && filterOn()) {<span class="menu-mark" [title]="t('play.filterOn') || 'The filter is on'"><span class="visually-hidden">{{ t('play.filterOn') || 'The filter is on' }}</span></span>}</span><span class="fit-label">{{ label }}</span>
+          <span class="menu-icon"><i class="bi" [class]="item.icon" aria-hidden="true"></i>@if (item.mark && filterOn()) {<span class="menu-mark" [title]="t('play.filterOn') || 'The filter is on'"><span class="visually-hidden">{{ t('play.filterOn') || 'The filter is on' }}</span></span>}</span><span class="fit-label" [class.menu-label]="!upright()">{{ label }}</span>
         </a>
       }
     }
@@ -39,19 +38,11 @@
   <!-- the menu: white, the entries one under the other (the entry of the page that is open is marked). The first row is the name of the app, and a grip on top shows that it can be moved: it is moved by pressing anywhere on it.
        The links are not draggable by the browser: its own drag of a link would cancel the move of the helper. -->
   <div class="list-group menu-font rounded-4 overflow-hidden shadow" role="group" *transloco="let t">
-    @for (item of menu(); track item.route ?? item.toggle ?? 'language') {
+    @for (item of menu(); track item.route ?? item.toggle ?? (item.photo ? 'photo' : 'language')) {
       @if (item.brand) {
-        <!-- the name of the app: the logo with the house on its corner, "Karins" and under it "jigsaw"; it goes home -->
-        <!-- home is the logo itself and nothing round it: the link is no larger than what is drawn -->
+        <!-- the way home: the logo and the name of the app -->
         <div class="list-group-item brand-item d-flex align-items-center">
-          <span class="brand-lockup scaled d-flex align-items-center gap-2">
-            <a class="d-inline-flex text-reset text-decoration-none" draggable="false" [routerLink]="item.route!">
-              <span class="brand-mark"><img class="brand-logo" src="logo.svg" alt="" width="32" height="32" /><i class="bi bi-house-fill brand-home" aria-hidden="true"></i></span>
-            </a>
-            @if (atHome()) {
-              <span class="brand-text"><span class="brand-name">Karins</span><span class="brand-sub">jigsaw</span></span>
-            }
-          </span>
+          <app-home class="scaled flex-grow-1" />
         </div>
       } @else if (item.toggle; as toggle) {
         @if (!hidden(toggle)) {
@@ -61,6 +52,10 @@
           <span class="form-check form-switch mb-0 ms-auto ps-0"><input class="form-check-input ms-2" type="checkbox" role="presentation" tabindex="-1" [checked]="stateOf(toggle)()" (click)="$event.preventDefault()"></span>
         </button>
         }
+      } @else if (item.photo) {
+        <button type="button" class="list-group-item list-group-item-action" (click)="takePhoto()">
+          <span class="menu-icon me-2"><i class="bi" [class]="item.icon" aria-hidden="true"></i></span>{{ item.key ? (t(item.key) || item.english) : '' }}
+        </button>
       } @else if (item.language) {
         <!-- the language of the app: the flag and name of the language in use, and the list one step down -->
         <app-language-select />
@@ -74,3 +69,5 @@
     <span class="play-grip" [title]="t('play.dragHint') || 'Drag to move'" aria-hidden="true"></span>
   </div>
 }
+<!-- the camera of a phone or tablet, opened by Take a photo: the press that opens it must be the press on the entry, so the field is here -->
+<input #photoInput type="file" class="d-none" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true" (change)="photoChosen($event)">

@@ -3,7 +3,7 @@
   <div class="choice-group" role="group" aria-labelledby="categories-label">
     @for (c of categories; track c.key) {
       @let on = chosen(c.key);
-      <button type="button" class="btn btn-sm" [class.btn-primary]="on" [class.btn-outline-secondary]="!on" [attr.aria-pressed]="on" [disabled]="!canChoose(c)" (click)="toggle(c.key)">
+      <button type="button" class="btn btn-sm" [class.btn-primary]="on" [class.btn-outline-secondary]="!on" [attr.aria-pressed]="on" (click)="toggle(c.key)">
         <i class="bi" [class]="c.icon" aria-hidden="true"></i>{{ t('jigsawCategories.name.' + c.key) || c.name }}
       </button>
     }
@@ -15,7 +15,7 @@
       <div class="choice-group" role="group" [attr.aria-label]="c.name">
         @for (s of c.subs; track s.key) {
           @let sub = chosen(s.key);
-          <button type="button" class="btn btn-sm" [class.btn-primary]="sub" [class.btn-outline-secondary]="!sub" [attr.aria-pressed]="sub" [disabled]="!canChoose(s)" (click)="toggle(s.key)">{{ t('jigsawCategories.name.' + s.key) || s.name }}</button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="sub" [class.btn-outline-secondary]="!sub" [attr.aria-pressed]="sub" (click)="toggle(s.key)">{{ t('jigsawCategories.name.' + s.key) || s.name }}</button>
         }
       </div>
     </div>

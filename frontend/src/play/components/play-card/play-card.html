@@ -1,10 +1,10 @@
 <ng-container *transloco="let t">
   @let item = jigsaw();
   <div class="card h-100">
-    <!-- the picture, with Play over its bottom right corner -->
+    <!-- the picture: pressed, it opens (as the name does) -->
     <div class="position-relative">
-      <button type="button" class="d-block w-100 p-0 border-0 bg-transparent" (click)="show()" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
-        <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
+      <button type="button" class="d-block w-100 p-0 border-0 bg-transparent" (click)="show()" [title]="item.name" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name">
+        <div class="tile-picture ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
           @if (!noPicture()) {
             <img class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
           }
@@ -27,46 +27,40 @@
         </button>
       }
       @if (packageName() !== null && item.packageId) {
-        <!-- from a package the person has: a tag in the bottom left corner of the picture, which leads to the package -->
-        <a class="package-tag badge text-bg-warning text-decoration-none text-truncate position-absolute bottom-0 start-0 m-1" [routerLink]="['/play/package', item.packageId]" [title]="packageName() || t('play.feed.packageOne') || 'Package'">
-          <i class="bi bi-box-seam me-1" aria-hidden="true"></i>{{ packageName() || t('play.feed.packageOne') || 'Package' }}
+        <!-- from a package the person has: a mark in the bottom left corner of the picture, which leads to the package (its name is in the tooltip, and on the page before the puzzle) -->
+        <a class="badge text-bg-warning text-decoration-none position-absolute bottom-0 start-0 m-1" [routerLink]="['/play/package', item.packageId]" [title]="packageName() || t('play.feed.packageOne') || 'Package'" [attr.aria-label]="packageName() || t('play.feed.packageOne') || 'Package'">
+          <i class="bi bi-box-seam" aria-hidden="true"></i>
         </a>
       }
-      @if (locked()) {
-        <span class="btn btn-overlay position-absolute bottom-0 end-0 m-1 pe-none" role="img" [title]="t('play.feed.lockedHint') || 'Add the package to my pictures to play them.'" [attr.aria-label]="t('play.feed.lockedHint') || 'Add the package to my pictures to play them.'"><i class="bi bi-lock-fill" aria-hidden="true"></i></span>
-      } @else {
-        <button type="button" class="btn btn-overlay position-absolute bottom-0 end-0 m-1" (click)="show()" [title]="t('play.play') || 'Show the jigsaw'" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name"><i class="bi bi-play-fill" aria-hidden="true"></i></button>
-      }
-    </div>
-    <div class="card-body p-2 text-break">
-      <button type="button" class="card-name text-name text-decoration-none p-0 border-0 bg-transparent text-start" (click)="show()">{{ item.name }}</button>@if (item.timed !== false) {<i class="bi bi-stopwatch tile-details tiny ms-1 text-body-secondary" [title]="t('play.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tile-details tiny ms-1 text-body-secondary" [title]="t('play.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tile-details tiny ms-1 text-body-secondary" [title]="t('play.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
-      <!-- what every card tells: how many pieces and how hard (the words are in the tooltips) -->
-      <div class="text-body-secondary tiny">
-        @if (isPicture()) {
-          <!-- a picture is cut in each round: the pieces and the difficulty are chosen when the round starts -->
-          <span class="text-nowrap" [title]="t('play.choosePiecesTitle') || 'The number of pieces and the difficulty are chosen when you start a round'"><i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('play.choosePieces') || 'Choose pieces' }}</span>
-        } @else {
-          <span class="text-nowrap" [title]="t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}</span>
-          <span class="ms-2 text-nowrap" [title]="t('play.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('play.snap.' + level()) || level() }}</span>
+      <!-- the lower right corner: who the picture is from, stamped on it (the alias of the account; the name that was kept, for one whose account is not known), and the lock of a picture of a package the person has not got -->
+      <div class="picture-corner position-absolute bottom-0 end-0 m-1 d-flex justify-content-end align-items-end gap-1 pe-none">
+        @if (stamp() ? alias() || item.author : ''; as from) {
+          <span class="stamp badge text-truncate"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ from }}</span>
+        }
+        @if (locked()) {
+          <span class="btn btn-overlay" role="img" [title]="t('play.feed.lockedHint') || 'Add the package to my pictures to play them.'" [attr.aria-label]="t('play.feed.lockedHint') || 'Add the package to my pictures to play them.'"><i class="bi bi-lock-fill" aria-hidden="true"></i></span>
         }
       </div>
-      <!-- the details, which the player of the app can leave out (`tile-details`, as the marks after the name are): the description, the categories, how hard the motive is, who made it and when; only what is filled in -->
-      <div class="tile-details text-body-secondary tiny">
-        @if (item.description) {
-          <div class="tile-description mt-1">{{ item.description }}</div>
-        }
-        <app-category-tags [keys]="item.categories" />
-        <div class="d-flex flex-wrap column-gap-2">
-          @if (item.motive) {
-            <span class="text-nowrap" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</span>
-          }
-          @if (item.author) {
-            <span class="mw-100 text-truncate" [title]="item.author"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ item.author }}</span>
-          }
-          @if (item.createdAt) {
-            <span class="text-nowrap"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ item.createdAt | date: 'mediumDate' }}</span>
-          }
+    </div>
+    <div class="tile-text card-body p-2 text-break">
+      <button type="button" class="card-name text-name text-decoration-none p-0 border-0 bg-transparent text-start" (click)="show()">{{ item.name }}</button>@if (item.timed !== false) {<i class="bi bi-stopwatch tile-details tiny ms-1 text-body-secondary" [title]="t('play.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tile-details tiny ms-1 text-body-secondary" [title]="t('play.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tile-details tiny ms-1 text-body-secondary" [title]="t('play.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      @if (!isPicture()) {
+        <!-- a ready jigsaw: how many pieces and how hard (the words are in the tooltips). A picture says neither: they are chosen when a round starts -->
+        <div class="text-body-secondary tiny">
+          <span class="text-nowrap" [title]="t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces'"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('play.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}</span>
+          <span class="ms-2 text-nowrap" [title]="t('play.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('play.snap.' + level()) || level() }}</span>
         </div>
+      }
+      <!-- the description: only with the full grade -->
+      @if (item.description) {
+        <div class="tile-description text-body-secondary tiny mt-1">{{ item.description }}</div>
+      }
+      <!-- the details, which the player of the app can leave out (`tile-details`, as the marks after the name are): the categories and when it was added; only what is filled in -->
+      <div class="tile-details text-body-secondary tiny">
+        <app-category-tags [keys]="item.categories" />
+        @if (item.createdAt) {
+          <div><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ item.createdAt | date: 'mediumDate' }}</div>
+        }
       </div>
     </div>
   </div>

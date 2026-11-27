@@ -54,6 +54,7 @@ export const PLAY_ROUTES: Routes = [
           { path: 'welcome', component: PlayInfo, title: 'Welcome', data: { doc: 'welcome' } },
           { path: 'help', component: PlayInfo, title: 'Help', data: { doc: 'help' } },
           { path: 'about', component: PlayInfo, title: 'About', data: { doc: 'about' } },
+          { path: 'terms', component: PlayInfo, title: 'Terms of use', data: { doc: 'terms' } },
           { path: 'install', component: PlayInfo, title: 'Install', data: { doc: 'install' } },
         ],
       },

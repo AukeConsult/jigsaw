@@ -46,6 +46,13 @@
 
     </application>
 
+    <!-- Take a photo on Add picture is taken by the phone's own camera app (no permission): since Android 11 an app must say that it looks for one, or none is found and only the files are offered -->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
+
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />

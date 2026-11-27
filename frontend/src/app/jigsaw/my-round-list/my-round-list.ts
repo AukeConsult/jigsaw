@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
@@ -7,15 +7,16 @@ import { clockOf } from '../duration';
 import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
+import { ViewSwitch, cardInfoPreference, viewShapePreference } from '../view-switch/view-switch';
 
 /**
- * **The list of the rounds the user has played** (`/play/mine/rounds`): a row for each round, with the picture, the name, going or solved and how many pieces are in place, when it was
+ * **The list of the rounds the user has played** (`/play/mine/rounds`): a row or a card for each round (the person chooses which), with the picture, the name, going or solved and how many pieces are in place, when it was
  * started and the time played, and Continue (or Look, for a solved one) and Delete (asked first). Nothing played yet says so, with the way to begin. A
  * round opens the puzzle (`/play/jigsaw/:id`, where the round that is going is gone on with).
  */
 @Component({
   selector: 'app-my-round-list',
-  imports: [DatePipe, RouterLink, TranslocoDirective],
+  imports: [DatePipe, NgTemplateOutlet, RouterLink, TranslocoDirective, ViewSwitch],
   providers: [provideTranslocoScope('jigsawUser')],
   templateUrl: './my-round-list.html',
 })
@@ -24,7 +25,9 @@ export class MyRoundList {
   private readonly plays = inject(PlaysService);
   private readonly images = inject(JigsawImageService);
 
-
+  /** rows or cards, and what a card shows (kept on the device) */
+  protected readonly view = viewShapePreference('jigsaw.roundsView');
+  protected readonly cardInfo = cardInfoPreference('jigsaw.roundsCardInfo');
   /** a time played, as a clock (`12:34`) */
   protected readonly clock = clockOf;
   /** something went wrong (said above the list) */

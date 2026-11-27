@@ -1,6 +1,8 @@
 import { PlayLookSetup, PlayLooks } from './play-look';
 import { TextLookSetup, TextLooks } from './text-look';
-import { PartSize, PartSizes, SIZED_PARTS } from './part-size';
+import { PartSize, PartSizes } from './part-size';
+import { TileDetail, TileDetailLevels } from './tile-details';
+import { MenuPlace, MenuPlaces } from './menu-place';
 import { JigsawFilter, JigsawFilters } from './jigsaw-filter';
 import { DEFAULT_LANGUAGE, JigsawLanguages } from './language';
 import { UserLevel, UserLevels } from './user-level';
@@ -33,11 +35,14 @@ export interface JigsawUserSpec {
   playLook?: PlayLookSetup;
   /** how big the user likes the text and in which letters (`TextLooks`); none until the user has chosen */
   textLook?: TextLookSetup;
-  /** how big the user likes the picture tiles and the small labels (`PartSizes`); none until the user has chosen */
+  /** how big the user likes the picture tiles (`PartSizes`); none until the user has chosen */
   tileSize?: PartSize;
-  labelSize?: PartSize;
-  /** whether the picture tiles tell their details (description, categories, motive, author, date, the marks after the name); none until the user has chosen, and then they do */
-  tileDetails?: boolean;
+  /** how much the picture tiles tell besides the picture (`TileDetailLevels`); none until the user has chosen, and then they tell everything */
+  tileDetails?: TileDetail;
+  /** where the menu of the app is (`MenuPlaces`); none until the user has moved or chosen it */
+  menuPlace?: MenuPlace;
+  /** whether the rounds that are going are on the top of the home page; none until the user has chosen, and then they are */
+  showOngoing?: boolean;
   /** milliseconds since 1970 */
   createdAt: number;
   /** when somebody last chose to play as this account (milliseconds since 1970): the accounts are listed with the one used last first; an account never chosen since this was kept has none */
@@ -59,7 +64,7 @@ export interface JigsawUserSpec {
 }
 
 /** What a person chooses about their account (besides its picture): the fields of a change that are kept just as they are. A new setting is added here, and the compiler says where else. */
-export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'username' | 'language' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'labelSize' | 'tileDetails'>>;
+export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'username' | 'language' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'tileDetails' | 'menuPlace' | 'showOngoing'>>;
 
 /** A change of an account as the page asks for it: the settings, and the picture (a data address; null takes it away). */
 export type UserEdit = UserSettings & { picture?: string | null };
@@ -185,17 +190,23 @@ export class JigsawUsers {
       if (!TextLooks.is(body.textLook)) return { error: 'Choose a size of the text and a font.' };
       change.textLook = TextLooks.stored(body.textLook);
     }
-    for (const part of SIZED_PARTS) {
-      const size = body[part];
-      if (size === undefined) continue;
-      if (!PartSizes.is(size)) return { error: 'Choose a size: small, medium or large.' };
-      change[part] = size;
+    if (body.tileSize !== undefined) {
+      if (!PartSizes.is(body.tileSize)) return { error: 'Choose a size: small, medium or large.' };
+      change.tileSize = body.tileSize;
     }
     if (body.tileDetails !== undefined) {
-      if (typeof body.tileDetails !== 'boolean') return { error: 'Say whether the tiles show their details: yes or no.' };
+      if (!TileDetailLevels.is(body.tileDetails)) return { error: 'Choose how much the tiles show: none, short, details or full.' };
       change.tileDetails = body.tileDetails;
     }
-    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture, the filter of the list, the play area, the text or the sizes.' };
+    if (body.menuPlace !== undefined) {
+      if (!MenuPlaces.is(body.menuPlace)) return { error: 'Choose where the menu is: left, right, top, bottom or floating.' };
+      change.menuPlace = body.menuPlace;
+    }
+    if (body.showOngoing !== undefined) {
+      if (typeof body.showOngoing !== 'boolean') return { error: 'The rounds on the home page are shown or not.' };
+      change.showOngoing = body.showOngoing;
+    }
+    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture, the filter of the list, the play area, the text, the size of the tiles, the menu or the home page.' };
   }
 
   /** The order of the accounts in a list: the one used last first; those never used after those that were, newest made first; then by name. */
@@ -253,6 +264,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(PartSizes.is(doc.labelSize) ? { labelSize: doc.labelSize } : {}), ...(typeof doc.tileDetails === 'boolean' ? { tileDetails: doc.tileDetails } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
+    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(TileDetailLevels.of(doc.tileDetails) ? { tileDetails: TileDetailLevels.of(doc.tileDetails) } : {}), ...(MenuPlaces.is(doc.menuPlace) ? { menuPlace: doc.menuPlace } : {}), ...(typeof doc.showOngoing === 'boolean' ? { showOngoing: doc.showOngoing } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
   }
 }

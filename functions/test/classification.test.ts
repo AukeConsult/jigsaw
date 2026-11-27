@@ -2,6 +2,24 @@ import { JigsawMotives } from "../src/models/shared/motive";
 import { describe, expect, it } from "vitest";
 import { Classifications, JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JigsawCategories } from "../src/models";
 
+describe("what the AI may fill on a picture when it runs by itself", () => {
+  const found = { categories: ["nature"], motive: "normal" as const, name: "A forest", description: "Trees." };
+
+  it("fills everything that is empty", () => {
+    expect(Classifications.lacks({})).toBe(true);
+    expect(Classifications.fill({ name: "  ", description: "", categories: [] }, found)).toEqual(found);
+  });
+
+  it("keeps what the person has typed or chosen", () => {
+    expect(Classifications.fill({ name: "Mine", categories: ["recommended"] }, found)).toEqual({ motive: "normal", description: "Trees." });
+  });
+
+  it("has nothing to ask when nothing is empty, and fills nothing the AI did not say", () => {
+    expect(Classifications.lacks({ name: "Mine", description: "Text", categories: ["nature"], motive: "easy" })).toBe(false);
+    expect(Classifications.fill({}, { categories: [], name: "", description: "" })).toEqual({});
+  });
+});
+
 describe("what the AI is asked and allowed to say about a picture", () => {
   it("may give every category and sub-category by key, and nothing else", () => {
     const keys = Classifications.keys();

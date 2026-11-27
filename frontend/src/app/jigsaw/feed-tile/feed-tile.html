@@ -1,15 +1,16 @@
 <ng-container *transloco="let t">
-<!-- one frame for every kind: the same look as a card (border, round corners), so a tile and a picture card sit in one grid; what is inside is the kind's own -->
+<!-- (the heading of a tile is as big as the name on a picture card, `card-name`) one frame for every kind: the same look as a card (border, round corners), so a tile and a picture card sit in one grid; what is inside is the kind's own -->
 <div class="card h-100" [class.feed-private]="private()" [class.feed-pressable]="pressable()" [attr.role]="pressable() ? 'link' : null" [attr.tabindex]="pressable() ? 0 : null" (click)="pressable() && press()" (keydown.enter)="pressable() && press()">
   @if (private()) {
     <!-- a private tile is shown to its owner only, to check how it looks: a clear banner, so it is not forgotten and left private -->
     <div class="card-header text-bg-warning text-center fw-semibold py-1" role="status"><i class="bi bi-lock-fill" aria-hidden="true"></i> {{ t('play.feed.privateBanner') || 'Private: only you see this. Make it public when it is ready.' }}</div>
   }
-  <div class="card-body d-flex flex-column gap-1">
+  <!-- (information has less room round it, so its icon and title sit up in the corner) -->
+  <div class="card-body d-flex flex-column gap-1" [class.p-2]="info()">
     @if (offer(); as o) {
       <!-- an offer: a mark that catches the eye, the title and the words -->
       <span class="badge text-bg-warning align-self-start"><i class="bi bi-tag-fill" aria-hidden="true"></i> {{ o.labelFor(language()) }}</span>
-      <div class="subsection-title">{{ o.titleFor(language()) }}</div>
+      <div class="subsection-title card-name">{{ o.titleFor(language()) }}</div>
       @if (o.textFor(language())) {
         <div class="small text-body-secondary">{{ o.textFor(language()) }}</div>
       }
@@ -22,7 +23,7 @@
       } @else {
         <i class="bi bi-box-seam icon-xl text-primary" aria-hidden="true"></i>
       }
-      <div class="subsection-title">{{ k.titleFor(language()) }}</div>
+      <div class="subsection-title card-name">{{ k.titleFor(language()) }}</div>
       @if (k.textFor(language())) {
         <div class="small text-body-secondary">{{ k.textFor(language()) }}</div>
       }
@@ -34,9 +35,11 @@
         }
       </div>
     } @else if (info(); as i) {
-      <!-- information: words to read -->
-      <i class="bi bi-info-circle-fill icon-xl text-primary" aria-hidden="true"></i>
-      <div class="subsection-title">{{ i.titleFor(language()) }}</div>
+      <!-- information: words to read; a small icon in the upper left corner and the title beside it -->
+      <div class="d-flex align-items-start gap-2">
+        <i class="bi bi-info-circle-fill card-name text-primary" aria-hidden="true"></i>
+        <div class="subsection-title card-name my-0 min-w-0 text-break">{{ i.titleFor(language()) }}</div>
+      </div>
       <div class="small text-body-secondary">{{ i.textFor(language()) }}</div>
     }
   </div>

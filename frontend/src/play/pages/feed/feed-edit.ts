@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { CategoryPicker } from '../../../app/jigsaw/category-picker/category-picker';
@@ -9,6 +9,19 @@ import { FEED_LABEL_MAX, FEED_TEXT_MAX, FEED_TITLE_MAX, FeedItemData, FeedItems,
 import { dayToMs, msToDay } from './feed-dates';
 import { CURRENCIES, FEED_ICONS, FEED_PATHS } from './feed-kind';
 import { apiError } from '../../../app/core/api-error';
+import { isBoolean, preferenceSignal, readPreference, writePreference } from '../../../app/core/preferences';
+
+/** what was chosen for the last new tile (rule 12 of `CLAUDE.md`): the language it is written in and, for a package, free or not and the currency; what is typed belongs to that tile */
+interface NewTileDefaults {
+  language?: string;
+  free?: boolean;
+  currency?: string;
+}
+const NEW_TILE_KEY = 'play.newTile';
+const isNewTile = (v: unknown): v is NewTileDefaults => {
+  const d = v as NewTileDefaults | null;
+  return !!d && typeof d === 'object' && (d.language === undefined || LANGUAGES.some((l) => l.code === d.language)) && (d.free === undefined || typeof d.free === 'boolean') && (d.currency === undefined || (CURRENCIES as readonly string[]).includes(d.currency));
+};
 
 /**
  * The page of the routes `/play/mine/info/new` and `/play/mine/info/:id` (and the same for `offers`; the route data `kind` says which): **one tile of the home page, added or changed** by a publisher or an admin. The words are
@@ -77,9 +90,20 @@ export class PlayFeedEdit {
     });
   });
 
+  /** "Advanced" is open: kept on the device */
+  protected readonly advancedOpen = preferenceSignal('play.feedAdvanced', false, isBoolean);
+
   constructor() {
     const id = this.id();
     if (id && id !== 'new') void this.load(id);
+    else {
+      // a new tile starts as the last one was, and what is chosen now is kept for the next
+      const last = readPreference<NewTileDefaults>(NEW_TILE_KEY, {}, isNewTile);
+      if (last.language) this.masterLanguage.set(last.language);
+      if (last.free !== undefined) this.free.set(last.free);
+      if (last.currency) this.currency.set(last.currency);
+      effect(() => writePreference(NEW_TILE_KEY, { language: this.masterLanguage(), free: this.free(), currency: this.currency() } satisfies NewTileDefaults));
+    }
     // a new tile that was just saved opens as the one that is changed (another page: the route has the id), and still says how the translation went
     const saved = this.router.getCurrentNavigation()?.extras.state?.['saved'];
     if (saved === 'none' || saved === 'done' || saved === 'unavailable' || saved === 'failed') this.saved.set(saved);

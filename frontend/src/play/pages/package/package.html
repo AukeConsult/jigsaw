@@ -12,6 +12,9 @@
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
       <span class="badge text-bg-light border">{{ price(pack) || (t('play.feed.free') || 'Free') }}</span>
       <span class="small text-body-secondary"><i class="bi bi-images" aria-hidden="true"></i> {{ pictures().length === 1 ? (t('play.feed.pictureOne') || '1 picture') : (t('play.feed.pictureCount', { count: pictures().length }) || pictures().length + ' pictures') }}</span>
+      @if (publisher()) {
+        <span class="small text-body-secondary text-break" [title]="t('play.feed.publisher') || 'Publisher'"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>{{ publisher() }}</span>
+      }
       <!-- on top: edit it (its owner), and add it to my pictures (free) or buy it: what the account has says so instead -->
       <span class="ms-auto d-flex flex-wrap align-items-center justify-content-end gap-2">
         @if (mayEdit()) {
@@ -50,7 +53,7 @@
       }
       <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
         @for (picture of pictures(); track picture.id) {
-          <div class="col"><play-card [jigsaw]="picture" [locked]="!mayPlay()" /></div>
+          <div class="col"><play-card [jigsaw]="picture" [locked]="!mayPlay()" [stamp]="false" /></div>
         }
       </div>
     }

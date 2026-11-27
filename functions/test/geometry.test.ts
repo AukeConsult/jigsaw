@@ -1,6 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { PictureCrop } from "../src/models";
 
+describe("the cut a picture gets by itself", () => {
+  it("is the biggest part with the shape, round the middle", () => {
+    expect(PictureCrop.covering(1200, 600, 4 / 3)).toEqual({ x: 200, y: 0, w: 800, h: 600 });
+    expect(PictureCrop.covering(600, 1200, 1)).toEqual({ x: 0, y: 300, w: 600, h: 600 });
+  });
+
+  it("is zoomed in as much as an earlier cut was", () => {
+    expect(PictureCrop.covering(1200, 600, 1, { x: 600, y: 300 }, 2)).toEqual({ x: 450, y: 150, w: 300, h: 300 });
+    expect(PictureCrop.covering(1200, 600, 1, { x: 600, y: 300 }, 0.5)).toEqual({ x: 300, y: 0, w: 600, h: 600 }); // never further out than the whole picture
+  });
+
+  it("stays round the middle of an earlier cut, but never leaves the picture", () => {
+    expect(PictureCrop.covering(1200, 600, 1, { x: 400, y: 300 })).toEqual({ x: 100, y: 0, w: 600, h: 600 });
+    expect(PictureCrop.covering(1200, 600, 1, { x: 1150, y: 300 })).toEqual({ x: 600, y: 0, w: 600, h: 600 });
+  });
+});
+
 describe("a picture seen through a frame", () => {
   const view = (zoom = 1, x?: number, y?: number) => new PictureCrop(400, 300, 1200, 600, zoom, x, y); // a wide picture, a 4:3 frame
 

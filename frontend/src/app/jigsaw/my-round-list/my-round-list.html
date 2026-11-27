@@ -15,42 +15,113 @@
         </div>
         </div>
       } @else {
-        <ul class="list-group">
-          @for (game of games(); track game.play.id) {
-            <li class="list-group-item round-row" [class.round-solved]="game.play.status === 'solved'">
-              <div class="round-body">
-                <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
-                  @if (!noPicture().has(game.jigsaw.id)) {
-                    <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
-                  }
-                </div>
-                <div class="round-info">
-                  <!-- the stretched link makes the whole row (picture, text) open the puzzle; the buttons sit above it -->
-                  <a class="text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id)">{{ game.jigsaw.name }}</a>
-                  <div class="d-flex align-items-center gap-2 flex-wrap small">
-                    @if (game.play.status === 'solved') {
-                      <span class="badge text-bg-success"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.solved') || 'Solved' }}</span>
-                    } @else {
-                      <span class="badge text-bg-primary">{{ t('jigsawUser.playing') || 'Playing' }}</span>
-                    }
-                    <span>{{ t('jigsawUser.ofTotal', { matched: game.play.matched, total: game.play.total }) || game.play.matched + ' of ' + game.play.total }}</span>
+        <!-- rows or cards, and for cards only the picture or also what is told about the round (both kept on the device) -->
+        <div class="d-flex justify-content-end mb-2">
+          <app-view-switch [(view)]="view" [(cardInfo)]="cardInfo" />
+        </div>
+        @if (view() === 'list') {
+          <ul class="list-group">
+            @for (game of games(); track game.play.id) {
+              <li class="list-group-item round-row" [class.round-solved]="game.play.status === 'solved'">
+                <div class="round-body">
+                  <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
+                    <ng-container *ngTemplateOutlet="thumb; context: { $implicit: game }" />
                   </div>
-                  <div class="tiny text-body-secondary"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ game.play.startedAt | date: 'MMM d, y, HH:mm' }}@if (game.play.protected) { <i class="bi bi-lock text-primary ms-2" role="img" [title]="t('jigsawUser.roundProtected') || 'Locked: started with a sign-in of this account'" [attr.aria-label]="t('jigsawUser.roundProtected') || 'Locked: started with a sign-in of this account'"></i> }@if (game.play.elapsedMs) { <span class="ms-2 text-nowrap" [title]="t('jigsawUser.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ clock(game.play.elapsedMs) }}</span> }</div>
+                  <div class="round-info">
+                    <!-- the stretched link makes the whole row (picture, text) open the puzzle; the buttons sit above it -->
+                    <a class="text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id)">{{ game.jigsaw.name }}</a>
+                    <ng-container *ngTemplateOutlet="about; context: { $implicit: game }" />
+                  </div>
+                  <div class="round-actions" [class.confirming]="confirmingPlayId() === game.play.id">
+                    @if (confirmingPlayId() === game.play.id) {
+                      <ng-container *ngTemplateOutlet="confirm; context: { $implicit: game }" />
+                    } @else {
+                      <ng-container *ngTemplateOutlet="actions; context: { $implicit: game }" />
+                    }
+                  </div>
                 </div>
-                <div class="round-actions" [class.confirming]="confirmingPlayId() === game.play.id">
+              </li>
+            }
+          </ul>
+        } @else {
+          <!-- the same rounds as cards: a press on the card goes on with the round (or looks at a solved one). With the info a card has Continue and Delete as the row has; with only the picture Delete lies on it -->
+          <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
+            @for (game of games(); track game.play.id) {
+              <div class="col">
+                <div class="card own-card" [class.h-100]="cardInfo() === 'info'" [class.round-solved]="game.play.status === 'solved'">
+                  <div [class.flex-grow-1]="cardInfo() === 'info'">
+                    <div class="ratio ratio-4x3 bg-body-secondary overflow-hidden" [class.card-img-top]="cardInfo() === 'info'" [class.rounded]="cardInfo() === 'picture'">
+                      <ng-container *ngTemplateOutlet="thumb; context: { $implicit: game }" />
+                    </div>
+                    @if (cardInfo() === 'info') {
+                      <div class="p-2 text-break">
+                        <a class="d-block card-name text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id)">{{ game.jigsaw.name }}</a>
+                        <ng-container *ngTemplateOutlet="about; context: { $implicit: game }" />
+                      </div>
+                    } @else {
+                      <a class="stretched-link" [routerLink]="link(game.jigsaw.id)" [title]="game.jigsaw.name" [attr.aria-label]="game.jigsaw.name"></a>
+                      <!-- only the picture: still going or solved is said on it -->
+                      <div class="position-absolute bottom-0 start-0 m-1 pe-none">
+                        <ng-container *ngTemplateOutlet="state; context: { $implicit: game }" />
+                      </div>
+                    }
+                    @if (cardInfo() === 'picture') {
+                      <button type="button" class="btn btn-overlay position-absolute top-0 end-0 m-1 z-2" [title]="t('jigsawUser.deleteRound') || 'Delete'" [attr.aria-label]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingPlayId.set(game.play.id)"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                    }
+                  </div>
                   @if (confirmingPlayId() === game.play.id) {
-                    <button type="button" class="link-action danger" (click)="removeGame(game)">{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
-                    <button type="button" class="link-action" (click)="confirmingPlayId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
-                  } @else {
-                    <a class="link-action text-nowrap" [routerLink]="link(game.jigsaw.id)" [title]="game.play.status === 'solved' ? (t('jigsawUser.look') || 'Look') : (t('jigsawUser.keepPlaying') || 'Continue')">
-                      <i class="bi bi-play-fill" aria-hidden="true"></i><span class="round-action-text">@if (game.play.status === 'solved') { {{ t('jigsawUser.look') || 'Look' }} } @else { {{ t('jigsawUser.keepPlaying') || 'Continue' }} }</span>
-                    </a>
-                    <button type="button" class="link-action danger text-nowrap" [title]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingPlayId.set(game.play.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.deleteRound') || 'Delete' }}</span></button>
+                    <div class="d-flex flex-wrap column-gap-3 p-2 position-relative z-2">
+                      <ng-container *ngTemplateOutlet="confirm; context: { $implicit: game }" />
+                    </div>
+                  } @else if (cardInfo() === 'info') {
+                    <div class="d-flex flex-wrap column-gap-3 px-2 pb-1 position-relative z-2">
+                      <ng-container *ngTemplateOutlet="actions; context: { $implicit: game }" />
+                    </div>
                   }
                 </div>
               </div>
-            </li>
-          }
-        </ul>
+            }
+          </div>
+        }
       }
+  <!-- what a row and a card have in common -->
+  <ng-template #thumb let-game>
+    @if (!noPicture().has(game.jigsaw.id)) {
+      <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
+    }
+  </ng-template>
+  <ng-template #state let-game>
+    @if (game.play.status === 'solved') {
+      <span class="badge text-bg-success"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.solved') || 'Solved' }}</span>
+    } @else {
+      <span class="badge text-bg-primary">{{ t('jigsawUser.playing') || 'Playing' }}</span>
+    }
+  </ng-template>
+  <!-- going or solved, how many pieces are in place, when it was started and the time played -->
+  <ng-template #about let-game>
+    <div class="d-flex align-items-center gap-2 flex-wrap small">
+      <ng-container *ngTemplateOutlet="state; context: { $implicit: game }" />
+      <span>{{ t('jigsawUser.ofTotal', { matched: game.play.matched, total: game.play.total }) || game.play.matched + ' of ' + game.play.total }}</span>
+    </div>
+    <div class="tiny text-body-secondary d-flex flex-wrap column-gap-2">
+      <span class="text-nowrap"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ game.play.startedAt | date: 'MMM d, y, HH:mm' }}</span>
+      @if (game.play.protected) {
+        <i class="bi bi-lock text-primary" role="img" [title]="t('jigsawUser.roundProtected') || 'Locked: started with a sign-in of this account'" [attr.aria-label]="t('jigsawUser.roundProtected') || 'Locked: started with a sign-in of this account'"></i>
+      }
+      @if (game.play.elapsedMs) {
+        <span class="text-nowrap" [title]="t('jigsawUser.timePlayed') || 'Time played'"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ clock(game.play.elapsedMs) }}</span>
+      }
+    </div>
+  </ng-template>
+  <!-- go on with the round (or look at a solved one), and delete it -->
+  <ng-template #actions let-game>
+    <a class="link-action text-nowrap" [routerLink]="link(game.jigsaw.id)" [title]="game.play.status === 'solved' ? (t('jigsawUser.look') || 'Look') : (t('jigsawUser.keepPlaying') || 'Continue')">
+      <i class="bi bi-play-fill" aria-hidden="true"></i><span class="round-action-text">@if (game.play.status === 'solved') { {{ t('jigsawUser.look') || 'Look' }} } @else { {{ t('jigsawUser.keepPlaying') || 'Continue' }} }</span>
+    </a>
+    <button type="button" class="link-action danger text-nowrap" [title]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingPlayId.set(game.play.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.deleteRound') || 'Delete' }}</span></button>
+  </ng-template>
+  <ng-template #confirm let-game>
+    <button type="button" class="link-action danger" (click)="removeGame(game)">{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
+    <button type="button" class="link-action" (click)="confirmingPlayId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+  </ng-template>
 </ng-container>

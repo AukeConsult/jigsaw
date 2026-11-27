@@ -93,10 +93,10 @@ export function jigsawSearchRouter(
     if (!me) return bad(res, "Say who you are.", 401);
     const parsed = JigsawSearch.parse(req.query as Record<string, unknown>);
     if ("error" in parsed) return bad(res, parsed.error);
-    const visibility = req.query.visibility;
-    if (visibility !== undefined && visibility !== "" && visibility !== "everyone" && visibility !== "owner" && visibility !== "hidden") return bad(res, "The visibility must be everyone, owner or hidden.");
+    const only = req.query.visibility;
+    if (only !== undefined && only !== "" && only !== "everyone" && only !== "owner" && only !== "hidden" && only !== "recommended") return bad(res, "The visibility must be everyone, owner, hidden or recommended.");
     const own = (await store.load([me], SEARCH_MAX_READ)).filter((j) => j.ownerUid === me);
-    const answer = JigsawSearch.mine(own, parsed.query, visibility === "everyone" || visibility === "owner" || visibility === "hidden" ? visibility : undefined);
+    const answer = JigsawSearch.mine(own, parsed.query, only === "everyone" || only === "owner" || only === "hidden" || only === "recommended" ? only : undefined);
     res.json({ ...answer, items: await Promise.all(answer.items.map(({ description: _description, ...summary }) => keyed(summary))) });
   });
   // how many jigsaws there are for each choice of the filter, with the rest of it kept (what the Find page shows beside each tick)
@@ -110,7 +110,7 @@ export function jigsawSearchRouter(
     if ("error" in parsed) return bad(res, parsed.error);
     const found = (await visible(askerOf(req), { favorites: parsed.query.favorites, solved: parsed.query.solved })).filter((j) => JigsawSearch.matches(j, parsed.query));
     const page = JigsawSearch.page(found, parsed.query);
-    res.json({ ...page, items: await Promise.all(page.items.map(({ description: _description, ...summary }) => keyed(summary))) }); // the description was read to look for words in it: a list does not show it
+    res.json({ ...page, items: await Promise.all(page.items.map((summary) => keyed(summary))) }); // with the description: the picture tiles can show it (`TileDetails`)
   });
   return router;
 }

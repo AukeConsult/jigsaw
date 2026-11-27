@@ -11,7 +11,7 @@ Poeng kommer senere.
 
 ## Lag ditt eget
 
-* Trykk **Legg til bilde** i menyen, gi det et navn, velg et bilde og trykk **Lagre**.
+* Trykk **Legg til bilde** i menyen, gi det et navn, velg et bilde (eller ta et bilde) og trykk **Lagre**.
 * Et bilde du legger til er **Privat**: bare du ser det.
 * For å gjøre bilder **Offentlig**, slik at alle kan spille dem, må du godkjennes som **Utgiver**: send en e-post til [karinauke2@gmail.com](mailto:karinauke2@gmail.com) og be om det.
 * Du kan også dele et privat bilde med venner: trykk **Del** under det. Alle som får lenken, kan spille det.

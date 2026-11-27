@@ -5,15 +5,13 @@ import { JigsawCut, PieceLayout, pieceGrid } from '../../../app/models/shared/ji
 import { JigsawSettings } from '../../../app/models/shared/jigsaw-settings';
 
 /**
- * How a **ready jigsaw** is cut, as it is chosen in the form: the shape of the picture area (a standard size), how many pieces, how easy it is to click a piece into place, and whether a clock counts the rounds. The picture area is
+ * How a **ready jigsaw** is cut into pieces, as it is chosen in the form (the size of the picture area is the one the form asks for, `fitTo`, the same as for a picture): how many pieces, how easy it is to click a piece into place, and whether a clock counts the rounds. The picture area is
  * made a whole number of pieces wide and high (`JigsawCut.layoutOf`), so the size and the grid that come out can differ a little from the size asked for. (A picture has none of this: each round chooses its own cut.)
  */
 export class CutChoice {
-  readonly sizePresets = SIZE_PRESETS;
   readonly levels = SNAP_LEVELS;
 
-  /** the standard size that is chosen, and the size as it was asked for (the picture area itself is made to fit whole pieces) */
-  readonly sizeKey = signal<string>('standard');
+  /** the size as it was asked for (the picture area itself is made to fit whole pieces) */
   private readonly asked = signal<{ width: number; height: number }>({ width: SIZE_PRESETS[0].width, height: SIZE_PRESETS[0].height });
   /** the standard numbers of pieces for this shape, as columns × rows (`JigsawCut.pieceChoices`) */
   readonly pieceOptions = computed(() => JigsawCut.pieceChoices(this.asked().width, this.asked().height).map((c) => ({ ...c, key: `${c.columns}x${c.rows}` })));
@@ -35,12 +33,10 @@ export class CutChoice {
     this.choosePieces(this.pieceChoice());
   }
 
-  /** A saved jigsaw is changed: the choices show what it has (the standard size nearest to its own, since its picture area is made to fit whole pieces). */
+  /** A saved jigsaw is changed: the choices show what it has. */
   show(saved: { width: number; height: number; gridSize: number; snapPercent?: number; timed?: boolean }): void {
     const { width, height, gridSize } = saved;
-    const apart = (p: { width: number; height: number }) => Math.abs(p.width - width) + Math.abs(p.height - height);
     const grid = pieceGrid(width, height, gridSize);
-    this.sizeKey.set(this.sizePresets.reduce((best, p) => (apart(p) < apart(best) ? p : best)).key);
     this.asked.set({ width, height });
     this.pieceChoice.set(`${grid.columns}x${grid.rows}`);
     this.width.set(width);
@@ -50,17 +46,14 @@ export class CutChoice {
     this.timed.set(saved.timed !== false);
   }
 
-  /** A standard size was chosen: the picture area gets that shape, and the standard number of pieces nearest to the one there was is kept. */
-  chooseSize(key: string): void {
-    const preset = this.sizePresets.find((p) => p.key === key);
-    if (!preset) return;
+  /** This size is asked for: the picture area gets that shape, and the standard number of pieces nearest to the one there was is kept. */
+  fitTo({ width, height }: { width: number; height: number }): void {
     const before = this.pieceInfo().columns * this.pieceInfo().rows;
-    this.sizeKey.set(key);
-    this.asked.set({ width: preset.width, height: preset.height });
+    this.asked.set({ width, height });
     const options = this.pieceOptions();
     const near = options.length ? options.reduce((best, o) => (Math.abs(o.count - before) < Math.abs(best.count - before) ? o : best)) : null;
     if (near) this.choosePieces(near.key);
-    else this.applyLayout(JigsawCut.layoutFor(preset.width, preset.height, before));
+    else this.applyLayout(JigsawCut.layoutFor(width, height, before));
   }
 
   /** A standard number of pieces was chosen (columns × rows): the picture area is made to fit exactly that many pieces. */

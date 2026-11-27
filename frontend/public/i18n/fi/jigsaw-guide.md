@@ -11,7 +11,7 @@ Pisteet tulevat myöhemmin.
 
 ## Tee oma
 
-* Paina valikossa **Lisää kuva**, anna nimi, valitse kuva ja paina **Tallenna**.
+* Paina valikossa **Lisää kuva**, anna nimi, valitse kuva (tai ota valokuva) ja paina **Tallenna**.
 * Lisäämäsi kuva on **Yksityinen**: vain sinä näet sen.
 * Jotta kuvat olisivat **Julkinen** ja kaikki voisivat pelata niitä, tilisi tason pitää olla **Julkaisija**: lähetä sähköpostia osoitteeseen [karinauke2@gmail.com](mailto:karinauke2@gmail.com) ja pyydä sitä.
 * Voit jakaa yksityisen kuvan myös ystävien kanssa: paina sen alla **Jaa**. Jokainen, joka saa linkin, voi pelata sitä.

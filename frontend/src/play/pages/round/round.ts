@@ -2,6 +2,7 @@ import { DatePipe, Location, NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { LanguageService } from '../../../app/core/language.service';
 import { CategoryTags } from '../../../app/jigsaw/category-tags/category-tags';
 import { BoughtService } from '../../../app/jigsaw/bought.service';
 import { FeedService } from '../../../app/jigsaw/feed.service';
@@ -50,6 +51,7 @@ export class PlayRound implements OnInit {
   private readonly images = inject(JigsawImageService);
   private readonly bought = inject(BoughtService);
   private readonly feed = inject(FeedService);
+  private readonly language = inject(LanguageService).lang;
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly address = inject(ActivatedRoute).snapshot;
@@ -76,6 +78,9 @@ export class PlayRound implements OnInit {
   });
   protected readonly level = computed(() => (this.jigsaw() ? snapLevelOfJigsaw(this.jigsaw()!) : ''));
   protected readonly jigsaw = signal<JigsawSpec | null>(null);
+  /** the package the picture is in, and its name in the language that is chosen ('' for a picture of no package, or until it is read) */
+  private readonly pack = signal<PackageItem | null>(null);
+  protected readonly packageName = computed(() => this.pack()?.titleFor(this.language()) ?? '');
   /** the numbers of pieces the player has solved this picture at (not offered again) */
   protected readonly solved = signal<readonly number[]>([]);
   protected readonly busy = signal(false);
@@ -96,6 +101,7 @@ export class PlayRound implements OnInit {
     const jigsaw = await this.jigsaws.get(this.id).catch(() => null);
     if (!jigsaw) return this.state.set('missing');
     this.jigsaw.set(jigsaw);
+    if (jigsaw.packageId) void this.feed.package(jigsaw.packageId).then((found) => this.pack.set((found?.item as PackageItem | undefined) ?? null)); // only its name: the page does not wait for it
     void this.plays.summary(this.id).then((s) => this.crowd.set(s), () => undefined); // only information: the page does not wait for it
     const me = this.users.acting();
     if (!me) return this.state.set(jigsaw.packageId ? 'package' : 'logon'); // nobody plays: they may look

@@ -47,6 +47,9 @@ public partial class MainWindow : Window
         return uri.Scheme == Uri.UriSchemeHttps && Inside.Any(h => uri.Host == h || uri.Host.EndsWith("." + h));
     }
 
+    /// <summary>A page of the web app itself (not of the sign-in).</summary>
+    private static bool IsApp(string url) => Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps && uri.Host == new Uri(AppUrl).Host;
+
     /// <summary>A link that leaves the app: opened in the browser (or the mail / phone app). Nothing else is ever started.</summary>
     private static void OpenOutside(string url)
     {
@@ -93,8 +96,8 @@ public partial class MainWindow : Window
             e.Cancel = true;
             OpenOutside(e.Uri);
         };
-        // the app asks for no permission (no camera, microphone, location or notifications): whatever a page asks for is refused
-        web.PermissionRequested += (_, e) => e.State = CoreWebView2PermissionState.Deny;
+        // the one thing the app may ask for is the camera, for Take a photo, and only its own pages: the person is then asked (Default). Everything else (microphone, location, notifications ...) is refused
+        web.PermissionRequested += (_, e) => e.State = e.PermissionKind == CoreWebView2PermissionKind.Camera && IsApp(e.Uri) ? CoreWebView2PermissionState.Default : CoreWebView2PermissionState.Deny;
         web.Navigate(AppUrl);
     }
 }

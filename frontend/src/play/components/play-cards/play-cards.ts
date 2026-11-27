@@ -44,7 +44,7 @@ export class PlayCards implements OnInit {
   /** the names of the packages the home page has, in the language that is chosen */
   private readonly packageNames = computed(() => new Map(this.feed.others().flatMap((tile) => (tile instanceof PackageItem ? [[tile.id, tile.titleFor(this.language())] as const] : []))));
 
-  /** what the tag of a picture says: nothing for a picture that is of no package, else the name of the package ('' when the home page has it no more) */
+  /** what the mark of a package on a picture is called: nothing for a picture that is of no package, else the name of the package ('' when the home page has it no more) */
   protected packageName(picture: JigsawSummary): string | null {
     return picture.packageId ? (this.packageNames().get(picture.packageId) ?? '') : null;
   }

@@ -6,7 +6,7 @@ import { readSession, writeSession } from '../app/core/session-storage';
  * kept on the device, and the address of the section (`/play/info`, `/play/mine`, `/play/mine/publish`) goes there. Adding a picture is something one does, not a place one was, so it is not remembered.
  */
 const SECTIONS = {
-  info: { under: '/play/info', pages: ['help', 'welcome', 'about', 'install'] },
+  info: { under: '/play/info', pages: ['help', 'welcome', 'about', 'terms', 'install'] },
   mine: { under: '/play/mine', pages: ['pictures', 'rounds'] },
   publish: { under: '/play/mine', pages: ['many', 'info', 'offers', 'packages'] },
 } as const;

@@ -11,7 +11,7 @@ Poäng kommer senare.
 
 ## Gör ditt eget
 
-* Tryck på **Lägg till bild** i menyn, ge det ett namn, välj en bild och tryck på **Spara**.
+* Tryck på **Lägg till bild** i menyn, ge det ett namn, välj en bild (eller ta ett foto) och tryck på **Spara**.
 * En bild du lägger till är **Privat**: bara du ser den.
 * För att göra bilder **Offentlig**, så att alla kan spela dem, måste du godkännas som **Utgivare**: skicka ett e-postmeddelande till [karinauke2@gmail.com](mailto:karinauke2@gmail.com) och be om det.
 * Du kan också dela en privat bild med vänner: tryck på **Dela** under den. Alla som får länken kan spela den.

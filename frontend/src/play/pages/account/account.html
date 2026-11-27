@@ -19,15 +19,6 @@
           <button type="button" class="link-action" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>{{ t('play.account.logout') || 'Sign out' }}</button>
         </span>
       </div>
-      <!-- what is here, in plain words -->
-      <p class="form-text mt-0 mb-0">{{ t('play.account.userActionsHelp') || 'Here you change your alias, your account name, your picture and your language. Choose another account switches to somebody else: your rounds and jigsaws stay yours.' }}</p>
-      @if (!me.protected) {
-        <!-- an account nobody has locked: anybody who knows the alias can play and change it -->
-        <div class="alert alert-warning d-flex gap-2 py-2 mb-0" role="alert">
-          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
-          <span>{{ t('play.account.openWarning') || 'This account is not verified. Anybody who knows its alias can play as it, change it or delete it. Sign in and lock it to make it yours.' }}</span>
-        </div>
-      }
       @if (edit.editing()) {
         <form class="vstack gap-2" (submit)="$event.preventDefault()">
           <h2 class="d-flex align-items-center gap-2 mb-0"><i class="bi bi-person" aria-hidden="true"></i>{{ t('play.edit.sectionWho') || 'Who you are' }}</h2>
@@ -70,8 +61,6 @@
               </div>
               @if (edit.pictureFailed()) {
                 <div class="form-text text-danger">{{ t('play.edit.pictureFailed') || 'That file could not be used as a picture.' }}</div>
-              } @else {
-                <div class="form-text">{{ t('play.edit.pictureHelp') || 'A small picture shown with your account. It is cut square and made small.' }}</div>
               }
             </div>
             <div class="col-12 col-sm-6">

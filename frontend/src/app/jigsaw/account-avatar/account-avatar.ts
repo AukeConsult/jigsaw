@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
     @if (at() && !broken()) {
       <img class="rounded-circle object-fit-cover" [src]="url()" [attr.width]="pixels()" [attr.height]="pixels()" alt="" (error)="broken.set(true)">
     } @else {
-      <i class="bi bi-person-circle text-primary" [class.icon-md]="size() === 'md'" [class.fs-1]="size() === 'lg'" aria-hidden="true"></i>
+      <i class="bi bi-person-circle text-primary" [class.icon-md]="size() === 'md'" [class.icon-xl]="size() === 'lg'" aria-hidden="true"></i>
     }
   `,
 })

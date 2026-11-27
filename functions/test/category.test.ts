@@ -117,3 +117,22 @@ describe("the categories", () => {
     expect(JigsawCategories.canChoose(six.slice(0, 5), "art")).toBe(false); // a jigsaw takes three
   });
 });
+
+describe("a press on a category when a jigsaw is full", () => {
+  const full = ["family", "nature", "art"];
+
+  it("takes the place of the last one chosen, by the order they are shown", () => {
+    const shown = JigsawCategories.stored(full);
+    const after = JigsawCategories.pressed(full, "recommended");
+    expect(after).toHaveLength(3);
+    expect(after).toContain("recommended");
+    expect(after).not.toContain(shown[2]);
+    expect(after).toEqual(expect.arrayContaining(shown.slice(0, 2)));
+  });
+
+  it("takes one away only when there is no room", () => {
+    expect(JigsawCategories.pressed(["nature"], "art")).toEqual(JigsawCategories.toggled(["nature"], "art"));
+    expect(JigsawCategories.pressed(full, "nature")).toEqual(JigsawCategories.toggled(full, "nature")); // chosen: it is taken away
+    expect(JigsawCategories.pressed(full, "nothing")).toEqual(JigsawCategories.stored(full));
+  });
+});

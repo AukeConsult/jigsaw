@@ -28,11 +28,13 @@ interface BatchPreferences {
   timed: boolean;
   /** ready jigsaws or pictures (kept before there was a choice: pictures) */
   kind?: JigsawKind;
+  /** the language of the names and descriptions (none kept: the language the app is shown in) */
+  language?: string;
 }
 const DEFAULTS: BatchPreferences = { pieces: 96, width: 800, difficulty: 'medium', timed: true, kind: 'picture' };
 const isBatchPreferences = (v: unknown): v is BatchPreferences => {
   const p = v as Partial<BatchPreferences> | null;
-  return !!p && typeof p === 'object' && BATCH_PIECES.some((n) => n === p.pieces) && BATCH_WIDTHS.some((n) => n === p.width) && SNAP_LEVELS.some((l) => l.key === p.difficulty) && typeof p.timed === 'boolean' && (p.kind === undefined || JigsawKinds.is(p.kind));
+  return !!p && typeof p === 'object' && BATCH_PIECES.some((n) => n === p.pieces) && BATCH_WIDTHS.some((n) => n === p.width) && SNAP_LEVELS.some((l) => l.key === p.difficulty) && typeof p.timed === 'boolean' && (p.kind === undefined || JigsawKinds.is(p.kind)) && (p.language === undefined || LANGUAGES.some((l) => l.code === p.language));
 };
 const BATCH_KEY = 'jigsaw.batch';
 
@@ -82,8 +84,8 @@ export class JigsawBatch implements OnDestroy {
   /** ready jigsaws (cut into pieces here) or pictures (cut in each round: no pieces, size or difficulty are chosen here) */
   readonly kind = signal<JigsawKind>(this.saved.kind ?? 'picture');
   readonly isPicture = computed(() => !!this.packageId() || this.kind() === 'picture');
-  /** the language of the names and descriptions: the language the app is shown in, to begin with */
-  readonly language = signal(inject(LanguageService).lang());
+  /** the language of the names and descriptions: the one chosen last, the language the app is shown in to begin with */
+  readonly language = signal(this.saved.language ?? inject(LanguageService).lang());
 
   protected readonly pieceChoices = BATCH_PIECES;
   protected readonly widthChoices = BATCH_WIDTHS;
@@ -108,7 +110,7 @@ export class JigsawBatch implements OnDestroy {
 
   constructor() {
     // what is chosen is kept on the device
-    effect(() => writePreference(BATCH_KEY, { pieces: this.pieces(), width: this.width(), difficulty: this.difficulty(), timed: this.timed(), kind: this.kind() } satisfies BatchPreferences));
+    effect(() => writePreference(BATCH_KEY, { pieces: this.pieces(), width: this.width(), difficulty: this.difficulty(), timed: this.timed(), kind: this.kind(), language: this.language() } satisfies BatchPreferences));
   }
 
   /** The files that were chosen are put on the list (only pictures, and no more than `BATCH_MAX` in all). */

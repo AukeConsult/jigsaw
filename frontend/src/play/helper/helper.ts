@@ -1,40 +1,31 @@
-import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, WritableSignal, afterRenderEffect, computed, inject, input, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { filter, map } from 'rxjs';
+import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, WritableSignal, afterRenderEffect, computed, inject, input, signal, viewChild } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { isBoolean, readPreference, writePreference } from '../../app/core/preferences';
+import { MenuSpot, Spot } from './menu-spot';
 import { FavoritesService } from '../../app/jigsaw/favorites.service';
 import { LanguageSelect } from '../../app/jigsaw/language-select/language-select';
 import { ListView } from '../list-view';
+import { PhotoShot } from '../photo-shot';
 import { JigsawFilters } from '../../app/models/shared/jigsaw-filter';
 import { PlayListFilter } from '../play-list-filter';
 import { PuzzelToggle, PuzzelView } from '../puzzel-view';
 import { Drop, MenuDrag, SIDES, Side, insideWindow } from './menu-drag';
 import { PlayMenuItem } from './menus';
+import { Home } from '../../app/home/home';
 
-/** Where the helper was put: its top left corner, in pixels of the window, or the edge it is stuck to (the corner then says nothing). */
-interface Spot {
-  x: number;
-  y: number;
-  side?: Side;
-}
-
-const SPOT_KEY = 'play.helperSpot';
 /** the person has moved the menu at least once: its grip does not call for attention any more */
 const MOVED_KEY = 'play.helperMoved';
-const isSpot = (value: unknown): value is Spot => !!value && typeof value === 'object' && Number.isFinite((value as Spot).x) && Number.isFinite((value as Spot).y) && ((value as Spot).side === undefined || SIDES.includes((value as Spot).side!));
-const sameSpot = (a: Spot | null, b: Spot | null): boolean => a?.x === b?.x && a?.y === b?.y && a?.side === b?.side;
 
 /**
  * **The helper: it lives always on the main level (in the frame of `PlayMain`), one of it, and what it shows is a menu.** Main gives it the proper menu (`menus.ts`: a list of entries, each an icon, the words and the page a press goes to),
- * different for nobody and for a user, and the helper shows it; a press is plain routing (`routerLink`): there are no helper views and no subclasses. **The helper can be moved**: it is dragged to where the person wants it (by pressing
+ * different for nobody and for a user, and the helper shows it; a press is plain routing (`routerLink`; an entry can also be a switch of the page, or Take a photo, which opens the camera): there are no helper views and no subclasses. **The helper can be moved**: it is dragged to where the person wants it (by pressing
  * anywhere on it, on an entry too, and going a few pixels; a press that ends a drag is not a click; how a drag is followed is in `menu-drag.ts`), it can never be dragged, or left by a smaller window or by a change of its own size, outside the window,
- * and where it was put is kept on the device (rule 12 of `CLAUDE.md`). **Dragged to an edge of the window (top, bottom, left or right) and let go it sticks there as a bar** along that edge, and the page makes room for it (`--app-play-bar-top` and the others), until it is dragged away again. Until it is moved it is in the bottom right corner (`.play-helper` in `styles.scss`). **That it can be moved is shown without words**: it has a grip (on the top of the floating menu, on the edge of a bar that faces the page), the grip grows and takes colour a few times until the person has moved it once, and while it is carried the edges of the window light up where it can be fastened, and the one it will stick to is filled. It always shows all of its entries (there is no folding), and is not shown while it has no menu.
+ * and where it was put is kept on the device (rule 12 of `CLAUDE.md`). **Dragged to an edge of the window (top, bottom, left or right) and let go it sticks there as a bar** along that edge, and the page makes room for it (`--app-play-bar-top` and the others), until it is dragged away again. **Until it is moved it is a bar stuck to the left side**; where it is, is `MenuSpot`'s (the preferences can choose it too). **That it can be moved is shown without words**: it has a grip (on the top of the floating menu, on the edge of a bar that faces the page), the grip grows and takes colour a few times until the person has moved it once, and while it is carried the edges of the window light up where it can be fastened, and the one it will stick to is filled. It always shows all of its entries (there is no folding), and is not shown while it has no menu.
  */
 @Component({
   selector: 'play-helper',
-  imports: [RouterLink, RouterLinkActive, TranslocoDirective, LanguageSelect],
+  imports: [RouterLink, RouterLinkActive, TranslocoDirective, LanguageSelect, Home],
   providers: [provideTranslocoScope('play')],
   host: {
     class: 'play-helper',
@@ -46,19 +37,15 @@ const sameSpot = (a: Spot | null, b: Spot | null): boolean => a?.x === b?.x && a
     '[class.docked-left]': "docked() === 'left'",
     '[class.docked-right]': "docked() === 'right'",
     // stuck to an edge the stylesheet places it
-    '[style.left.px]': 'docked() ? null : spot()?.x',
-    '[style.top.px]': 'docked() ? null : spot()?.y',
-    '[style.right]': '!docked() && spot() ? "auto" : null',
-    '[style.bottom]': '!docked() && spot() ? "auto" : null',
+    '[style.left.px]': 'docked() ? null : spot().x',
+    '[style.top.px]': 'docked() ? null : spot().y',
+    '[style.right]': 'docked() ? null : "auto"',
+    '[style.bottom]': 'docked() ? null : "auto"',
   },
   templateUrl: './helper.html',
 })
 export class Helper implements OnInit, OnDestroy {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  /** the page that is open is the home page (the picture list): the logo has the name of the app beside it there, and is the logo alone on every other page */
-  private readonly url = toSignal(inject(Router).events.pipe(filter((event) => event instanceof NavigationEnd), map((event) => (event as NavigationEnd).urlAfterRedirects)), { initialValue: inject(Router).url });
-  protected readonly atHome = computed(() => /^\/play\/list(?=[/?#]|$)/.test(this.url()));
-
   /** the switches of the puzzle page: an entry of the menu can be one of them */
   protected readonly view = inject(PuzzelView);
   private readonly listView = inject(ListView);
@@ -78,15 +65,33 @@ export class Helper implements OnInit, OnDestroy {
     return toggle === 'favorites' ? this.listView.favorites : this.view.state(toggle as PuzzelToggle);
   }
 
+  private readonly photo = inject(PhotoShot);
+  private readonly photoInput = viewChild<ElementRef<HTMLInputElement>>('photoInput');
+
+  /** Take a photo: the camera is opened at once. */
+  protected takePhoto(): void {
+    if (this.photo.way === 'live') this.photo.filming.set(true);
+    else this.photoInput()?.nativeElement.click();
+  }
+
+  /** the camera of a phone or tablet gave its photo */
+  protected photoChosen(event: Event): void {
+    const field = event.target as HTMLInputElement;
+    const file = field.files?.[0];
+    field.value = '';
+    if (file) this.photo.receive(file);
+  }
+
   /** the menu that main gives it (nothing: the helper is not shown) */
   readonly menu = input<readonly PlayMenuItem[] | null>(null);
 
-  /** where it was put (nothing: it has not been moved, and the stylesheet puts it in the corner) */
-  protected readonly spot = signal<Spot | null>(readPreference<Spot | null>(SPOT_KEY, null, (v): v is Spot | null => v === null || isSpot(v)), { equal: sameSpot });
+  private readonly place = inject(MenuSpot);
+  /** where it was put (the left side until it has been moved or chosen) */
+  protected readonly spot = this.place.spot.asReadonly();
   /** the edge of the window it is stuck to, drawn as a bar along it (null: it floats) */
-  protected readonly docked = computed(() => this.spot()?.side ?? null);
-  /** the person has moved it before (or it is stuck to an edge now) */
-  protected readonly hasMoved = signal(readPreference(MOVED_KEY, false, isBoolean) || !!this.spot()?.side);
+  protected readonly docked = computed(() => this.spot().side ?? null);
+  /** the person has moved it before: until then its grip calls for attention */
+  protected readonly hasMoved = signal(readPreference(MOVED_KEY, false, isBoolean));
   /** it is a bar down a side: the entries one under the other */
   protected readonly upright = computed(() => this.docked() === 'left' || this.docked() === 'right');
   /** which edge the room is kept at now, and how much (pixels): so the window is told only of a change */
@@ -101,7 +106,7 @@ export class Helper implements OnInit, OnDestroy {
     docked: () => this.docked(),
     started: () => this.dragging.set(true),
     aim: (side) => this.aim.set(side),
-    lift: (corner) => this.spot.set(corner),
+    lift: (corner) => this.place.spot.set(corner),
     drop: (place) => this.drop(place),
   });
 
@@ -125,13 +130,11 @@ export class Helper implements OnInit, OnDestroy {
     const before = this.lastSize;
     this.lastSize = { width, height };
     const spot = this.spot();
-    if (!spot) return;
     if (!before || (before.width === width && before.height === height)) return this.keepInside();
     const rightGap = window.innerWidth - (spot.x + before.width);
     const bottomGap = window.innerHeight - (spot.y + before.height);
     const next = this.inside({ x: rightGap < spot.x ? window.innerWidth - width - rightGap : spot.x, y: bottomGap < spot.y ? window.innerHeight - height - bottomGap : spot.y });
-    this.spot.set(next);
-    writePreference(SPOT_KEY, next);
+    this.place.keep(next);
   }
 
   /** The page makes room for a bar: its thickness is kept free at its edge, and what measures the room it has (the board of a puzzle) is told to measure again. */
@@ -174,11 +177,10 @@ export class Helper implements OnInit, OnDestroy {
   private drop(place: Drop): void {
     const next: Spot = 'side' in place ? { x: 0, y: 0, side: place.side } : place.corner;
     this.lastSize = 'side' in place ? null : place.size;
-    this.spot.set(next);
+    this.place.put(next);
     this.aim.set(null);
     this.dragging.set(false);
     this.hasMoved.set(true);
-    writePreference(SPOT_KEY, next);
     writePreference(MOVED_KEY, true);
   }
 
@@ -186,7 +188,7 @@ export class Helper implements OnInit, OnDestroy {
   @HostListener('window:resize')
   protected keepInside(): void {
     const spot = this.spot();
-    if (spot && !spot.side && !this.dragging()) this.spot.set(this.inside(spot));
+    if (!spot.side && !this.dragging()) this.place.spot.set(this.inside(spot));
   }
 
   /** The corner moved to the nearest place where the whole helper is in the window. */

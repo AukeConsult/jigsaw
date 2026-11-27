@@ -17,6 +17,21 @@ export interface Classification {
 }
 
 export class Classifications {
+  /** Something of what the AI can say is empty on a picture that has `has`: the name, the description, the categories or the motive difficulty. */
+  static lacks(has: Partial<Classification>): boolean {
+    return !has.name?.trim() || !has.description?.trim() || !has.categories?.length || !has.motive;
+  }
+
+  /** What of a classification may be put on a picture that has `has`: **only what is empty there**, so nothing the person has typed or chosen is replaced. */
+  static fill(has: Partial<Classification>, found: Classification): Partial<Classification> {
+    return {
+      ...(!has.name?.trim() && found.name ? { name: found.name } : {}),
+      ...(!has.description?.trim() && found.description ? { description: found.description } : {}),
+      ...(!has.categories?.length && found.categories.length ? { categories: found.categories } : {}),
+      ...(!has.motive && found.motive ? { motive: found.motive } : {}),
+    };
+  }
+
   /** Every key the AI may answer with as a category: the categories and the sub-categories. */
   static keys(): string[] {
     return JigsawCategories.all().flatMap((c) => [c.key, ...c.subs.map((s) => s.key)]);
@@ -60,10 +75,10 @@ export class Classifications {
 
   /**
    * The categories the AI gave, as one would choose them: only those that exist (once each, at most three), a sub-category instead of its category (not both), and "other" only when it is
-   * all there is.
+   * all there is. Never Recommended: that is a person's choice, and there is room for only a few.
    */
   static tidyCategories(raw: unknown): string[] {
-    const keys = JigsawCategories.stored(Array.isArray(raw) ? raw.filter((k) => JigsawCategories.of(k)) : []);
+    const keys = JigsawCategories.stored(Array.isArray(raw) ? raw.filter((k) => k !== 'recommended' && JigsawCategories.of(k)) : []);
     const withoutParents = keys.filter((key) => !keys.some((other) => other.startsWith(`${key}/`)));
     return withoutParents.length > 1 ? withoutParents.filter((key) => key !== 'other') : withoutParents;
   }

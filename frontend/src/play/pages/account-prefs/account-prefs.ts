@@ -8,15 +8,19 @@ import { PlayLookChoice } from '../../../app/jigsaw/play-look-choice/play-look-c
 import { LANGUAGES, LanguageService } from '../../../app/core/language.service';
 import { TextLook } from '../../../app/jigsaw/text-look';
 import { TileDetails } from '../../../app/jigsaw/tile-details';
+import { TILE_DETAILS } from '../../../app/models/shared/tile-details';
 import { PartSizeChoice } from '../../../app/jigsaw/part-sizes';
 import { FONTS, TEXT_SIZES } from '../../../app/models/shared/text-look';
-import { PART_SIZES, SIZED_PARTS } from '../../../app/models/shared/part-size';
+import { PART_SIZES } from '../../../app/models/shared/part-size';
 import { goBack } from '../../go-back';
 import { ListView } from '../../list-view';
+import { MenuSpot } from '../../helper/menu-spot';
+import { MENU_PLACES } from '../../../app/models/shared/menu-place';
 
 /**
- * The page of the route `/play/account/preferences`: **the preferences** (not the filter of the picture list, which is `/play/prefs`): the language, what the home page shows (`ListView`), the theme of the app and the sound of the puzzle (`app-play-look-choice`), how big its text is and in which letters (`TextLook`), and with the home page: how big the picture tiles and the small labels are (`PartSizeChoice`) and whether the tiles tell their details (`TileDetails`). They
- * are kept with the account that plays; for nobody, on the device.
+ * The page of the route `/play/account/preferences`: **the preferences** (not the filter of the picture list, which is `/play/prefs`), **a card for each thing they change**: Appearance (the theme of the app, `app-play-look-choice`, how big its
+ * text is and in which letters, `TextLook`), Home page (how big the picture tiles are, `PartSizeChoice`, how much they tell, `TileDetails`: none, short, details or full, and the rounds that are going, `ListView`), Menu (where it is, `MenuSpot`) and
+ * Language and sound (the language in a list, and the sound of the puzzle). Choices of which one is taken are joined in one row (`choice-joined`). They are kept with the account that plays; for nobody, on the device.
  */
 @Component({
   selector: 'play-account-prefs',
@@ -24,68 +28,100 @@ import { ListView } from '../../list-view';
   providers: [provideTranslocoScope('play')],
   host: { class: 'd-block' },
   template: `<main class="container-fluid page-margin page-max" *transloco="let t">
-    <section class="card card-body mb-3">
-      <h2 class="subsection-title mt-0"><i class="bi bi-house me-2" aria-hidden="true"></i>{{ t('play.languageAndHome') || 'Language and home page' }}</h2>
-      <!-- the languages as the other choices are shown, each with its flag -->
-      <fieldset class="mb-3">
-        <legend class="form-label mb-1">{{ t('play.languageTitle') || 'Language' }}</legend>
-        <div class="d-flex flex-wrap gap-2">
-          @for (l of languages; track l.code) {
-            <input [id]="'language-' + l.code" class="btn-check" type="radio" name="language" autocomplete="off" [checked]="language.lang() === l.code" (change)="users.changeLanguage(l.code)">
-            <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" [for]="'language-' + l.code"><img class="flag me-1" [src]="'flags/' + l.code + '.svg'" alt="" width="24" height="16">{{ l.name }}</label>
-          }
-        </div>
-      </fieldset>
-      <div class="form-check form-switch mb-3">
-        <input id="show-ongoing" class="form-check-input" type="checkbox" role="switch" [checked]="list.ongoing()" (change)="list.ongoing.set($any($event.target).checked)">
-        <label class="form-check-label" for="show-ongoing">{{ t('play.showOngoing') || 'Show ongoing rounds on the home page' }}</label>
+    <!-- one card for each thing the choices change: the look, the home page, the menu, and the language and sound; two beside each other on a wide screen -->
+    <div class="row row-cols-1 row-cols-lg-2 g-2 g-lg-3">
+      <div class="col">
+        <section class="card card-body h-100">
+          <h2 class="subsection-title mt-0"><i class="bi bi-palette me-2" aria-hidden="true"></i>{{ t('play.appearance') || 'Appearance' }}</h2>
+          <app-play-look-choice idPrefix="account" [label]="t('play.theme') || 'Theme'" [showSound]="false" [value]="look.value()" (changed)="look.set($event)" />
+          <fieldset class="mb-3">
+            <legend class="form-label mb-1">{{ t('play.textSize') || 'Text size' }}</legend>
+            <div class="choice-joined">
+              @for (size of sizes; track size) {
+                <input [id]="'text-size-' + size" class="btn-check" type="radio" name="text-size" autocomplete="off" [checked]="text.value().size === size" (change)="text.set({ size })">
+                <label class="btn btn-sm btn-outline-primary text-nowrap" [for]="'text-size-' + size">{{ t('play.textSizes.' + size) || size }}</label>
+              }
+            </div>
+          </fieldset>
+          <fieldset class="mb-3">
+            <legend class="form-label mb-1">{{ t('play.font') || 'Font' }}</legend>
+            <div class="choice-joined">
+              @for (font of fonts; track font) {
+                <input [id]="'font-' + font" class="btn-check" type="radio" name="font" autocomplete="off" [checked]="text.value().font === font" (change)="text.set({ font })">
+                <label class="btn btn-sm btn-outline-primary text-nowrap" [attr.data-font-sample]="font" [for]="'font-' + font">{{ t('play.fonts.' + font) || font }}</label>
+              }
+            </div>
+          </fieldset>
+        </section>
       </div>
-      @for (part of parts; track part) {
-        <fieldset class="mb-3">
-          <legend class="form-label mb-1">{{ t('play.' + part) || part }}</legend>
-          <div class="d-flex flex-wrap gap-2">
-            @for (size of partSizes; track size) {
-              <input [id]="part + '-' + size" class="btn-check" type="radio" [name]="part" autocomplete="off" [checked]="chosen[part].value() === size" (change)="chosen[part].set(size)">
-              <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" [for]="part + '-' + size">{{ t('play.sizes.' + size) || size }}</label>
-            }
+      <div class="col">
+        <section class="card card-body h-100">
+          <h2 class="subsection-title mt-0"><i class="bi bi-house me-2" aria-hidden="true"></i>{{ t('play.homePage') || 'Home page' }}</h2>
+          <fieldset class="mb-3">
+            <legend class="form-label mb-1">{{ t('play.tileSize') || 'Tile size' }}</legend>
+            <div class="choice-joined">
+              @for (size of partSizes; track size) {
+                <input [id]="'tile-size-' + size" class="btn-check" type="radio" name="tile-size" autocomplete="off" [checked]="chosen.tileSize.value() === size" (change)="chosen.tileSize.set(size)">
+                <label class="btn btn-sm btn-outline-primary text-nowrap" [for]="'tile-size-' + size">{{ t('play.sizes.' + size) || size }}</label>
+              }
+            </div>
+          </fieldset>
+          <fieldset class="mb-3">
+            <legend class="form-label mb-1">{{ t('play.tileDetails') || 'Details on the picture tiles' }}</legend>
+            <div class="choice-joined">
+              @for (level of detailLevels; track level) {
+                <input [id]="'tile-details-' + level" class="btn-check" type="radio" name="tile-details" autocomplete="off" [checked]="details.value() === level" (change)="details.set(level)">
+                <label class="btn btn-sm btn-outline-primary text-nowrap" [for]="'tile-details-' + level">{{ t('play.detailLevels.' + level) || level }}</label>
+              }
+            </div>
+          </fieldset>
+          <div class="form-check form-switch mb-0">
+            <input id="show-ongoing" class="form-check-input" type="checkbox" role="switch" [checked]="list.ongoing.value()" (change)="list.ongoing.set($any($event.target).checked)">
+            <label class="form-check-label" for="show-ongoing">{{ t('play.showOngoing') || 'Show ongoing rounds on the home page' }}</label>
           </div>
-        </fieldset>
-      }
-      <div class="form-check form-switch mb-0">
-        <input id="tile-details" class="form-check-input" type="checkbox" role="switch" [checked]="details.shown()" (change)="details.set($any($event.target).checked)">
-        <label class="form-check-label" for="tile-details">{{ t('play.tileDetails') || 'Show details on the picture tiles' }}</label>
+        </section>
       </div>
-    </section>
-    <section class="card card-body">
-      <h2 class="subsection-title mt-0"><i class="bi bi-palette me-2" aria-hidden="true"></i>{{ t('play.lookAndSound') || 'Look and sound' }}</h2>
-      <app-play-look-choice idPrefix="account" [label]="t('play.theme') || 'Theme'" [value]="look.value()" (changed)="look.set($event)" />
-      <p class="form-text mt-0 mb-3">{{ t('play.themeApplies') || 'The theme is used on every page of the app and on the puzzle. A round can have its own.' }}</p>
-      <fieldset class="mb-3">
-        <legend class="form-label mb-1">{{ t('play.textSize') || 'Text size' }}</legend>
-        <div class="d-flex flex-wrap gap-2">
-          @for (size of sizes; track size) {
-            <input [id]="'text-size-' + size" class="btn-check" type="radio" name="textSize" autocomplete="off" [checked]="text.value().size === size" (change)="text.set({ size })">
-            <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" [for]="'text-size-' + size">{{ t('play.textSizes.' + size) || size }}</label>
-          }
-        </div>
-      </fieldset>
-      <fieldset class="mb-3">
-        <legend class="form-label mb-1">{{ t('play.font') || 'Font' }}</legend>
-        <div class="d-flex flex-wrap gap-2">
-          @for (font of fonts; track font) {
-            <input [id]="'font-' + font" class="btn-check" type="radio" name="font" autocomplete="off" [checked]="text.value().font === font" (change)="text.set({ font })">
-            <label class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" [attr.data-font-sample]="font" [for]="'font-' + font">{{ t('play.fonts.' + font) || font }}</label>
-          }
-        </div>
-      </fieldset>
-      <p class="form-text mb-0">
-        @if (users.acting()) {
-          {{ t('play.keptWithAccount') || 'Kept with your account, so it is the same on all your devices.' }}
-        } @else {
-          {{ t('play.keptOnDevice') || 'Kept on this device.' }} <a class="link-inline" routerLink="/play/account">{{ t('play.logon') || 'Logon' }}</a>
-        }
-      </p>
-    </section>
+      <div class="col">
+        <section class="card card-body h-100">
+          <h2 class="subsection-title mt-0"><i class="bi bi-list me-2" aria-hidden="true"></i>{{ t('play.menuTitle') || 'Menu' }}</h2>
+          <fieldset class="mb-3">
+            <legend class="form-label mb-1">{{ t('play.menuPlace') || 'Menu position' }}</legend>
+            <div class="choice-joined">
+              @for (place of menuPlaces; track place) {
+                <input [id]="'menu-place-' + place" class="btn-check" type="radio" name="menu-place" autocomplete="off" [checked]="menu.place() === place" (change)="menu.choose(place)">
+                <label class="btn btn-sm btn-outline-primary text-nowrap" [for]="'menu-place-' + place">{{ t('play.menuPlaces.' + place) || place }}</label>
+              }
+            </div>
+          </fieldset>
+        </section>
+      </div>
+      <div class="col">
+        <section class="card card-body h-100">
+          <h2 class="subsection-title mt-0"><i class="bi bi-globe2 me-2" aria-hidden="true"></i>{{ t('play.languageAndSound') || 'Language and sound' }}</h2>
+          <div class="mb-3">
+            <label class="form-label mb-1" for="pref-language">{{ t('play.languageTitle') || 'Language' }}</label>
+            <!-- the languages in a list, with the flag of the one in use beside it -->
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><img class="flag" [src]="'flags/' + language.lang() + '.svg'" alt="" width="24" height="16"></span>
+              <select id="pref-language" name="language" class="form-select" (change)="users.changeLanguage($any($event.target).value)">
+                @for (l of languages; track l.code) {
+                  <option [value]="l.code" [selected]="language.lang() === l.code">{{ l.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <app-play-look-choice idPrefix="account" [showTable]="false" [value]="look.value()" (changed)="look.set($event)" />
+        </section>
+      </div>
+    </div>
+    <p class="form-text text-center mt-3 mb-0">
+      {{ t('play.themeApplies') || 'The theme is used on every page of the app and on the puzzle. A round can have its own.' }}
+      @if (users.acting()) {
+        {{ t('play.keptWithAccount') || 'Kept with your account, so it is the same on all your devices.' }}
+      } @else {
+        {{ t('play.keptOnDevice') || 'Kept on this device.' }} <a class="link-inline" routerLink="/play/account">{{ t('play.logon') || 'Logon' }}</a>
+      }
+    </p>
     <!-- every choice is kept as it is made: Close only leaves the page -->
     <div class="d-flex justify-content-center mt-3">
       <button type="button" class="btn btn-primary" (click)="close()"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>{{ t('play.close') || 'Close' }}</button>
@@ -100,10 +136,12 @@ export class PlayAccountPrefs {
   protected readonly fonts = FONTS;
   protected readonly chosen = inject(PartSizeChoice);
   protected readonly details = inject(TileDetails);
+  protected readonly detailLevels = TILE_DETAILS;
   protected readonly list = inject(ListView);
+  protected readonly menu = inject(MenuSpot);
+  protected readonly menuPlaces = MENU_PLACES;
   protected readonly language = inject(LanguageService);
   protected readonly languages = LANGUAGES;
-  protected readonly parts = SIZED_PARTS;
   protected readonly partSizes = PART_SIZES;
 
   private readonly router = inject(Router);

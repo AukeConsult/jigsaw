@@ -22,7 +22,7 @@ const FIRST_TIME: RoundDefaults = { pieces: 24, snapPercent: 25 };
 
 /**
  * The choice at the start of a round of a picture: the number of pieces (the numbers that fit the shape of the picture, `JigsawCut.pieceChoices`; the sizes the person has solved are left out
- * of the choice) and the difficulty. It starts as the person chose last time (`jigsaw.roundDefaults`), and what is chosen is kept when the round is started. It only says what was chosen:
+ * of the choice) and the difficulty. It starts as the person chose last time (`jigsaw.roundDefaults`), and every choice is kept as it is made (also when the round is then not started). It only says what was chosen:
  * the page starts the round.
  */
 @Component({
@@ -65,10 +65,12 @@ export class RoundChoice {
 
   protected setPrivate(on: boolean): void {
     this.privatePicked.set(on);
+    this.remember();
   }
 
   protected setTimed(on: boolean): void {
     this.timedPicked.set(on);
+    this.remember();
   }
   protected readonly key = computed(() => {
     if (this.picked()) return this.picked()!;
@@ -78,6 +80,7 @@ export class RoundChoice {
 
   protected setPieces(key: string): void {
     this.picked.set(key);
+    this.remember();
   }
 
   protected readonly selected = computed(() => this.options().find((o) => o.key === this.key()) ?? null);
@@ -86,6 +89,12 @@ export class RoundChoice {
   protected setLevel(key: string): void {
     const percent = snapPercentOf(key);
     if (percent !== null) this.snapPercent.set(percent);
+    this.remember();
+  }
+
+  /** What is chosen now is kept on the device for the next time. */
+  private remember(): void {
+    writePreference(ROUND_DEFAULTS_KEY, { pieces: this.selected()?.count ?? this.last.pieces, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}) } satisfies RoundDefaults);
   }
 
   protected level(): string {
@@ -95,7 +104,7 @@ export class RoundChoice {
   protected go(): void {
     const o = this.selected();
     if (!o || !this.canStart()) return;
-    writePreference(ROUND_DEFAULTS_KEY, { pieces: o.count, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}) } satisfies RoundDefaults);
+    this.remember();
     this.chosen.emit({ columns: o.columns, rows: o.rows, snapPercent: this.snapPercent(), ...(this.timed() ? {} : { timed: false }), ...(this.isPrivate() ? { private: true } : {}) });
   }
 }

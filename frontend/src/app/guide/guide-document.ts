@@ -7,8 +7,8 @@ import { LanguageService } from '../core/language.service';
 import { renderMarkdown } from '../core/markdown';
 
 /**
- * **A user guide, shown from its Markdown file** (the document, with no page round it: the app's info page frames it, at `/play/info/help` and `/play/info/about`): the guide of the language chosen
- * (`i18n/<language>/<name>`), else the English one. Which guide is the input `name` (`jigsaw-guide.md`, `jigsaw-about.md`).
+ * **A user guide, shown from its Markdown file** (the document, with no page round it: the app's info page frames it, at `/play/info/help`, `/play/info/about` and `/play/info/terms`): the guide of the language chosen
+ * (`i18n/<language>/<name>`), else the English one. Which guide is the input `name` (`jigsaw-guide.md`, `jigsaw-about.md`, `jigsaw-terms.md`).
  */
 @Component({
   selector: 'app-guide-document',
@@ -40,7 +40,7 @@ export class GuideDocument {
 
   /** the build number of this web app, shown on the About page */
   protected readonly version = version;
-  /** true for the About document (the same component shows the help and the about document) */
+  /** true for the About document (the same component shows the help, the about and the terms document) */
   protected readonly aboutPage = computed(() => this.name() === 'jigsaw-about.md');
 
   /** the guide as HTML (null: not read yet) */

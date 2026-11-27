@@ -1,12 +1,15 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { apiError } from '../../core/api-error';
 import { tr } from '../../core/i18n';
 import { preferenceSignal } from '../../core/preferences';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { JigsawCategories } from '../../models/shared/category';
+import { AccountLimits, RECOMMENDED_FULL, RECOMMENDED_PICTURES_MAX } from '../../models/shared/account-limits';
 import { JigsawInput, JigsawSettings, JigsawSpec, JigsawVisibility } from '../../models/shared/jigsaw-settings';
 import { JigsawSummary, SearchSort } from '../../models/shared/jigsaw-search';
 import { CategoryTags } from '../category-tags/category-tags';
@@ -14,22 +17,23 @@ import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { snapLevelOfJigsaw } from '../snap-level';
+import { ViewSwitch, cardInfoPreference, viewShapePreference } from '../view-switch/view-switch';
 
 /** how the list of the user's jigsaws is put in order */
-export const JIGSAW_SORTS = ['new', 'old', 'name', 'pieces', 'most'] as const;
+export const JIGSAW_SORTS = ['new', 'old', 'name'] as const;
 export type JigsawSort = (typeof JIGSAW_SORTS)[number];
 
-/** the choices of the filter of the list of the user's jigsaws: all, or by who sees them */
-export const VISIBILITY_FILTERS = ['all', 'everyone', 'owner', 'hidden'] as const;
+/** the choices of the short filter of the list of the user's jigsaws: all, by who sees them, or the recommended ones */
+export const VISIBILITY_FILTERS = ['all', 'everyone', 'owner', 'hidden', 'recommended'] as const;
 export type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number];
 
 /**
  * **The list of the jigsaws (pictures) the user made** (`/play/mine/pictures`): the words to find them by, the order, the filter (all, public, private, hidden, each with
- * how many), ticking some to change who sees them or delete them together, and a row for each, with who sees it chosen in the row, Recommended and Delete, a page at a time. What is chosen is kept on the device. A row opens the page of the picture (the same form as Add picture, to change it, with its rounds).
+ * how many), ticking some to change who sees them or delete them together, and a row or a card for each (the person chooses which), with who sees it chosen there, Recommended and Delete, a page at a time. What is chosen is kept on the device. A row opens the page of the picture (the same form as Add picture, to change it, with its rounds).
  */
 @Component({
   selector: 'app-my-jigsaws',
-  imports: [FormsModule, RouterLink, TranslocoDirective, CategoryTags],
+  imports: [FormsModule, NgTemplateOutlet, RouterLink, TranslocoDirective, CategoryTags, ViewSwitch],
   providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './my-jigsaws.html',
 })
@@ -81,6 +85,10 @@ export class MyJigsaws {
   /** the order of the list (kept on the device) */
   readonly sort = preferenceSignal<JigsawSort>('jigsaw.userSort', 'new', (v): v is JigsawSort => JIGSAW_SORTS.some((s) => s === v));
   protected readonly sorts = JIGSAW_SORTS;
+  /** rows or cards (kept on the device) */
+  readonly view = viewShapePreference('jigsaw.userView');
+  /** what a card shows (kept on the device) */
+  readonly cardInfo = cardInfoPreference('jigsaw.userCardInfo');
   /** the words the names of the jigsaws are searched for (kept on the device) */
   readonly jigsawText = preferenceSignal('jigsaw.userJigsawText', '', (v): v is string => typeof v === 'string');
   /**
@@ -103,7 +111,7 @@ export class MyJigsaws {
   /** the jigsaws the list shows now */
   readonly shownJigsaws = computed(() => this.mine() ?? []);
   /** how many jigsaws each choice of who sees them gives, with the words kept */
-  readonly visibilityCounts = signal<Record<VisibilityFilter, number>>({ all: 0, everyone: 0, owner: 0, hidden: 0 });
+  readonly visibilityCounts = signal<Record<VisibilityFilter, number>>({ all: 0, everyone: 0, owner: 0, hidden: 0, recommended: 0 });
   /** all the jigsaws of the list are ticked */
   readonly allSelected = computed(() => !!this.shownJigsaws().length && this.shownJigsaws().every((j) => this.selected().has(j.id)));
   /** some, not all, are ticked (the box that ticks them all is then half) */
@@ -118,7 +126,7 @@ export class MyJigsaws {
 
   /** the three choices of who sees a jigsaw, as the radio buttons of a row show them */
   protected readonly visibilityChoices: readonly { value: JigsawVisibility; icon: string; label: string; english: string }[] = [
-    { value: 'everyone', icon: 'bi-eye', label: 'jigsawUser.visibilityEveryone', english: 'Public' },
+    { value: 'everyone', icon: 'bi-globe2', label: 'jigsawUser.visibilityEveryone', english: 'Public' },
     { value: 'owner', icon: 'bi-lock', label: 'jigsawUser.visibilityOwner', english: 'Private' },
     { value: 'hidden', icon: 'bi-eye-slash', label: 'jigsawUser.visibilityHidden', english: 'Hidden' },
   ];
@@ -137,7 +145,7 @@ export class MyJigsaws {
       const saved = await this.changed(j.id, { visibility: visibility === 'everyone' ? undefined : visibility });
       // the counts move with it, and when a choice of who sees them is made, the jigsaw leaves the list if it is not what is chosen any more
       this.visibilityCounts.update((c) => ({ ...c, [before]: c[before] - 1, [visibility]: c[visibility] + 1 }));
-      if (this.visibilityFilter() !== 'all' && this.visibilityFilter() !== visibility) this.dropLocal(new Set([j.id]), false);
+      if (!['all', 'recommended', visibility].includes(this.visibilityFilter())) this.dropLocal(new Set([j.id]), false);
       else this.mine.update((all) => (all ?? []).map((x) => (x.id === j.id ? saved : x)));
     } catch {
       this.visRev.update((n) => n + 1);
@@ -170,6 +178,7 @@ export class MyJigsaws {
         for (const j of dropped) {
           next.all--;
           next[j.visibility ?? 'everyone']--;
+          if (this.isRecommended(j)) next.recommended--;
         }
         return next;
       });
@@ -182,20 +191,25 @@ export class MyJigsaws {
     return JigsawCategories.isChosen(j.categories ?? [], 'recommended');
   }
 
-  /** One click on the star of a row puts the jigsaw in the category Recommended, or takes it out (a jigsaw is in at most three categories: when they are full it says so). */
+  /** One click on the star puts the jigsaw in the category Recommended, or takes it out. A user has only a few recommended ones (`AccountLimits`); a jigsaw is in at most three categories, and when they are full one makes room by itself. */
   async toggleRecommended(j: JigsawSummary): Promise<void> {
-    const categories = JigsawCategories.toggled(j.categories ?? [], 'recommended');
-    if (categories.length === (j.categories ?? []).length && !this.isRecommended(j)) {
-      this.error.set(tr('jigsawUser.categoriesFull', 'A jigsaw is in at most three categories: take one away first.'));
-      return;
-    }
+    const was = this.isRecommended(j);
+    const full = AccountLimits.recommendedError(this.visibilityCounts().recommended);
     this.error.set('');
+    if (!was && full) return this.error.set(this.fullMessage());
     try {
-      const saved = await this.changed(j.id, { categories });
-      this.mine.update((all) => (all ?? []).map((x) => (x.id === saved.id ? saved : x)));
-    } catch {
-      this.error.set(tr('jigsawUser.couldNotRecommend', 'Could not change the jigsaw: only its owner can.'));
+      const saved = await this.changed(j.id, { categories: JigsawCategories.pressed(j.categories ?? [], 'recommended') });
+      this.visibilityCounts.update((c) => ({ ...c, recommended: c.recommended + (was ? -1 : 1) }));
+      // taken out of the recommended ones while only those are listed: it leaves the list
+      if (was && this.visibilityFilter() === 'recommended') this.dropLocal(new Set([j.id]), false);
+      else this.mine.update((all) => (all ?? []).map((x) => (x.id === saved.id ? saved : x)));
+    } catch (err) {
+      this.error.set(apiError(err) === RECOMMENDED_FULL ? this.fullMessage() : tr('jigsawUser.couldNotRecommend', 'Could not change the jigsaw: only its owner can.'));
     }
+  }
+
+  private fullMessage(): string {
+    return tr('jigsawUser.recommendedFull', 'You can have {{ max }} recommended pictures: take the mark off one first.', { max: RECOMMENDED_PICTURES_MAX });
   }
 
   /** Another choice in the filter: what was ticked is let go, so nothing that is out of sight is deleted or changed. */

@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 import { JigsawInput, JigsawSpec } from '../models/shared/jigsaw-settings';
 import { JigsawKind } from '../models/shared/jigsaw-kind';
 import { MotiveLevel } from '../models/shared/motive';
-import { Difficulty, JigsawFacets, JigsawSearch, JigsawSummary, MineAnswer, SearchSort, SizeClass } from '../models/shared/jigsaw-search';
+import { Difficulty, JigsawFacets, JigsawSearch, JigsawSummary, MineAnswer, MineShown, SearchSort, SizeClass } from '../models/shared/jigsaw-search';
 import { ApiCollection } from '../core/api-collection';
 
 /** What is looked for: a field that is null or left out does not narrow the search. */
@@ -51,7 +51,7 @@ export class JigsawService extends ApiCollection<JigsawInput, JigsawSpec> {
    * A page of the jigsaws of one user, also the private and the hidden ones, for the page where the user looks after them: with words, who sees them, an order and the page asked for;
    * with how many there are for each choice of who sees them. Only the user can ask for their own (the header says who asks).
    */
-  async mineSearch(userId: string, query: { text?: string; sort: SearchSort; visibility?: 'everyone' | 'owner' | 'hidden'; limit: number; page: number }): Promise<MineAnswer> {
+  async mineSearch(userId: string, query: { text?: string; sort: SearchSort; visibility?: MineShown; limit: number; page: number }): Promise<MineAnswer> {
     try {
       return await firstValueFrom(this.client.get<MineAnswer>(`${environment.jigsawApi}/jigsaw-search/mine`, { params: this.params(query as JigsawSearchRequest), headers: { 'X-Jigsaw-User': userId } }));
     } catch (err) {

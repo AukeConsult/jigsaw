@@ -1,7 +1,7 @@
 <ng-container *transloco="let t">
 <div class="card card-body mb-3">
   <div class="row g-3 g-md-4">
-    <div class="col-md-4">
+    <div class="col-md-6">
       @if (pictureSrc() && hasPicture()) {
         <div class="position-relative">
           @if (showExample()) {
@@ -10,33 +10,45 @@
           } @else {
             <img class="img-fluid rounded-3 w-100" [src]="pictureSrc()" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (error)="hasPicture.set(false)">
           }
+          @if (adjustLabel()) {
+            <!-- adjust the cut (the picture got one by itself): a small icon in the upper right corner of the picture -->
+            <button type="button" class="btn btn-sm btn-overlay rounded-pill position-absolute top-0 end-0 m-2" [title]="adjustLabel()" [attr.aria-label]="adjustLabel()" (click)="adjust.emit()"><i class="bi bi-crop" aria-hidden="true"></i></button>
+          }
           @if (changeLabel()) {
-            <!-- choose another picture, in the lower right corner of the picture -->
-            <button type="button" class="btn btn-sm btn-overlay rounded-pill text-nowrap px-3 position-absolute bottom-0 end-0 m-2" (click)="choose.emit()"><i class="bi bi-upload me-1" aria-hidden="true"></i>{{ changeLabel() }}</button>
+            <!-- choose another picture, or take a photo, in the lower right corner of the picture -->
+            <div class="position-absolute bottom-0 end-0 m-2 d-flex gap-1">
+              @if (cameraLabel()) {
+                <button type="button" class="btn btn-sm btn-overlay rounded-pill" [title]="cameraLabel()" [attr.aria-label]="cameraLabel()" (click)="shoot.emit()"><i class="bi bi-camera" aria-hidden="true"></i></button>
+              }
+              <button type="button" class="btn btn-sm btn-overlay rounded-pill text-nowrap px-3" (click)="choose.emit()"><i class="bi bi-upload me-1" aria-hidden="true"></i>{{ changeLabel() }}</button>
+            </div>
           }
         </div>
       } @else {
-        <!-- without a picture yet: an empty place where it will be, with the button that chooses it in the middle -->
+        <!-- without a picture yet: an empty place where it will be, with the button that chooses it in the middle, and under it, where the device can, the one that takes a photo -->
         <div class="ratio ratio-4x3 rounded-3 border bg-body-tertiary">
-          <div class="d-flex align-items-center justify-content-center">
+          <div class="d-flex flex-column align-items-center justify-content-center gap-2">
             <button type="button" class="btn btn-primary btn-lg" (click)="choose.emit()"><i class="bi bi-image me-2" aria-hidden="true"></i>{{ chooseLabel() }}</button>
+            @if (cameraLabel()) {
+              <button type="button" class="btn btn-outline-primary btn-lg" (click)="shoot.emit()"><i class="bi bi-camera me-2" aria-hidden="true"></i>{{ cameraLabel() }}</button>
+            }
           </div>
         </div>
       }
-      <!-- under the picture: the description (edited in place), then what the form puts there (the AI that looks at the picture) -->
+      <!-- under the picture: the description (edited in place), then what the form puts there (the size and the cut) -->
       <div class="mt-2"><ng-content select="[draft-description]" /></div>
       <div class="mt-2"><ng-content select="[draft-under-picture]" /></div>
     </div>
-    <div class="col-md-8 d-flex flex-column">
-      <!-- the name (edited in place), and at its right what the form puts there (what is made) -->
-      <div class="d-flex justify-content-between align-items-start gap-2">
-        <div class="flex-grow-1 min-w-0"><ng-content select="[draft-title]" /></div>
-        <div class="flex-shrink-0"><ng-content select="[draft-top]" /></div>
-      </div>
+    <div class="col-md-6">
+      <!-- what the form puts on top (what is made), and under it the name (edited in place), which so has the whole width -->
+      <div><ng-content select="[draft-top]" /></div>
+      <div class="mt-2"><ng-content select="[draft-title]" /></div>
       <!-- what the form puts in the room of the card (the choices) -->
       <div class="mt-2"><ng-content select="[draft]" /></div>
-      <!-- the details at the left and the buttons of the form at their side, pushed down so they end where the picture ends; on a narrow screen the buttons go under the details instead of squeezing them -->
-      <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 gap-md-3 mt-auto">
+    </div>
+    <!-- at the bottom, across the whole card: the details at the left and the buttons of the form at their side; on a narrow screen the buttons go under the details instead of squeezing them -->
+    <div class="col-12">
+      <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 gap-md-3">
         <div class="header-details">
           @if (jigsaw().author) {
             <div class="text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ jigsaw().author }}</div>

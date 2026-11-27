@@ -50,6 +50,17 @@ export class PictureCrop {
     this.y = clamp(y ?? (frameH - this.imageH) / 2, frameH - this.imageH, 0);
   }
 
+  /**
+   * The cut a picture gets by itself, before anybody adjusts it: the biggest part of it with this shape (width / height), round the middle of the picture. For an earlier cut that is to get another shape: round
+   * `centre` (where it had its middle, as far as the picture reaches) and zoomed in as much (`zoom`).
+   */
+  static covering(naturalW: number, naturalH: number, shape: number, centre: { x: number; y: number } = { x: naturalW / 2, y: naturalH / 2 }, zoom = 1): SourceRect {
+    const w = Math.min(naturalW, naturalH * shape) / Math.max(1, zoom);
+    const h = Math.min(naturalH, naturalW / shape) / Math.max(1, zoom);
+    const clamp = (v: number, high: number) => Math.min(high, Math.max(0, v));
+    return { x: clamp(centre.x - w / 2, naturalW - w), y: clamp(centre.y - h / 2, naturalH - h), w, h };
+  }
+
   /** how many frame pixels one pixel of the picture is: just covering the frame, times the zoom */
   get scale(): number {
     return Math.max(this.frameW / this.naturalW, this.frameH / this.naturalH) * this.zoom;

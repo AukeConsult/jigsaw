@@ -63,8 +63,8 @@ describe("the parameters of a search", () => {
   });
 
   it("are read when they are right: lists written with commas, and a text", () => {
-    expect(ok({ categories: "nature,nature/forest", sizes: "large,huge", difficulties: "easy", owners: "u1,u2", text: "  the   harbour ", sort: "pieces", limit: "10", page: "2" })).toEqual({
-      categories: ["nature", "nature/forest"], sizes: ["large", "huge"], difficulties: ["easy"], owners: ["u1", "u2"], text: "the harbour", sort: "pieces", limit: 10, page: 2,
+    expect(ok({ categories: "nature,nature/forest", sizes: "large,huge", difficulties: "easy", owners: "u1,u2", text: "  the   harbour ", sort: "name", limit: "10", page: "2" })).toEqual({
+      categories: ["nature", "nature/forest"], sizes: ["large", "huge"], difficulties: ["easy"], owners: ["u1", "u2"], text: "the harbour", sort: "name", limit: 10, page: 2,
     });
   });
 
@@ -152,7 +152,6 @@ describe("matching and paging what came back", () => {
   it("puts them in order, and gives a page with how many there are in all", () => {
     expect(ids(JigsawSearch.page(items, query()).items)).toEqual(["new-small", "mid", "old-big"]); // the newest first
     expect(ids(JigsawSearch.page(items, query({ sort: "name" })).items)).toEqual(["mid", "new-small", "old-big"]);
-    expect(ids(JigsawSearch.page(items, query({ sort: "pieces" })).items)).toEqual(["new-small", "mid", "old-big"]); // the fewest pieces first
     const first = JigsawSearch.page(items, query({ limit: 2 }));
     expect([ids(first.items), first.total, first.hasMore]).toEqual([["new-small", "mid"], 3, true]);
     const second = JigsawSearch.page(items, query({ limit: 2, page: 2 }));
@@ -341,11 +340,11 @@ describe("the route", () => {
     expect(ids((await get(app, "")).body.items)).toEqual(["open"]);
   });
 
-  it("finds words in the description, and does not send the description on", async () => {
+  it("finds words in the description, and sends the description on for the tiles to show", async () => {
     const some = [jigsaw("harbour", { createdAt: 2, description: "A cold morning at the pier" }), jigsaw("other", { createdAt: 1 })];
     const res = await get(createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsawSearch: fakeSearch(some), plays: memoryPlays(), users: memoryUsers() }), "?text=pier");
     expect(ids(res.body.items)).toEqual(["harbour"]);
-    expect("description" in res.body.items[0]).toBe(false);
+    expect(res.body.items[0].description).toBe("A cold morning at the pier");
   });
 
   it("gives the summary of a jigsaw: never its objects", async () => {
@@ -480,7 +479,7 @@ describe("the jigsaws of one user, a page at a time", () => {
     const first = JigsawSearch.mine(mine, q());
     expect(ids(first.items)).toEqual(["d", "c"]);
     expect([first.total, first.hasMore]).toEqual([4, true]);
-    expect(first.counts).toEqual({ all: 4, everyone: 2, owner: 1, hidden: 1 }); // the hidden and the private ones are in it: they are the user's own
+    expect(first.counts).toEqual({ all: 4, everyone: 2, owner: 1, hidden: 1, recommended: 0 }); // the hidden and the private ones are in it: they are the user's own
     expect(ids(JigsawSearch.mine(mine, q({ page: 2 })).items)).toEqual(["b", "a"]);
     expect(JigsawSearch.mine(mine, q({ page: 2 })).hasMore).toBe(false);
   });
@@ -488,20 +487,18 @@ describe("the jigsaws of one user, a page at a time", () => {
   it("looks for words, and the counts follow the words but not the choice of who sees them", () => {
     const found = JigsawSearch.mine(mine, q({ text: "harbour", limit: 10 }));
     expect(ids(found.items)).toEqual(["c", "a"]);
-    expect(found.counts).toEqual({ all: 2, everyone: 1, owner: 0, hidden: 1 });
+    expect(found.counts).toEqual({ all: 2, everyone: 1, owner: 0, hidden: 1, recommended: 0 });
     const hiddenOnly = JigsawSearch.mine(mine, q({ text: "harbour", limit: 10 }), "hidden");
     expect(ids(hiddenOnly.items)).toEqual(["c"]);
     expect(hiddenOnly.counts).toEqual(found.counts); // so the buttons still say what the other choices would give
     expect(ids(JigsawSearch.mine(mine, q({ limit: 10 }), "everyone").items)).toEqual(["d", "a"]);
   });
 
-  it("puts them in the order asked for: newest, oldest, name, fewest pieces, most pieces", () => {
+  it("puts them in the order asked for: newest, oldest, name", () => {
     const order = (sort: string) => ids(JigsawSearch.mine(mine, q({ sort, limit: 10 })).items);
     expect(order("new")).toEqual(["d", "c", "b", "a"]);
     expect(order("old")).toEqual(["a", "b", "c", "d"]);
     expect(order("name")).toEqual(["d", "b", "a", "c"]); // Apple, Forest path, Harbour, Harbour at night
-    expect(order("pieces")[0]).toBe("c"); // the small one first
-    expect(order("most")[3]).toBe("c");
   });
 });
 
@@ -525,7 +522,7 @@ describe("the route of one user's jigsaws", () => {
     const res = await mineOf("", "u1");
     expect(res.status).toBe(200);
     expect(ids(res.body.items)).toEqual(["d", "b", "a"]);
-    expect(res.body.counts).toEqual({ all: 3, everyone: 1, owner: 1, hidden: 1 });
+    expect(res.body.counts).toEqual({ all: 3, everyone: 1, owner: 1, hidden: 1, recommended: 0 });
     expect(ids((await mineOf("", "u2")).body.items)).toEqual(["c"]);
     expect((await mineOf("")).status).toBe(401);
   });

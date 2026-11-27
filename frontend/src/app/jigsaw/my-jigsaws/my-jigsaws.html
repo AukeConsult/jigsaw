@@ -33,16 +33,20 @@
         </div>
         <!-- a short filter: all, public, private or hidden -->
         <div class="toolbar mb-2">
-          <div class="segmented" role="group" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Show'">
+          <div class="segmented flex-wrap" role="group" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Show'">
             <input id="vis-all" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'all'" (change)="chooseVisibility('all')">
             <label class="btn" for="vis-all">{{ t('jigsawUser.filterAll') || 'All' }} ({{ visibilityCounts().all }})</label>
             <input id="vis-public" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'everyone'" (change)="chooseVisibility('everyone')">
-            <label class="btn" for="vis-public"><i class="bi bi-eye" aria-hidden="true"></i>{{ t('jigsawUser.visibilityEveryone') || 'Public' }} ({{ visibilityCounts().everyone }})</label>
+            <label class="btn" for="vis-public"><i class="bi bi-globe2" aria-hidden="true"></i>{{ t('jigsawUser.visibilityEveryone') || 'Public' }} ({{ visibilityCounts().everyone }})</label>
             <input id="vis-private" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'owner'" (change)="chooseVisibility('owner')">
             <label class="btn" for="vis-private"><i class="bi bi-lock" aria-hidden="true"></i>{{ t('jigsawUser.visibilityOwner') || 'Private' }} ({{ visibilityCounts().owner }})</label>
             <input id="vis-hidden" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'hidden'" (change)="chooseVisibility('hidden')">
             <label class="btn" for="vis-hidden"><i class="bi bi-eye-slash" aria-hidden="true"></i>{{ t('jigsawUser.visibilityHidden') || 'Hidden' }} ({{ visibilityCounts().hidden }})</label>
+            <input id="vis-recommended" type="radio" class="btn-check" name="vis" autocomplete="off" [checked]="visibilityFilter() === 'recommended'" (change)="chooseVisibility('recommended')">
+            <label class="btn" for="vis-recommended"><i class="bi bi-star" aria-hidden="true"></i>{{ t('jigsawUser.recommended') || 'Recommended' }} ({{ visibilityCounts().recommended }})</label>
           </div>
+          <!-- rows or cards, and for cards only the picture or also what is told about it (both kept on the device) -->
+          <app-view-switch class="ms-auto" [(view)]="view" [(cardInfo)]="cardInfo" />
         </div>
         <!-- tick jigsaws, and change who sees them or delete them all at once -->
         <div class="toolbar mb-2">
@@ -85,66 +89,90 @@
         @if (!shownJigsaws().length && !mineLoading()) {
           <p class="text-body-secondary text-center py-4 mb-0">{{ t('jigsawUser.noMatchJigsaws') || 'No jigsaw matches. Change the words or the choice above.' }}</p>
         }
-        <ul class="list-group">
-          @for (item of shownJigsaws(); track item.id + ':' + visRev()) {
-            <li class="list-group-item round-row admin-row" [class.row-selected]="selected().has(item.id)" [class.vis-hidden]="item.visibility === 'hidden'" [class.vis-private]="item.visibility === 'owner'" [class.vis-public]="!item.visibility || item.visibility === 'everyone'">
-              <div class="round-body">
-                <!-- over the link that covers the row, so it can be ticked -->
-                <!-- the whole padded area round the box ticks it, a big target for a finger -->
-                <label class="select-area z-2">
-                  <input class="form-check-input m-0" type="checkbox" [id]="'select-' + item.id" [checked]="selected().has(item.id)" [disabled]="deletingSelected()" [attr.aria-label]="t('jigsawUser.select', { name: item.name }) || 'Select ' + item.name" (change)="toggleSelected(item.id)">
-                </label>
-                <!-- the picture and the name with what it is: this is the area that opens the page of the picture (the link of the name covers it, and nothing else of the row) -->
-                <div class="round-open">
-                  <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
-                    @if (!noPicture().has(item.id)) {
-                      <img class="object-fit-cover" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
-                    }
-                  </div>
-                  <div class="round-info">
-                    <a class="text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ item.name }}</a>
-                    <!-- pieces, difficulty and the categories the picture is in -->
-                    <div class="tiny text-body-secondary">
-                      @if (isPicture(item)) {
-                        <span class="text-nowrap" [title]="t('jigsawList.choosePiecesTitle') || 'The number of pieces and the difficulty are chosen when you start a round'"><i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('jigsawList.choosePieces') || 'Choose pieces' }}</span>
-                      } @else {
-                      <span class="text-nowrap"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: piecesOf(item).count }) || piecesOf(item).count + ' pieces' }} ({{ piecesOf(item).columns }} × {{ piecesOf(item).rows }})</span>
-                      <span class="text-nowrap ms-2" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + levelOf(item)) || levelOf(item) }}</span>
-                      }
-                      @if (item.motive) {
-                        <span class="text-nowrap ms-2" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</span>
-                      }
+        @if (view() === 'list') {
+          <ul class="list-group">
+            @for (item of shownJigsaws(); track item.id + ':' + visRev()) {
+              <li class="list-group-item round-row admin-row" [class.row-selected]="selected().has(item.id)" [class.vis-hidden]="item.visibility === 'hidden'" [class.vis-private]="item.visibility === 'owner'" [class.vis-public]="!item.visibility || item.visibility === 'everyone'">
+                <div class="round-body">
+                  <!-- over the link that covers the row, so it can be ticked -->
+                  <!-- the whole padded area round the box ticks it, a big target for a finger -->
+                  <label class="select-area z-2">
+                    <ng-container *ngTemplateOutlet="tick; context: { $implicit: item }" />
+                  </label>
+                  <!-- the picture and the name with what it is. A press anywhere on the row opens the page of the picture (the link of the name covers the row); the box, the choices and the actions lie over it -->
+                  <div class="round-open">
+                    <div class="round-thumb position-relative">
+                      <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden">
+                        <ng-container *ngTemplateOutlet="thumb; context: { $implicit: item }" />
+                      </div>
+                      <ng-container *ngTemplateOutlet="mark; context: { $implicit: item }" />
                     </div>
-                    @if (item.categories?.length) {
-                      <app-category-tags [keys]="item.categories" />
+                    <div class="round-info">
+                      <a class="text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ item.name }}</a>
+                      <ng-container *ngTemplateOutlet="about; context: { $implicit: item }" />
+                    </div>
+                  </div>
+                  <!-- who sees it, chosen here (it is saved at once) -->
+                  <div class="round-visibility d-flex flex-nowrap column-gap-2 column-gap-md-4" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
+                    <ng-container *ngTemplateOutlet="who; context: { $implicit: item }" />
+                  </div>
+                  <div class="round-actions" [class.confirming]="confirmingJigsawId() === item.id">
+                    @if (confirmingJigsawId() === item.id) {
+                      <ng-container *ngTemplateOutlet="confirm; context: { $implicit: item }" />
+                    } @else {
+                      <button type="button" class="link-action" [class.text-warning]="isRecommended(item)" [attr.aria-pressed]="isRecommended(item)" [title]="isRecommended(item) ? (t('jigsawUser.unrecommend') || 'Take away from Recommended') : (t('jigsawUser.recommend') || 'Recommend')" (click)="toggleRecommended(item)"><i class="bi" [class.bi-star-fill]="isRecommended(item)" [class.bi-star]="!isRecommended(item)" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.recommended') || 'Recommended' }}</span></button>
+                      <button type="button" class="link-action danger" [title]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingJigsawId.set(item.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.deleteRound') || 'Delete' }}</span></button>
                     }
                   </div>
                 </div>
-                <!-- who sees it, chosen here (it is saved at once); above the link of the row, so a press is not a press on the row -->
-                <div class="round-visibility d-flex flex-nowrap column-gap-2 column-gap-md-4 position-relative z-2" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
-                  @for (v of visibilityChoices; track v.value) {
-                    @if (v.value !== 'everyone' || users.mayPublish() || (item.visibility ?? 'everyone') === 'everyone') {
-                    <div class="form-check mb-0 text-nowrap">
-                      <input class="form-check-input" type="radio" [id]="'vis-' + item.id + '-' + v.value" [name]="'vis-' + item.id" [checked]="(item.visibility ?? 'everyone') === v.value" [disabled]="changingVisibilityId() === item.id" (change)="setVisibility(item, v.value)">
-                      <label class="form-check-label" [for]="'vis-' + item.id + '-' + v.value"><i class="bi me-1" [class]="v.icon" aria-hidden="true"></i>{{ t(v.label) || v.english }}</label>
+              </li>
+            }
+          </ul>
+        } @else {
+          <!-- the same pictures as cards, with the same things to do: the box, the star and Delete lie on the picture -->
+          <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
+            @for (item of shownJigsaws(); track item.id + ':' + visRev()) {
+              <div class="col">
+                <div class="card own-card" [class.h-100]="cardInfo() === 'info'" [class.row-selected]="selected().has(item.id)" [class.vis-hidden]="item.visibility === 'hidden'" [class.vis-private]="item.visibility === 'owner'" [class.vis-public]="!item.visibility || item.visibility === 'everyone'">
+                  <!-- a press anywhere on the card opens the page of the picture (one link covers the card); the box, the buttons and the choices lie over it -->
+                  <div [class.flex-grow-1]="cardInfo() === 'info'">
+                    <div class="position-relative">
+                      <div class="ratio ratio-4x3 bg-body-secondary overflow-hidden" [class.card-img-top]="cardInfo() === 'info'" [class.rounded]="cardInfo() === 'picture'">
+                        <ng-container *ngTemplateOutlet="thumb; context: { $implicit: item }" />
+                      </div>
+                      <ng-container *ngTemplateOutlet="mark; context: { $implicit: item }" />
                     </div>
+                    @if (cardInfo() === 'info') {
+                      <div class="p-2 pb-0 text-break">
+                        <a class="d-block card-name text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ item.name }}</a>
+                        <ng-container *ngTemplateOutlet="about; context: { $implicit: item }" />
+                      </div>
+                    } @else {
+                      <a class="stretched-link" [routerLink]="link(item)" [title]="item.name" [attr.aria-label]="item.name"></a>
                     }
+                    <label class="btn btn-overlay position-absolute top-0 start-0 m-1 z-2">
+                      <ng-container *ngTemplateOutlet="tick; context: { $implicit: item }" />
+                    </label>
+                    <div class="position-absolute top-0 end-0 m-1 d-flex gap-1 z-2">
+                      <button type="button" class="btn btn-overlay" [class.is-recommended]="isRecommended(item)" [attr.aria-pressed]="isRecommended(item)" [title]="isRecommended(item) ? (t('jigsawUser.unrecommend') || 'Take away from Recommended') : (t('jigsawUser.recommend') || 'Recommend')" [attr.aria-label]="t('jigsawUser.recommended') || 'Recommended'" (click)="toggleRecommended(item)"><i class="bi" [class.bi-star-fill]="isRecommended(item)" [class.bi-star]="!isRecommended(item)" aria-hidden="true"></i></button>
+                      <button type="button" class="btn btn-overlay" [title]="t('jigsawUser.deleteRound') || 'Delete'" [attr.aria-label]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingJigsawId.set(item.id)"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+                  @if (cardInfo() === 'info') {
+                    <div class="d-flex flex-wrap column-gap-2 p-2" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
+                      <ng-container *ngTemplateOutlet="who; context: { $implicit: item }" />
+                    </div>
                   }
-                </div>
-                <div class="round-actions" [class.confirming]="confirmingJigsawId() === item.id">
                   @if (confirmingJigsawId() === item.id) {
-                    <div class="w-100 small" role="alert">{{ t('jigsawUser.deleteJigsawAsk') || 'Delete this jigsaw for good? Its picture and all its rounds, also those of other players, go too.' }}</div>
-                    <button type="button" class="link-action danger" (click)="removeJigsaw(item)">{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
-                    <button type="button" class="link-action" (click)="confirmingJigsawId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
-                  } @else {
-                    <button type="button" class="link-action" [class.text-warning]="isRecommended(item)" [attr.aria-pressed]="isRecommended(item)" [title]="isRecommended(item) ? (t('jigsawUser.unrecommend') || 'Take away from Recommended') : (t('jigsawUser.recommend') || 'Recommend')" (click)="toggleRecommended(item)"><i class="bi" [class.bi-star-fill]="isRecommended(item)" [class.bi-star]="!isRecommended(item)" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.recommended') || 'Recommended' }}</span></button>
-                    <button type="button" class="link-action danger" [title]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingJigsawId.set(item.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.deleteRound') || 'Delete' }}</span></button>
+                    <div class="d-flex flex-wrap column-gap-3 p-2 position-relative z-2">
+                      <ng-container *ngTemplateOutlet="confirm; context: { $implicit: item }" />
+                    </div>
                   }
                 </div>
               </div>
-            </li>
-          }
-        </ul>
+            }
+          </div>
+        }
         <!-- a page at a time: how many are shown of how many, and the next page -->
         <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
           <span class="text-body-secondary small" role="status">{{ t('jigsawUser.showingJigsaws', { shown: shownJigsaws().length, total: mineTotal() }) || 'Showing ' + shownJigsaws().length + ' of ' + mineTotal() }}</span>
@@ -155,4 +183,55 @@
           }
         </div>
       }
+  <!-- what a row and a card have in common -->
+  <ng-template #tick let-item>
+    <input class="form-check-input m-0" type="checkbox" [id]="'select-' + item.id" [checked]="selected().has(item.id)" [disabled]="deletingSelected()" [attr.aria-label]="t('jigsawUser.select', { name: item.name }) || 'Select ' + item.name" (change)="toggleSelected(item.id)">
+  </ng-template>
+  <ng-template #thumb let-item>
+    @if (!noPicture().has(item.id)) {
+      <img class="object-fit-cover" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
+    }
+  </ng-template>
+  <!-- who sees it, as a tiny mark in the lower right corner of the picture: the icon of the filter above the list -->
+  <ng-template #mark let-item>
+    @for (v of visibilityChoices; track v.value) {
+      @if (v.value === (item.visibility ?? 'everyone')) {
+        <span class="picture-mark badge position-absolute bottom-0 end-0 m-1 pe-none" role="img" [attr.aria-label]="t(v.label) || v.english"><i class="bi" [class]="v.icon" aria-hidden="true"></i></span>
+      }
+    }
+  </ng-template>
+  <!-- pieces, difficulty and the categories the picture is in -->
+  <ng-template #about let-item>
+    <div class="tiny text-body-secondary d-flex flex-wrap column-gap-2">
+      @if (isPicture(item)) {
+        <span class="text-nowrap" [title]="t('jigsawList.choosePiecesTitle') || 'The number of pieces and the difficulty are chosen when you start a round'"><i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('jigsawList.choosePieces') || 'Choose pieces' }}</span>
+      } @else {
+        <span class="text-nowrap"><i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawList.piecesShort', { count: piecesOf(item).count }) || piecesOf(item).count + ' pieces' }} ({{ piecesOf(item).columns }} × {{ piecesOf(item).rows }})</span>
+        <span class="text-nowrap" [title]="t('jigsawList.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + levelOf(item)) || levelOf(item) }}</span>
+      }
+      @if (item.motive) {
+        <span class="text-nowrap" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</span>
+      }
+    </div>
+    @if (item.categories?.length) {
+      <app-category-tags [keys]="item.categories" />
+    }
+  </ng-template>
+  <!-- who sees it, chosen on the spot -->
+  <ng-template #who let-item>
+    @for (v of visibilityChoices; track v.value) {
+      @if (v.value !== 'everyone' || users.mayPublish() || (item.visibility ?? 'everyone') === 'everyone') {
+        <div class="form-check mb-0 text-nowrap position-relative z-2">
+          <input class="form-check-input" type="radio" [id]="'vis-' + item.id + '-' + v.value" [name]="'vis-' + item.id" [checked]="(item.visibility ?? 'everyone') === v.value" [disabled]="changingVisibilityId() === item.id" (change)="setVisibility(item, v.value)">
+          <label class="form-check-label" [for]="'vis-' + item.id + '-' + v.value"><i class="bi me-1" [class]="v.icon" aria-hidden="true"></i>{{ t(v.label) || v.english }}</label>
+        </div>
+      }
+    }
+  </ng-template>
+  <!-- "are you sure": the question and the two answers -->
+  <ng-template #confirm let-item>
+    <div class="w-100 small" role="alert">{{ t('jigsawUser.deleteJigsawAsk') || 'Delete this jigsaw for good? Its picture and all its rounds, also those of other players, go too.' }}</div>
+    <button type="button" class="link-action danger" (click)="removeJigsaw(item)">{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
+    <button type="button" class="link-action" (click)="confirmingJigsawId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
+  </ng-template>
 </ng-container>

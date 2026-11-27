@@ -15,6 +15,16 @@ interface AppHost {
 }
 
 /**
+ * How a photo is taken on this device: `field`, a file field with `capture`, which opens the camera app of a phone or tablet (also in the Android and iPhone apps); `live`, the camera shown in a window of the
+ * page (`app-camera-capture`: a computer, also in the Windows app, where such a field only opens the files); nothing when the browser can show no camera.
+ */
+export function cameraWay(win: Window = window): 'field' | 'live' | null {
+  const platform = platformOf(win.navigator.userAgent, win.navigator.maxTouchPoints);
+  if (platform === 'android' || platform === 'ios') return 'field';
+  return typeof win.navigator.mediaDevices?.getUserMedia === 'function' ? 'live' : null;
+}
+
+/**
  * The web app is already running as an app: the Android app (Capacitor, or any Android web view), the Windows app (WebView2), or a web app put on the home screen or
  * installed from the browser (standalone). Then there is nothing to install, so the install page and its hint have nothing to offer.
  */

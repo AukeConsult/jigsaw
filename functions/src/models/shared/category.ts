@@ -99,6 +99,16 @@ export class JigsawCategories {
     return JigsawCategories.stored([...now.filter((k) => k !== category.parent), key], max);
   }
 
+  /**
+   * The keys of one jigsaw after the person presses a category or a sub-category: as `toggled`, but **where there is no room one makes it by itself**, the last of those chosen (by the order they are shown), so a press always does what
+   * was asked.
+   */
+  static pressed(keys: readonly string[], key: string, max = CATEGORIES_MAX_PER_JIGSAW): string[] {
+    const now = JigsawCategories.stored(keys, max);
+    const full = !!JigsawCategories.of(key) && !JigsawCategories.canChoose(now, key, max);
+    return JigsawCategories.toggled(full ? now.slice(0, -1) : now, key, max);
+  }
+
   /** The keys as they are stored: only known categories and sub-categories, once each, in the order they are shown, at most `max` (the most a jigsaw can be in, when not said). */
   static stored(keys: unknown, max = CATEGORIES_MAX_PER_JIGSAW): string[] {
     const wanted = new Set(Array.isArray(keys) ? keys : []);

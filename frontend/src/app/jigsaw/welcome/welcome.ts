@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { Home } from '../../home/home';
 
 /**
  * **Karin's welcome**, the first document of the app's info page: the welcome and the three first steps (the third leads to the app's Add picture), under them a short description of how to play
@@ -8,7 +9,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
  */
 @Component({
   selector: 'app-welcome',
-  imports: [RouterLink, TranslocoDirective],
+  imports: [RouterLink, TranslocoDirective, Home],
   providers: [provideTranslocoScope('jigsawHome', 'guide', 'play')],
   templateUrl: './welcome.html',
 })

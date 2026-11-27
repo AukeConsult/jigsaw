@@ -11,7 +11,7 @@ Scores komen later.
 
 ## Maak je eigen
 
-* Tik in het menu op **Afbeelding toevoegen**, geef een naam, kies een afbeelding en tik op **Opslaan**.
+* Tik in het menu op **Afbeelding toevoegen**, geef een naam, kies een afbeelding (of maak een foto) en tik op **Opslaan**.
 * Een afbeelding die je toevoegt is **Privé**: alleen jij ziet hem.
 * Om afbeeldingen **Openbaar** te maken, zodat iedereen ze kan spelen, moet je als **Uitgever** worden goedgekeurd: stuur een e-mail naar [karinauke2@gmail.com](mailto:karinauke2@gmail.com) en vraag erom.
 * Je kunt een privé-afbeelding ook met vrienden delen: tik eronder op **Delen**. Iedereen die de link krijgt, kan hem spelen.

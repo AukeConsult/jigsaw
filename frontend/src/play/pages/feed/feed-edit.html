@@ -96,8 +96,8 @@
         <div class="form-text mt-0">{{ t('play.feed.visibilityHelp') || 'Public: everybody sees it. Private: only you see it, with a banner on it, so you can check how it looks. Hidden: it is not shown on the home page.' }}</div>
       </div>
 
-      <details class="more-options">
-        <summary class="link-action">{{ t('play.advanced') || 'Advanced' }}</summary>
+      <details class="more-options" [open]="advancedOpen()">
+        <summary class="link-action" (click)="$event.preventDefault(); advancedOpen.set(!advancedOpen())">{{ t('play.advanced') || 'Advanced' }}</summary>
         <div class="row g-3 mt-1">
           <div class="col-sm-6">
             <label class="form-label" for="feed-slot">{{ t('play.feed.slotLabel') || 'Place (after how many pictures)' }}</label>

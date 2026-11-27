@@ -11,7 +11,7 @@ Punkte kommen später.
 
 ## Mach dein eigenes
 
-* Tippe im Menü auf **Bild hinzufügen**, gib einen Namen ein, wähle ein Bild und tippe auf **Speichern**.
+* Tippe im Menü auf **Bild hinzufügen**, gib einen Namen ein, wähle ein Bild (oder nimm ein Foto auf) und tippe auf **Speichern**.
 * Ein Bild, das du hinzufügst, ist **Privat**: nur du siehst es.
 * Damit Bilder **Öffentlich** sind und alle sie spielen können, musst du als **Herausgeber** freigegeben werden: Schick eine E-Mail an [karinauke2@gmail.com](mailto:karinauke2@gmail.com) und bitte darum.
 * Du kannst ein privates Bild auch mit Freunden teilen: Tippe darunter auf **Teilen**. Jeder, der den Link bekommt, kann es spielen.
