@@ -4,6 +4,7 @@ import { LanguageService } from '../../../app/core/language.service';
 import { scrollParent } from '../../../app/core/theme';
 import { FeedService, isPicture } from '../../../app/jigsaw/feed.service';
 import { FeedTile } from '../../../app/jigsaw/feed-tile/feed-tile';
+import { PictureEffects } from '../../../app/jigsaw/picture-effects';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawSearchRequest, JigsawService } from '../../../app/jigsaw/jigsaw.service';
 import { PackageItem } from '../../../app/models/shared/feed-item';
@@ -40,6 +41,10 @@ export class PlayCards implements OnInit {
   /** the pictures with the other tiles (information, offers, packages) among them: the rule is the model's (`HomeFeed.merge`, through `FeedService`) */
   protected readonly tiles = computed(() => this.feed.tiles(this.items(), !this.hasMore(), this.filter()));
   protected readonly isPicture = isPicture;
+  /** how many grey tiles stand in for the pictures while the first page is read */
+  protected readonly waiting = [1, 2, 3, 4, 5, 6, 7, 8];
+  /** the effects on the tiles are on: the grey tiles are one of them */
+  protected readonly effects = inject(PictureEffects);
   private readonly language = inject(LanguageService).lang;
   /** the names of the packages the home page has, in the language that is chosen */
   private readonly packageNames = computed(() => new Map(this.feed.others().flatMap((tile) => (tile instanceof PackageItem ? [[tile.id, tile.titleFor(this.language())] as const] : []))));

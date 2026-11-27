@@ -16,7 +16,7 @@
   The jigsaw pieces area. The picture area is width × height in the stored pixels the objects are placed in; the whole content is drawn at `scale`, so the picture is always
   shown whole, in its own proportions, whatever the size of the screen (the sizer takes the room the scaled content takes).
 -->
-<div #root class="board-root rounded p-1" [attr.data-table]="look().table" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
+<div #root class="board-root rounded p-1" [attr.data-table]="look().table" [attr.data-pieces]="look().pieces" [attr.data-fx]="look().effects.join(' ')" [class.is-finished]="finished()" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
      (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()" (dragstart)="$event.preventDefault()">
 <!-- (dragstart: the browser's own drag never starts here, it would take the pointer from the piece that is held) -->
 <div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
@@ -25,6 +25,13 @@
        [style.background-image]="backdrop() ? 'url(' + backdrop() + ')' : null"
        (pointerdown)="startMarquee($event)">
     <canvas #area class="d-block" [attr.aria-label]="t('jigsawBoard.pictureArea') || 'Picture area'"></canvas>
+    @if (finished() && effects().has('cutfade') && picture(); as src) {
+      <!-- the cut lines fade away: the whole picture comes up over the finished pieces (fading only the lines would leave the thin seams between the pieces) -->
+      <img class="finished-picture" [src]="src" alt="">
+    }
+    @if (celebration(); as party) {
+      <app-board-celebration [show]="party" />
+    }
     @if (emptyPicture() && !viewOnly()) {
       <!-- an empty picture area says where the pieces go -->
       <span class="picture-watermark">{{ t('jigsawBoard.addHere') || 'Add pieces here' }}</span>
@@ -95,14 +102,20 @@
       @let p = v.p;
       <div class="placed-object" role="button" tabindex="0" [attr.data-id]="p.id" [attr.aria-label]="p.object.name" [style.left.px]="v.left - shift" [style.top.px]="v.top - shiftY" [style.clip-path]="clip" [style.z-index]="blinking().has(p.id) ? v.layer + 100000 : v.layer"
            [class.is-picked]="selection().includes(p.id)" [class.is-loose]="v.piece && !v.matched" [class.is-single]="v.single" [class.is-held]="v.held" [style.--app-tilt]="v.piece ? tilt(p.id) : null"
+           [class.is-landed]="landed().has(p.id)" [class.is-pulled]="pulled()?.ids?.has(p.id)" [style.--app-pull-x.px]="pulled()?.ids?.has(p.id) ? pulled()!.x : null" [style.--app-pull-y.px]="pulled()?.ids?.has(p.id) ? pulled()!.y : null"
            (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
            (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
         @if (v.piece; as piece) {
-          <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" [blinking]="blinking().has(p.id)" [lineWidth]="lineWidth()" [lineColor]="lineColor()" />
+          <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" [blinking]="blinking().has(p.id)" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [skin]="look().pieces" [glow]="effects().has('glow')" [flash]="flashes().get(p.id) ?? null" />
         }
         @if (blinking().has(p.id)) {
-          <!-- it has just clicked into place: a ring of light spreads from it -->
-          <span class="snap-ring" aria-hidden="true"></span>
+          <!-- it has just clicked into place: a ring of light spreads from it, and stars twinkle round it, as far as those effects are on -->
+          @if (effects().has('ring')) {
+            <span class="snap-ring" aria-hidden="true"></span>
+          }
+          @if (effects().has('sparkle')) {
+            <span class="snap-sparkle" aria-hidden="true"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span>
+          }
         }
       </div>
 }

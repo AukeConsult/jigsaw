@@ -6,7 +6,7 @@
       <button type="button" class="d-block w-100 p-0 border-0 bg-transparent" (click)="show()" [title]="item.name" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name">
         <div class="tile-picture ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
           @if (!noPicture()) {
-            <img class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
+            <img appArriving class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
           }
         </div>
       </button>
@@ -20,7 +20,7 @@
       }
       @if (favorites.available()) {
         <!-- a small heart over the top right corner of the picture: tick it to have the jigsaw as a favorite -->
-        <button type="button" class="btn btn-overlay position-absolute top-0 end-0 m-1" [class.is-favorite]="favorite()" [attr.aria-pressed]="favorite()"
+        <button type="button" class="btn btn-overlay position-absolute top-0 end-0 m-1" [class.is-favorite]="favorite()" [class.heart-pop]="popped() && favorite()" [attr.aria-pressed]="favorite()"
                 [title]="favorite() ? (t('play.removeFavorite') || 'Remove from favorites') : (t('play.addFavorite') || 'Add to favorites')"
                 [attr.aria-label]="favorite() ? (t('play.removeFavorite') || 'Remove from favorites') : (t('play.addFavorite') || 'Add to favorites')" (click)="toggleFavorite($event)">
           <i class="bi" [class.bi-heart]="!favorite()" [class.bi-heart-fill]="favorite()" aria-hidden="true"></i>

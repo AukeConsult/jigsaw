@@ -43,5 +43,47 @@
   "lookOwn": "Only for this round.",
   "lookReset": "Use my preferences",
   "lookFollows": "Follows your account preferences. What you choose here is for this round only.",
-  "lookNotSaved": "Could not save the settings of this round."
+  "lookNotSaved": "Could not save the settings of this round.",
+  "pieces": "Pieces",
+  "pieceStyles": {
+    "classic": "Classic",
+    "cardboard": "Cardboard",
+    "bevel": "Bevelled",
+    "glossy": "Glossy",
+    "wood": "Wooden",
+    "grain": "Paper grain",
+    "glass": "Glass",
+    "flat": "Flat"
+  },
+  "effects": "Effects",
+  "effectGroups": {
+    "moving": "While you move them",
+    "clicking": "When a piece clicks",
+    "milestones": "Milestones"
+  },
+  "effectNames": {
+    "glow": "Glow while held",
+    "lean": "Lean",
+    "bounce": "Bounce when put down",
+    "magnet": "Magnet pull",
+    "trail": "Fading trail",
+    "ring": "Ring of light",
+    "sparkle": "Sparkle",
+    "flash": "Flash",
+    "ripple": "Ripple through the group",
+    "border": "Border done: light runs round",
+    "halfway": "Halfway cheer",
+    "cutfade": "Finished: cut lines fade away",
+    "shine": "Finished: shine",
+    "confetti": "Finished: confetti",
+    "taps": "Tap when a piece is picked up or put down"
+  },
+  "soundStyle": "Kind of sound",
+  "soundStyles": {
+    "click": "Click",
+    "wood": "Wood",
+    "cardboard": "Cardboard",
+    "chime": "Chime"
+  },
+  "lessMotion": "A device that is set to less motion shows no moving effects."
 }

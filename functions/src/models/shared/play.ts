@@ -94,7 +94,7 @@ export interface PlaySpec {
   timed?: false;
   /** a private round: only its player sees it (not in the list of rounds on the front page, nor in the rounds of the jigsaw for the others); without it the round is public */
   private?: true;
-  /** the table and the sound of this round only, over the player's own preference (`PlayLooks`); without it the round follows the preference */
+  /** the table, pieces, effects and sound of this round only, over the player's own preference (`PlayLooks`); without it the round follows the preference */
   look?: PlayLookSetup;
   /** the look this play has chosen (the jigsaw's is used until the player changes it); never the difficulty, which is the jigsaw's */
   overrides: PlayOverrides;
@@ -174,12 +174,12 @@ export class Plays {
     return play;
   }
 
-  /** The reason a round's own table and sound are not allowed, or '': a whole choice, or null (the round follows the player's preference). */
+  /** The reason a round's own look and sound are not allowed, or '': a choice (see `PlayLooks.is`), or null (the round follows the player's preference). */
   static lookError(value: unknown): string {
     return value === null || PlayLooks.is(value) ? '' : 'Choose a table and the sound on or off, or nothing to follow your preference.';
   }
 
-  /** The round with its own table and sound, or, for null, without any: it follows the preference of its player. */
+  /** The round with its own look and sound, or, for null, without any: it follows the preference of its player. */
   static withLook<T extends Omit<PlaySpec, 'id'>>(play: T, look: PlayLookSetup | null): T {
     const { look: _was, ...rest } = play;
     return (look ? { ...rest, look: PlayLooks.stored(look) } : rest) as T;

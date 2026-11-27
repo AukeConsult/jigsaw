@@ -4,6 +4,7 @@ import { JigsawSpec } from '../../models/shared/jigsaw-settings';
 import { pieceGrid } from '../../models/shared/jigsaw';
 import { snapLevelOfJigsaw } from '../snap-level';
 import { JigsawKinds } from '../../models/shared/jigsaw-kind';
+import { ArrivingPicture } from '../../core/arriving-picture';
 
 /**
  * The top of the form of a picture (`play-picture-form`): the picture as it will look, and under and beside it the places where the form puts its own parts (`draft-*` and `draft` content): what is made, the name, the
@@ -11,7 +12,7 @@ import { JigsawKinds } from '../../models/shared/jigsaw-kind';
  */
 @Component({
   selector: 'app-jigsaw-header',
-  imports: [TranslocoDirective],
+  imports: [TranslocoDirective, ArrivingPicture],
   providers: [provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawNew')],
   templateUrl: './jigsaw-header.html',
 })

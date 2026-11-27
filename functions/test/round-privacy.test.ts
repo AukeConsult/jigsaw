@@ -1,7 +1,7 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createJigsawApp } from "../src/jigsaw/app";
-import { JigsawCut, JigsawPiece, JigsawPieces, Plays } from "../src/models";
+import { JigsawCut, JigsawPiece, JigsawPieces, Plays, DEFAULT_PLAY_LOOK } from "../src/models";
 import type { JigsawSpec, PlaySpec } from "../src/models";
 import { PUBLISHER, TEST_KEY_SECRET, memoryJigsaws, memoryPieces, memoryPlays, memoryUsers } from "./memory-plays";
 
@@ -121,9 +121,9 @@ describe("a round with its own table and sound", () => {
     expect((await patch("bo", { look: { table: "wood", sound: true } })).status).toBe(403);
     expect((await patch("anna", { look: { table: "marble", sound: true } })).status).toBe(400);
     expect((await patch("anna", {})).status).toBe(400);
-    expect((await patch("anna", { look: { table: "wood", sound: false, more: 1 } })).body.look).toEqual({ table: "wood", sound: false });
+    expect((await patch("anna", { look: { table: "wood", sound: false, more: 1 } })).body.look).toEqual({ ...DEFAULT_PLAY_LOOK, table: "wood", sound: false });
     await request(app).post(`${base(picture.id)}/${round.id}/restart`).set("X-Jigsaw-User", "anna");
-    expect((await get(`${base(picture.id)}/${round.id}`, "anna")).body.play.look).toEqual({ table: "wood", sound: false });
+    expect((await get(`${base(picture.id)}/${round.id}`, "anna")).body.play.look).toEqual({ ...DEFAULT_PLAY_LOOK, table: "wood", sound: false });
     expect((await patch("anna", { look: null })).body).not.toHaveProperty("look");
   });
 });

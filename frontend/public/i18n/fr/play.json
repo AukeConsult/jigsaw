@@ -221,6 +221,7 @@
     "medium": "Moyennes",
     "large": "Grandes"
   },
+  "pictureEffects": "Effets sur les images",
   "tileDetails": "Détails sur les vignettes",
   "detailLevels": {
     "none": "Aucun",
@@ -244,5 +245,6 @@
   "newLinkMade": "Un nouveau lien est créé. Partage-le à nouveau.",
   "close": "Fermer",
   "infoBack": "Retour",
-  "editOrDelete": "Modifier ou supprimer"
+  "editOrDelete": "Modifier ou supprimer",
+  "piecesAndEffects": "Pièces et effets"
 }

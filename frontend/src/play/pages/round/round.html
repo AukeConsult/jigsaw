@@ -84,7 +84,7 @@
   <!-- the picture in its own shape, with no box round it, and under it in tiny letters how big it is -->
   <ng-template #picture let-j>
     @if (!noPicture()) {
-      <img class="round-picture d-block mx-auto rounded" [src]="pictureUrl()" alt="" (error)="noPicture.set(true)">
+      <img appArriving class="round-picture d-block mx-auto rounded" [src]="pictureUrl()" alt="" (error)="noPicture.set(true)">
     }
     <!-- under the picture: its size, when it was added and, for a picture of a package, the package, which is a way to it -->
     <div class="tiny text-body-secondary text-center mt-1 mb-3">

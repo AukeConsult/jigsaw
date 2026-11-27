@@ -1,9 +1,23 @@
 <ng-container *transloco="let t">
-  @if (loading() && !items().length && !failed()) {
-    <!-- the first time, with nothing to show yet: the wait is the page -->
-    <div class="d-flex flex-column align-items-center gap-2 py-5 text-body-secondary" aria-hidden="true">
-      <span class="spinner-border" role="presentation"></span>
+  @let first = loading() && !items().length && !failed();
+  @if (first && !effects.on.value()) {
+    <!-- the first time, with the effects off: the wait is the page -->
+    <div class="d-flex flex-column align-items-center gap-2 py-5 text-body-secondary" role="status">
+      <span class="spinner-border" aria-hidden="true"></span>
       <span>{{ t('play.loading') || 'Fetching the jigsaws…' }}</span>
+    </div>
+  } @else if (first) {
+    <!-- the first time, with nothing to show yet: grey tiles where the pictures will be, so nothing jumps when they come (the words are for a screen reader) -->
+    <span class="visually-hidden" role="status">{{ t('play.loading') || 'Fetching the jigsaws…' }}</span>
+    <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3" aria-hidden="true">
+      @for (n of waiting; track n) {
+        <div class="col">
+          <div class="card placeholder-glow">
+            <div class="ratio ratio-4x3"><span class="placeholder rounded-top"></span></div>
+            <div class="card-body p-2"><span class="placeholder col-7"></span></div>
+          </div>
+        </div>
+      }
     </div>
   }
 
@@ -13,7 +27,8 @@
 
   <!-- at least three cards in a row, on any width: the text in a card wraps -->
   <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
-    @for (tile of tiles(); track tile.kind + tile.id) {
+    <!-- (the other tiles wait for the first pictures, so they do not move when those come) -->
+    @for (tile of first ? [] : tiles(); track tile.kind + tile.id) {
       <div class="col">
         @if (isPicture(tile)) {
           <play-card [jigsaw]="tile.summary" [packageName]="packageName(tile.summary)" />

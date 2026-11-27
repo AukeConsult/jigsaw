@@ -43,5 +43,47 @@
   "lookOwn": "Bare for denne runden.",
   "lookReset": "Bruk mine innstillinger",
   "lookFollows": "Følger innstillingene på kontoen din. Det du velger her, gjelder bare denne runden.",
-  "lookNotSaved": "Kunne ikke lagre innstillingene for runden."
+  "lookNotSaved": "Kunne ikke lagre innstillingene for runden.",
+  "pieces": "Brikker",
+  "pieceStyles": {
+    "classic": "Klassisk",
+    "cardboard": "Papp",
+    "bevel": "Skrå kant",
+    "glossy": "Blank",
+    "wood": "Tre",
+    "grain": "Papirstruktur",
+    "glass": "Glass",
+    "flat": "Flat"
+  },
+  "effects": "Effekter",
+  "effectGroups": {
+    "moving": "Mens du flytter dem",
+    "clicking": "Når en brikke klikker på plass",
+    "milestones": "Milepæler"
+  },
+  "effectNames": {
+    "glow": "Glød mens du holder den",
+    "lean": "Vipper med bevegelsen",
+    "bounce": "Spretter når den legges ned",
+    "magnet": "Magnet",
+    "trail": "Falmende spor",
+    "ring": "Lysring",
+    "sparkle": "Gnister",
+    "flash": "Glimt",
+    "ripple": "Bølge gjennom gruppen",
+    "border": "Rammen er ferdig: lys går rundt",
+    "halfway": "Jubel halvveis",
+    "cutfade": "Ferdig: skjærelinjene forsvinner",
+    "shine": "Ferdig: glans",
+    "confetti": "Ferdig: konfetti",
+    "taps": "Dunk når en brikke plukkes opp eller legges ned"
+  },
+  "soundStyle": "Type lyd",
+  "soundStyles": {
+    "click": "Klikk",
+    "wood": "Tre",
+    "cardboard": "Papp",
+    "chime": "Klokkespill"
+  },
+  "lessMotion": "En enhet som er satt til mindre bevegelse viser ingen effekter som beveger seg."
 }

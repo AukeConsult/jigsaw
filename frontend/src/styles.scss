@@ -126,6 +126,18 @@ $font-on-phone: math.div(8, 9); // 16 px: the smallest a field can have without 
   --app-choice-6: #0aa2c0;
   --app-picked: var(--app-primary); // what is picked: the outline, the frame dragged to pick
   --app-matched: var(--app-success); // the blink when a piece clicks into place
+  --app-piece-glow: #ffb429; // the light round a held piece, the stars and the running border (effects)
+  --app-piece-edge: #b07a2a; // the thick edge of a cardboard or wooden piece
+  --app-piece-wood: #c08a45; // the wooden rim of a piece
+  --app-piece-wood-dark: #6e4310;
+  // the frame round the picture area, which goes with how the pieces are drawn
+  --app-board-frame: 0.5rem; // how wide it is on the screen
+  --app-board-lit: rgba(255, 255, 255, 0.9);
+  --app-board-shade: rgba(0, 0, 0, 0.35);
+  --app-board-paper: #f4eddc;
+  --app-board-gloss-light: #eef1f5;
+  --app-board-gloss: #8a94a3;
+  --app-board-gloss-dark: #2b313a;
   // the tables the pieces can lie on (the player chooses, `PlayLook`), and the mat of the picture area on each
   --app-table-felt: #2f7554;
   --app-table-felt-edge: #1f4f39;
@@ -317,6 +329,119 @@ textarea { // (a button and a field do not take the spacing of the page by thems
   -webkit-line-clamp: 3;
   line-clamp: 3;
   overflow: hidden;
+}
+
+// The effects on pictures. A picture shown on its own rises softly into its place as it arrives. The tiles of pictures: they come in one after another, a tile that is pressed lifts and its picture grows slowly, a picture shimmers until it has arrived and a new
+// favorite's heart pops. A switch of the preferences takes it all away (`data-picture-effects`), and a device that asks for less motion has none of it. (A pointer lifts a tile as it rests on it; a finger, which cannot rest, as it presses.)
+$tiles-pressed: '.tile-grid play-card > .card', '.tile-grid .feed-pressable', '.tile-grid .own-card', '.card-row app-jigsaw-card > .card';
+
+@media (prefers-reduced-motion: no-preference) {
+  play-main:not([data-picture-effects='off']) {
+    .tile-grid > *,
+    .card-row > * {
+      animation: tile-in 0.35s ease backwards; // (backwards, not both: a transform that stayed would keep what opens from a tile under its neighbours)
+    }
+
+    // one after another, a page of tiles at a time (the next page starts again, it does not wait for all before it)
+    @for $i from 2 through 20 {
+      .tile-grid > :nth-child(20n + #{$i}),
+      .card-row > :nth-child(20n + #{$i}) {
+        animation-delay: ($i - 1) * 0.04s;
+      }
+    }
+
+    @each $tile in $tiles-pressed {
+      #{$tile} {
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+        .ratio > img {
+          transition: transform 0.6s ease, opacity 0.35s ease;
+        }
+
+        &:active {
+          transform: translateY(-0.125rem);
+
+          .ratio > img {
+            transform: scale(1.05);
+          }
+        }
+
+        @media (hover: hover) {
+          &:hover {
+            transform: translateY(-0.3125rem);
+            box-shadow: var(--bs-box-shadow);
+
+            .ratio > img {
+              transform: scale(1.08);
+            }
+          }
+        }
+      }
+    }
+
+    // a ticked card of the user's own keeps its ring while it is lifted
+    .tile-grid .own-card.row-selected:hover {
+      box-shadow: 0 0 0 0.1875rem var(--app-primary), var(--bs-box-shadow);
+    }
+
+    img.arriving {
+      opacity: 0;
+      transition: opacity 0.35s ease;
+
+      &.is-arrived {
+        opacity: 1;
+      }
+    }
+
+    // a picture shown on its own (not in the box of a tile) rises into its place too
+    :not(.ratio) > img.arriving {
+      transform: translateY(0.875rem);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+
+      &.is-arrived {
+        transform: none;
+      }
+    }
+
+    .ratio:has(> img.arriving:not(.is-arrived)) {
+      animation: picture-waiting 1.1s ease-in-out infinite;
+    }
+
+    .heart-pop > .bi {
+      display: inline-block;
+      animation: heart-pop 0.45s ease;
+    }
+  }
+}
+
+// (Bootstrap's grey tiles glow whatever the device asks)
+@media (prefers-reduced-motion: reduce) {
+  .tile-grid .placeholder-glow .placeholder {
+    animation: none;
+  }
+}
+
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.875rem);
+  }
+}
+
+@keyframes picture-waiting {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes heart-pop {
+  35% {
+    transform: scale(1.6);
+  }
+
+  65% {
+    transform: scale(0.85);
+  }
 }
 
 // the picture on the page before the puzzle: whole, in its own shape, no wider than the page and no higher than most of the screen, so the buttons under it are near
@@ -1013,10 +1138,8 @@ play-jigsaw .jigsaw-play {
 }
 
 .feed-cover {
-  // the picture of a package on its tile: the whole width of the tile, a fixed shape, so the tiles stay in line (a picture is cut to it, never stretched)
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  // the picture of a package on its tile: the whole width of the tile, a fixed shape, so the tiles stay in line (it does not shrink in the column of the tile)
+  flex-shrink: 0;
 }
 
 .feed-pressable {
@@ -1580,7 +1703,7 @@ app-my-rounds {
   gap: 0.75rem;
   overflow-x: auto;
   overscroll-behavior-x: none; // a drag at the end of the row does not move the page sideways
-  padding-bottom: 0.5rem;
+  padding-block: 0.375rem 0.5rem; // room above too: a tile that lifts is not cut off by the scrolling row
 
   > * {
     flex: 0 0 auto;
@@ -2444,6 +2567,77 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   outline-offset: 0;
 }
 
+// The frame round the picture area goes with how the pieces are drawn (`data-pieces`). Classic keeps the line the jigsaw chose; every other look has a frame of its own in its place. It is drawn outside the picture
+// area and takes no room (nothing that is placed moves), and is as wide on the screen whatever the scale of the board (`--w` is its width in the stored pixels the board is drawn in).
+.board-root:not([data-pieces='classic']) .picture-surface {
+  --w: calc(var(--app-board-frame) / var(--app-scale));
+  --px: calc(1px / var(--app-scale));
+  outline-style: none;
+  box-shadow: none !important; // (over Bootstrap's `shadow-sm`)
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--w));
+    border: var(--w) solid;
+    pointer-events: none;
+  }
+}
+
+// thick card, as the tray of a box
+.board-root[data-pieces='cardboard'] .picture-surface::before {
+  border-color: var(--app-piece-edge);
+  border-radius: var(--w);
+  box-shadow: inset 0 0 0 var(--px) var(--app-board-shade), inset 0 calc(2 * var(--px)) 0 var(--px) var(--app-board-shade), 0 calc(3 * var(--px)) 0 var(--app-piece-wood-dark), 0 calc(5 * var(--px)) calc(10 * var(--px)) var(--app-board-shade);
+}
+
+// raised: lit from the upper left, as the pieces are (the sides let the table through, so it suits every table)
+.board-root[data-pieces='bevel'] .picture-surface::before {
+  border-color: var(--app-board-lit) var(--app-board-shade) var(--app-board-shade) var(--app-board-lit);
+  box-shadow: 0 0 0 var(--px) var(--app-board-shade), 0 calc(2 * var(--px)) calc(6 * var(--px)) var(--app-board-shade);
+}
+
+// a polished frame with the light across it
+.board-root[data-pieces='glossy'] .picture-surface::before {
+  border-image: linear-gradient(135deg, var(--app-board-gloss-light), var(--app-board-gloss) 20%, var(--app-board-gloss-dark) 45%, var(--app-board-gloss-light) 55%, var(--app-board-gloss-dark) 75%, var(--app-board-gloss)) 1;
+  box-shadow: 0 0 0 var(--px) var(--app-board-gloss-dark), 0 calc(3 * var(--px)) calc(10 * var(--px)) var(--app-board-shade);
+}
+
+// a picture frame of wood: the four sides meet at the corners, the upright ones a little darker
+.board-root[data-pieces='wood'] .picture-surface {
+  --app-board-frame: 0.75rem;
+
+  &::before {
+    border-color: var(--app-piece-wood) color-mix(in srgb, var(--app-piece-wood) 72%, black);
+    box-shadow: inset 0 0 0 calc(2 * var(--px)) var(--app-piece-wood-dark), 0 0 0 calc(2 * var(--px)) var(--app-piece-wood-dark), 0 calc(4 * var(--px)) calc(12 * var(--px)) var(--app-board-shade);
+  }
+}
+
+// a mount of paper
+.board-root[data-pieces='grain'] .picture-surface {
+  --app-board-frame: 0.75rem;
+
+  &::before {
+    border-color: var(--app-board-paper);
+    box-shadow: inset 0 0 0 var(--px) var(--app-board-shade), 0 0 0 var(--px) color-mix(in srgb, var(--app-board-shade) 60%, transparent), 0 calc(2 * var(--px)) calc(8 * var(--px)) var(--app-board-shade);
+  }
+}
+
+// a pane of glass: the table shows through, with a bright edge
+.board-root[data-pieces='glass'] .picture-surface::before {
+  border-color: color-mix(in srgb, var(--app-board-lit) 45%, transparent);
+  box-shadow: inset 0 0 0 var(--px) var(--app-board-lit), 0 0 0 var(--px) var(--app-board-lit), 0 0 0 calc(2 * var(--px)) color-mix(in srgb, var(--app-board-shade) 40%, transparent), 0 calc(4 * var(--px)) calc(14 * var(--px)) var(--app-board-shade);
+}
+
+// one plain line in the colour of the app
+.board-root[data-pieces='flat'] .picture-surface {
+  --app-board-frame: 0.25rem;
+
+  &::before {
+    border-color: var(--app-primary); // (the theme's own, where it has one)
+  }
+}
+
 // ---- scroll bars: thin and quiet, no arrows, a rounded thumb that darkens when it is used ---------------------------------------------------------------
 * {
   scrollbar-width: thin;
@@ -2835,15 +3029,333 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   }
 }
 
-// a person who asked their device for less motion: no turning, growing or spreading ring
+// ---- the effects a player can choose (`PIECE_STYLES`, `PIECE_EFFECTS`): only looks, nothing of where a piece is or what it clicks to --------------------------------
+
+// what a look lays on a piece: light and shade, wood, grain
+.piece-light {
+  fill: var(--bs-white);
+}
+.piece-dark {
+  fill: var(--bs-black);
+}
+.piece-lit,
+.piece-shaded,
+.piece-wood,
+.piece-wood-line {
+  fill: none;
+  stroke-linejoin: round;
+}
+.piece-lit {
+  stroke: var(--bs-white);
+}
+.piece-shaded {
+  stroke: var(--bs-black);
+}
+.piece-wood {
+  stroke: var(--app-piece-wood);
+}
+.piece-wood-line {
+  stroke: var(--app-piece-wood-dark);
+}
+// the thickness is only there while a piece is loose (in its place it lies flat in the picture), and what lies on a placed piece is fainter
+.piece-edge {
+  display: none;
+  fill: var(--app-piece-edge);
+}
+.piece-edge-dark {
+  fill: var(--app-piece-wood-dark);
+}
+.placed-object.is-loose .piece-edge {
+  display: inline;
+}
+.placed-object:not(.is-loose) .piece-rim {
+  opacity: 0.3;
+}
+
+// flat: no shadow and no turn
+.board-root[data-pieces='flat'] .placed-object {
+  .piece-shadow {
+    display: none;
+  }
+
+  &.is-loose.is-single:not(.is-held) app-puzzle-piece {
+    transform: none;
+  }
+}
+
+// glow while held
+.piece-glow {
+  display: none;
+  fill: none;
+  stroke: var(--app-piece-glow);
+  stroke-linejoin: round;
+}
+.placed-object.is-held .piece-glow {
+  display: inline;
+}
+
+// lean: a carried piece tips the way it goes (the board sets `--app-lean`)
+.board-root[data-fx~='lean'] .placed-object.is-loose.is-single.is-held app-puzzle-piece {
+  transform: rotate(var(--app-lean, 0deg)) scale(1.07);
+}
+
+// bounce: a squash as it is put down (`scale` and `translate` of their own, so they add to the turn a piece has)
+.placed-object.is-landed app-puzzle-piece {
+  animation: piece-land 0.45s ease-out;
+}
+@keyframes piece-land {
+  0% {
+    scale: 1.1;
+  }
+  35% {
+    scale: 1.1 0.88;
+  }
+  65% {
+    scale: 0.97 1.04;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+// magnet: from where it was let go, slowly at first and then quickly into place
+.placed-object.is-pulled {
+  animation: piece-pull 0.22s cubic-bezier(0.6, 0, 1, 1);
+}
+@keyframes piece-pull {
+  from {
+    translate: var(--app-pull-x) var(--app-pull-y);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+// trail: faint copies that fade where the piece has been
+.placed-object.piece-trail {
+  pointer-events: none;
+  animation: piece-trail 0.32s linear forwards;
+}
+@keyframes piece-trail {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+// flash and ripple: a bright line round a piece that comes and goes (the delay makes the ripple)
+.piece-flash {
+  fill: none;
+  stroke: var(--bs-white);
+  stroke-linejoin: round;
+  opacity: 0;
+  pointer-events: none;
+  animation: piece-flash 0.55s ease-out;
+}
+@keyframes piece-flash {
+  30% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+// sparkle: four stars at the corners
+.snap-sparkle {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  color: var(--app-piece-glow);
+  font-size: calc(1.4rem / var(--app-scale, 1));
+  line-height: 1;
+
+  i {
+    position: absolute;
+    animation: snap-sparkle var(--app-blink-duration) ease-out both;
+  }
+  i:nth-child(1) {
+    top: 0;
+    left: 0;
+  }
+  i:nth-child(2) {
+    top: 6%;
+    right: 0;
+    animation-delay: 0.1s;
+    font-size: 0.7em;
+  }
+  i:nth-child(3) {
+    bottom: 0;
+    right: 4%;
+    animation-delay: 0.05s;
+  }
+  i:nth-child(4) {
+    bottom: 8%;
+    left: 2%;
+    animation-delay: 0.15s;
+    font-size: 0.7em;
+  }
+}
+@keyframes snap-sparkle {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.7) rotate(40deg);
+  }
+}
+
+// cut lines fade: the whole picture comes up over the pieces of a finished puzzle
+.finished-picture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; // as the pieces cut their picture
+  pointer-events: none;
+  z-index: var(--app-z-controls);
+  animation: finished-picture 2s ease 0.8s both;
+}
+@keyframes finished-picture {
+  from {
+    opacity: 0;
+  }
+}
+
+// the celebrations over the picture area: they let the pointer through
+.board-celebration {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: var(--app-z-controls);
+}
+.celebrate-border {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+  rect {
+    fill: none;
+    stroke: var(--app-piece-glow);
+    stroke-width: calc(10px / var(--app-scale, 1)); // half of it is outside the picture area and cut off
+    stroke-dasharray: 80 320;
+    animation: celebrate-border 2s linear 2;
+    animation-fill-mode: forwards;
+  }
+}
+@keyframes celebrate-border {
+  to {
+    stroke-dashoffset: -400;
+  }
+}
+.celebrate-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  left: -50%;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.7) 50%, transparent 80%);
+  animation: celebrate-shine 1.6s ease-in-out 0.3s 2;
+}
+@keyframes celebrate-shine {
+  to {
+    left: 110%;
+  }
+}
+.celebrate-word {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  translate: -50% -50%;
+  white-space: nowrap;
+  padding: 0.3em 0.9em;
+  border-radius: 999px;
+  background: var(--bs-body-bg);
+  box-shadow: var(--bs-box-shadow);
+  font-size: calc(var(--app-fs-title) / var(--app-scale, 1));
+  animation: celebrate-word 3.6s ease both;
+}
+@keyframes celebrate-word {
+  0% {
+    opacity: 0;
+    scale: 0.7;
+  }
+  10%,
+  80% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.confetti {
+  position: absolute;
+  top: -5%;
+  width: calc(8px / var(--app-scale, 1));
+  height: calc(13px / var(--app-scale, 1));
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+
+  &[data-colour='0'] {
+    background: var(--app-primary);
+  }
+  &[data-colour='1'] {
+    background: var(--app-success);
+  }
+  &[data-colour='2'] {
+    background: var(--app-piece-glow);
+  }
+  &[data-colour='3'] {
+    background: var(--bs-danger);
+  }
+  &[data-colour='4'] {
+    background: var(--bs-info);
+  }
+}
+@keyframes confetti-fall {
+  from {
+    top: -5%;
+    rotate: 0deg;
+  }
+  to {
+    top: 105%;
+    rotate: 540deg;
+  }
+}
+
+// a person who asked their device for less motion: no turning, growing or spreading ring, and none of the effects that move
 @media (prefers-reduced-motion: reduce) {
   .placed-object app-puzzle-piece {
     transform: none !important;
     transition: none;
   }
 
-  .snap-ring {
+  .snap-ring,
+  .snap-sparkle,
+  .piece-trail,
+  .piece-flash,
+  .celebrate-border,
+  .celebrate-shine,
+  .confetti {
     display: none;
+  }
+
+  .placed-object.is-landed app-puzzle-piece,
+  .placed-object.is-pulled,
+  .celebrate-word {
+    animation: none;
   }
 }
 

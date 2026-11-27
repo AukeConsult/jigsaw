@@ -1,4 +1,4 @@
-import { PlayLookSetup } from '../../models/shared/play-look';
+import { PieceEffect, PlayLookSetup } from '../../models/shared/play-look';
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, ElementRef, Injector, afterNextRender, HostListener, inject, computed, effect, input, model, output, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -9,7 +9,8 @@ import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
 import { isBoolean, readPreference, writePreference, preferenceSignal } from '../../core/preferences';
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
 import { PlayLook } from '../../jigsaw/play-look';
-import { playSnap } from '../snap-sound';
+import { playCheer, playSnap, playTap } from '../snap-sound';
+import { BoardCelebration, Celebration } from '../board-celebration/board-celebration';
 import { cssNumber, cssVar, footerTop, onAnyScroll } from '../../core/theme';
 import { FREE_SPACE_COLUMNS_MAX, JIGSAW_MAX_SIDE, JIGSAW_MIN_SIDE, JigsawSettings } from '../../models/shared/jigsaw-settings';
 import { Puzzle } from '../../models/shared/puzzle';
@@ -42,6 +43,17 @@ const ZONE_MIN_STEPS = 1;
 const HELPER_SCALE_START = 0.25;
 /** How long a piece blinks when it clicks into place, in milliseconds (the length of the animation). */
 const BLINK_MS = 700;
+// the effects, as long as their animations in `styles.scss` (milliseconds): a piece that is put down bounces, one that clicks is pulled the last bit, the ripple through a group, a trail, a celebration
+const LAND_MS = 450;
+const PULL_MS = 220;
+const RIPPLE_STEP_MS = 70;
+const RIPPLE_MAX_MS = 700;
+const TRAIL_EVERY_MS = 55;
+const TRAIL_MS = 320;
+const CELEBRATION_MS = 4200;
+/** a carried piece leans at most this much, in degrees, and straightens when it has rested this long */
+const LEAN_MAX_DEG = 14;
+const LEAN_REST_MS = 120;
 const HELPER_SCALE_MIN = 0.1;
 const HELPER_SCALE_MAX = 0.5;
 
@@ -104,7 +116,7 @@ interface BoardView {
 
 @Component({
   selector: 'app-jigsaw-board',
-  imports: [PuzzlePiece, NgTemplateOutlet],
+  imports: [PuzzlePiece, NgTemplateOutlet, BoardCelebration],
   providers: [provideTranslocoScope('jigsawBoard')],
   templateUrl: './jigsaw-board.html',
 })
@@ -174,8 +186,23 @@ export class JigsawBoard {
   /** the table and the sound of the round that is shown, over the player's preference (null: the preference) */
   readonly roundLook = input<PlayLookSetup | null>(null);
   private readonly preference = inject(PlayLook);
-  /** the table the pieces lie on and whether a click is heard */
+  /** the table the pieces lie on, how they look, the effects and the sound */
   protected readonly look = computed(() => this.roundLook() ?? this.preference.value());
+  /** the effects that are switched on */
+  protected readonly effects = computed(() => new Set<PieceEffect>(this.look().effects));
+  // what the effects show for a moment: pieces just put down, pieces being pulled the last bit into place (from how far), the flashes (with the delay of each), and what is celebrated
+  protected readonly landed = signal<ReadonlySet<string>>(new Set());
+  protected readonly pulled = signal<{ ids: ReadonlySet<string>; x: number; y: number } | null>(null);
+  protected readonly flashes = signal<ReadonlyMap<string, number>>(new Map());
+  protected readonly celebration = signal<Celebration | null>(null);
+  private flashTimer?: ReturnType<typeof setTimeout>;
+  private celebrationTimer?: ReturnType<typeof setTimeout>;
+  private leanTimer?: ReturnType<typeof setTimeout>;
+  /** where the pointer was at the last move, and when the last bit of the trail was left */
+  private lastX = 0;
+  private trailAt = 0;
+  /** every piece is on its place (a finished picture can then lose its cut lines) */
+  protected readonly finished = computed(() => this.puzzle().milestones(this.pieceGrid()).includes('finished'));
 
   /** how a loose piece is turned, in degrees: its own, and the same every time it is drawn (from its id) */
   protected tilt(id: string): string {
@@ -952,6 +979,8 @@ export class JigsawBoard {
     const freeDrag = screen ? this.freeDragOf(ids, event, box) : undefined;
     this.moving = { id: item.id, ids, dx: x - grabbed.x, dy: y - grabbed.y, screen, free: freeDrag, matchedAtStart: this.matchedAmong(this.puzzle(), ids), stuckAtStart: new Set(this.puzzle().stuckGroup(ids)), fromScroller: this.scrollerPieces().has(item.id) };
     this.capture(this.root().nativeElement, event); // not the object: it is made again in the store frame when it is moved there
+    this.lastX = event.clientX;
+    if (item.piece && this.effects().has('taps') && this.look().sound) playTap('pick', this.look().soundStyle);
   }
 
   /**
@@ -1062,6 +1091,7 @@ export class JigsawBoard {
       free.delta = { x: dx, y: dy };
       const move = `translate(${dx / this.scale()}px, ${dy / this.scale()}px)`; // the area is drawn at a scale: the distance is in its pixels
       for (const element of free.elements) element.style.transform = move;
+      this.carried(moving, free, event);
       return;
     }
     const puzzle = this.puzzle();
@@ -1075,6 +1105,30 @@ export class JigsawBoard {
       return;
     }
     this.apply(puzzle.moveFigure(moving.id, x, y, this.step, this.origin));
+  }
+
+  /** How what is carried looks on its way (effects): a piece on its own leans the way it goes, and what is held leaves a faint trail. */
+  private carried(moving: NonNullable<JigsawBoard['moving']>, free: FreeDrag, event: PointerEvent): void {
+    const across = event.clientX - this.lastX;
+    this.lastX = event.clientX;
+    const effects = this.effects();
+    const element = free.elements.find((e) => e.dataset['id'] === moving.id);
+    if (!element) return;
+    if (effects.has('lean') && moving.ids.length === 1) {
+      element.style.setProperty('--app-lean', `${Math.max(-LEAN_MAX_DEG, Math.min(LEAN_MAX_DEG, across * 0.9))}deg`);
+      clearTimeout(this.leanTimer);
+      this.leanTimer = setTimeout(() => element.style.removeProperty('--app-lean'), LEAN_REST_MS);
+    }
+    if (effects.has('trail') && event.timeStamp - this.trailAt > TRAIL_EVERY_MS) {
+      this.trailAt = event.timeStamp;
+      const copy = element.cloneNode(true) as HTMLElement;
+      for (const name of ['data-id', 'tabindex', 'role', 'aria-label']) copy.removeAttribute(name); // only to be seen: nothing finds it as a piece
+      copy.setAttribute('aria-hidden', 'true');
+      copy.classList.remove('is-held', 'is-picked');
+      copy.classList.add('piece-trail');
+      element.before(copy);
+      setTimeout(() => copy.remove(), TRAIL_MS);
+    }
   }
 
   /** Where a held piece is let go: the place on the board that its middle, on the screen, is over (the one time the areas are used), and all that is held moved there. */
@@ -1103,15 +1157,85 @@ export class JigsawBoard {
     }
     const ids = moving.ids;
     const before = this.puzzle();
-    const dropped = this.movedTo(before, moving).dropPieces(ids, this.snapRange(), { left: 0, top: 0, width: this.width(), height: this.height() }); // it clicks only on the picture area (the blue one)
+    const carriedTo = this.movedTo(before, moving); // where the pointer left it, before it clicks
+    const dropped = carriedTo.dropPieces(ids, this.snapRange(), { left: 0, top: 0, width: this.width(), height: this.height() }); // it clicks only on the picture area (the blue one)
     this.commitFree(moving, dropped !== before ? dropped : null);
     if (moving.fromScroller) this.refillScroller(ids);
     const fresh = [...this.matchedAmong(dropped, ids)].filter((id) => !moving.matchedAtStart.has(id)); // in place now, and was not when it was picked up
     const joined = dropped.stuckGroup(ids).filter((id) => !moving.stuckAtStart.has(id)); // pieces that stick to what was moved now, and did not when it was picked up
+    this.answerDrop({ id: moving.id, ids, before, carriedTo, dropped, clicked: fresh.length > 0 || joined.length > 0, grew: joined.length > 0 });
+  }
+
+  /** What is seen and heard when something is let go: only looks and sound, nothing here moves a piece. */
+  private answerDrop(drop: { id: string; ids: readonly string[]; before: Puzzle; carriedTo: Puzzle; dropped: Puzzle; clicked: boolean; grew: boolean }): void {
+    if (this.viewOnly()) return;
+    const effects = this.effects();
+    const look = this.look();
+    const moved = drop.carriedTo !== drop.before;
+    if (moved && effects.has('magnet')) this.pull(drop.id, drop.ids, drop.carriedTo, drop.dropped);
+    if (!drop.clicked) {
+      if (!moved) return;
+      if (effects.has('bounce')) {
+        this.landed.set(new Set(drop.ids));
+        setTimeout(() => this.landed.set(new Set()), LAND_MS);
+      }
+      if (effects.has('taps') && look.sound) playTap('drop', look.soundStyle);
+      return;
+    }
     // only the piece that was dropped blinks (not the whole group it clicked into): the person sees which piece clicked
-    if (!fresh.length && !joined.length) return;
-    this.blink([moving.id]);
-    if (this.look().sound && !this.viewOnly()) playSnap(dropped.stuckGroup([moving.id]).length);
+    this.blink([drop.id]);
+    if (look.sound) playSnap(drop.dropped.stuckGroup([drop.id]).length, look.soundStyle);
+    this.flash(drop.id, drop.dropped, drop.grew);
+    this.celebrate(drop.before, drop.dropped);
+  }
+
+  /** The magnet: what clicked is drawn from where it was let go and slides the last bit to where it is now. */
+  private pull(id: string, ids: readonly string[], from: Puzzle, to: Puzzle): void {
+    const start = from.get(id);
+    const end = to.get(id);
+    if (!start || !end || (start.centerX === end.centerX && start.centerY === end.centerY)) return;
+    this.pulled.set({ ids: new Set(ids), x: start.centerX - end.centerX, y: start.centerY - end.centerY });
+    setTimeout(() => this.pulled.set(null), PULL_MS);
+  }
+
+  /** A flash round the piece that clicked, and, when its group grew, a ripple through the group: each piece a little later the further it is from that one. */
+  private flash(id: string, puzzle: Puzzle, grew: boolean): void {
+    const effects = this.effects();
+    const delays = new Map<string, number>();
+    const from = puzzle.get(id);
+    if (from && grew && effects.has('ripple')) {
+      for (const other of puzzle.stuckGroup([id])) {
+        const piece = puzzle.get(other);
+        if (!piece || other === id) continue;
+        const steps = Math.round((Math.abs(piece.centerX - from.centerX) + Math.abs(piece.centerY - from.centerY)) / Math.max(1, this.gridSize()));
+        delays.set(other, Math.min(RIPPLE_MAX_MS, steps * RIPPLE_STEP_MS));
+      }
+    }
+    if (effects.has('flash')) delays.set(id, 0);
+    if (!delays.size) return;
+    this.flashes.set(delays);
+    clearTimeout(this.flashTimer);
+    this.flashTimer = setTimeout(() => this.flashes.set(new Map()), RIPPLE_MAX_MS + BLINK_MS);
+  }
+
+  /** What this drop reached for the first time (`Puzzle.milestones`) is celebrated, as far as the effects are on. */
+  private celebrate(before: Puzzle, after: Puzzle): void {
+    const grid = this.pieceGrid();
+    const had = before.milestones(grid);
+    const reached = after.milestones(grid).filter((m) => !had.includes(m));
+    const effects = this.effects();
+    const finished = reached.includes('finished');
+    const party: Celebration = {
+      border: !finished && reached.includes('border') && effects.has('border'),
+      halfway: !finished && reached.includes('halfway') && effects.has('halfway'),
+      shine: finished && effects.has('shine'),
+      confetti: finished && effects.has('confetti'),
+    };
+    if (party.halfway && this.look().sound) playCheer();
+    if (!Object.values(party).some(Boolean)) return;
+    this.celebration.set(party);
+    clearTimeout(this.celebrationTimer);
+    this.celebrationTimer = setTimeout(() => this.celebration.set(null), CELEBRATION_MS);
   }
 
   /** which of these objects are jigsaw pieces on their own place */
@@ -1176,7 +1300,11 @@ export class JigsawBoard {
    */
   private commitFree(moving: NonNullable<JigsawBoard['moving']>, next: Puzzle | null): void {
     const elements = moving.free?.elements ?? [];
-    const clear = () => elements.forEach((e) => (e.style.transform = ''));
+    const clear = () =>
+      elements.forEach((e) => {
+        e.style.transform = '';
+        e.style.removeProperty('--app-lean');
+      });
     if (this.viewOnly() || !next) return clear();
     const now = this.placed();
     const data = next.toData();

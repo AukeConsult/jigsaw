@@ -43,5 +43,47 @@
   "lookOwn": "Nur für diese Runde.",
   "lookReset": "Meine Einstellungen verwenden",
   "lookFollows": "Folgt den Einstellungen deines Kontos. Was du hier wählst, gilt nur für diese Runde.",
-  "lookNotSaved": "Die Einstellungen der Runde konnten nicht gespeichert werden."
+  "lookNotSaved": "Die Einstellungen der Runde konnten nicht gespeichert werden.",
+  "pieces": "Teile",
+  "pieceStyles": {
+    "classic": "Klassisch",
+    "cardboard": "Pappe",
+    "bevel": "Schräge Kante",
+    "glossy": "Glänzend",
+    "wood": "Holz",
+    "grain": "Papierstruktur",
+    "glass": "Glas",
+    "flat": "Flach"
+  },
+  "effects": "Effekte",
+  "effectGroups": {
+    "moving": "Beim Bewegen",
+    "clicking": "Wenn ein Teil einrastet",
+    "milestones": "Etappen"
+  },
+  "effectNames": {
+    "glow": "Leuchten beim Halten",
+    "lean": "Neigt sich mit der Bewegung",
+    "bounce": "Federt beim Ablegen",
+    "magnet": "Magnet",
+    "trail": "Verblassende Spur",
+    "ring": "Lichtring",
+    "sparkle": "Funken",
+    "flash": "Aufblitzen",
+    "ripple": "Welle durch die Gruppe",
+    "border": "Rand fertig: Licht läuft herum",
+    "halfway": "Jubel zur Halbzeit",
+    "cutfade": "Fertig: Schnittlinien verschwinden",
+    "shine": "Fertig: Glanz",
+    "confetti": "Fertig: Konfetti",
+    "taps": "Klopfen beim Aufnehmen und Ablegen"
+  },
+  "soundStyle": "Art des Klangs",
+  "soundStyles": {
+    "click": "Klick",
+    "wood": "Holz",
+    "cardboard": "Pappe",
+    "chime": "Glockenspiel"
+  },
+  "lessMotion": "Ein Gerät, das auf weniger Bewegung eingestellt ist, zeigt keine bewegten Effekte."
 }

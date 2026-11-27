@@ -11,5 +11,6 @@
   "scrollLeft": "Scroll the pieces to the left",
   "scrollRight": "Scroll the pieces to the right",
   "dragHint": "Drag a piece to the picture",
-  "addHere": "Add pieces here"
+  "addHere": "Add pieces here",
+  "halfway": "Halfway there!"
 }

@@ -25,6 +25,7 @@ import { SharePicture } from '../../components/share-picture/share-picture';
 import { goBack } from '../../go-back';
 import { apiError } from '../../../app/core/api-error';
 import { tr } from '../../../app/core/i18n';
+import { ArrivingPicture } from '../../../app/core/arriving-picture';
 
 /**
  * The page of the route `/play/round/:id`, where **a card leads when it is pressed**: what comes before putting it together, with Cancel back to where the person came from. It is also **where a link to a picture leads** (the key of a
@@ -38,7 +39,7 @@ import { tr } from '../../../app/core/i18n';
  */
 @Component({
   selector: 'play-round',
-  imports: [TranslocoDirective, RouterLink, RoundChoice, CategoryTags, DatePipe, NgTemplateOutlet, SharePicture, PictureRounds],
+  imports: [TranslocoDirective, RouterLink, RoundChoice, CategoryTags, DatePipe, NgTemplateOutlet, SharePicture, PictureRounds, ArrivingPicture],
   providers: [provideTranslocoScope('play'), provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
   host: { class: 'd-block' },
   templateUrl: './round.html',

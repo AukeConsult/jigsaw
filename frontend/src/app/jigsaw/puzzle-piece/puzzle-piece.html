@@ -2,10 +2,26 @@
      [style.--app-line-width]="lineWidth() === null ? null : lineWidth()" [style.--app-line-color]="lineColor()" [style.--app-line-opacity]="lineColor() ? 0.55 : null">
   <defs>
     <clipPath [attr.id]="clipId()"><path [attr.d]="path()" /></clipPath>
+    @if (skin() === 'grain') {
+      <svg:pattern [attr.id]="grainId()" width="5" height="5" patternUnits="userSpaceOnUse">
+        <svg:circle cx="1.2" cy="1.2" r="1" class="piece-light" fill-opacity="0.3" />
+        <svg:circle cx="3.7" cy="3.7" r="1" class="piece-dark" fill-opacity="0.14" />
+      </svg:pattern>
+    }
   </defs>
+  @if (glow()) {
+    <!-- a light round a piece while it is held (the board's styles show it then): under the picture, so only what reaches outside is seen -->
+    <path [attr.d]="path()" class="piece-glow" [attr.stroke-width]="size() * 0.28" stroke-opacity="0.3" />
+    <path [attr.d]="path()" class="piece-glow" [attr.stroke-width]="size() * 0.13" stroke-opacity="0.85" />
+  }
   <!-- the shadow of a piece that lies loose (shown by the board): two soft layers of its own outline, a little down and to the right. Drawn, not filtered, so it costs little with many pieces -->
   <path [attr.d]="path()" class="piece-shadow" [attr.transform]="'translate(' + size() * 0.022 + ' ' + size() * 0.035 + ')'" />
   <path [attr.d]="path()" class="piece-shadow" [attr.transform]="'translate(' + size() * 0.045 + ' ' + size() * 0.07 + ')'" />
+  @if (skin() === 'cardboard' || skin() === 'wood') {
+    <!-- the thickness of a loose piece: its outline again, a little lower -->
+    <path [attr.d]="path()" class="piece-edge piece-edge-dark" [attr.transform]="'translate(0 ' + size() * 0.075 + ')'" />
+    <path [attr.d]="path()" class="piece-edge" [attr.transform]="'translate(0 ' + size() * 0.04 + ')'" />
+  }
   @if (picture(); as src) {
     <g [attr.clip-path]="'url(#' + clipId() + ')'">
       <image [attr.href]="src" [attr.x]="-piece().col * size()" [attr.y]="-piece().row * size()"
@@ -14,9 +30,51 @@
   } @else {
     <path [attr.d]="path()" class="piece-blank" />
   }
+  <!-- what the chosen look lays on the picture of the piece, inside its outline -->
+  @switch (skin()) {
+    @case ('cardboard') { <ng-container *ngTemplateOutlet="bevel" /> }
+    @case ('bevel') { <ng-container *ngTemplateOutlet="bevel" /> }
+    @case ('glossy') {
+      <svg:g class="piece-rim" [attr.clip-path]="'url(#' + clipId() + ')'">
+        <svg:polygon [attr.points]="gloss().wide" class="piece-light" fill-opacity="0.12" />
+        <svg:polygon [attr.points]="gloss().narrow" class="piece-light" fill-opacity="0.26" />
+        <svg:polygon [attr.points]="gloss().shade" class="piece-dark" fill-opacity="0.1" />
+      </svg:g>
+    }
+    @case ('wood') {
+      <svg:g class="piece-rim" [attr.clip-path]="'url(#' + clipId() + ')'">
+        <svg:path [attr.d]="path()" class="piece-wood" [attr.stroke-width]="size() * 0.11" />
+        <svg:path [attr.d]="path()" class="piece-wood-line" [attr.stroke-width]="size() * 0.035" />
+      </svg:g>
+    }
+    @case ('grain') {
+      <svg:g class="piece-rim" [attr.clip-path]="'url(#' + clipId() + ')'">
+        <svg:path [attr.d]="path()" [attr.fill]="'url(#' + grainId() + ')'" />
+      </svg:g>
+    }
+    @case ('glass') {
+      <svg:g class="piece-rim" [attr.clip-path]="'url(#' + clipId() + ')'">
+        <svg:path [attr.d]="path()" class="piece-shaded" [attr.stroke-width]="size() * 0.09" stroke-opacity="0.28" [attr.transform]="'translate(' + size() * -0.035 + ' ' + size() * -0.035 + ')'" />
+        <svg:path [attr.d]="path()" class="piece-lit" [attr.stroke-width]="size() * 0.16" stroke-opacity="0.45" />
+        <svg:path [attr.d]="path()" class="piece-lit" [attr.stroke-width]="size() * 0.05" />
+        <svg:ellipse [attr.cx]="size() * 0.34" [attr.cy]="size() * 0.2" [attr.rx]="size() * 0.38" [attr.ry]="size() * 0.14" class="piece-light" fill-opacity="0.28" [attr.transform]="'rotate(-25 ' + size() * 0.34 + ' ' + size() * 0.2 + ')'" />
+      </svg:g>
+    }
+  }
   <path [attr.d]="path()" class="piece-outline" [class.matched]="matched()" />
+  @if (flash() !== null) {
+    <!-- a flash of light round the piece: when it clicks, or (a little later for each, as a ripple) when its group grows -->
+    <path [attr.d]="path()" class="piece-flash" [attr.stroke-width]="size() * 0.12" [style.animation-delay.ms]="flash()" />
+  }
   @if (numbered()) {
     <!-- the number of its own grid point on the picture: light with the ink round it, so it can be read on any part of the picture -->
     <text [attr.x]="size() / 2" [attr.y]="size() / 2" text-anchor="middle" dominant-baseline="central" class="piece-number" [attr.font-size]="numberSize()">{{ number() }}</text>
   }
+  <!-- a light edge up and to the left and a dark one down and to the right: the piece looks raised -->
+  <ng-template #bevel>
+    <svg:g class="piece-rim" [attr.clip-path]="'url(#' + clipId() + ')'">
+      <svg:path [attr.d]="path()" class="piece-lit" [attr.stroke-width]="size() * 0.1" stroke-opacity="0.6" [attr.transform]="'translate(' + size() * 0.035 + ' ' + size() * 0.035 + ')'" />
+      <svg:path [attr.d]="path()" class="piece-shaded" [attr.stroke-width]="size() * 0.1" stroke-opacity="0.42" [attr.transform]="'translate(' + size() * -0.035 + ' ' + size() * -0.035 + ')'" />
+    </svg:g>
+  </ng-template>
 </svg>

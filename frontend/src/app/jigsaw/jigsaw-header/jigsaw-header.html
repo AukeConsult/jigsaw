@@ -8,7 +8,7 @@
             <!-- the cut picture in pieces, as the jigsaw will be -->
             <ng-content select="[draft-picture]" />
           } @else {
-            <img class="img-fluid rounded-3 w-100" [src]="pictureSrc()" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (error)="hasPicture.set(false)">
+            <img appArriving class="img-fluid rounded-3 w-100" [src]="pictureSrc()" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (error)="hasPicture.set(false)">
           }
           @if (adjustLabel()) {
             <!-- adjust the cut (the picture got one by itself): a small icon in the upper right corner of the picture -->

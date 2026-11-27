@@ -11,5 +11,6 @@
   "scrollLeft": "Desplazar las piezas a la izquierda",
   "scrollRight": "Desplazar las piezas a la derecha",
   "dragHint": "Arrastra una pieza a la imagen",
-  "addHere": "Pon las piezas aquí"
+  "addHere": "Pon las piezas aquí",
+  "halfway": "¡A mitad de camino!"
 }

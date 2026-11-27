@@ -221,6 +221,7 @@
     "medium": "Medianas",
     "large": "Grandes"
   },
+  "pictureEffects": "Efectos en las imágenes",
   "tileDetails": "Detalles en las fichas",
   "detailLevels": {
     "none": "Ninguno",
@@ -244,5 +245,6 @@
   "newLinkMade": "Hay un enlace nuevo. Compártelo otra vez.",
   "close": "Cerrar",
   "infoBack": "Volver",
-  "editOrDelete": "Editar o eliminar"
+  "editOrDelete": "Editar o eliminar",
+  "piecesAndEffects": "Piezas y efectos"
 }

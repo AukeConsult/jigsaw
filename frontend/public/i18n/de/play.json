@@ -221,6 +221,7 @@
     "medium": "Mittel",
     "large": "Groß"
   },
+  "pictureEffects": "Effekte bei Bildern",
   "tileDetails": "Details auf den Bildkacheln",
   "detailLevels": {
     "none": "Keine",
@@ -244,5 +245,6 @@
   "newLinkMade": "Ein neuer Link ist erstellt. Teile ihn erneut.",
   "close": "Schließen",
   "infoBack": "Zurück",
-  "editOrDelete": "Bearbeiten oder löschen"
+  "editOrDelete": "Bearbeiten oder löschen",
+  "piecesAndEffects": "Teile und Effekte"
 }

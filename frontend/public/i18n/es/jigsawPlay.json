@@ -43,5 +43,47 @@
   "lookOwn": "Solo para esta partida.",
   "lookReset": "Usar mis preferencias",
   "lookFollows": "Sigue las preferencias de tu cuenta. Lo que elijas aquí es solo para esta partida.",
-  "lookNotSaved": "No se pudieron guardar los ajustes de la partida."
+  "lookNotSaved": "No se pudieron guardar los ajustes de la partida.",
+  "pieces": "Piezas",
+  "pieceStyles": {
+    "classic": "Clásico",
+    "cardboard": "Cartón",
+    "bevel": "Borde biselado",
+    "glossy": "Brillante",
+    "wood": "Madera",
+    "grain": "Grano de papel",
+    "glass": "Cristal",
+    "flat": "Plano"
+  },
+  "effects": "Efectos",
+  "effectGroups": {
+    "moving": "Mientras las mueves",
+    "clicking": "Cuando una pieza encaja",
+    "milestones": "Hitos"
+  },
+  "effectNames": {
+    "glow": "Resplandor al sujetarla",
+    "lean": "Se inclina con el movimiento",
+    "bounce": "Rebota al dejarla",
+    "magnet": "Imán",
+    "trail": "Estela que se desvanece",
+    "ring": "Anillo de luz",
+    "sparkle": "Destellos",
+    "flash": "Fogonazo",
+    "ripple": "Onda por el grupo",
+    "border": "Borde terminado: una luz lo recorre",
+    "halfway": "Celebración a mitad",
+    "cutfade": "Terminado: las líneas de corte desaparecen",
+    "shine": "Terminado: brillo",
+    "confetti": "Terminado: confeti",
+    "taps": "Golpecito al coger o dejar una pieza"
+  },
+  "soundStyle": "Tipo de sonido",
+  "soundStyles": {
+    "click": "Clic",
+    "wood": "Madera",
+    "cardboard": "Cartón",
+    "chime": "Campanillas"
+  },
+  "lessMotion": "Un dispositivo ajustado para reducir el movimiento no muestra efectos animados."
 }

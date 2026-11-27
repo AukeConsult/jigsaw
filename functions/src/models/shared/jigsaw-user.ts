@@ -31,7 +31,7 @@ export interface JigsawUserSpec {
   language: string;
   /** what the app's picture list is filtered by (the preferences of the app), kept with the user so it is the same on every device; none until the user has chosen something */
   listFilter?: JigsawFilter;
-  /** how the user likes the play area: the table and the sound of a click (`PlayLooks`); none until the user has chosen */
+  /** how the user likes the play area: the table, the pieces, the effects and the sound (`PlayLooks`); none until the user has chosen */
   playLook?: PlayLookSetup;
   /** how big the user likes the text and in which letters (`TextLooks`); none until the user has chosen */
   textLook?: TextLookSetup;
@@ -43,6 +43,8 @@ export interface JigsawUserSpec {
   menuPlace?: MenuPlace;
   /** whether the rounds that are going are on the top of the home page; none until the user has chosen, and then they are */
   showOngoing?: boolean;
+  /** whether pictures have their effects (they come in softly, tiles lift and shimmer while a picture is on its way, and a new favorite's heart pops); none until the user has chosen, and then they have */
+  pictureEffects?: boolean;
   /** milliseconds since 1970 */
   createdAt: number;
   /** when somebody last chose to play as this account (milliseconds since 1970): the accounts are listed with the one used last first; an account never chosen since this was kept has none */
@@ -64,7 +66,7 @@ export interface JigsawUserSpec {
 }
 
 /** What a person chooses about their account (besides its picture): the fields of a change that are kept just as they are. A new setting is added here, and the compiler says where else. */
-export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'username' | 'language' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'tileDetails' | 'menuPlace' | 'showOngoing'>>;
+export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'username' | 'language' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'tileDetails' | 'menuPlace' | 'showOngoing' | 'pictureEffects'>>;
 
 /** A change of an account as the page asks for it: the settings, and the picture (a data address; null takes it away). */
 export type UserEdit = UserSettings & { picture?: string | null };
@@ -183,7 +185,7 @@ export class JigsawUsers {
       change.listFilter = JigsawFilters.stored(body.listFilter);
     }
     if (body.playLook !== undefined) {
-      if (!PlayLooks.is(body.playLook)) return { error: 'Choose a table, and the sound on or off.' };
+      if (!PlayLooks.is(body.playLook)) return { error: 'Choose a table, the sound on or off, and pieces, effects and a sound that the app has.' };
       change.playLook = PlayLooks.stored(body.playLook);
     }
     if (body.textLook !== undefined) {
@@ -206,7 +208,11 @@ export class JigsawUsers {
       if (typeof body.showOngoing !== 'boolean') return { error: 'The rounds on the home page are shown or not.' };
       change.showOngoing = body.showOngoing;
     }
-    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture, the filter of the list, the play area, the text, the size of the tiles, the menu or the home page.' };
+    if (body.pictureEffects !== undefined) {
+      if (typeof body.pictureEffects !== 'boolean') return { error: 'The effects on pictures are on or off.' };
+      change.pictureEffects = body.pictureEffects;
+    }
+    return Object.keys(change).length ? { change } : { error: 'Say what to change: the account name, the alias, the language, the picture, the filter of the list, the play area, the text, the size of the tiles, their effects, the menu or the home page.' };
   }
 
   /** The order of the accounts in a list: the one used last first; those never used after those that were, newest made first; then by name. */
@@ -264,6 +270,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, language: JigsawLanguages.is(doc.language) ? doc.language : '', ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(TileDetailLevels.of(doc.tileDetails) ? { tileDetails: TileDetailLevels.of(doc.tileDetails) } : {}), ...(MenuPlaces.is(doc.menuPlace) ? { menuPlace: doc.menuPlace } : {}), ...(typeof doc.showOngoing === 'boolean' ? { showOngoing: doc.showOngoing } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
+    return { id, username, name: doc.name ?? username, language: JigsawLanguages.is(doc.language) ? doc.language : '', ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(TileDetailLevels.of(doc.tileDetails) ? { tileDetails: TileDetailLevels.of(doc.tileDetails) } : {}), ...(MenuPlaces.is(doc.menuPlace) ? { menuPlace: doc.menuPlace } : {}), ...(typeof doc.showOngoing === 'boolean' ? { showOngoing: doc.showOngoing } : {}), ...(typeof doc.pictureEffects === 'boolean' ? { pictureEffects: doc.pictureEffects } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
   }
 }

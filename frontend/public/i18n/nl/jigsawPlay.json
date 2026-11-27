@@ -43,5 +43,47 @@
   "lookOwn": "Alleen voor deze ronde.",
   "lookReset": "Mijn voorkeuren gebruiken",
   "lookFollows": "Volgt de voorkeuren van je account. Wat je hier kiest, geldt alleen voor deze ronde.",
-  "lookNotSaved": "De instellingen van de ronde konden niet worden opgeslagen."
+  "lookNotSaved": "De instellingen van de ronde konden niet worden opgeslagen.",
+  "pieces": "Stukjes",
+  "pieceStyles": {
+    "classic": "Klassiek",
+    "cardboard": "Karton",
+    "bevel": "Schuine rand",
+    "glossy": "Glanzend",
+    "wood": "Hout",
+    "grain": "Papierstructuur",
+    "glass": "Glas",
+    "flat": "Plat"
+  },
+  "effects": "Effecten",
+  "effectGroups": {
+    "moving": "Tijdens het verplaatsen",
+    "clicking": "Als een stukje vastklikt",
+    "milestones": "Mijlpalen"
+  },
+  "effectNames": {
+    "glow": "Gloed zolang je het vasthoudt",
+    "lean": "Helt mee met de beweging",
+    "bounce": "Veert bij het neerleggen",
+    "magnet": "Magneet",
+    "trail": "Vervagend spoor",
+    "ring": "Lichtring",
+    "sparkle": "Vonkjes",
+    "flash": "Flits",
+    "ripple": "Golf door de groep",
+    "border": "Rand klaar: licht loopt rond",
+    "halfway": "Gejuich halverwege",
+    "cutfade": "Klaar: snijlijnen verdwijnen",
+    "shine": "Klaar: glans",
+    "confetti": "Klaar: confetti",
+    "taps": "Tikje bij oppakken en neerleggen"
+  },
+  "soundStyle": "Soort geluid",
+  "soundStyles": {
+    "click": "Klik",
+    "wood": "Hout",
+    "cardboard": "Karton",
+    "chime": "Klokjes"
+  },
+  "lessMotion": "Een apparaat dat op minder beweging staat, toont geen bewegende effecten."
 }

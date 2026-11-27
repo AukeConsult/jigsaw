@@ -221,6 +221,7 @@
     "medium": "Keskikoko",
     "large": "Suuri"
   },
+  "pictureEffects": "Kuvien tehosteet",
   "tileDetails": "Kuvaruutujen tiedot",
   "detailLevels": {
     "none": "Ei mitään",
@@ -244,5 +245,6 @@
   "newLinkMade": "Uusi linkki on tehty. Jaa se uudelleen.",
   "close": "Sulje",
   "infoBack": "Takaisin",
-  "editOrDelete": "Muokkaa tai poista"
+  "editOrDelete": "Muokkaa tai poista",
+  "piecesAndEffects": "Palat ja tehosteet"
 }

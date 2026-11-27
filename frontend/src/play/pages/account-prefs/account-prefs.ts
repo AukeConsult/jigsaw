@@ -8,6 +8,7 @@ import { PlayLookChoice } from '../../../app/jigsaw/play-look-choice/play-look-c
 import { LANGUAGES, LanguageService } from '../../../app/core/language.service';
 import { TextLook } from '../../../app/jigsaw/text-look';
 import { TileDetails } from '../../../app/jigsaw/tile-details';
+import { PictureEffects } from '../../../app/jigsaw/picture-effects';
 import { TILE_DETAILS } from '../../../app/models/shared/tile-details';
 import { PartSizeChoice } from '../../../app/jigsaw/part-sizes';
 import { FONTS, TEXT_SIZES } from '../../../app/models/shared/text-look';
@@ -18,8 +19,8 @@ import { MenuSpot } from '../../helper/menu-spot';
 import { MENU_PLACES } from '../../../app/models/shared/menu-place';
 
 /**
- * The page of the route `/play/account/preferences`: **the preferences** (not the filter of the picture list, which is `/play/prefs`), **a card for each thing they change**: Appearance (the theme of the app, `app-play-look-choice`, how big its
- * text is and in which letters, `TextLook`), Home page (how big the picture tiles are, `PartSizeChoice`, how much they tell, `TileDetails`: none, short, details or full, and the rounds that are going, `ListView`), Menu (where it is, `MenuSpot`) and
+ * The page of the route `/play/account/preferences`: **the preferences** (not the filter of the picture list, which is `/play/prefs`), **a card for each thing they change**: Pieces and effects (`app-play-look-choice`), Appearance (the theme of the app, the same component, how big its
+ * text is and in which letters, `TextLook`, and whether pictures have their effects, `PictureEffects`), Home page (how big the picture tiles are, `PartSizeChoice`, how much they tell, `TileDetails`: none, short, details or full, and the rounds that are going, `ListView`), Menu (where it is, `MenuSpot`) and
  * Language and sound (the language in a list, and the sound of the puzzle). Choices of which one is taken are joined in one row (`choice-joined`). They are kept with the account that plays; for nobody, on the device.
  */
 @Component({
@@ -28,12 +29,12 @@ import { MENU_PLACES } from '../../../app/models/shared/menu-place';
   providers: [provideTranslocoScope('play')],
   host: { class: 'd-block' },
   template: `<main class="container-fluid page-margin page-max" *transloco="let t">
-    <!-- one card for each thing the choices change: the look, the home page, the menu, and the language and sound; two beside each other on a wide screen -->
+    <!-- one card for each thing the choices change: the look, the pieces and effects, the home page, the menu, and the language and sound; two beside each other on a wide screen -->
     <div class="row row-cols-1 row-cols-lg-2 g-2 g-lg-3">
       <div class="col">
         <section class="card card-body h-100">
           <h2 class="subsection-title mt-0"><i class="bi bi-palette me-2" aria-hidden="true"></i>{{ t('play.appearance') || 'Appearance' }}</h2>
-          <app-play-look-choice idPrefix="account" [label]="t('play.theme') || 'Theme'" [showSound]="false" [value]="look.value()" (changed)="look.set($event)" />
+          <app-play-look-choice idPrefix="account" [label]="t('play.theme') || 'Theme'" [showPieces]="false" [showSound]="false" [value]="look.value()" (changed)="look.set($event)" />
           <fieldset class="mb-3">
             <legend class="form-label mb-1">{{ t('play.textSize') || 'Text size' }}</legend>
             <div class="choice-joined">
@@ -52,6 +53,16 @@ import { MENU_PLACES } from '../../../app/models/shared/menu-place';
               }
             </div>
           </fieldset>
+          <div class="form-check form-switch mb-0">
+            <input id="picture-effects" class="form-check-input" type="checkbox" role="switch" [checked]="pictureEffects.on.value()" (change)="pictureEffects.on.set($any($event.target).checked)">
+            <label class="form-check-label" for="picture-effects">{{ t('play.pictureEffects') || 'Effects on pictures' }}</label>
+          </div>
+        </section>
+      </div>
+      <div class="col">
+        <section class="card card-body h-100">
+          <h2 class="subsection-title mt-0"><i class="bi bi-puzzle me-2" aria-hidden="true"></i>{{ t('play.piecesAndEffects') || 'Pieces and effects' }}</h2>
+          <app-play-look-choice idPrefix="account" [showTable]="false" [showSound]="false" [value]="look.value()" (changed)="look.set($event)" />
         </section>
       </div>
       <div class="col">
@@ -110,7 +121,7 @@ import { MENU_PLACES } from '../../../app/models/shared/menu-place';
               </select>
             </div>
           </div>
-          <app-play-look-choice idPrefix="account" [showTable]="false" [value]="look.value()" (changed)="look.set($event)" />
+          <app-play-look-choice idPrefix="account" [showTable]="false" [showPieces]="false" [value]="look.value()" (changed)="look.set($event)" />
         </section>
       </div>
     </div>
@@ -137,6 +148,7 @@ export class PlayAccountPrefs {
   protected readonly chosen = inject(PartSizeChoice);
   protected readonly details = inject(TileDetails);
   protected readonly detailLevels = TILE_DETAILS;
+  protected readonly pictureEffects = inject(PictureEffects);
   protected readonly list = inject(ListView);
   protected readonly menu = inject(MenuSpot);
   protected readonly menuPlaces = MENU_PLACES;

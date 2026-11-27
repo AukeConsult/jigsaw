@@ -3,11 +3,12 @@ import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSummary } from '../../models/shared/jigsaw-search';
 import { JigsawImageService } from '../jigsaw-image.service';
+import { ArrivingPicture } from '../../core/arriving-picture';
 
 /** One jigsaw as a small card: its picture, with the name as a tooltip, and under it what the page puts there. Press the picture to go where `route` says. */
 @Component({
   selector: 'app-jigsaw-card',
-  imports: [RouterLink, TranslocoDirective],
+  imports: [RouterLink, TranslocoDirective, ArrivingPicture],
   providers: [provideTranslocoScope('jigsawList')],
   templateUrl: './jigsaw-card.html',
   host: { class: 'd-block h-100' },

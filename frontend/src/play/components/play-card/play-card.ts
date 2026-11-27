@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { ArrivingPicture } from '../../../app/core/arriving-picture';
 import { AccountAliases } from '../../../app/jigsaw/account-aliases';
 import { CategoryTags } from '../../../app/jigsaw/category-tags/category-tags';
 import { FavoritesService } from '../../../app/jigsaw/favorites.service';
@@ -16,7 +17,7 @@ import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
 /** One jigsaw as a card: its picture, the name, for a ready jigsaw the pieces and the difficulty, and the details; how much of this is shown is the player's choice (`TileDetails`). Press it to open its puzzle, or, for a picture, the start of a round. */
 @Component({
   selector: 'play-card',
-  imports: [TranslocoDirective, RouterLink, DatePipe, CategoryTags],
+  imports: [TranslocoDirective, RouterLink, DatePipe, CategoryTags, ArrivingPicture],
   providers: [provideTranslocoScope('play'), provideTranslocoScope('jigsawCategories')],
   templateUrl: './play-card.html',
   host: { class: 'd-block h-100' },
@@ -39,6 +40,9 @@ export class PlayCard {
   readonly packageName = input<string | null>(null);
   /** the picture could not be read (a jigsaw can be made without one): the box is empty */
   protected readonly noPicture = signal(false);
+
+  /** the heart was just pressed to make it a favorite: it pops (a card that is read with the heart already full stays still) */
+  protected readonly popped = signal(false);
 
   /** The card was pressed: it opens the page before the puzzle (`/play/round/:id`): a ready jigsaw is looked at there, and a picture, which is cut in each round, has its round chosen. */
   protected show(): void {
@@ -67,6 +71,7 @@ export class PlayCard {
   protected toggleFavorite(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
+    this.popped.set(!this.favorite());
     void this.favorites.toggle(this.jigsaw().id);
   }
 }

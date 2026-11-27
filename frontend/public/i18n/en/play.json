@@ -221,6 +221,7 @@
     "medium": "Medium",
     "large": "Large"
   },
+  "pictureEffects": "Effects on pictures",
   "tileDetails": "Details on the picture tiles",
   "detailLevels": {
     "none": "None",
@@ -244,5 +245,6 @@
   "newLinkMade": "A new link is made. Share it again.",
   "close": "Close",
   "infoBack": "Back",
-  "editOrDelete": "Edit or delete"
+  "editOrDelete": "Edit or delete",
+  "piecesAndEffects": "Pieces and effects"
 }

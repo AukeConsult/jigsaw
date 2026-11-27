@@ -43,5 +43,47 @@
   "lookOwn": "Vain tälle kierrokselle.",
   "lookReset": "Käytä omia asetuksiani",
   "lookFollows": "Noudattaa tilisi asetuksia. Tässä valitsemasi koskee vain tätä kierrosta.",
-  "lookNotSaved": "Kierroksen asetuksia ei voitu tallentaa."
+  "lookNotSaved": "Kierroksen asetuksia ei voitu tallentaa.",
+  "pieces": "Palat",
+  "pieceStyles": {
+    "classic": "Perinteinen",
+    "cardboard": "Pahvi",
+    "bevel": "Viistetty reuna",
+    "glossy": "Kiiltävä",
+    "wood": "Puu",
+    "grain": "Paperipinta",
+    "glass": "Lasi",
+    "flat": "Litteä"
+  },
+  "effects": "Tehosteet",
+  "effectGroups": {
+    "moving": "Kun siirrät paloja",
+    "clicking": "Kun pala napsahtaa paikalleen",
+    "milestones": "Välitavoitteet"
+  },
+  "effectNames": {
+    "glow": "Hehku kun pidät palaa",
+    "lean": "Kallistuu liikkeen mukana",
+    "bounce": "Pomppaa kun lasket sen",
+    "magnet": "Magneetti",
+    "trail": "Haalistuva jälki",
+    "ring": "Valorengas",
+    "sparkle": "Kipinät",
+    "flash": "Välähdys",
+    "ripple": "Aalto ryhmän läpi",
+    "border": "Reunat valmiit: valo kiertää",
+    "halfway": "Hurraus puolivälissä",
+    "cutfade": "Valmis: leikkausviivat häviävät",
+    "shine": "Valmis: kiilto",
+    "confetti": "Valmis: konfetti",
+    "taps": "Kopsahdus kun pala nostetaan tai lasketaan"
+  },
+  "soundStyle": "Äänen laji",
+  "soundStyles": {
+    "click": "Napsahdus",
+    "wood": "Puu",
+    "cardboard": "Pahvi",
+    "chime": "Kellot"
+  },
+  "lessMotion": "Laite, joka on asetettu vähentämään liikettä, ei näytä liikkuvia tehosteita."
 }

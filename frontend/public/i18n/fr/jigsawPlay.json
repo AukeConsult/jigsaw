@@ -43,5 +43,47 @@
   "lookOwn": "Pour cette partie seulement.",
   "lookReset": "Utiliser mes préférences",
   "lookFollows": "Suit les préférences de ton compte. Ce que tu choisis ici ne vaut que pour cette partie.",
-  "lookNotSaved": "Impossible d’enregistrer les réglages de la partie."
+  "lookNotSaved": "Impossible d’enregistrer les réglages de la partie.",
+  "pieces": "Pièces",
+  "pieceStyles": {
+    "classic": "Classique",
+    "cardboard": "Carton",
+    "bevel": "Bord biseauté",
+    "glossy": "Brillant",
+    "wood": "Bois",
+    "grain": "Grain de papier",
+    "glass": "Verre",
+    "flat": "Plat"
+  },
+  "effects": "Effets",
+  "effectGroups": {
+    "moving": "Pendant le déplacement",
+    "clicking": "Quand une pièce s’emboîte",
+    "milestones": "Étapes"
+  },
+  "effectNames": {
+    "glow": "Halo pendant qu’on la tient",
+    "lean": "Penche avec le mouvement",
+    "bounce": "Rebondit quand on la pose",
+    "magnet": "Aimant",
+    "trail": "Traînée qui s’efface",
+    "ring": "Anneau de lumière",
+    "sparkle": "Étincelles",
+    "flash": "Éclair",
+    "ripple": "Onde dans le groupe",
+    "border": "Bordure finie : une lumière en fait le tour",
+    "halfway": "Acclamation à mi-chemin",
+    "cutfade": "Terminé : les découpes s’effacent",
+    "shine": "Terminé : reflet",
+    "confetti": "Terminé : confettis",
+    "taps": "Petit coup quand on prend ou pose une pièce"
+  },
+  "soundStyle": "Type de son",
+  "soundStyles": {
+    "click": "Clic",
+    "wood": "Bois",
+    "cardboard": "Carton",
+    "chime": "Carillon"
+  },
+  "lessMotion": "Un appareil réglé pour réduire les animations ne montre aucun effet animé."
 }

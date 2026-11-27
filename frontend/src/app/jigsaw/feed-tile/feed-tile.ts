@@ -4,6 +4,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LanguageService } from '../../core/language.service';
 import { JigsawImageService } from '../jigsaw-image.service';
 import { FeedAction, FeedItem, InfoItem, KeptItem, OfferItem, PackageItem } from '../../models/shared/feed-item';
+import { ArrivingPicture } from '../../core/arriving-picture';
 
 /**
  * A tile of the home page that is not a picture: information, an offer or a package, each in its own form but in the same frame as a card, so the grid stays in line. It is shared by the list of the home page, My pictures
@@ -11,7 +12,7 @@ import { FeedAction, FeedItem, InfoItem, KeptItem, OfferItem, PackageItem } from
  */
 @Component({
   selector: 'app-feed-tile',
-  imports: [TranslocoDirective],
+  imports: [TranslocoDirective, ArrivingPicture],
   providers: [provideTranslocoScope('play')],
   templateUrl: './feed-tile.html',
   host: { class: 'd-block h-100' },

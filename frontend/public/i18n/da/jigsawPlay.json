@@ -43,5 +43,47 @@
   "lookOwn": "Kun for denne runde.",
   "lookReset": "Brug mine indstillinger",
   "lookFollows": "Følger indstillingerne på din konto. Det du vælger her, gælder kun denne runde.",
-  "lookNotSaved": "Kunne ikke gemme rundens indstillinger."
+  "lookNotSaved": "Kunne ikke gemme rundens indstillinger.",
+  "pieces": "Brikker",
+  "pieceStyles": {
+    "classic": "Klassisk",
+    "cardboard": "Pap",
+    "bevel": "Skrå kant",
+    "glossy": "Blank",
+    "wood": "Træ",
+    "grain": "Papirstruktur",
+    "glass": "Glas",
+    "flat": "Flad"
+  },
+  "effects": "Effekter",
+  "effectGroups": {
+    "moving": "Mens du flytter dem",
+    "clicking": "Når en brik klikker på plads",
+    "milestones": "Milepæle"
+  },
+  "effectNames": {
+    "glow": "Skær mens du holder den",
+    "lean": "Vipper med bevægelsen",
+    "bounce": "Hopper når den lægges ned",
+    "magnet": "Magnet",
+    "trail": "Falmende spor",
+    "ring": "Lysring",
+    "sparkle": "Gnister",
+    "flash": "Glimt",
+    "ripple": "Bølge gennem gruppen",
+    "border": "Rammen er færdig: lys løber rundt",
+    "halfway": "Jubel halvvejs",
+    "cutfade": "Færdig: skærelinjerne forsvinder",
+    "shine": "Færdig: glans",
+    "confetti": "Færdig: konfetti",
+    "taps": "Dunk når en brik samles op eller lægges ned"
+  },
+  "soundStyle": "Slags lyd",
+  "soundStyles": {
+    "click": "Klik",
+    "wood": "Træ",
+    "cardboard": "Pap",
+    "chime": "Klokkespil"
+  },
+  "lessMotion": "En enhed, der er sat til mindre bevægelse, viser ingen effekter, der bevæger sig."
 }

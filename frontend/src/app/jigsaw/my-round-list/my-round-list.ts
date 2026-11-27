@@ -8,6 +8,7 @@ import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
 import { ViewSwitch, cardInfoPreference, viewShapePreference } from '../view-switch/view-switch';
+import { ArrivingPicture } from '../../core/arriving-picture';
 
 /**
  * **The list of the rounds the user has played** (`/play/mine/rounds`): a row or a card for each round (the person chooses which), with the picture, the name, going or solved and how many pieces are in place, when it was
@@ -16,7 +17,7 @@ import { ViewSwitch, cardInfoPreference, viewShapePreference } from '../view-swi
  */
 @Component({
   selector: 'app-my-round-list',
-  imports: [DatePipe, NgTemplateOutlet, RouterLink, TranslocoDirective, ViewSwitch],
+  imports: [DatePipe, NgTemplateOutlet, RouterLink, TranslocoDirective, ViewSwitch, ArrivingPicture],
   providers: [provideTranslocoScope('jigsawUser')],
   templateUrl: './my-round-list.html',
 })

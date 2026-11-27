@@ -221,6 +221,7 @@
     "medium": "Mellem",
     "large": "Store"
   },
+  "pictureEffects": "Effekter på billeder",
   "tileDetails": "Detaljer på billederne",
   "detailLevels": {
     "none": "Ingen",
@@ -244,5 +245,6 @@
   "newLinkMade": "Et nyt link er lavet. Del det igen.",
   "close": "Luk",
   "infoBack": "Tilbage",
-  "editOrDelete": "Rediger eller slet"
+  "editOrDelete": "Rediger eller slet",
+  "piecesAndEffects": "Brikker og effekter"
 }

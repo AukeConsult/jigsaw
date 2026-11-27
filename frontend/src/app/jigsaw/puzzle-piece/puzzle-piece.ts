@@ -1,6 +1,8 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { JigsawCut } from '../../models/shared/jigsaw';
 import { PiecePlace } from '../../models/shared/placed';
+import { PieceStyle } from '../../models/shared/play-look';
 
 /**
  * Draws one piece of a jigsaw: its outline, with the part of the picture that belongs to it. The picture covers the whole picture area (`columns` × `rows`
@@ -9,6 +11,7 @@ import { PiecePlace } from '../../models/shared/placed';
 @Component({
   selector: 'app-puzzle-piece',
   templateUrl: './puzzle-piece.html',
+  imports: [NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush, // every input is a signal: a piece is looked at again only when one of its own inputs changes, not at every move of another piece
 })
 export class PuzzlePiece {
@@ -30,6 +33,12 @@ export class PuzzlePiece {
   readonly lineColor = input<string | null>(null);
   /** the piece has just clicked into place: it blinks */
   readonly blinking = input(false);
+  /** how the piece is drawn (the player's choice, `PIECE_STYLES`) */
+  readonly skin = input<PieceStyle>('classic');
+  /** a light round it while it is held */
+  readonly glow = input(false);
+  /** a flash round it that starts so many milliseconds from now (none: no flash) */
+  readonly flash = input<number | null>(null);
 
   readonly path = computed(() => JigsawCut.path(this.size(), this.piece()));
   /** the number of the grid point the piece belongs on in the picture: the points are numbered 1, 2, 3 ... along each row, as they are on the picture area */
@@ -38,4 +47,11 @@ export class PuzzlePiece {
   readonly numberSize = computed(() => Math.max(8, Math.min(18, Math.round(this.size() * 0.3))));
   /** the picture is cut by this outline (an id of its own, as every piece is in the same page) */
   readonly clipId = computed(() => `clip-${this.id()}`);
+  readonly grainId = computed(() => `grain-${this.id()}`);
+  /** the two bands of shine across a glossy piece, from above its square to below it (the tabs too) */
+  readonly gloss = computed(() => {
+    const s = this.size();
+    const band = (top: number, width: number) => [[top, -0.3], [top + width, -0.3], [top + width - 0.75, 1.3], [top - 0.75, 1.3]].map(([x, y]) => `${x * s},${y * s}`).join(' ');
+    return { wide: band(-0.3, 0.95), narrow: band(0.85, 0.22), shade: band(1.5, 0.8) }; // the last is a faint shade low to the right, so a light part of a picture shows the shine too
+  });
 }

@@ -18,7 +18,9 @@
       <!-- a package: a picture of its collection (another each time), the title, the words, whether it is free or its price, and how many pictures it holds -->
       @if (cover(); as src) {
         @if (!noCover()) {
-          <img class="feed-cover rounded-2" [src]="src" alt="" (error)="noCover.set(true)">
+          <div class="feed-cover ratio ratio-4x3 bg-body-secondary rounded-2 overflow-hidden">
+            <img appArriving class="object-fit-cover" [src]="src" alt="" (error)="noCover.set(true)">
+          </div>
         }
       } @else {
         <i class="bi bi-box-seam icon-xl text-primary" aria-hidden="true"></i>

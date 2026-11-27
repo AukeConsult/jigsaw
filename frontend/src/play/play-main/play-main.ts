@@ -9,6 +9,7 @@ import { PlayLook } from '../../app/jigsaw/play-look';
 import { TextLook } from '../../app/jigsaw/text-look';
 import { PartSizeChoice } from '../../app/jigsaw/part-sizes';
 import { TileDetails } from '../../app/jigsaw/tile-details';
+import { PictureEffects } from '../../app/jigsaw/picture-effects';
 import { AuthService } from '../../app/logons/auth.service';
 import { PlayMenuItem } from '../helper/menus';
 import { rememberPage } from '../last-page';
@@ -19,12 +20,12 @@ import { menuOfRoute } from '../play-route';
 /**
  * The main page of the app: **one router outlet, for the page that is open, and the frame that lies over it and shows the helper.** Main is what finds out whether a user is logged on (a user is logged on when an account plays) and gives
  * the helper, which is always there in the frame, its menu: the menu that goes with the page that is open (every route carries one), for who is logged on. It finds out as it is shown (`ngOnInit`: the earlier login is restored and
- * the account that played last is read), and gives the menu again whenever the page or the answer changes. Until it knows the helper has no menu and is not shown. It also says the theme of the app and the size and font of its text and the size of its tiles (`data-table`, `data-text-size`, `data-font`, `data-tiles`, and `data-tile-details`: the account's preferences).
+ * the account that played last is read), and gives the menu again whenever the page or the answer changes. Until it knows the helper has no menu and is not shown. It also says the theme of the app and the size and font of its text and the size of its tiles (`data-table`, `data-text-size`, `data-font`, `data-tiles`, `data-tile-details`, and `data-picture-effects` when they are off: the account's preferences).
  */
 @Component({
   selector: 'play-main',
   imports: [RouterOutlet, PlayFrame, AdminBanner, CameraCapture],
-  host: { class: 'd-block', '[attr.data-table]': 'look.table()', '[attr.data-text-size]': 'text.value().size', '[attr.data-font]': 'text.value().font', '[attr.data-tiles]': 'sizes.tileSize.value()', '[attr.data-tile-details]': 'details.value()' },
+  host: { class: 'd-block', '[attr.data-table]': 'look.table()', '[attr.data-text-size]': 'text.value().size', '[attr.data-font]': 'text.value().font', '[attr.data-tiles]': 'sizes.tileSize.value()', '[attr.data-tile-details]': 'details.value()', '[attr.data-picture-effects]': "effects.on.value() ? null : 'off'" },
   // the window with the camera of a computer (Take a photo in the menu) is framed here: in the menu, which is moved about, it would not lie over the whole page
   template: `<app-admin-banner /><router-outlet></router-outlet><play-frame [menu]="menu()" />
     @if (photo.filming()) {
@@ -41,6 +42,8 @@ export class PlayMain implements OnInit {
   protected readonly sizes = inject(PartSizeChoice);
   /** whether the picture tiles tell their details */
   protected readonly details = inject(TileDetails);
+  /** whether pictures have their effects */
+  protected readonly effects = inject(PictureEffects);
   private readonly auth = inject(AuthService);
   private readonly users = inject(JigsawUserService);
   private readonly router = inject(Router);

@@ -87,7 +87,7 @@
   <!-- what a row and a card have in common -->
   <ng-template #thumb let-game>
     @if (!noPicture().has(game.jigsaw.id)) {
-      <img class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
+      <img appArriving class="object-fit-cover" [src]="pictureUrl(game.jigsaw)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(game.jigsaw.id)">
     }
   </ng-template>
   <ng-template #state let-game>

@@ -221,6 +221,7 @@
     "medium": "Middel",
     "large": "Groot"
   },
+  "pictureEffects": "Effecten op afbeeldingen",
   "tileDetails": "Details op de tegels",
   "detailLevels": {
     "none": "Geen",
@@ -244,5 +245,6 @@
   "newLinkMade": "Er is een nieuwe link. Deel die opnieuw.",
   "close": "Sluiten",
   "infoBack": "Terug",
-  "editOrDelete": "Bewerken of verwijderen"
+  "editOrDelete": "Bewerken of verwijderen",
+  "piecesAndEffects": "Stukjes en effecten"
 }

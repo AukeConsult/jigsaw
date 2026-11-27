@@ -43,5 +43,47 @@
   "lookOwn": "Bara för den här omgången.",
   "lookReset": "Använd mina inställningar",
   "lookFollows": "Följer inställningarna på ditt konto. Det du väljer här gäller bara den här omgången.",
-  "lookNotSaved": "Kunde inte spara omgångens inställningar."
+  "lookNotSaved": "Kunde inte spara omgångens inställningar.",
+  "pieces": "Bitar",
+  "pieceStyles": {
+    "classic": "Klassisk",
+    "cardboard": "Kartong",
+    "bevel": "Fasad kant",
+    "glossy": "Blank",
+    "wood": "Trä",
+    "grain": "Pappersstruktur",
+    "glass": "Glas",
+    "flat": "Platt"
+  },
+  "effects": "Effekter",
+  "effectGroups": {
+    "moving": "Medan du flyttar dem",
+    "clicking": "När en bit klickar på plats",
+    "milestones": "Milstolpar"
+  },
+  "effectNames": {
+    "glow": "Sken medan du håller den",
+    "lean": "Lutar med rörelsen",
+    "bounce": "Studsar när den läggs ner",
+    "magnet": "Magnet",
+    "trail": "Bleknande spår",
+    "ring": "Ljusring",
+    "sparkle": "Gnistor",
+    "flash": "Blixt",
+    "ripple": "Våg genom gruppen",
+    "border": "Ramen klar: ljus går runt",
+    "halfway": "Jubel halvvägs",
+    "cutfade": "Klart: skärlinjerna försvinner",
+    "shine": "Klart: glans",
+    "confetti": "Klart: konfetti",
+    "taps": "Duns när en bit plockas upp eller läggs ner"
+  },
+  "soundStyle": "Typ av ljud",
+  "soundStyles": {
+    "click": "Klick",
+    "wood": "Trä",
+    "cardboard": "Kartong",
+    "chime": "Klockspel"
+  },
+  "lessMotion": "En enhet som är inställd på mindre rörelse visar inga effekter som rör sig."
 }

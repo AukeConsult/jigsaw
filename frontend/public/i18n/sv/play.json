@@ -221,6 +221,7 @@
     "medium": "Mellan",
     "large": "Stora"
   },
+  "pictureEffects": "Effekter på bilder",
   "tileDetails": "Detaljer på bildrutorna",
   "detailLevels": {
     "none": "Inga",
@@ -244,5 +245,6 @@
   "newLinkMade": "En ny länk är skapad. Dela den igen.",
   "close": "Stäng",
   "infoBack": "Tillbaka",
-  "editOrDelete": "Redigera eller ta bort"
+  "editOrDelete": "Redigera eller ta bort",
+  "piecesAndEffects": "Bitar och effekter"
 }

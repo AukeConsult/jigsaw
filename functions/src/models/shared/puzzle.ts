@@ -1,4 +1,5 @@
 import { Box } from './geometry';
+import { JigsawPieces } from './jigsaw';
 import { areaMargin, PICTURE_LAYER, MAX_LAYER, PiecePlace, PlacedFigure, PlacedObject } from './placed';
 
 // What the objects placed on a picture area (the jigsaw pieces) do together: stick together, are collected, and are moved as a group.
@@ -24,6 +25,9 @@ const PIECE_NEIGHBOURS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0
  * The objects placed on a picture area (the jigsaw pieces), and what they do together: pieces stick together and click into place, are collected and are
  * moved as a group. It never changes: every change gives a new puzzle, or this one when nothing changed.
  */
+/** the points of a round that can be celebrated: every border piece on its place, half of the pieces, all of them */
+export type Milestone = 'border' | 'halfway' | 'finished';
+
 export class Puzzle {
   /** with no more pieces than this in what the piece scroller area shows, it counts as almost empty */
   static readonly SCROLLER_ALMOST_EMPTY = 2;
@@ -34,6 +38,19 @@ export class Puzzle {
    */
   static scrollerNeedsPieces(shown: number, ahead: number): boolean {
     return ahead > 0 && shown <= Puzzle.SCROLLER_ALMOST_EMPTY;
+  }
+
+  /** The milestones the pieces on their places have reached; `grid` is how many pieces the picture is cut into across and down. */
+  milestones(grid: { columns: number; rows: number }): Milestone[] {
+    const pieces = this.items.filter((p) => p.data.piece);
+    if (!pieces.length) return [];
+    const placed = pieces.filter((p) => p.inPlace()).length;
+    const border = pieces.filter((p) => JigsawPieces.isBorder(p.data.piece!, grid));
+    const reached: Milestone[] = [];
+    if (border.length && border.every((p) => p.inPlace())) reached.push('border');
+    if (placed * 2 >= pieces.length) reached.push('halfway');
+    if (placed === pieces.length) reached.push('finished');
+    return reached;
   }
 
   private constructor(

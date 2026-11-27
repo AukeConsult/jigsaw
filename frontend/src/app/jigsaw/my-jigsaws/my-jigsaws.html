@@ -189,7 +189,7 @@
   </ng-template>
   <ng-template #thumb let-item>
     @if (!noPicture().has(item.id)) {
-      <img class="object-fit-cover" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
+      <img appArriving class="object-fit-cover" [src]="pictureUrl(item)" loading="lazy" decoding="async" alt="" (error)="lacksPicture(item.id)">
     }
   </ng-template>
   <!-- who sees it, as a tiny mark in the lower right corner of the picture: the icon of the filter above the list -->

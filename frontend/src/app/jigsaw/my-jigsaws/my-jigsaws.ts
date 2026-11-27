@@ -18,6 +18,7 @@ import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
 import { snapLevelOfJigsaw } from '../snap-level';
 import { ViewSwitch, cardInfoPreference, viewShapePreference } from '../view-switch/view-switch';
+import { ArrivingPicture } from '../../core/arriving-picture';
 
 /** how the list of the user's jigsaws is put in order */
 export const JIGSAW_SORTS = ['new', 'old', 'name'] as const;
@@ -33,7 +34,7 @@ export type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number];
  */
 @Component({
   selector: 'app-my-jigsaws',
-  imports: [FormsModule, NgTemplateOutlet, RouterLink, TranslocoDirective, CategoryTags, ViewSwitch],
+  imports: [FormsModule, NgTemplateOutlet, RouterLink, TranslocoDirective, CategoryTags, ViewSwitch, ArrivingPicture],
   providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './my-jigsaws.html',
 })
