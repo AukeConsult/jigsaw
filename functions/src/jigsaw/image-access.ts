@@ -36,7 +36,7 @@ export class ImageAccess {
    */
   keyed = async <T extends { id: string; visibility?: string; imageKey?: string }>(jigsaw: T): Promise<T> => (JigsawVisibilities.restricted(jigsaw.visibility) ? { ...jigsaw, imageKey: await this.keys.keyFor(jigsaw.id) } : jigsaw);
 
-  /** In front of the routes that give a picture or the graphic of a piece (`:id` is the jigsaw): a good key, or a jigsaw that everybody sees, lets the request through; any other gets 404. */
+  /** In front of the route that gives the picture (`:id` is the jigsaw): a good key, or a jigsaw that everybody sees, lets the request through; any other gets 404. */
   guard: RequestHandler = async (req, res, next) => {
     const id = req.params.id;
     if (!isPictureId(id)) return next(); // the route says what is wrong with it

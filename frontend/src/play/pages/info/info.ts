@@ -9,8 +9,8 @@ import { Welcome } from '../../../app/jigsaw/welcome/welcome';
 type InfoDoc = 'welcome' | 'help' | 'about' | 'install';
 
 /**
- * The page of the routes `/play/info/welcome`, `help`, `about` and `install`, **the info about the app**: one page component, and which document it frames is in the route data (as the website's `GuidePage` does). The documents are
- * components of the website, which it only frames: the welcome (`app-welcome`), the help and the about page (`app-guide-document`) and how to install the app (`app-install-document`). The pages are in the menu of the helper
+ * The page of the routes `/play/info/welcome`, `help`, `about` and `install`, **the info about the app**: one page component, and which document it frames is in the route data. The documents are
+ * shared components, which it only frames: the welcome (`app-welcome`), the help and the about page (`app-guide-document`) and how to install the app (`app-install-document`). The pages are in the menu of the helper
  * (`infoMenu`, every page one entry), so there is no strip of tabs on the page; **a Back button stays at the top of the page however far it is scrolled** (and is in the menu too); every page is at most 1200 px wide like the others (`page-max`, and `guide-full` lets the documents use it); the entry Info of the page menu opens the welcome.
  */
 @Component({

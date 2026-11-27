@@ -1,17 +1,4 @@
 <ng-container *transloco="let t">
-      <!-- the two ways to make a jigsaw: a button for each, with a line under it that says what it does -->
-      @if (!inApp()) {
-      <div class="row g-3 mb-3">
-        <div class="col-sm-6">
-          <a class="btn btn-outline-primary w-100" routerLink="/jigsaw/new"><i class="bi bi-plus-lg" aria-hidden="true"></i>{{ t('jigsawUser.addJigsaw') || 'Add a new picture' }}</a>
-          <p class="text-body-secondary small mt-1 mb-0">{{ t('jigsawUser.addJigsawHelp') || 'Choose a picture and the number of pieces, and make a jigsaw of it.' }}</p>
-        </div>
-        <div class="col-sm-6">
-          <a class="btn btn-outline-primary w-100" routerLink="/jigsaw/batch"><i class="bi bi-images" aria-hidden="true"></i>{{ t('jigsawUser.makeMany') || 'Add many pictures at once' }}</a>
-          <p class="text-body-secondary small mt-1 mb-0">{{ t('jigsawUser.makeManyHelp') || 'Choose many pictures at once and make a jigsaw of each. The AI can set the name, the description and the categories for you.' }}</p>
-        </div>
-      </div>
-      }
       @if (error()) {
         <div class="alert alert-warning py-2 small" role="alert">{{ error() }}</div>
       }
@@ -21,14 +8,10 @@
         <div class="alert alert-warning py-2 small" role="alert">{{ t('jigsawUser.jigsawsFailed') || 'Could not read your pictures: reload the page.' }}</div>
       } @else if (hasJigsaws() === false) {
         <div class="text-center py-4">
-          <p class="text-body-secondary mb-3">{{ inApp() ? (t('play.noPictures') || 'You have no pictures yet.') : (t('jigsawUser.noJigsaws') || 'You have not made a jigsaw yet.') }}</p>
+          <p class="text-body-secondary mb-3">{{ t('play.noPictures') || 'You have no pictures yet.' }}</p>
         <div class="d-flex flex-wrap justify-content-center gap-2">
-          @if (inApp()) {
-            <!-- in the app the way on is adding a picture -->
-            <a class="btn btn-main btn-primary" routerLink="/play/mine/addpicture"><i class="bi bi-image" aria-hidden="true"></i>{{ t('play.addPicture') || 'Add picture' }}</a>
-          } @else {
-            <a class="btn btn-main btn-primary" routerLink="/"><i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawUser.startButton') || 'Start playing' }}</a>
-          }
+          <!-- the way on is adding a picture -->
+          <a class="btn btn-main btn-primary" routerLink="/play/mine/addpicture"><i class="bi bi-image" aria-hidden="true"></i>{{ t('play.addPicture') || 'Add picture' }}</a>
         </div>
         </div>
       } @else {
@@ -111,7 +94,7 @@
                 <label class="select-area z-2">
                   <input class="form-check-input m-0" type="checkbox" [id]="'select-' + item.id" [checked]="selected().has(item.id)" [disabled]="deletingSelected()" [attr.aria-label]="t('jigsawUser.select', { name: item.name }) || 'Select ' + item.name" (change)="toggleSelected(item.id)">
                 </label>
-                <!-- the picture and the name with what it is: this is the area that opens the page of the jigsaw (the link of the name covers it, and nothing else of the row) -->
+                <!-- the picture and the name with what it is: this is the area that opens the page of the picture (the link of the name covers it, and nothing else of the row) -->
                 <div class="round-open">
                   <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
                     @if (!noPicture().has(item.id)) {
@@ -155,9 +138,6 @@
                     <button type="button" class="link-action" (click)="confirmingJigsawId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
                   } @else {
                     <button type="button" class="link-action" [class.text-warning]="isRecommended(item)" [attr.aria-pressed]="isRecommended(item)" [title]="isRecommended(item) ? (t('jigsawUser.unrecommend') || 'Take away from Recommended') : (t('jigsawUser.recommend') || 'Recommend')" (click)="toggleRecommended(item)"><i class="bi" [class.bi-star-fill]="isRecommended(item)" [class.bi-star]="!isRecommended(item)" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.recommended') || 'Recommended' }}</span></button>
-                    @if (!inApp()) {
-                      <a class="link-action" [routerLink]="['/jigsaw', item.id]" [queryParams]="{ edit: 1 }" [title]="t('jigsawUser.edit') || 'Edit'"><i class="bi bi-pencil" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.edit') || 'Edit' }}</span></a>
-                    }
                     <button type="button" class="link-action danger" [title]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingJigsawId.set(item.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.deleteRound') || 'Delete' }}</span></button>
                   }
                 </div>

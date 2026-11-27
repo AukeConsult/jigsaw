@@ -48,11 +48,6 @@
     "failed": "Kirjautuminen tällä linkillä epäonnistui. Pyydä uusi."
   },
   "account": {
-    "title": "Kirjautumisesi",
-    "signedInAs": "Kirjautuneena",
-    "verified": "Sähköposti vahvistettu",
-    "notVerified": "Sähköpostia ei ole vahvistettu",
-    "shared": "Tämä kirjautuminen toimii Karins jigsawissa ja Seven Friendsissä.",
     "signOut": "Kirjaudu ulos"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "Millään tilillä ei ole vielä tätä kirjautumista.",
     "makeNew": "Tee uusi tili kirjautumiselleni",
     "haveCode": "Minulla on linkkikoodi",
-    "codeHelp": "Joku, joka voi käyttää tiliä, tekee koodin: hän avaa tilin, painaa Muokkaa tiliä ja sitten Lisää toinen kirjautuminen. Kirjoita tilin alias ja koodi tähän.",
+    "codeHelp": "Joku, joka voi käyttää tiliä, tekee koodin: hän avaa tilin ja painaa Lisää toinen kirjautuminen. Kirjoita tilin alias ja koodi tähän.",
     "username": "Tilin alias",
     "code": "Linkkikoodi",
     "use": "Käytä koodia",

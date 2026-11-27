@@ -1,11 +1,4 @@
 {
-  "line": {
-    "none": "Ei mitään",
-    "hairline": "Hiusohut",
-    "thin": "Ohut",
-    "medium": "Keskipaksu",
-    "thick": "Paksu"
-  },
   "snap": {
     "hard": "Vaikea",
     "medium": "Keskitaso",

@@ -1,19 +1,14 @@
 import { Routes } from '@angular/router';
-import { InstallPage } from './guide/install-page';
-import { JigsawShell } from './jigsaw/jigsaw-shell';
-import { homeGuard, modeGuard, topRouteGuard } from './core/app-mode';
 import { LOGON_ROUTES } from './logons/logons.routes';
 
 /**
- * **Two modes** (`core/app-mode.ts`): `play` is the new app (`src/play/`, at `/play/...`: its main page and the sub routes of it) and `jigsaw` is the existing app (the website, at `/jigsaw/...`; to be refactored later). **The top routes go by the mode that
- * is set** (kept on the device): home, `/`, goes to the home of the mode, and a top route such as `/list` goes to `/play/list` in play mode and to `/jigsaw/list` in jigsaw mode. Opening anything under `/play` sets the mode `play`, and opening
- * anything under `/jigsaw` sets the mode `jigsaw`. How to get the app is `/install` (a short address to share), inside the header menu of the jigsaw module.
+ * The three parts of the site: **the app** (`src/play/`, at `/play/...`), where everything a player does is; **the admin** (`app/admin/`, at `/jigsaw`); and **signing in** (`/login`). Home, `/`, and every address that is not
+ * known go to the app. `/install` is a short address to share for how to get the app.
  */
 export const routes: Routes = [
-  { path: 'install', component: JigsawShell, children: [{ path: '', component: InstallPage, title: 'Install' }] },
-  ...LOGON_ROUTES, // signing in with Firebase: /login, /login/email, /login/link and /account
-  { path: 'jigsaw', canActivate: [modeGuard('jigsaw')], loadChildren: () => import('./jigsaw/jigsaw.routes').then((m) => m.JIGSAW_ROUTES) }, // the existing app: the mode is jigsaw
-  { path: 'play', loadChildren: () => import('../play/play.routes').then((m) => m.PLAY_ROUTES) }, // the new app: the main page is the main route, its pages are its sub routes (opening it sets the mode play)
-  { path: '', pathMatch: 'full', canActivate: [homeGuard], children: [] }, // home: goes to the home of the mode that is set
-  { path: '**', canActivate: [topRouteGuard], children: [] }, // a top route: the same address under the prefix of the mode that is set
+  { path: 'install', redirectTo: 'play/info/install' },
+  ...LOGON_ROUTES, // signing in with Firebase: /login, /login/email and /login/link
+  { path: 'jigsaw', loadChildren: () => import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES) }, // the admin
+  { path: 'play', loadChildren: () => import('../play/play.routes').then((m) => m.PLAY_ROUTES) }, // the app: the main page is the main route, its pages are its sub routes
+  { path: '**', redirectTo: 'play/list' },
 ];

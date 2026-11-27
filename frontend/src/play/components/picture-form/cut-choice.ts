@@ -35,6 +35,21 @@ export class CutChoice {
     this.choosePieces(this.pieceChoice());
   }
 
+  /** A saved jigsaw is changed: the choices show what it has (the standard size nearest to its own, since its picture area is made to fit whole pieces). */
+  show(saved: { width: number; height: number; gridSize: number; snapPercent?: number; timed?: boolean }): void {
+    const { width, height, gridSize } = saved;
+    const apart = (p: { width: number; height: number }) => Math.abs(p.width - width) + Math.abs(p.height - height);
+    const grid = pieceGrid(width, height, gridSize);
+    this.sizeKey.set(this.sizePresets.reduce((best, p) => (apart(p) < apart(best) ? p : best)).key);
+    this.asked.set({ width, height });
+    this.pieceChoice.set(`${grid.columns}x${grid.rows}`);
+    this.width.set(width);
+    this.height.set(height);
+    this.gridSize.set(gridSize);
+    this.snapPercent.set(saved.snapPercent ?? JigsawSettings.DEFAULT_SNAP_PERCENT);
+    this.timed.set(saved.timed !== false);
+  }
+
   /** A standard size was chosen: the picture area gets that shape, and the standard number of pieces nearest to the one there was is kept. */
   chooseSize(key: string): void {
     const preset = this.sizePresets.find((p) => p.key === key);

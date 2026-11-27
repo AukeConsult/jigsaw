@@ -41,7 +41,7 @@
   <div class="list-group menu-font rounded-4 overflow-hidden shadow" role="group" *transloco="let t">
     @for (item of menu(); track item.route ?? item.toggle ?? 'language') {
       @if (item.brand) {
-        <!-- the name of the app, as the website shows it: the logo with the house on its corner, "Karins" and under it "jigsaw"; it goes home -->
+        <!-- the name of the app: the logo with the house on its corner, "Karins" and under it "jigsaw"; it goes home -->
         <!-- home is the logo itself and nothing round it: the link is no larger than what is drawn -->
         <div class="list-group-item brand-item d-flex align-items-center">
           <span class="brand-lockup scaled d-flex align-items-center gap-2">
@@ -62,7 +62,7 @@
         </button>
         }
       } @else if (item.language) {
-        <!-- the language of the app: the flag and name of the language in use, and the list one step down (the same choice as in the menu of the website) -->
+        <!-- the language of the app: the flag and name of the language in use, and the list one step down -->
         <app-language-select />
       } @else if (item.route) {
         <a class="list-group-item list-group-item-action" draggable="false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [routerLink]="item.route" [replaceUrl]="item.replace ?? false">

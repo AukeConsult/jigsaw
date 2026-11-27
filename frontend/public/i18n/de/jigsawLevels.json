@@ -1,11 +1,4 @@
 {
-  "line": {
-    "none": "Keine",
-    "hairline": "Haarfein",
-    "thin": "Dünn",
-    "medium": "Mittel",
-    "thick": "Dick"
-  },
   "snap": {
     "hard": "Schwer",
     "medium": "Mittel",

@@ -1,172 +1,66 @@
 <ng-container *transloco="let t">
 <div class="card card-body mb-3">
-        <div class="row g-3 g-md-4">
-        <div class="col-md-4">
-          @if (pictureUrl() && hasPicture()) {
-            <div class="position-relative">
-              @if (draft() && showExample()) {
-                <!-- the cut picture in pieces, as the jigsaw will be -->
-                <ng-content select="[draft-picture]" />
-              } @else {
-                <img class="img-fluid rounded-3 w-100" [class.zoomable]="true" [src]="pictureUrl()" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (error)="hasPicture.set(false)" (click)="draft() ? zoom.emit() : enlarged.set(true)">
-              }
-              @if (draft() && changeLabel()) {
-                <!-- a draft: choose another picture, in the lower right corner of the picture -->
-                <button type="button" class="btn btn-sm btn-overlay rounded-pill text-nowrap px-3 position-absolute bottom-0 end-0 m-2" (click)="choose.emit()"><i class="bi bi-upload me-1" aria-hidden="true"></i>{{ changeLabel() }}</button>
-              }
-            </div>
-          } @else if (draft()) {
-            <!-- a draft without a picture yet: an empty place where it will be, with the button that chooses it in the middle -->
-            <div class="ratio ratio-4x3 rounded-3 border bg-body-tertiary">
-              <div class="d-flex align-items-center justify-content-center">
-                <button type="button" class="btn btn-primary btn-lg" (click)="choose.emit()"><i class="bi bi-image me-2" aria-hidden="true"></i>{{ chooseLabel() }}</button>
-              </div>
-            </div>
+  <div class="row g-3 g-md-4">
+    <div class="col-md-4">
+      @if (pictureSrc() && hasPicture()) {
+        <div class="position-relative">
+          @if (showExample()) {
+            <!-- the cut picture in pieces, as the jigsaw will be -->
+            <ng-content select="[draft-picture]" />
+          } @else {
+            <img class="img-fluid rounded-3 w-100" [src]="pictureSrc()" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (error)="hasPicture.set(false)">
           }
-          @if (draft()) {
-            <!-- under the picture: the description (a draft: edited in place) -->
-            <div class="mt-2"><ng-content select="[draft-description]" /></div>
-          } @else if (jigsaw().description) {
-            <!-- what the picture is about, in the owner's words -->
-            <p class="description text-facts mt-2 mb-0">{{ jigsaw().description }}</p>
-          } @else if (mayChange()) {
-            <!-- no description yet: its owner is shown where it is added (the others see nothing) -->
-            <div class="mt-2"><button type="button" class="link-action" (click)="addDescription.emit()"><i class="bi bi-card-text" aria-hidden="true"></i>{{ t('jigsawPage.addDescription') || 'Add a description' }}</button></div>
-          }
-          @if (draft()) {
-            <!-- a draft: what the form puts under the picture (the AI that looks at it) -->
-            <div class="mt-2"><ng-content select="[draft-under-picture]" /></div>
+          @if (changeLabel()) {
+            <!-- choose another picture, in the lower right corner of the picture -->
+            <button type="button" class="btn btn-sm btn-overlay rounded-pill text-nowrap px-3 position-absolute bottom-0 end-0 m-2" (click)="choose.emit()"><i class="bi bi-upload me-1" aria-hidden="true"></i>{{ changeLabel() }}</button>
           }
         </div>
-          <div class="col-md-8 d-flex flex-column">
-          <!-- the name, and Edit at the right corner of the same line -->
-          <div class="d-flex justify-content-between align-items-start gap-2">
-            @if (draft()) {
-              <!-- a draft: the name is edited in place (the form puts its editor here) -->
-              <div class="flex-grow-1 min-w-0"><ng-content select="[draft-title]" /></div>
-            } @else {
-              <h1 class="page-title mb-1 flex-grow-1 min-w-0">{{ jigsaw().name || heading() }}</h1>
-            }
-            @if (draft()) {
-              <!-- a draft: what the form puts at the right of the name, where Edit and Delete are on a saved jigsaw (what is made) -->
-              <div class="flex-shrink-0"><ng-content select="[draft-top]" /></div>
-            }
-            @if (!draft()) {
-              <!-- the right of the title: what it is (a picture or a ready jigsaw) to the right, and under it Edit and Delete for the owner -->
-              <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
-                <!-- what it is, as it is chosen in the form: a picture or a ready jigsaw (not to press) -->
-                <span class="btn btn-sm btn-primary rounded-pill text-nowrap pe-none">
-                  @if (isPicture()) { <i class="bi bi-image me-1" aria-hidden="true"></i>{{ t('jigsawNew.kindPicture') || 'A picture' }} } @else { <i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawNew.kindJigsaw') || 'A ready jigsaw' }} }
-                </span>
-                <!-- Edit and Delete are for the owner (a jigsaw from before owners has none, and is anybody's) -->
-                @if (mayChange()) {
-                  <div class="toolbar flex-shrink-0">
-                    <button type="button" class="link-action" (click)="edit.emit()"><i class="bi bi-pencil" aria-hidden="true"></i>{{ t('jigsawPage.edit') || 'Edit' }}</button>
-                    <button type="button" class="link-action danger" [disabled]="confirmingDelete()" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawPage.delete') || 'Delete' }}</button>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-          @if (confirmingDelete()) {
-            <!-- deleting a jigsaw is for good: its picture and all the rounds of everybody go with it -->
-            <div class="alert alert-danger py-2 small mt-2" role="alert">
-              {{ t('jigsawPage.confirmDelete') || 'Delete this jigsaw for good? Its picture and all its rounds, also other players\', are deleted too.' }}
-              <div class="d-flex gap-1 mt-2">
-                <button type="button" class="btn btn-sm btn-danger" [disabled]="busy()" (click)="remove.emit()">{{ t('jigsawPage.yesDelete') || 'Yes, delete' }}</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmingDelete.set(false)">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
-              </div>
-            </div>
-          }
-          @if (!draft()) {
-            <!-- what the picture is, shown as it is chosen in the form (the chosen ones only, not to press): its categories, the motive difficulty and who sees it -->
-            <div class="choice-float-row">
-            @if (categoryItems().length) {
-              <div class="choice-block choice-float">
-                <div class="form-label">{{ t('jigsawCategories.label') || 'Categories' }}</div>
-                <div class="choice-group">
-                  @for (c of categoryItems(); track c.key) {
-                    <span class="btn btn-sm btn-primary pe-none"><i class="bi" [class]="c.icon" aria-hidden="true"></i>{{ t('jigsawCategories.name.' + c.key) || c.name }}</span>
-                  }
-                </div>
-              </div>
-            }
-            @if (jigsaw().motive) {
-              <div class="choice-block choice-float">
-                <div class="form-label">{{ t('jigsawNew.motive') || 'Motive difficulty' }}</div>
-                <div class="choice-group"><span class="btn btn-sm btn-primary pe-none">{{ t('jigsawLevels.motive.' + jigsaw().motive) || jigsaw().motive }}</span></div>
-              </div>
-            }
-            @if (mayChange()) {
-              <div class="choice-block choice-float">
-                <div class="form-label">{{ t('jigsawNew.visibility') || 'Who sees it' }}</div>
-                <div class="choice-group">
-                  <span class="btn btn-sm rounded-pill btn-primary pe-none">
-                    @switch (jigsaw().visibility) {
-                      @case ('hidden') { <i class="bi bi-eye-slash me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityHidden') || 'Hidden' }} }
-                      @case ('owner') { <i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityOwner') || 'Private' }} }
-                      @default { <i class="bi bi-globe2 me-1" aria-hidden="true"></i>{{ t('jigsawNew.visibilityEveryone') || 'Public' }} }
-                    }
-                  </span>
-                </div>
-              </div>
-            }
-            </div>
-          }
-          @if (draft()) {
-            <!-- a draft: what the form puts in the empty room of the card (who sees it) -->
-            <div class="mt-2"><ng-content select="[draft]" /></div>
-          }
-          <!-- the details at the left and the main button at their side, pushed down so they end where the picture ends; on a narrow screen the button goes under the details instead of squeezing them -->
-          <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 gap-md-3 mt-auto">
-            <div class="header-details">
-              @if (jigsaw().author) {
-                <div class="text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ jigsaw().author }}</div>
-              }
-              @if (jigsaw().visibility === 'hidden' && !mayChange()) {
-                <div class="text-body-secondary small"><i class="bi bi-eye-slash me-1" aria-hidden="true"></i>{{ t('jigsawPage.hiddenNote') || 'Hidden: only in its owner’s own list of jigsaws' }}</div>
-              }
-              @if (jigsaw().visibility === 'owner' && !mayChange()) {
-                <div class="text-body-secondary small"><i class="bi bi-lock me-1" aria-hidden="true"></i>@if (mayChange()) { {{ t('jigsawPage.onlyYou') || 'Only you see it' }} } @else { {{ t('jigsawPage.privateForPlayers') || 'Private: only its owner and its players see it' }} }</div>
-              }
-              <div class="tiny text-body-secondary mb-0">
-                @if (isPicture()) {
-                  <!-- a picture is cut in each round: the pieces and the difficulty are chosen when the round starts -->
-                  <i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('jigsawPage.choosePieces') || 'You choose the pieces and the difficulty when you start' }}
-                } @else {
-                  <i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawPage.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}
-                  <span class="ms-2" [title]="t('jigsawPage.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
-                }
-                @if (jigsaw().timed !== false) {<span class="ms-2"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawPage.timed') || 'Timed' }}</span>}
-              </div>
-            </div>
-            @if (draft()) {
-              <!-- a draft: what the form puts at the lower right (what is wrong, Cancel and Save) -->
-              <div class="ms-auto d-flex flex-column align-items-end gap-2"><ng-content select="[draft-actions]" /></div>
-            }
-            @if (!draft()) {
-            <div class="d-flex flex-wrap align-items-center justify-content-center gap-2 mx-auto">
-              @if (solved()) {
-                <!-- solved by the user: it is not played twice -->
-                <div class="text-success fw-semibold" role="status"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>{{ t('jigsawPage.youSolvedIt') || 'You have solved this jigsaw' }}</div>
-              } @else if (!hidePlay() && (jigsaw().visibility === 'everyone' || !jigsaw().visibility || mayChange())) {
-                <!-- a jigsaw only its owner sees can get a new round from its owner only; the players who have a round on it go on with it below -->
-                <button type="button" class="btn btn-heading btn-outline-primary" [disabled]="busy()" (click)="play.emit()">
-                  <i class="bi bi-play-fill" aria-hidden="true"></i>{{ t('jigsawPage.enterRound') || 'Enter a round, solve it' }}
-                </button>
-              }
-              <!-- share this jigsaw: the page of the jigsaw is what is shared -->
-              <app-share-button variant="button" />
-            </div>
-            }
-          </div>
+      } @else {
+        <!-- without a picture yet: an empty place where it will be, with the button that chooses it in the middle -->
+        <div class="ratio ratio-4x3 rounded-3 border bg-body-tertiary">
+          <div class="d-flex align-items-center justify-content-center">
+            <button type="button" class="btn btn-primary btn-lg" (click)="choose.emit()"><i class="bi bi-image me-2" aria-hidden="true"></i>{{ chooseLabel() }}</button>
           </div>
         </div>
+      }
+      <!-- under the picture: the description (edited in place), then what the form puts there (the AI that looks at the picture) -->
+      <div class="mt-2"><ng-content select="[draft-description]" /></div>
+      <div class="mt-2"><ng-content select="[draft-under-picture]" /></div>
+    </div>
+    <div class="col-md-8 d-flex flex-column">
+      <!-- the name (edited in place), and at its right what the form puts there (what is made) -->
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div class="flex-grow-1 min-w-0"><ng-content select="[draft-title]" /></div>
+        <div class="flex-shrink-0"><ng-content select="[draft-top]" /></div>
       </div>
-@if (enlarged() && !draft() && pictureUrl(); as big) {
-  <!-- the picture big, over the page: a click or Escape closes it (a draft is shown big by the form that holds it) -->
-  <div class="picture-zoom" role="dialog" aria-modal="true" [attr.aria-label]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'" (click)="enlarged.set(false)" (window:keydown.escape)="enlarged.set(false)">
-    <img [src]="big" [attr.alt]="t('jigsawPage.pictureAlt') || 'The picture of the jigsaw'">
+      <!-- what the form puts in the room of the card (the choices) -->
+      <div class="mt-2"><ng-content select="[draft]" /></div>
+      <!-- the details at the left and the buttons of the form at their side, pushed down so they end where the picture ends; on a narrow screen the buttons go under the details instead of squeezing them -->
+      <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 gap-md-3 mt-auto">
+        <div class="header-details">
+          @if (jigsaw().author) {
+            <div class="text-body-secondary"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ jigsaw().author }}</div>
+          }
+          @if (jigsaw().visibility === 'hidden') {
+            <div class="text-body-secondary small"><i class="bi bi-eye-slash me-1" aria-hidden="true"></i>{{ t('jigsawPage.hiddenNote') || 'Hidden: only in its owner’s own list of jigsaws' }}</div>
+          } @else if (jigsaw().visibility === 'owner') {
+            <div class="text-body-secondary small"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('jigsawPage.privateForPlayers') || 'Private: only its owner and its players see it' }}</div>
+          }
+          <div class="tiny text-body-secondary mb-0">
+            @if (isPicture()) {
+              <!-- a picture is cut in each round: the pieces and the difficulty are chosen when the round starts -->
+              <i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('jigsawPage.choosePieces') || 'You choose the pieces and the difficulty when you start' }}
+            } @else {
+              <i class="bi bi-puzzle me-1" aria-hidden="true"></i>{{ t('jigsawPage.piecesShort', { count: pieces() }) || pieces() + ' pieces' }}
+              <span class="ms-2" [title]="t('jigsawPage.difficulty') || 'Difficulty'"><i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{{ t('jigsawLevels.snap.' + level()) || level() }}</span>
+            }
+            @if (jigsaw().timed !== false) {<span class="ms-2"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawPage.timed') || 'Timed' }}</span>}
+          </div>
+        </div>
+        <!-- what the form puts at the lower right (what is wrong, Cancel and Save) -->
+        <div class="ms-auto d-flex flex-column align-items-end gap-2"><ng-content select="[draft-actions]" /></div>
+      </div>
+    </div>
   </div>
-}
+</div>
 </ng-container>

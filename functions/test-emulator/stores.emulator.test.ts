@@ -182,7 +182,7 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     await getFirestore().collection(JIGSAW).doc("older").delete();
   });
 
-  it("keeps the pieces of a jigsaw under its document, their graphics and its picture in Storage, and all of it goes with the jigsaw", async () => {
+  it("keeps the pieces of a jigsaw under its document and its picture in Storage, and all of it goes with the jigsaw", async () => {
     const jigsaws = firestoreJigsawStore(JIGSAW);
     const pieces = firestorePieceStore();
     const picture = storageImageStore();
@@ -194,8 +194,8 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     if ("error" in cut) throw new Error(cut.error);
     const list = cut.placed.map((p) => JigsawPieces.of(p, cut.columns)!);
 
-    expect(await pieces.replaceAll("no-such-jigsaw", list, new Map())).toBe(false);
-    expect(await pieces.replaceAll(made.id, list, new Map(list.slice(0, 2).map((p) => [p.id, { data: webp, mime: "image/webp" }])))).toBe(true);
+    expect(await pieces.replaceAll("no-such-jigsaw", list)).toBe(false);
+    expect(await pieces.replaceAll(made.id, list)).toBe(true);
     await picture.put(made.id, jpeg, "image/jpeg");
 
     // the pieces are documents under the jigsaw, with their number and status
@@ -207,15 +207,12 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect(Object.keys(docs.docs[0].data())).toContain("matched");
     expect((await jigsaws.list()).find((c) => c.id === made.id)?.placed).toEqual([]); // the jigsaw document holds none of them
 
-    // the graphics are files
-    expect((await pieces.graphic(made.id, list[0].id))?.data.equals(webp)).toBe(true);
-    expect(await pieces.graphic(made.id, list[5].id)).toBeNull();
+    // the picture is a file
     expect((await picture.get(made.id))?.data.equals(jpeg)).toBe(true);
 
-    // cut again: the old pieces and graphics are gone
-    expect(await pieces.replaceAll(made.id, list.slice(0, 3), new Map())).toBe(true);
+    // cut again: the old pieces are gone
+    expect(await pieces.replaceAll(made.id, list.slice(0, 3))).toBe(true);
     expect(await pieces.list(made.id)).toHaveLength(3);
-    expect(await pieces.graphic(made.id, list[0].id)).toBeNull();
     expect((await picture.get(made.id))?.data.equals(jpeg)).toBe(true); // the picture stays
 
     // deleting the jigsaw takes all of it
@@ -228,7 +225,6 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
   it("works through the API with nothing faked: picture, cut, play, reopen, delete (the app sends bytes to the API, the API writes to Storage)", async () => {
     const app = createJigsawApp({ levels: { of: async () => "publisher", forget() {} } }); // the real stores: Firestore and Storage on the emulators; the caller may make a public jigsaw (a rule of the levels, tested in `user-levels.test.ts`)
     const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(3000, 9)]);
-    const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(40, 5)]);
 
     // a jigsaw is made (its settings only), its picture is sent to the API as the request body
     const made = await request(app).post("/jigsaw/api/jigsaw").send({ name: "Through the API", width: 200, height: 150, gridSize: 50, gridVisible: true, placed: [] });
@@ -237,34 +233,26 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)("the stores on the Firesto
     expect((await request(app).put(`/jigsaw/api/jigsaw-image/${id}`).set("Content-Type", "image/png").send(jpeg)).body).toMatchObject({ mime: "image/jpeg" }); // the type is found from the bytes
     expect((await request(app).put("/jigsaw/api/jigsaw-image/NoSuchJigsaw1").set("Content-Type", "image/jpeg").send(jpeg)).status).toBe(404);
 
-    // cut: the pieces go to the API with their graphics
+    // cut: the pieces go to the API
     const cut = JigsawCut.cut(200, 150, 50, () => 0.4);
     if ("error" in cut) throw new Error(cut.error);
-    const pieces = cut.placed.map((p) => ({ ...JigsawPieces.of(p, cut.columns)!, graphic: `data:image/webp;base64,${webp.toString("base64")}` }));
+    const pieces = cut.placed.map((p) => JigsawPieces.of(p, cut.columns)!);
     const own = pieces.find((p) => p.number === 6)!; // column 1, row 1: its place is 75, 75
     Object.assign(own, { centerX: 75, centerY: 75, layer: 50 }); // sent lying on its own place
     const put = await request(app).put(`/jigsaw/api/jigsaw-pieces/${id}`).send({ pieces });
-    expect(put.body).toEqual({ pieces: 12, graphics: 12 });
+    expect(put.body).toEqual({ pieces: 12 });
 
     // reopen: the game is as it was left
     const list = (await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}`)).body.pieces as { id: string; number: number; matched: boolean; layer: number }[];
     expect(list).toHaveLength(12);
     expect(list.filter((p) => p.matched).map((p) => p.number)).toEqual([6]);
     expect(list.find((p) => p.id === own.id)?.layer).toBe(50);
-    const graphic = await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}/graphic/${own.id}`).buffer(true).parse((res, cb) => {
-      const chunks: Buffer[] = [];
-      res.on("data", (c) => chunks.push(c));
-      res.on("end", () => cb(null, Buffer.concat(chunks)));
-    });
-    expect(graphic.headers["content-type"]).toBe("image/webp");
-    expect((graphic.body as Buffer).equals(webp)).toBe(true);
     expect((await request(app).head(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(200);
 
-    // delete the jigsaw: its pieces, their graphics and its picture go with it
+    // delete the jigsaw: its pieces and its picture go with it
     expect((await request(app).delete(`/jigsaw/api/jigsaw/${id}`)).status).toBe(204);
     expect((await getFirestore().collection(JIGSAW).doc(id).collection(JIGSAW_PIECES).get()).size).toBe(0);
     expect((await request(app).get(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(404);
-    expect((await request(app).get(`/jigsaw/api/jigsaw-pieces/${id}/graphic/${own.id}`)).status).toBe(404);
   });
 
   it("works through the API with the real users: a first admin is made, a private picture of a verified account is found by it, and an admin changes the account of another at once", async () => {

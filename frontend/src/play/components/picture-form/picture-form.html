@@ -9,14 +9,28 @@
     } @else if (n.locked()) {
       <!-- the picture is the user's own, but rounds have been played of it -->
       <div class="alert alert-info py-2 small" role="status"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ t('play.hasRounds') || 'Rounds have been played of this picture: its picture, size and cut can not be changed. The rest can.' }}</div>
+      <!-- the owner can take all the rounds away, also other players', and then change everything (asked first) -->
+      @if (n.confirmingReset()) {
+        <div class="alert alert-danger py-2 small" role="alert">
+          {{ t('jigsawPage.resetAsk') || 'Delete all the rounds of this jigsaw for good, also other players’? Then the picture, the size and the difficulty can be changed.' }}
+          <div class="d-flex gap-1 mt-2">
+            <button type="button" class="btn btn-sm btn-danger" [disabled]="n.saving()" (click)="resetRounds()">{{ t('jigsawPage.yesReset') || 'Yes, delete the rounds' }}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="n.confirmingReset.set(false)">{{ t('jigsawPage.cancel') || 'Cancel' }}</button>
+          </div>
+        </div>
+      } @else {
+        <div class="mb-3">
+          <button type="button" class="link-action danger" (click)="n.confirmingReset.set(true)"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{{ t('jigsawPage.resetRounds') || 'Delete all rounds to change them' }}</button>
+        </div>
+      }
     }
-    <!-- the same top as the page of a jigsaw: the picture, the name, the description and the details, as it will look, and under it what is chosen -->
-    <app-jigsaw-header [jigsaw]="n.draft()" [draft]="true" [showExample]="!n.isPicture() && !!n.preview()" [pictureSrc]="n.preview()" [heading]="n.editId() ? (n.isPicture() ? (t('jigsawNew.editPictureTitle') || 'Edit picture') : (t('jigsawNew.editTitle') || 'Edit jigsaw')) : n.isPicture() ? (t('jigsawNew.newPictureTitle') || 'New picture') : (t('jigsawNew.newTitle') || 'New jigsaw')"
+    <!-- the top of the form (`app-jigsaw-header`): the picture, the name, the description and the details, as it will look, and under it what is chosen -->
+    <app-jigsaw-header [jigsaw]="n.draft()" [showExample]="!n.isPicture() && !!n.preview()" [pictureSrc]="n.preview()"
                        [changeLabel]="n.canChangePicture() && n.preview() ? (t('jigsawNew.changePicture') || 'Change picture') : ''" [chooseLabel]="t('jigsawNew.pickPicture') || 'Choose a picture'" (choose)="pictureInput.click()">
       <!-- a ready jigsaw: an example of it in place of the plain picture, the cut picture in pieces -->
       <div draft-picture>
         @if (n.preview(); as src) {
-          <app-jigsaw-example [plain]="true" [picture]="src" [width]="n.width()" [height]="n.height()" [gridSize]="n.choice.gridSize()" [lineWidth]="lineWidth" [lineColor]="lineColor" [backColor]="backColor" />
+          <app-jigsaw-example [picture]="src" [width]="n.width()" [height]="n.height()" [gridSize]="n.choice.gridSize()" [lineWidth]="lineWidth" [lineColor]="lineColor" />
         }
       </div>
       <!-- what is made, right under the name: a picture (the person who plays chooses the pieces and the difficulty) or a ready jigsaw (chosen here) -->
@@ -72,6 +86,14 @@
           <button type="button" class="btn btn-outline-primary w-100 py-2" [disabled]="!n.canAnalyse() || limit.full()" (click)="save(true)">
             @if (n.analysing()) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> {{ t('jigsawNew.classifying') || 'The AI looks at the picture…' }} } @else { <i class="bi bi-stars" aria-hidden="true"></i> {{ t('jigsawNew.saveAnalyse') || 'Save and analyse with AI' }} }
           </button>
+          } @else if (n.mayChange()) {
+          <button type="button" class="btn btn-outline-primary w-100 py-2" [disabled]="!n.canClassify()" (click)="n.classify()">
+            @if (n.analysing()) { <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> {{ t('jigsawNew.classifying') || 'The AI looks at the picture…' }} } @else { <i class="bi bi-stars" aria-hidden="true"></i> {{ t('jigsawNew.classify') || 'Let the AI set categories, name and description' }} }
+          </button>
+          <div class="form-text">{{ t('jigsawNew.classifyHelp') || 'The picture is sent to OpenAI to be looked at. The name, the description and the categories are replaced.' }}</div>
+          @if (n.classifyError()) {
+            <div class="small text-danger" role="alert">{{ n.classifyError() }}</div>
+          }
           }
           <!-- the language the AI writes the name and the description in: small, under its text -->
           <div class="d-flex align-items-center gap-2 mt-2">
@@ -112,7 +134,7 @@
           <div class="row g-2 align-items-end">
             <div class="col-5">
               <label class="form-label" for="play-pieces">{{ t('jigsawNew.pieces') || 'Pieces' }}</label>
-              <select id="play-pieces" name="pieces" class="form-select form-select-sm" [disabled]="!n.canChangePicture()" [attr.aria-label]="t('jigsawNew.standardPieces') || 'Standard numbers of pieces'" (change)="n.choice.choosePieces($any($event.target).value)">
+              <select id="play-pieces" name="pieces" class="form-select form-select-sm" [disabled]="!n.canChangePicture()" [attr.aria-label]="t('jigsawNew.standardPieces') || 'Standard numbers of pieces'" (change)="n.choosePieces($any($event.target).value)">
                 @for (o of n.choice.pieceOptions(); track o.key) {
                   <option [value]="o.key" [selected]="n.choice.pieceChoice() === o.key" [title]="o.columns + ' × ' + o.rows">{{ o.count }}</option>
                 }
@@ -143,7 +165,7 @@
       }
       <!-- what is wrong, and Cancel and Save: in the card itself, at its lower right -->
       <div draft-actions class="w-100">
-        <app-upload-limit #limit [adding]="!n.editId()" [inApp]="true" />
+        <app-upload-limit #limit [adding]="!n.editId()" />
         @if (n.problem()) {
           <div class="alert alert-warning py-2 small" role="alert">{{ n.problem() }}</div>
         }
@@ -163,7 +185,7 @@
         </div>
         }
       </div>
-      <app-visibility-choice draft [attr.inert]="n.inert() ? '' : null" [(visibility)]="n.visibility" [ownerKnown]="!!n.ownerUid()" [showHelp]="false" />
+      <app-visibility-choice draft [attr.inert]="n.inert() ? '' : null" [(visibility)]="n.visibility" [ownerKnown]="!!n.ownerUid()" />
       <!-- the one thing worth saying about who sees it: what Hidden does -->
       <div draft class="form-text mb-3">{{ t('play.hiddenHelp') || 'Hidden: the picture is removed from the home page.' }}</div>
     </app-jigsaw-header>

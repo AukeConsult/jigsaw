@@ -1,18 +1,17 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
 import { JigsawUserSpec } from '../../models/shared/jigsaw-user';
 import { USER_LEVELS, UserLevel, UserLevels } from '../../models/shared/user-level';
-import { AccountAvatar } from '../account-avatar/account-avatar';
-import { JigsawUserService } from '../jigsaw-user.service';
+import { AccountAvatar } from '../../jigsaw/account-avatar/account-avatar';
+import { JigsawUserService } from '../../jigsaw/jigsaw-user.service';
 import { apiError } from '../../core/api-error';
 
 /**
- * **The levels of the accounts, a component that is framed into different pages**: `/jigsaw/admin` in the website and `/play/admin` in the app, for an admin (or for every account that plays while there is no admin, so the first one can be made). Each
- * account with its level, changed at once; an admin can also go into an account, change its name and alias, and delete it. A level counts only for an account that needs a login, and it says so for one that does not. With `inApp` it is the
- * app's: going into an account opens the account page of the app, and not the page of the website.
+ * **The levels of the accounts** (`/jigsaw`), for an admin (or for every account that plays while there is no admin, so the first one can be made). Each
+ * account with its level, changed at once; an admin can also go into an account (which opens the app as that account), change its name and alias, and delete it. A level counts only for an account that needs a login, and it says so for one that does not.
  */
 @Component({
   selector: 'app-account-levels',
@@ -23,8 +22,6 @@ import { apiError } from '../../core/api-error';
 export class AccountLevels implements OnInit {
   protected readonly users = inject(JigsawUserService);
   private readonly router = inject(Router);
-  /** the app's component: going into an account opens the account page of the app */
-  readonly inApp = input(false);
   protected readonly levels = USER_LEVELS;
   protected readonly accounts = signal<JigsawUserSpec[] | null>(null);
   protected readonly error = signal('');
@@ -56,7 +53,7 @@ export class AccountLevels implements OnInit {
     this.error.set('');
     const why = await this.users.openAs(account.id);
     if (why) this.error.set(why);
-    else await this.router.navigate([this.inApp() ? '/play/account' : '/jigsaw/user']);
+    else await this.router.navigate(['/play/account']);
   }
 
   protected startEdit(account: JigsawUserSpec): void {

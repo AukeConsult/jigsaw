@@ -48,11 +48,6 @@
     "failed": "Kon je niet inloggen met deze link. Vraag een nieuwe aan."
   },
   "account": {
-    "title": "Je login",
-    "signedInAs": "Ingelogd als",
-    "verified": "E-mail geverifieerd",
-    "notVerified": "E-mail niet geverifieerd",
-    "shared": "Deze login werkt in Karins jigsaw en in Seven Friends.",
     "signOut": "Uitloggen"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "Nog geen account heeft deze login.",
     "makeNew": "Nieuw account maken met mijn login",
     "haveCode": "Ik heb een koppelcode",
-    "codeHelp": "Wie het account kan gebruiken, maakt de code: open het account, druk op Account bewerken en dan op Nog een login toevoegen. Typ hier de accountalias en de code.",
+    "codeHelp": "Wie het account kan gebruiken, maakt de code: open het account en druk op Nog een login toevoegen. Typ hier de accountalias en de code.",
     "username": "Accountalias",
     "code": "Koppelcode",
     "use": "Code gebruiken",

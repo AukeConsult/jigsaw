@@ -1,4 +1,4 @@
-<ng-container *transloco="let t">
+<main class="container-fluid page-margin page-max" *transloco="let t">
   <h1 class="page-title mb-2"><i class="bi bi-shield-lock me-2" aria-hidden="true"></i>{{ t('userLevels.title') || 'Account levels' }}</h1>
   <p class="text-body-secondary">{{ t('userLevels.intro') || 'Choose what each account may do. A level counts only for a verified account.' }}</p>
   <ul class="small text-body-secondary mb-3">
@@ -51,4 +51,4 @@
   } @else if (!error()) {
     <div class="text-body-secondary" role="status">{{ t('userLevels.loading') || 'Reading the accounts…' }}</div>
   }
-</ng-container>
+</main>

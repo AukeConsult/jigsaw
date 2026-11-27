@@ -10,7 +10,7 @@ import { LogonsService } from '../logons.service';
 import { apiError } from '../../core/api-error';
 
 /**
- * The logins of the user who plays, in the edit form of the user (under Contact): the list of the Firebase accounts that are verified for it (any one of them is enough to use it; the person is signed in with one at a time). A user with no login is open to
+ * The logins of the user who plays, in the edit form on the page of the account (`/play/account`): the list of the Firebase accounts that are verified for it (any one of them is enough to use it; the person is signed in with one at a time). A user with no login is open to
  * anybody who picks it; the person who is signed in can verify their login for it, and then only the logins in the list can use it. A second login is added with a link code: made here, typed on the
  * other login (`app-my-logon-users`). Any login of the user may take any of them away; the last one makes the user open again.
  */
@@ -18,7 +18,7 @@ import { apiError } from '../../core/api-error';
   selector: 'app-user-logins',
   imports: [RouterLink, TranslocoDirective],
   providers: [provideTranslocoScope('logons')],
-  host: { class: 'd-block mb-3' }, // it sits in the edit form of the user, above Cancel and Save
+  host: { class: 'd-block mb-3' }, // it sits in the edit form of the account, the last part of it
   templateUrl: './user-logins.html',
 })
 export class UserLogins {

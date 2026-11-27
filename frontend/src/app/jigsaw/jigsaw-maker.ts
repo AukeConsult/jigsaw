@@ -8,7 +8,6 @@ import { MAX_PICTURE_BYTES, fitPicture } from './fit-picture';
 import { JigsawImageService } from './jigsaw-image.service';
 import { JigsawPiecesService } from './jigsaw-pieces.service';
 import { JigsawService } from './jigsaw.service';
-import { renderPieceGraphics } from './piece-graphics';
 
 /** What the jigsaws that are made are like: the same for every picture. */
 export interface MakeOptions {
@@ -28,7 +27,7 @@ export interface MakeOptions {
 }
 
 /** Where a jigsaw is on its way. */
-export type MakeStep = 'cutting' | 'uploading' | 'drawing';
+export type MakeStep = 'cutting' | 'uploading' | 'keeping';
 
 /** A name for a jigsaw from the name of its picture file: no extension, spaces for _ and -, at most as long as a name can be. */
 export function nameOfFile(fileName: string): string {
@@ -37,8 +36,8 @@ export function nameOfFile(fileName: string): string {
 }
 
 /**
- * Makes a jigsaw of a picture, all in one: the picture is cut to the shape of the picture area, the jigsaw is saved with its picture, and the pieces with their graphics. What a person
- * does one picture at a time on the page for a new jigsaw, for many pictures. The owner is the user who plays. A jigsaw that could not be made is taken away again, so nothing half
+ * Makes a jigsaw of a picture, all in one: the picture is cut to the shape of the picture area, the jigsaw is saved with its picture, and then its pieces. What a person
+ * does one picture at a time on the page that adds a picture, for many pictures. The owner is the user who plays. A jigsaw that could not be made is taken away again, so nothing half
  * made is left (and the error is thrown).
  */
 @Injectable({ providedIn: 'root' })
@@ -82,14 +81,14 @@ export class JigsawMaker {
     };
     step('uploading');
     return this.createWithPicture(input, picture, async (made) => {
-      step('drawing');
-      await this.keepPieces(made.id, picture, cutting, { width: JigsawSettings.DEFAULT_LINE_WIDTH, color: JigsawSettings.DEFAULT_LINE_COLOR });
+      step('keeping');
+      await this.keepPieces(made.id, cutting);
     });
   }
 
   /**
    * Saves a new jigsaw with its picture, and then does what else it needs (`then`: its pieces). When a step fails the jigsaw is taken away again, so nothing half made is left, and the error is thrown. What every
-   * way of making one shares: here, the form of the website and the form of the app.
+   * way of making one shares: many at once (here) and the form of a picture.
    */
   async createWithPicture(input: JigsawInput, picture: Blob, then?: (made: JigsawSpec) => Promise<void>): Promise<JigsawSpec> {
     const made = await this.jigsaws.create(input);
@@ -103,17 +102,9 @@ export class JigsawMaker {
     return made;
   }
 
-  /** Draws the graphic of each piece of a cut from the picture (the one that is cut to the shape of the picture area), and keeps the pieces with them under the jigsaw, in place of any it had. */
-  async keepPieces(id: string, picture: Blob, cutting: { placed: readonly PlacedObject[]; columns: number; rows: number }, line: { width: number; color: string }): Promise<void> {
-    const pieces = JigsawPieces.ofCut(cutting);
-    const address = URL.createObjectURL(picture);
-    let graphics: Map<string, string>;
-    try {
-      graphics = await renderPieceGraphics(address, pieces, cutting.columns, cutting.rows, line);
-    } finally {
-      URL.revokeObjectURL(address);
-    }
-    await this.pieceApi.replace(id, pieces.map((p) => (graphics.has(p.id) ? { ...p, graphic: graphics.get(p.id) } : p)));
+  /** Keeps the pieces of a cut under the jigsaw, in place of any it had. (The board draws them from the picture.) */
+  async keepPieces(id: string, cutting: { placed: readonly PlacedObject[]; columns: number; rows: number }): Promise<void> {
+    await this.pieceApi.replace(id, JigsawPieces.ofCut(cutting));
   }
 
   /**

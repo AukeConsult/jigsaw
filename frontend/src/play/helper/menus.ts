@@ -21,7 +21,7 @@ export interface PlayMenuItem {
   readonly english?: string;
   /** the entry is the choice of the language (the flag and name of the language in use, and the list one step down): it has no icon or words of its own */
   readonly language?: boolean;
-  /** the entry is the name of the app, the logo with "Karins jigsaw" (the same as the website shows it), instead of an icon and words */
+  /** the entry is the name of the app, the logo with "Karins jigsaw", instead of an icon and words */
   readonly brand?: boolean;
 }
 
@@ -41,7 +41,7 @@ export interface MenuMay {
 // **A menu is kept small**: it takes room from the page, so it has what is used where it is shown, six entries or so besides the name of the app. What is chosen once (the language, what the home page shows) is a preference. **The
 // last entry of every menu is Help** (the info pages have their own menu, of their pages).
 
-/** The first entry of every menu: the name of the app, "Karins jigsaw" with the logo, and it goes home (`/`, the home of the mode). So the name is on every page, inside the helper. */
+/** The first entry of every menu: the name of the app, "Karins jigsaw" with the logo, and it goes home (`/`, the list). So the name is on every page, inside the helper. */
 const BRAND: PlayMenuItem = { icon: 'bi-house', route: '/', brand: true };
 
 /** The entry for nobody who is logged on: "Logon", to the account page. */
@@ -65,8 +65,8 @@ const PACKAGES: PlayMenuItem = { icon: 'bi-box-seam', route: '/play/packages', k
 /** The entry to the help and the other info pages (the welcome, the about page and how to install the app, in the menu there): the last of every menu. It opens the page that was open there last (`lastPage`), the help to begin with. */
 const HELP: PlayMenuItem = { icon: 'bi-question-circle', route: '/play/info', key: 'play.infoHelp', english: 'Help' };
 
-/** The entry for the levels of the accounts, in the account menu. */
-const ADMIN: PlayMenuItem = { icon: 'bi-shield-lock', route: '/play/admin', key: 'play.admin', english: 'Admin' };
+/** The entry to the admin (`/jigsaw`, a part of the site of its own), in the account menu. */
+const ADMIN: PlayMenuItem = { icon: 'bi-shield-lock', route: '/jigsaw', key: 'play.admin', english: 'Admin' };
 
 /** The entry for the preferences (the theme, the text, the sizes, the language, what the home page shows), for everybody: they are kept on the device, and with the account that plays. */
 const PREFERENCES: PlayMenuItem = { icon: 'bi-palette', route: '/play/account/preferences', key: 'play.preferences', english: 'Preferences' };

@@ -260,7 +260,7 @@ export class JigsawCut {
 /** The subcollection of a jigsaw document that holds its pieces: `jigsaw/<id>/pieces/<piece id>`. */
 export const JIGSAW_PIECES = 'pieces';
 
-/** One piece of a jigsaw as it is kept in the database: what it is (its number and its edges), where it is, and whether it is matched. Its graphic is kept next to it. */
+/** One piece of a jigsaw as it is kept in the database: what it is (its number and its edges), where it is, and whether it is matched. */
 export interface JigsawPiece {
   id: string;
   /** the number of the grid point it belongs on in the picture: 1, 2, 3 ... row by row (row × columns + column + 1) */

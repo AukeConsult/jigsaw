@@ -54,11 +54,6 @@ export class JigsawFilters {
     return filter.text.trim() !== '' || filter.kinds.length > 0 || filter.categories.length > 0 || filter.sizes.length > 0 || filter.difficulties.length > 0 || filter.motives.length > 0 || filter.languages.length > 0 || filter.owners.length > 0 || filter.favorites === true || filter.solved === true || (filter.visibilities?.length ?? 0) > 0;
   }
 
-  /** The filter with this text (the words are trimmed, and not longer than a search takes). */
-  static withText(filter: JigsawFilter, text: string): JigsawFilter {
-    return { ...filter, text: text.replace(/\s+/g, ' ').trimStart().slice(0, SEARCH_MAX_TEXT) };
-  }
-
   /** Whether this is chosen in the filter: a category counts as chosen when one of its sub-categories is. */
   static isChosen(filter: JigsawFilter, field: TickedField, value: string): boolean {
     return field === 'categories' ? JigsawCategories.isChosen(filter.categories, value) : (filter[field] as string[]).includes(value);

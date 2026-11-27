@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
@@ -24,10 +24,8 @@ export const VISIBILITY_FILTERS = ['all', 'everyone', 'owner', 'hidden'] as cons
 export type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number];
 
 /**
- * **The list of the jigsaws (pictures) the user made**, the one list for the website's page of the user and for the app: the two ways to add one, the words to find them by, the order, the filter (all, public, private, hidden, each with
- * how many), ticking some to change who sees them or delete them together, and a row for each, with who sees it chosen in the row, Recommended, Edit and Delete, a page at a time. What is chosen is kept on the device. With `inApp` it
- * is the list of the app, which has no pages of the website to go to: no adding here (the app has its own) and no link to the edit page, and a row opens the page of the picture in the app (the same page as Add picture, to change it, with its rounds). When jigsaws are deleted it says so (`deleted`, their ids), so the page can leave
- * out their rounds too.
+ * **The list of the jigsaws (pictures) the user made** (`/play/mine/pictures`): the words to find them by, the order, the filter (all, public, private, hidden, each with
+ * how many), ticking some to change who sees them or delete them together, and a row for each, with who sees it chosen in the row, Recommended and Delete, a page at a time. What is chosen is kept on the device. A row opens the page of the picture (the same form as Add picture, to change it, with its rounds).
  */
 @Component({
   selector: 'app-my-jigsaws',
@@ -39,11 +37,6 @@ export class MyJigsaws {
   protected readonly users = inject(JigsawUserService);
   private readonly images = inject(JigsawImageService);
   private readonly jigsaws = inject(JigsawService);
-
-  /** the list of the app: no adding, no links to the pages of the website */
-  readonly inApp = input(false);
-  /** jigsaws were deleted for good: their ids */
-  readonly deleted = output<ReadonlySet<string>>();
 
   /** something went wrong (said above the list) */
   protected readonly error = signal('');
@@ -260,7 +253,6 @@ export class MyJigsaws {
     const results = await Promise.allSettled(ids.map((id) => this.jigsaws.removeAs(id, me.id))); // at the same time
     const gone = new Set(ids.filter((_, i) => results[i].status === 'fulfilled'));
     this.dropLocal(gone, true);
-    this.deleted.emit(gone);
     this.selected.update((now) => new Set([...now].filter((id) => !gone.has(id))));
     this.deletingSelected.set(false);
     const failed = ids.length - gone.size;
@@ -307,7 +299,6 @@ export class MyJigsaws {
     try {
       await this.jigsaws.removeAs(item.id, me.id);
       this.dropLocal(new Set([item.id]), true);
-      this.deleted.emit(new Set([item.id]));
     } catch {
       this.error.set(tr('jigsawUser.jigsawNotDeleted', 'Could not delete the jigsaw: try again.'));
     }
@@ -319,9 +310,9 @@ export class MyJigsaws {
     return { count: g.columns * g.rows, columns: g.columns, rows: g.rows };
   }
 
-  /** Where a row opens: the page of the jigsaw in the website; in the app the page of the picture, the same page as Add picture, where it is changed and its rounds are. */
+  /** Where a row opens: the page of the picture, the same form as Add picture, where it is changed and its rounds are. */
   protected link(item: Pick<JigsawSpec, 'id'>): string[] {
-    return this.inApp() ? ['/play/mine/picture', item.id] : ['/jigsaw', item.id];
+    return ['/play/mine/picture', item.id];
   }
 
   /** the entry is only a picture: it is cut in each round */

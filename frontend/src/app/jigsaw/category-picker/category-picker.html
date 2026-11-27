@@ -1,6 +1,6 @@
 <ng-container *transloco="let t">
-  <div class="form-label" [id]="id() + '-label'">{{ t('jigsawCategories.label') || 'Categories' }} <span class="text-body-secondary">{{ t('jigsawCategories.optional') || '(optional)' }}</span></div>
-  <div class="choice-group" role="group" [attr.aria-labelledby]="id() + '-label'">
+  <div class="form-label" id="categories-label">{{ t('jigsawCategories.label') || 'Categories' }} <span class="text-body-secondary">{{ t('jigsawCategories.optional') || '(optional)' }}</span></div>
+  <div class="choice-group" role="group" aria-labelledby="categories-label">
     @for (c of categories; track c.key) {
       @let on = chosen(c.key);
       <button type="button" class="btn btn-sm" [class.btn-primary]="on" [class.btn-outline-secondary]="!on" [attr.aria-pressed]="on" [disabled]="!canChoose(c)" (click)="toggle(c.key)">

@@ -14,7 +14,7 @@ import { AccountEdit } from '../../../app/jigsaw/account-edit';
 
 /**
  * The page of the route `/play/account`, who is on and everything about the user's account: **the app's own page, made of the real shared components** (`app-my-logon-users`, what a signed-in login can do about the accounts: play as one, make a new one, delete one, add the
- * login to one with a link code; `app-user-logins`, the logins verified for the account that plays; and `app-account-avatar`) **and of the page logic of the website's user page, which is not a component and so is written here** (the pages of the website are not shared). An account that plays is shown
+ * login to one with a link code; `app-user-logins`, the logins verified for the account that plays; and `app-account-avatar`) An account that plays is shown
  * at the top, with the way to choose another and to sign out, and under it its edit page (its alias, name, picture and language, which save by themselves, and its sign-ins), which is just there: nothing is pressed to open it. When nobody plays: a signed-in person has the box of their accounts, and anybody chooses an account from the list (a lock means it needs a sign-in first) or makes one by
  * saying their name (an account that is open to anyone).
  */
@@ -53,9 +53,9 @@ export class PlayAccount implements OnInit, OnDestroy {
   protected readonly blocked = signal<{ name: string } | null>(null);
 
   constructor() {
-    // sent here from a picture to log on (`?next=`): back there as soon as somebody plays. Only a picture's page: nothing from outside can send a person elsewhere
+    // sent here to log on (`?next=`): back there as soon as somebody plays. Only a picture's page or a page of the admin: nothing from outside can send a person elsewhere
     const next = inject(ActivatedRoute).snapshot.queryParamMap.get('next');
-    if (next && /^\/play\/round\/[A-Za-z0-9_-]+$/.test(next)) {
+    if (next && /^(\/play\/round\/[A-Za-z0-9_-]+|\/jigsaw(\/ai-use)?)$/.test(next)) {
       effect(() => {
         if (this.users.acting()) untracked(() => void this.router.navigateByUrl(next));
       });

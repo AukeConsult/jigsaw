@@ -23,7 +23,7 @@ import { menuOfRoute } from '../play-route';
   selector: 'play-main',
   imports: [RouterOutlet, PlayFrame, AdminBanner],
   host: { class: 'd-block', '[attr.data-table]': 'look.table()', '[attr.data-text-size]': 'text.value().size', '[attr.data-font]': 'text.value().font', '[attr.data-tiles]': 'sizes.tileSize.value()', '[attr.data-labels]': 'sizes.labelSize.value()', '[attr.data-tile-details]': 'details.shown()' },
-  template: '<app-admin-banner [inApp]="true" /><router-outlet></router-outlet><play-frame [menu]="menu()" />',
+  template: '<app-admin-banner /><router-outlet></router-outlet><play-frame [menu]="menu()" />',
 })
 export class PlayMain implements OnInit {
   /** the theme of the app, the account's preference: the stylesheet paints it behind the pages and the menu */

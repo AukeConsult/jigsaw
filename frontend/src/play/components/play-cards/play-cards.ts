@@ -14,7 +14,7 @@ import { PlayListFilter, listQuestion } from '../../play-list-filter';
 import { PlayCard } from '../play-card/play-card';
 
 /**
- * All the jigsaws, the newest first, as cards (a fresh copy of the website's finder for the app, with no search, no list view and no count), filtered by what the preferences chose: the next page when the end comes into view.
+ * All the jigsaws, the newest first, as cards (no search, no list view and no count), filtered by what the preferences chose: the next page when the end comes into view.
  */
 @Component({
   selector: 'play-cards',
@@ -37,7 +37,7 @@ export class PlayCards implements OnInit {
   /** the jigsaws found, as many pages as have been asked for */
   readonly items = signal<JigsawSummary[]>([]);
   readonly hasMore = signal(false);
-  /** the pictures with the other tiles (information, offers, packages) among them: one rule for the app and the website (`HomeFeed.merge`, through `FeedService`) */
+  /** the pictures with the other tiles (information, offers, packages) among them: the rule is the model's (`HomeFeed.merge`, through `FeedService`) */
   protected readonly tiles = computed(() => this.feed.tiles(this.items(), !this.hasMore(), this.filter()));
   protected readonly isPicture = isPicture;
   private readonly language = inject(LanguageService).lang;

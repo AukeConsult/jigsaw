@@ -1,26 +1,22 @@
-import { Component, inject, input, output, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject, output, signal } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { PlaySpec } from '../../models/shared/play';
-import { RoundLook } from './round-look';
 import { PuzzelRound } from './puzzel-round';
 
 /**
- * **The details of the round that is open**: the name of the jigsaw and who made it, how it is cut, how far the round has come, who sees the round, and what the player can do with it (reset it, delete it, the cheat that shows the numbers
+ * **The details of the round that is open**: the name of the jigsaw and who made it, how it is cut, how far the round has come, the time played (of a timed round), who sees the round, and what the player can do with it (reset it, delete it, the cheat that shows the numbers
  * of the places). It shows what the round (`PuzzelRound`, provided by the page) has and calls it; **the page decides where to go** when the round is deleted (`deleted`) or an own round is started (`own`: the new round, or nothing when the
- * jigsaw is a picture, which is cut as the person chooses). The same component in the website (beside the board, folded away on a narrow screen) and in the app (`inApp`: the name is no link to the page of the website).
+ * jigsaw is a picture, which is cut as the person chooses).
  */
 @Component({
   selector: 'app-puzzel-details',
-  imports: [RouterLink, TranslocoDirective, RoundLook],
-  providers: [provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawNew')],
+  imports: [TranslocoDirective],
+  providers: [provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawShell')],
   templateUrl: './puzzel-details.html',
 })
 export class PuzzelDetails {
   protected readonly round = inject(PuzzelRound);
 
-  /** the app: the name of the jigsaw is no link to a page of the website */
-  readonly inApp = input(false);
   /** the round was deleted for good */
   readonly deleted = output<void>();
   /** another player's round was being looked at and the player asked for their own: the new round, or null (a picture: its own page asks for the number of pieces) */

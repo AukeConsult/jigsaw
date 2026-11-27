@@ -48,11 +48,6 @@
     "failed": "No se pudo iniciar tu sesión con este enlace. Pide uno nuevo."
   },
   "account": {
-    "title": "Tu inicio de sesión",
-    "signedInAs": "Sesión iniciada como",
-    "verified": "Correo verificado",
-    "notVerified": "Correo no verificado",
-    "shared": "Este inicio de sesión funciona en Karins jigsaw y en Seven Friends.",
     "signOut": "Cerrar sesión"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "Ninguna cuenta tiene todavía este inicio de sesión.",
     "makeNew": "Crear una cuenta nueva con mi inicio de sesión",
     "haveCode": "Tengo un código de enlace",
-    "codeHelp": "Quien pueda usar la cuenta crea el código: abre la cuenta, pulsa Editar cuenta y luego Añadir otro inicio de sesión. Escribe aquí el alias de la cuenta y el código.",
+    "codeHelp": "Quien pueda usar la cuenta crea el código: abre la cuenta y pulsa Añadir otro inicio de sesión. Escribe aquí el alias de la cuenta y el código.",
     "username": "Alias de la cuenta",
     "code": "Código de enlace",
     "use": "Usar el código",

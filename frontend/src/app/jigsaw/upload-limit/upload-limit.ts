@@ -8,7 +8,7 @@ import { JigsawUserService } from '../jigsaw-user.service';
 
 /**
  * Over the Save button of a new picture or jigsaw: **what an account that is not verified has left of its uploaded pictures** (`AccountLimits`), with the way to verify the account; when it is full it says so and `full` is
- * true, so the form does not offer to save. A **verified user who is no publisher** is told the same of the pictures that are not public. Nothing for a publisher or an admin. The API refuses by itself: this only says why before the person tries. Used by the form of the app and of the website.
+ * true, so the form does not offer to save. A **verified user who is no publisher** is told the same of the pictures that are not public. Nothing for a publisher or an admin. The API refuses by itself: this only says why before the person tries. Used by the form of a picture (`play-picture-form`).
  */
 @Component({
   selector: 'app-upload-limit',
@@ -31,7 +31,7 @@ import { JigsawUserService } from '../jigsaw-user.service';
             } @else {
               {{ t('jigsawNew.limitCount', { count: count(), max: max() }) || count() + ' of ' + max() + ' pictures used.' }}
             }
-            <a class="alert-link ms-1" [routerLink]="inApp() ? '/play/account' : '/account'">{{ t('jigsawNew.limitVerify') || 'Verify your account' }}</a>
+            <a class="alert-link ms-1" routerLink="/play/account">{{ t('jigsawNew.limitVerify') || 'Verify your account' }}</a>
           }
         </div>
       }
@@ -43,8 +43,6 @@ export class UploadLimit {
   private readonly jigsaws = inject(JigsawService);
   /** a new picture is being made (a change of one that is there adds none) */
   readonly adding = input(true);
-  /** the form is that of the app */
-  readonly inApp = input(false);
   /** the limit is the one on pictures that are not public (a verified user), not the one of an account that is not verified */
   protected readonly privateOnly = computed(() => !!this.users.acting() && AccountLimits.verified(this.users.acting()));
   protected readonly max = computed(() => (this.privateOnly() ? PRIVATE_PICTURES_MAX : UNVERIFIED_PICTURES_MAX));

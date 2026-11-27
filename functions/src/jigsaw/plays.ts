@@ -22,7 +22,7 @@ export interface PlayRecord {
 export interface PlayStore {
   /** Makes a play (its id is made here); the positions are kept with it, and the pieces of the cut it has of its own (a round of a picture) under it. */
   create(jigsawId: string, play: Omit<PlaySpec, "id">, positions: PlayPositions, pieces?: JigsawPiece[]): Promise<PlaySpec>;
-  /** the pieces of the cut a round has of its own (`play.cut`), by number: the documents under the round, the same as the pieces under a jigsaw (without graphics) */
+  /** the pieces of the cut a round has of its own (`play.cut`), by number: the documents under the round, the same as the pieces under a jigsaw */
   roundPieces(jigsawId: string, playId: string): Promise<JigsawPiece[]>;
   /** the plays of a jigsaw, newest first; of one user when a user is given */
   list(jigsawId: string, userId?: string): Promise<PlaySpec[]>;
@@ -206,7 +206,7 @@ export interface PlayDeps {
  * The plays of a jigsaw, `/jigsaw/:id/plays`:
  *  GET /summary: {played, rounds, players}: whether anyone has started a game of it, how many rounds and by how many accounts. GET ?userId=: its plays (of that user), newest first. POST {userId}: starts a play for the user with that UID (the play keeps the UID and the name of the user) (the pieces are scattered); 403 when it is a picture of a package that player does not have.
  *  GET: the plays of all the users can be read (a round of another player can be looked at). Changing or deleting a round needs the header `X-Jigsaw-User` to be its player (403 otherwise).
- *  GET /:playId: the play, the settings it is played with, and the pieces as it has them (without the graphics).
+ *  GET /:playId: the play, the settings it is played with, and the pieces as it has them.
  *  PATCH /:playId/positions {moves, storeWidth?, elapsedMs?}: where pieces are now (how wide the store of this game has grown to, and how long it has been played: that only grows); how many are in place and whether the game is solved follows from that. DELETE /:playId.
  */
 export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {

@@ -1,4 +1,4 @@
-import { Component, computed, input, model } from '@angular/core';
+import { Component, computed, model } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { CATEGORIES_MAX_PER_JIGSAW, JigsawCategories, JigsawCategory } from '../../models/shared/category';
 
@@ -15,8 +15,6 @@ import { CATEGORIES_MAX_PER_JIGSAW, JigsawCategories, JigsawCategory } from '../
 export class CategoryPicker {
   /** the keys of the chosen categories and sub-categories */
   readonly selected = model<string[]>([]);
-  /** the id of the label (so a form can point at it) */
-  readonly id = input('categories');
 
   protected readonly categories = JigsawCategories.all();
   protected readonly max = CATEGORIES_MAX_PER_JIGSAW;

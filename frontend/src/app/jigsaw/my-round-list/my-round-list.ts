@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { tr } from '../../core/i18n';
@@ -9,9 +9,9 @@ import { JigsawUserService } from '../jigsaw-user.service';
 import { PlaysService, UserGame } from '../plays.service';
 
 /**
- * **The list of the rounds the user has played**, the one list for the website's page of the user and for the app: a row for each round, with the picture, the name, going or solved and how many pieces are in place, when it was
- * started and the time played, and Continue (or Look, for a solved one) and Delete (asked first). Nothing played yet says so, with the ways to begin. With `inApp` it is the list of the app, which has no pages of the website to go to: a
- * round opens the puzzle in the app (`/play/jigsaw/:id`, where the round that is going is gone on with), and there is no link to the page where jigsaws are looked for.
+ * **The list of the rounds the user has played** (`/play/mine/rounds`): a row for each round, with the picture, the name, going or solved and how many pieces are in place, when it was
+ * started and the time played, and Continue (or Look, for a solved one) and Delete (asked first). Nothing played yet says so, with the way to begin. A
+ * round opens the puzzle (`/play/jigsaw/:id`, where the round that is going is gone on with).
  */
 @Component({
   selector: 'app-my-round-list',
@@ -24,8 +24,6 @@ export class MyRoundList {
   private readonly plays = inject(PlaysService);
   private readonly images = inject(JigsawImageService);
 
-  /** the list of the app: a round opens the puzzle of the app, and there is no link to the pages of the website */
-  readonly inApp = input(false);
 
   /** a time played, as a clock (`12:34`) */
   protected readonly clock = clockOf;
@@ -59,9 +57,9 @@ export class MyRoundList {
     }
   }
 
-  /** Where a round opens: the page of the round in the website, or the puzzle of the jigsaw in the app. */
-  protected link(jigsawId: string, playId: string): string[] {
-    return this.inApp() ? ['/play/jigsaw', jigsawId] : ['/jigsaw', jigsawId, 'play', playId];
+  /** Where a round opens: the puzzle of the jigsaw. */
+  protected link(jigsawId: string): string[] {
+    return ['/play/jigsaw', jigsawId];
   }
 
   /** The game is deleted for good (the jigsaw and the other games stay). */

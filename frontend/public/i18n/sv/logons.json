@@ -48,11 +48,6 @@
     "failed": "Kunde inte logga in dig med den här länken. Be om en ny."
   },
   "account": {
-    "title": "Din inloggning",
-    "signedInAs": "Inloggad som",
-    "verified": "E-post verifierad",
-    "notVerified": "E-post inte verifierad",
-    "shared": "Den här inloggningen fungerar i Karins jigsaw och i Seven Friends.",
     "signOut": "Logga ut"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "Inget konto har den här inloggningen än.",
     "makeNew": "Skapa ett nytt konto med min inloggning",
     "haveCode": "Jag har en länkkod",
-    "codeHelp": "Den som kan använda kontot gör koden: öppna kontot, tryck Ändra kontot, sedan Lägg till en annan inloggning. Skriv kontoaliaset och koden här.",
+    "codeHelp": "Den som kan använda kontot gör koden: öppna kontot och tryck på Lägg till en annan inloggning. Skriv kontoaliaset och koden här.",
     "username": "Kontoalias",
     "code": "Länkkod",
     "use": "Använd koden",

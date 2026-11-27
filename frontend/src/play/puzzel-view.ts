@@ -18,8 +18,8 @@ export class PuzzelView {
   /** the panel with the table and the sound of this round */
   readonly look = signal(false);
 
-  /** the puzzle that is open is finished (told by the page): the menu has no help picture and no border pieces then */
-  readonly solved = signal(false);
+  /** the puzzle that is open is finished (told by the page): the menu has no help picture and no border pieces then, and the board shows neither */
+  readonly solved = this.helper.solved;
 
   /** The switch, as a signal: on or off. */
   state(toggle: PuzzelToggle): WritableSignal<boolean> {

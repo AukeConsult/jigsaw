@@ -5,8 +5,8 @@ import { isBoolean, preferenceSignal } from '../app/core/preferences';
 export type ListToggle = 'favorites';
 
 /**
- * **What the home page shows**: the band of the rounds that are going on the top of the list (`app-my-rounds` of the jigsaw app, the same band; a switch of the preferences) and whether the list shows only the pictures the user has
- * ticked as favorites (a switch of the menu of the helper; the filter `favorites`, the same as the jigsaw app's). Kept on the device (rule 12 of `CLAUDE.md`).
+ * **What the home page shows**: the band of the rounds that are going on the top of the list (`app-my-rounds`; a switch of the preferences) and whether the list shows only the pictures the user has
+ * ticked as favorites (a switch of the menu of the helper; the filter `favorites` of the search). Kept on the device (rule 12 of `CLAUDE.md`).
  */
 @Injectable({ providedIn: 'root' })
 export class ListView {

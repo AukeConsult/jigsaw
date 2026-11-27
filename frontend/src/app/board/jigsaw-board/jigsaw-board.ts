@@ -142,11 +142,11 @@ export class JigsawBoard {
   protected readonly hasMoved = signal(readPreference(HAS_MOVED_KEY, false, isBoolean));
   /** a jigsaw: how close to its own grid point a piece has to be dropped to click into place, in pixels (0: never) */
   readonly snapRange = input(0);
-  /** a banner above the jigsaw pieces area, with a switch that shows or hides the helper picture (the whole picture at a quarter of its width and height) */
+  /** the board offers the helper picture (the whole picture, small, in a frame that floats over the page); the switch that shows or hides it is not the board's (`JigsawHelper`) */
   readonly helperBanner = input(false);
   /** whether the helper picture is shown (on to begin with) */
   private readonly jigsawHelper = inject(JigsawHelper);
-  readonly helper = this.jigsawHelper.helper; // the switch is in the top menu (see `JigsawHelper`)
+  readonly helper = this.jigsawHelper.helper; // the switch is in the menu of the app (see `JigsawHelper`)
   /** the helper picture is shown: the switch is on, and the round is not completed (a completed round has no helper) */
   readonly helperShown = computed(() => this.helper() && !this.jigsawHelper.solved());
   /** where the floating frame of the helper picture is on the window (its top left corner, in pixels): it can be moved by its title */
@@ -198,7 +198,7 @@ export class JigsawBoard {
   }
 
   /** helper: show only the corner and edge pieces (the pieces from the inside of the picture are hidden); off to begin with, not saved */
-  readonly edgesOnly = this.jigsawHelper.edgesOnly; // the switch is in the top menu
+  readonly edgesOnly = this.jigsawHelper.edgesOnly; // the switch is in the menu of the app
   /** the board has jigsaw pieces */
   readonly hasPieces = computed(() => this.placed().some((p) => p.piece));
   /** the pieces that are hidden because only corner and edge pieces are shown: the ones from the inside of the picture */
@@ -292,12 +292,6 @@ export class JigsawBoard {
       { left: store.left, top: 0, width: store.width, height: store.height },
     ];
   }
-
-  /** how many pieces there are, and how many of them are shown (for the helper banner) */
-  readonly pieceCounts = computed(() => {
-    const total = this.placed().filter((p) => p.piece).length;
-    return { total, shown: total - this.hiddenIds().size };
-  });
 
   /** how big the helper picture is, as a share of the size of the picture (from 1/10 to 1/2) */
   readonly helperScale = preferenceSignal('jigsaw.helperScale', HELPER_SCALE_START, isScale);
@@ -394,8 +388,8 @@ export class JigsawBoard {
     return Math.min(store ? SCALE_MAX : 1, Math.max(SCALE_MIN, fit)); // a jigsaw is drawn bigger than its stored size when the room is there: the picture gets 2/3 of the width
   });
   /**
-   * Whether the store frame is below the picture instead of beside it: on a screen narrower than `--app-store-below` (styles.scss; the same width as where the
-   * sidebar of the jigsaw is folded away). Only how it is drawn changes: the pieces keep the places they are stored at, and `place` puts them where the frame is shown.
+   * Whether the store frame is below the picture instead of beside it: on a screen narrower than `--app-store-below` (styles.scss).
+   * Only how it is drawn changes: the pieces keep the places they are stored at, and `place` puts them where the frame is shown.
    */
   readonly stacked = computed(() => {
     const store = this.store();
@@ -774,39 +768,21 @@ export class JigsawBoard {
     // the pieces area fills the screen: measured when the page is drawn, and again when the window is resized or scrolled
     afterNextRender(() => {
       this.measureArea();
-      // the room for the area changes with the window, and with the sidebar and the page around it
+      // the room for the area changes with the window and the page around it
       // the working area fills the screen down to the footer, so it is measured again whenever the screen, the page or the footer changes size, not only when the window says it was resized (a device mode, a rotation, the on-screen keyboard)
       const watch = new ResizeObserver(() => this.measureArea());
       watch.observe(this.root().nativeElement);
       watch.observe(document.documentElement);
-      // the bars round the page (the menu, the bar of the round): where the area begins and where the footer begins move when one of them changes height (its words are hidden to keep it on one line, a font arrives), and the
-      // area is made as high as is left between them, so each bar is watched (a bar that comes later is found when the shell gets a new child)
-      const shell = document.querySelector('app-jigsaw-shell');
-      const watchBars = () => {
-        for (const bar of shell?.children ?? []) if (bar.matches('.app-navbar, .app-toolbar')) watch.observe(bar);
-      };
-      watchBars();
-      const bars = new MutationObserver(watchBars);
-      if (shell) bars.observe(shell, { childList: true });
       const viewport = window.visualViewport;
       const remeasure = () => this.measureArea();
       viewport?.addEventListener('resize', remeasure);
       window.addEventListener('orientationchange', remeasure);
       this.destroyRef.onDestroy(() => {
         watch.disconnect();
-        bars.disconnect();
         viewport?.removeEventListener('resize', remeasure);
         window.removeEventListener('orientationchange', remeasure);
       });
     });
-    // what the person chose for the helper stays for the session: when the page is reloaded or left and come back to, the switches, and the place and size of the frame, are as they were
-    // the top menu shows the helper while this board has it, and what it needs to know about the board
-    const helper = this.jigsawHelper;
-    effect(() => helper.active.set(this.helperBanner()));
-    effect(() => helper.hasPicture.set(!!this.picture()));
-    effect(() => helper.hasPieces.set(this.hasPieces()));
-    effect(() => helper.counts.set(this.pieceCounts()));
-    this.destroyRef.onDestroy(() => helper.active.set(false));
     // beside the picture the frame can be wider than the store the pieces were spread over (a wide screen): the store is made as wide as the frame, so a piece can go all the way across it (the page keeps it)
     effect(() => {
       const store = this.store();

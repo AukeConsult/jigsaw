@@ -9,7 +9,7 @@ import { JigsawSummary } from '../models/shared/jigsaw-search';
 
 /**
  * The tiles of the home page that are not pictures (information, offers, packages), read from the API (`GET /jigsaw-feed`), and the one rule that puts them among the pictures (`HomeFeed.merge`). The
- * website's finder and the app's list use this service the same way, so the two show the same tiles in the same places. Tiles of the app's own (made in the frontend, `source: 'local'`) would be added
+ * list of the home page puts them in their places with it, and the pages of the packages find theirs here. Tiles of the app's own (made in the frontend, `source: 'local'`) would be added
  * to `others` here too.
  */
 @Injectable({ providedIn: 'root' })

@@ -7,7 +7,7 @@ import { PuzzelRound } from './puzzel-round';
 
 /**
  * **The table and the sound of the round that is open.** A round follows the player's preference of the account until something is chosen here: that is then **this round's own, stored on the round**, over the preference; "Use my
- * preferences" takes it away again. The panel of the app's puzzle (the menu entry Table and sound) and the details of the website's round show it. Another player's round has nothing to choose.
+ * preferences" takes it away again. The panel of the puzzle (the menu entry Table) shows it. Another player's round has nothing to choose.
  */
 @Component({
   selector: 'app-round-look',

@@ -18,8 +18,7 @@ $soft-pattern: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' w
 $soft-pattern-size: 9.375rem 9.375rem, auto; // 150 px at the normal text size
 // the same little pieces, in white (for a band with a tinted wash under it)
 $white-pieces: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><g fill-opacity='.85'><path transform='translate(10 14) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(96 22) rotate(28) scale(.42)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(40 96) rotate(-18) scale(.5)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/><path transform='translate(112 100) rotate(75) scale(.4)' d='M0 0H28C28-14 52-14 52 0H80V28C94 28 94 52 80 52V80H0V52C14 52 14 28 0 28Z' fill='white'/></g></svg>");
-// the front page puts the text beside the photo from this width (Bootstrap has no breakpoint here, so the page has its own classes below)
-$bp-front: 500px;
+// a width Bootstrap has no breakpoint for (no rule uses it now)
 
 /** the rules inside apply from this width up */
 @mixin from($breakpoint) {
@@ -111,11 +110,7 @@ $fluid-to: 87.5; // 1400px in rem
 
   // colours: what they are used for
   --app-frame: var(--app-primary); // the frame around the picture area of a jigsaw
-  --app-nav-blue: #0d6efd; // the colours of the menu links: the blue, green, yellow-orange and purple that the page behind them has
-  --app-nav-green: #198754;
-  --app-nav-amber: #d9680a;
-  --app-nav-purple: #6f42c1;
-  --app-nav-red: #dc3545;
+  --app-nav-blue: #0d6efd; // the blue of the sample of the Jigsaw theme in the choice of the table
   // the colours of the choices (`.choice-group`): each choice in a row has the next colour, a soft tint when it is not chosen and the full colour when it is. The one place to change them (a style sheet of the app will set them)
   --app-choice-1: #0d6efd;
   --app-choice-2: #198754;
@@ -177,30 +172,26 @@ $fluid-to: 87.5; // 1400px in rem
   --app-picture-backdrop: #ffffff; // what a picture with see-through parts gets behind it when it is made
 
   // sizes
-  --app-sidebar-width: 17rem;
   --app-page-max: 75rem; // the widest a page gets (1200 px at the normal text size), in the middle: the same for every page of the app
   --app-form-width: 40rem;
   // who sees a jigsaw, as a soft see-through background of its row: hidden grey, private blue, public green
   --app-vis-hidden-bg: rgba(108, 117, 125, 0.14);
   --app-vis-private-bg: rgba(13, 110, 253, 0.1);
   --app-vis-public-bg: rgba(25, 135, 84, 0.1);
-  --app-form-width-wide: 56rem; // a form page with lists in it (the page of the user)
   --app-grip-size: 1.75rem; // the corner that sizes the helper picture
-  --app-tile-gap: 0.25rem;
-  --app-navbar-height: 3.5rem; // the menu at the top of a wide screen: what a band stuck under it leaves room for
 
   // layers (z-index): the whole app uses these bands and nothing else (rule 13 in CLAUDE.md)
   //   0 – 99      the page: its content (a card or a button may lift itself over its neighbours with Bootstrap's z-1 … z-3)
   //   100 – 199   what is round the page: the sticky bands and the bars (the menu, the toolbar, the corner)
   //   200 – 899   the play: the working area of a round and all that is in it. It is a stacking context of its own, so what is in it only orders itself (pieces, controls)
-  //   900 and up  the overlays, always over the play: the menus and popups that open, the sidebar opened over the board, the helper picture, the dialogs (Bootstrap's own: dropdown 1000 … toast 1090)
+  //   900 and up  the overlays, always over the play: the menus and popups that open, the panels opened over the board, the helper picture, the dialogs (Bootstrap's own: dropdown 1000 … toast 1090)
   --app-z-band: 110;
   --app-z-bar: 120;
   --app-z-play: 200;
   --app-z-pieces: 1; // in the play: the pieces
   --app-z-controls: 2; // in the play: the handles and the hint, over the pieces
   --app-z-overlay: 1000; // a menu or a popup that opens from a bar, over the play
-  --app-z-sidebar: 1010; // the sidebar a small screen opens over the board
+  --app-z-sidebar: 1010; // the panels that open over the board
   --app-z-helper: 1040;
   --app-z-veil: -1; // the white veil over a dark theme of the app: behind everything on the page, over the theme on the body
   --app-z-play-frame: 1100; // the frame of the app (`.play-frame`) that lies over the page and shows the helper: the highest layer, over the dialogs (1060) and Bootstrap's toasts (1090) too
@@ -213,7 +204,7 @@ $fluid-to: 87.5; // 1400px in rem
   // motion
   --app-blink-duration: 0.7s;
 
-  // the width under which the sidebar of a jigsaw is folded away behind a bar (read by the code that needs to know: the same as `$bp-xl`)
+  // the width under which a screen counts as narrow for the puzzle (read by the code that needs to know: the same as `$bp-xl`)
   --app-sidebar-fold: #{$bp-xl};
   // the width under which the pieces frame of a jigsaw is below the picture instead of beside it
   --app-store-below: #{$bp-xl};
@@ -459,7 +450,7 @@ small,
   --bs-btn-padding-x: var(--app-btn-sm-pad-x);
 }
 
-// the Find page is at most 1200 px wide and in the middle, so the choices are not spread over a wide screen
+// a page (and the Filter page) is at most 1200 px wide and in the middle, so what is on it is not spread over a wide screen
 .find-page,
 .page-max {
   max-width: var(--app-page-max); // a page does not stretch over a very wide screen: it stays in the middle
@@ -934,17 +925,7 @@ play-picture-form app-jigsaw-header > .card {
   max-width: none; // the app's info pages use the whole width of their page (`.page-max`)
 }
 
-.input-px {
-  // a number field for a size in pixels (four digits): as wide as it needs, not the whole line
-  width: 4rem;
-  flex: none;
-}
-
-.size-select {
-  min-width: 6.5rem; // the list of sizes shares its line with the width and the height: it gives way to them, down to this
-}
-
-// a block of choices: its label, its row of choices and its help close together (the forms, and the filter of the Find page)
+// a block of choices: its label, its row of choices and its help close together (the forms, and the Filter page)
 .choice-block {
   display: block;
 
@@ -954,36 +935,6 @@ play-picture-form app-jigsaw-header > .card {
 
   .form-text {
     margin-top: 0.25rem;
-  }
-}
-
-// a block of choices with a floating label: the label sits on the top line of a thin box round the choices, and the boxes lie side by side and wrap when there is no room (what is shown of a jigsaw, in the card)
-.choice-float-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.75rem 0.5rem;
-  margin-top: 0.5rem; // room for the labels that sit on the top lines
-  margin-bottom: 0.5rem;
-}
-
-.choice-float {
-  position: relative;
-  padding: 0.75rem 0.5rem 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--app-primary) 28%, transparent);
-  border-radius: var(--bs-border-radius);
-
-  // the label is in the box (so the box is at least as wide as the label), pulled up over the top line, with the colour of the card behind its words so the line is cut there
-  .form-label {
-    display: block;
-    width: fit-content;
-    margin: -1.25rem 0 0.3rem -0.35rem;
-    padding: 0 0.35rem;
-    background: var(--bs-card-bg, var(--bs-body-bg));
-    color: var(--bs-secondary-color);
-    font-size: var(--app-fs-small);
-    line-height: 1.2;
-    white-space: nowrap;
   }
 }
 
@@ -1070,7 +1021,7 @@ app-category-picker {
   --bs-btn-padding-x: var(--app-btn-main-pad-x);
 }
 
-// the call to play on the page of a jigsaw: the words as big as the text (the main button's size), with the room of the main button
+// a button beside a heading (the Share button): the words as big as the text (the main button's size), with the room of the main button
 .btn-heading {
   --bs-btn-font-size: var(--app-fs-text);
   --bs-btn-padding-y: var(--app-btn-main-pad-y);
@@ -1125,10 +1076,6 @@ app-category-picker {
   }
 }
 
-.navbar {
-  --bs-navbar-brand-font-size: var(--app-fs-heading);
-}
-
 // ---- the toolbar: a row of plain words (no boxes, no padding at the sides) -----------------------------------------------------------------------------
 // The one standard for a row of choices and actions at the top of a page or a part of it. Every text in it starts exactly where it looks to start, so it lines up
 // with what is above and below it (a list, a note under it), and the gaps between the parts are one size. Use:
@@ -1143,7 +1090,7 @@ app-category-picker {
   row-gap: 0.25rem;
 }
 
-// the choices of a search (Find page, the filter of a list) are packed close: small gaps between the rows and under the headings, so more of them are seen at once
+// the choices of a search (the filter of the list) are packed close: small gaps between the rows and under the headings, so more of them are seen at once
 app-jigsaw-filter {
   display: block;
 
@@ -1230,17 +1177,6 @@ app-jigsaw-filter {
   }
 }
 
-// a bigger one, for the main actions of a front page (a toolbar with `toolbar-stack` puts them one under the other): the size of the text, the size of a main button
-.link-action.large {
-  font-size: var(--app-fs-text);
-}
-
-.toolbar.toolbar-stack {
-  flex-direction: column;
-  align-items: flex-start;
-  row-gap: 0.25rem;
-}
-
 // a word in a sentence that does something (a link that is a button)
 .link-inline {
   padding: 0;
@@ -1258,37 +1194,6 @@ app-jigsaw-filter {
 .segmented {
   display: inline-flex;
   gap: 1rem;
-
-  // the tabs of a page (not a small switch): each a button with a frame, the one that is open filled with the colour of the page, so it is plain which one it is; the words one step bigger
-  &.tabs {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-
-    @include below($bp-md) {
-      gap: 0.25rem;
-    }
-
-    > .btn {
-      --bs-btn-font-size: var(--app-fs-text);
-      --bs-btn-padding-x: 0.75rem;
-      --bs-btn-padding-y: 0.35rem;
-      --bs-btn-hover-bg: var(--bs-tertiary-bg);
-      border: var(--bs-border-width) solid var(--bs-border-color);
-      border-radius: var(--bs-border-radius);
-      background: var(--bs-body-bg);
-
-      @include below($bp-md) {
-        --bs-btn-padding-x: 0.5rem;
-        --bs-btn-padding-y: 0.3rem;
-      }
-    }
-
-    > .btn-check:checked + .btn {
-      background: var(--app-primary);
-      border-color: var(--app-primary);
-      color: var(--bs-white);
-    }
-  }
 
   > .btn {
     --bs-btn-padding-x: 0;
@@ -1332,80 +1237,12 @@ app-jigsaw-filter {
   --bs-btn-disabled-border-color: var(--scale-color);
 }
 
-// the front page: the photo above the text on a phone, the text on the left and the photo on the right from `$bp-front` up
-.front-page {
-  padding-block: 1.5rem;
-
-  @include from($bp-front) {
-    padding-block: 3rem;
-  }
-}
-
-.front-split {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  .front-text {
-    order: 2;
-  }
-
-  .front-photo {
-    order: 1;
-  }
-
-  @include from($bp-front) {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 3rem;
-
-    .front-text,
-    .front-photo {
-      flex: 1 1 0;
-      min-width: 0;
-    }
-
-    .front-text {
-      order: 1;
-    }
-
-    .front-photo {
-      order: 2;
-    }
-  }
-}
-
-.front-wide-only {
-  display: none;
-
-  @include from($bp-front) {
-    display: block;
-  }
-}
-
-.front-narrow-only {
-  @include from($bp-front) {
-    display: none;
-  }
-}
-
-.toolbar.front-actions {
-  align-items: center;
-
-  @include from($bp-front) {
-    align-items: flex-start;
-    margin-top: 3rem;
-    row-gap: 0.75rem;
-  }
-}
-
-// the photo on the front page: always the whole picture, never cut, only made smaller to fit the column and the height of the screen (a little less tall on a phone, so the text and buttons stay in view)
 /* Karin's picture in the welcome band: all of the photo, at most a third as high as the screen (and not more than 40 % as wide) */
 /* the almost finished jigsaws in the welcome band: about a third of it, beside the text and as high as the photo, on a wide screen; under the text and as wide as the band on a narrow one, and fade from one to the next */
 /* The welcome band when there is no round going. Narrow: the jigsaws with the welcome under them at the left, Karin's picture (and her note) at the right. Wide (`$bp-lg` and up): the
    jigsaws at the left, the welcome in the middle, Karin's picture at the right. */
-// the welcome is a container (`app-welcome`): it has three columns, the jigsaws, the text (at least 300 px) and Karin's picture, when it has this much room, whatever the window is
-$welcome-three: 50rem;
+// the welcome is a container (`app-welcome`): the text with Karin's picture beside it, and how to play under them; with this much room, whatever the window is, how to play goes on beside the picture
+$welcome-wide: 50rem;
 app-welcome {
   display: block;
   container: welcome / inline-size;
@@ -1416,66 +1253,27 @@ app-welcome {
   gap: 0.5rem 1rem;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    'art karin'
     'text karin'
     'news news';
   align-items: start;
 
-  @container welcome (min-width: #{$welcome-three}) {
-    // the picture and Karin's picture have the width they need, the text is the middle one (its lines at most 34rem, in the middle of its place); the news is a row of its own under the picture and the text, from the left edge to Karin's picture
-    grid-template-columns: auto minmax(18.75rem, 1fr) auto; // the text is at least 300 px wide
+  @container welcome (min-width: #{$welcome-wide}) {
     grid-template-areas:
-      'art text karin'
-      'news news karin';
+      'text karin'
+      'news karin';
+    grid-template-rows: auto 1fr; // the text and how to play stay together at the top, however high the picture is
     column-gap: 1.5rem;
   }
 }
 
 .welcome-text {
   grid-area: text;
-
-  @container welcome (min-width: #{$welcome-three}) {
-    align-self: start; // its top is the top of the pictures
-    width: 100%;
-    max-width: 34rem;
-    justify-self: center;
-  }
 }
 
 .welcome-news {
   grid-area: news;
   display: block;
   align-self: start;
-}
-
-/* the almost finished jigsaws, fading from one to the next: as wide as their place, and not higher than a third of the screen */
-.welcome-art {
-  grid-area: art;
-  position: relative;
-  width: 100%;
-  aspect-ratio: 372 / 288; // the shape of the pictures
-  max-height: 33dvh;
-
-  @container welcome (min-width: #{$welcome-three}) {
-    width: auto; // as wide as its height says
-    height: var(--welcome-art-h, min(33dvh, 20rem)); // as high as the text beside it (the page measures it), so its bottom edge is the bottom edge of the last step
-    max-height: min(33dvh, 20rem);
-  }
-
-  img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: left top; // in the corner
-    opacity: 0;
-    transition: opacity 1s ease;
-
-    &.on {
-      opacity: 1;
-    }
-  }
 }
 
 /* Karin's picture with her note under it, as wide as the picture: the note wraps inside that width */
@@ -1499,32 +1297,12 @@ app-welcome {
   object-fit: cover;
 }
 
-.front-picture {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 60vh;
-  margin-inline: auto;
-
-  @include from($bp-front) {
-    max-height: calc(100vh - 12rem);
-  }
-}
-
-// small pictures that flow over the width and wrap to the next line (the jigsaws on the front page): each is a link with a picture of its own
-.thumb-flow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
 /* the element of the band takes no box of its own: the band inside it is sticky, and a sticky box only sticks inside its parent, so its parent has to be the whole page */
 app-my-rounds {
   display: contents;
 }
 
-/* a band stuck to the top of the page (under the menu on a wide screen, where the menu is at the top) with cards in one row that scrolls sideways */
+/* a band stuck to the top of the page with cards in one row that scrolls sideways */
 .my-rounds {
   position: sticky;
   top: 0.5rem; // a little below the top of the page, so the pattern shows above it
@@ -1580,7 +1358,7 @@ app-my-rounds {
   }
 
   html {
-    overflow-x: hidden; // no bounce or pull-to-refresh at the top and the bottom either: it moved the menu fixed at the bottom of the screen
+    overflow-x: hidden; // no bounce or pull-to-refresh at the top and the bottom either: it moved the menu stuck to the bottom of the screen
     touch-action: pan-y pinch-zoom;
   }
 }
@@ -1613,7 +1391,7 @@ app-my-rounds {
   transform: rotate(90deg);
 }
 
-// menu style: one text size for everything that is written in a menu or a bar (the links, the switches, the clock, the name, the buttons): the normal text size. The words under an icon on a phone keep their own tiny size (`.nav-label`)
+// menu style: one text size for everything that is written in a menu or a bar (the links, the switches, the clock, the name, the buttons): the normal text size. 
 // menu font: the text of the menu of the app (the helper, floating or as a bar), following the screen (`--app-fs-menu`): everything in it, the links, switches, buttons and the list of languages that drops from a bar
 .menu-font {
   font-size: var(--app-fs-menu);
@@ -1636,8 +1414,8 @@ app-my-rounds {
 }
 
 // a bar that must stay on one line (`LabelFit`, `core/label-fit.ts`): it measures, and when everything does not fit on one line the words of its buttons are hidden (`fit-1`: the icons stay, the words stay for a
-// screen reader), and then what can go (`fit-2`: the name beside the logo, and the clock, `.fit-drop`)
-.fit-1 :is(.fit-label, .nav-label) {
+// screen reader), and then what can go (`fit-2`: the name beside the logo)
+.fit-1 .fit-label {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -1649,113 +1427,8 @@ app-my-rounds {
   border: 0;
 }
 
-.fit-2 :is(.brand-text, .fit-drop) {
+.fit-2 .brand-text {
   display: none;
-}
-
-/* the words of the menu: beside the icon on a wide screen, under it on a phone or a tablet (an icon alone is guessed wrong) */
-.nav-label {
-  display: block;
-  font-size: var(--app-fs-tiny);
-  line-height: 1.1;
-
-  @include from($bp-md) {
-    display: inline;
-    font-size: inherit;
-  }
-}
-
-.app-navbar .nav-link {
-  text-align: center;
-  // each link is a soft pill with an icon in a colour of its own (the blue, green, yellow and purple of the page behind it); pointed at it lifts and lights up, and the page that is open is
-  // filled with a soft gradient of its colour, so the menu is alive and says where you are
-  --nav-accent: var(--app-nav-blue);
-  border-radius: 999px;
-  color: var(--bs-emphasis-color);
-  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s, color 0.2s;
-
-  .bi {
-    color: var(--nav-accent);
-    transition: transform 0.2s;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: var(--nav-accent);
-    background-color: color-mix(in srgb, var(--nav-accent) 12%, transparent);
-    box-shadow: 0 0.125rem 0.5rem color-mix(in srgb, var(--nav-accent) 25%, transparent);
-    transform: translateY(-1px);
-
-    .bi {
-      transform: scale(1.15);
-    }
-  }
-
-  &.active {
-    color: var(--nav-accent);
-    font-weight: 600;
-    background-image: linear-gradient(135deg, color-mix(in srgb, var(--nav-accent) 20%, white), color-mix(in srgb, var(--nav-accent) 8%, white));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nav-accent) 35%, transparent);
-  }
-
-  @include below($bp-md) {
-    padding: 0.15rem 0.5rem;
-
-    // the page that is open is a filled pill: its words sit a little higher, so they are inside the pill and not on its lower edge
-    &.active .nav-label {
-      position: relative;
-      top: -0.125rem;
-    }
-  }
-}
-
-.app-navbar .nav-link[href='/jigsaw/guide'] {
-  --nav-accent: var(--app-nav-amber);
-}
-
-// the links at the left of the menu have a colour each too: Add picture green and Admin red
-.app-navbar .nav-link[href^='/jigsaw/new'] {
-  --nav-accent: var(--app-nav-green);
-}
-
-.app-navbar .nav-link[href='/jigsaw/admin'] {
-  --nav-accent: var(--app-nav-red);
-}
-
-// the one button of a phone that holds who plays, Help, Share and the language
-.app-navbar #more-menu .bi-three-dots {
-  color: var(--app-nav-green);
-}
-
-.app-navbar .nav-link[href='/jigsaw/user'] {
-  --nav-accent: var(--app-nav-purple);
-}
-
-.app-navbar .nav-link.share-trigger {
-  --nav-accent: var(--app-nav-green);
-}
-
-// the logo lifts a little when it is pointed at
-.app-navbar .brand-lockup .brand-logo {
-  transition: transform 0.25s;
-}
-
-.app-navbar .brand-lockup:hover .brand-logo {
-  transform: rotate(-6deg) scale(1.08);
-}
-
-// the switches and the clock of a round, in the menu: a soft pill round each, lit when pointed at
-.app-navbar .form-check,
-.app-toolbar .form-check {
-  padding-block: 0.15rem;
-  padding-inline-end: 0.5rem;
-  margin-bottom: 0;
-  border-radius: 999px;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: color-mix(in srgb, var(--app-nav-blue) 10%, transparent);
-  }
 }
 
 /* a round button over the middle of the side of a row of cards that scrolls */
@@ -1776,33 +1449,6 @@ app-my-rounds {
   > * {
     flex: 0 0 auto;
     width: clamp(2.75rem, calc((100vw - 3rem) / 6.6), 7.5rem); // follows the width of the page, half as big as before: at least six cards are in view (and a bit of the next): small on a phone, bigger on a wide screen
-  }
-}
-
-.thumb-tile {
-  display: block;
-  width: 4rem;
-  border-radius: 0.375rem;
-  overflow: hidden;
-  transition: transform 0.15s;
-
-  &:hover,
-  &:focus-visible {
-    transform: scale(1.06);
-  }
-}
-
-// the helper switches in the menu of a jigsaw: on a narrow screen they have a line of their own under the brand, the user and the language (which stay on the top line,
-// at the right end); on a wide screen they sit beside the menu
-.jigsaw-helper-bar {
-  order: 2;
-  flex-basis: 100%;
-}
-
-@media (min-width: $bp-lg) {
-  .jigsaw-helper-bar {
-    order: 0;
-    flex-basis: auto;
   }
 }
 
@@ -2090,7 +1736,7 @@ app-my-rounds {
 }
 
 .admin-row .round-open {
-  // the picture and the name with what it is: the one area that opens the page of the jigsaw (its `stretched-link` covers this and nothing else of the row)
+  // the picture and the name with what it is: the one area that opens the page of the picture (its `stretched-link` covers this and nothing else of the row)
   position: relative;
   display: flex;
   align-items: flex-start;
@@ -2126,54 +1772,21 @@ app-my-rounds {
 }
 
 // ---- small helpers (Bootstrap has `pe-none`, `pe-auto` and `user-select-none`) ---------------------------------------------------------------------
-// a picture is never picked up and dragged away with the mouse (on the cards, the rows, the jigsaw page and the board); a click on it still works
+// a picture is never picked up and dragged away with the mouse (on the cards, the rows and the board); a click on it still works
 img {
   -webkit-user-drag: none;
   user-select: none;
 }
 
-// ---- the top menus of the two modules --------------------------------------------------------------------------------------------------------------
-.app-navbar > .container-fluid {
-  padding-inline: 1.5rem; // room at the sides, so the logo and the language button are not at the edge of the screen
-  flex-wrap: wrap; // on a narrow screen the menu goes on a second line
-  row-gap: var(--app-tile-gap);
-}
-
-.app-navbar .navbar-nav {
-  flex-wrap: wrap;
-}
-
-// on a phone the menu is one line: less room at the sides, between the links and round the language button, and it does not wrap
-@include below($bp-sm) {
-  .app-navbar > .container-fluid {
-    padding-inline: 0.75rem;
-    flex-wrap: nowrap;
-    column-gap: 0.25rem;
-  }
-
-  .app-navbar .nav-link {
-    padding-inline: 0.4rem;
-  }
-
-  .app-navbar .navbar-brand {
-    margin-right: 0.25rem;
-  }
-
-  .app-navbar #language {
-    padding-left: 0.5rem !important; // (the button has more room at its left on a wider screen)
-  }
-}
-
-// The window itself never scrolls, on any screen, so nothing can pull the menu with it: the shell is as big as the screen and a column, and the page in it is the one thing that scrolls.
-// On a wide screen (`$bp-lg`, 992 px, and up) the menu is at the top; on a phone or a small tablet it is at the bottom, where the thumb is. Under the width where the sidebar folds
-// (`$bp-xl`) the helper of a round (the clock, Picture, Edges, Details) is a bar of its own, at the top of the page.
+// ---- the frames of the admin and of signing in (the app has its own, `play-main`) -------------------------------------------------------------
+// The window itself never scrolls, on any screen: a frame is as big as the screen and a column, and the page in it is the one thing that scrolls.
 html,
 body {
   height: 100%;
   overflow: hidden;
 }
 
-app-jigsaw-shell {
+.app-shell {
   position: fixed;
   inset: 0;
   height: 100dvh;
@@ -2181,20 +1794,20 @@ app-jigsaw-shell {
   flex-direction: column;
 }
 
-// the page: what scrolls (the pages are what is after the menu and the helper bar; the empty outlet is not)
-app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(.app-banner):not(router-outlet) {
-  order: 1;
+// the page: what scrolls (what is after the bar and the band; the empty outlet is not), with the soft pattern behind its frames
+.app-shell > :not(.app-header):not(.app-banner):not(router-outlet) {
   flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-gutter: stable; // the room of the scrollbar is kept: the width of the page does not change when the scrollbar comes and goes (a board that measures itself would jump)
+  scrollbar-gutter: stable;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  background-image: $soft-pattern;
+  background-size: $soft-pattern-size;
 }
 
-// a thin band over the page (an admin who is in an account: who, and the way back): one line, never the height of the page, before the page in the column
-app-jigsaw-shell > .app-banner {
-  order: 1;
+// a thin band over the page (an admin who is in an account: who, and the way back): one line, never the height of the page
+.app-shell > .app-banner {
   flex: 0 0 auto;
   z-index: var(--app-z-band);
 }
@@ -2208,85 +1821,13 @@ play-main > .app-banner {
   z-index: var(--app-z-bar);
 }
 
-app-jigsaw-shell > .app-navbar {
-  order: 0;
+// the bar of a frame: the soft wash of the pages
+.app-header {
   flex: 0 0 auto;
   z-index: var(--app-z-bar);
-}
-
-// the bar of a round on a phone or a tablet: the way home (the logo) is as big as the buttons beside it, and the helper beside it takes the room that is left
-.app-toolbar .brand-lockup {
-  display: inline-flex;
-  align-items: center;
-
-  .brand-logo {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-
-  .brand-home {
-    right: -0.25rem;
-    bottom: -0.2rem;
-    font-size: var(--app-fs-tiny);
-  }
-}
-
-.app-toolbar .jigsaw-helper-bar {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-app-jigsaw-shell > .app-toolbar {
-  order: 1;
-  flex: 0 0 auto;
-  z-index: var(--app-z-bar);
-  padding: 0.25rem 0.75rem;
-}
-
-@include below($bp-lg) {
-  app-jigsaw-shell > .app-toolbar {
-    order: 0;
-    padding-top: calc(0.25rem + env(safe-area-inset-top));
-  }
-
-  app-jigsaw-shell > .app-navbar {
-    order: 2;
-    border-top: var(--bs-border-width) solid var(--bs-border-color);
-    border-bottom: 0 !important;
-    padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); // lifted off the edge of the screen, so nothing of it is cut off
-  }
-}
-
-// the pages have the soft pattern behind their frames; the round (the board) is a working frame and has none
-app-jigsaw-shell > :not(.app-navbar):not(.app-toolbar):not(.app-banner):not(router-outlet):not(app-jigsaw-play) {
-  background-image: $soft-pattern;
-  background-size: $soft-pattern-size;
-}
-
-// the menu and the helper bar have the same soft wash as the pages (blue, green and a warm end, across the width) and no line under them, so the bar runs into the page below it
-.app-navbar,
-.app-toolbar {
-  --bs-border-color: transparent;
+  padding-top: env(safe-area-inset-top);
   background-color: var(--bs-body-bg);
   background-image: linear-gradient(120deg, rgba(13, 110, 253, 0.07), rgba(32, 201, 151, 0.08) 55%, rgba(253, 126, 20, 0.07));
-}
-
-// the helper bar of a round has what the round page has behind it (the pattern, laid over with the page colour), so it runs into the page below it and no edge shows between them
-.app-toolbar {
-  background-image: linear-gradient(rgba(var(--bs-body-bg-rgb), 0.65), rgba(var(--bs-body-bg-rgb), 0.65)), $soft-pattern;
-  background-size: auto, $soft-pattern-size;
-}
-
-// the round fills the screen and the store has its own scroll bar: the page does not reserve one too (on a wide screen it does not scroll at all), so there is only one vertical scroll bar
-// (the selector is as strong as the one that gives the pages their scroll bar above, and later)
-app-jigsaw-shell > app-jigsaw-play:not(.app-navbar):not(.app-toolbar):not(router-outlet) {
-  scrollbar-gutter: auto;
-}
-
-@include from($bp-xl) {
-  app-jigsaw-shell > app-jigsaw-play:not(.app-navbar):not(.app-toolbar):not(router-outlet) {
-    overflow-y: hidden;
-  }
 }
 
 // ---- the standard look of free text (what people typed or what is told about it) -------------------------------------------------------------
@@ -2361,12 +1902,6 @@ a.text-name:focus-visible {
     color: var(--app-text-count);
     font-weight: 700;
   }
-}
-
-// the round (the board) has the same pattern, more discreet: the page colour laid over it, so it does not draw the eye from the pieces
-app-jigsaw-shell > app-jigsaw-play {
-  background-image: linear-gradient(rgba(var(--bs-body-bg-rgb), 0.65), rgba(var(--bs-body-bg-rgb), 0.65)), $soft-pattern;
-  background-size: auto, $soft-pattern-size;
 }
 
 // ---- the jigsaw board ------------------------------------------------------------------------------------------------------------------------------
@@ -2584,8 +2119,8 @@ body:has(play-main:is([data-table='felt'], [data-table='wood'], [data-table='sum
   pointer-events: none;
 }
 
-// Every other background of the app is the theme's too: the band of the rounds going and the header of the floating menu, with the edges round them. (Jigsaw has its own looks for these, the ones
-// the website has.) A white inner shadow lifts them off the page and lets what lies on them be read: a little on a light theme, much where words lie straight on a dark one.
+// Every other background of the app is the theme's too: the band of the rounds going and the header of the floating menu, with the edges round them. (Jigsaw has its own looks for these.)
+// A white inner shadow lifts them off the page and lets what lies on them be read: a little on a light theme, much where words lie straight on a dark one.
 $themed-places: ".my-rounds.ongoing, .play-helper .brand-item";
 
 @each $table in "felt", "wood", "linen", "spring", "summer", "autumn", "winter", "calm", "angry" {
@@ -2824,14 +2359,14 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   transform-origin: 0 0;
 }
 
-// rule 4 and 13: the working area of a round is over what is round it (the bars, the sticky bands), so the pieces always show on top; menus, popups, the sidebar opened over the board, the helper picture and the dialogs are over it
+// rule 4 and 13: the working area of a round is over what is round it (the bars, the sticky bands), so the pieces always show on top; menus, popups, the panels over the board, the helper picture and the dialogs are over it
 .board-root {
   position: relative;
   z-index: var(--app-z-play);
 }
 
 // a bar with a menu or a popup that is open is lifted over the play (the menu is part of the bar, and a bar is under the play)
-:is(.app-navbar, .app-toolbar):has(.dropdown-menu.show) {
+.app-header:has(.dropdown-menu.show) {
   z-index: var(--app-z-overlay);
 }
 
@@ -2910,7 +2445,7 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   background: rgba(var(--app-primary-rgb), 0.1);
 }
 
-// ---- the helper: the banner, and the picture that floats over the page ----------------------------------------------------------------------------
+// ---- the helper: the picture that floats over the page --------------------------------------------------------------------------------------------
 .helper-frame {
   position: fixed;
   z-index: var(--app-z-helper);
@@ -2944,29 +2479,6 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   color: var(--bs-white);
   font-size: var(--app-fs-small);
   line-height: 1;
-}
-
-// ---- a picture enlarged over the page (a click anywhere closes it) --------------------------------------------------------------------------------
-.picture-zoom {
-  position: fixed;
-  inset: 0;
-  z-index: var(--app-z-dialog);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: var(--app-backdrop);
-  cursor: zoom-out;
-
-  img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-}
-
-.zoomable {
-  cursor: zoom-in;
 }
 
 // ---- the picture cropper (a dialog over the page) -------------------------------------------------------------------------------------------------
@@ -3161,10 +2673,6 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 .form-card {
   max-width: var(--app-form-width);
 
-  &.wide {
-    max-width: var(--app-form-width-wide);
-  }
-
   &.full {
     max-width: none; // as wide as its page (the app's pages are at most `.page-max` wide)
   }
@@ -3178,20 +2686,6 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 
   @include below($bp-sm) {
     --bs-card-spacer-x: 0.5rem;
-  }
-}
-
-// the fields of a form in two columns from `$bp-lg` (the second starts at the top, with no room above its first heading); narrower, one under the other
-.fields-columns.two {
-  @include from($bp-lg) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 2rem;
-    align-items: start;
-
-    > .fields-col:nth-child(2) > .form-section:first-child {
-      margin-top: 0;
-    }
   }
 }
 
@@ -3217,21 +2711,12 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   }
 }
 
-// the example of a jigsaw on the page for a new one: drawn at its own size and scaled down to fit (the lines are divided by the scale)
+// the example of a jigsaw in the form of a new one: drawn at its own size and scaled down to fit (the lines are divided by the scale)
 .example-area {
   transform-origin: top left;
 }
 
-.example-lifted {
-  filter: drop-shadow(0 calc(3px / var(--app-scale, 1)) calc(4px / var(--app-scale, 1)) rgba(0, 0, 0, 0.5)); // a piece that is lifted out of the picture
-}
-
-.example-border {
-  outline-style: solid;
-  outline-offset: 0;
-}
-
-// playing a jigsaw: the sidebar is docked at the left on a wide screen; on a narrow screen it is folded away behind a bar (the toggle) and opens over the board
+// playing a jigsaw: the frame of the puzzle, the board in it and the panels over it
 .jigsaw-play {
   position: relative;
   display: flex;
@@ -3257,17 +2742,6 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   }
 }
 
-.jigsaw-side {
-  position: relative; // the folded sidebar of a narrow screen opens under the bar that is in this
-  flex: 0 0 auto;
-}
-
-.jigsaw-sidebar {
-  flex: 0 0 var(--app-sidebar-width);
-  width: var(--app-sidebar-width);
-  overflow-y: auto;
-}
-
 .jigsaw-main {
   flex: 1 1 auto;
   min-width: 0;
@@ -3278,27 +2752,6 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
     display: block;
   }
 
-  .jigsaw-sidebar {
-    display: none; // folded away
-    position: absolute;
-    top: 0; // over the top of the board (the menu above has the switch that opens it)
-    left: 0;
-    right: 0;
-    z-index: var(--app-z-sidebar);
-    width: auto;
-    max-height: 70vh;
-    border-right: 0 !important;
-    // over the board it needs a background that hides the pieces under it (beside the board it has none: it runs into the page); it has what the helper bar above it has, so the two run
-    // together, with no line between them and only a very soft shadow under it
-    background-color: var(--bs-body-bg);
-    background-image: linear-gradient(rgba(var(--bs-body-bg-rgb), 0.65), rgba(var(--bs-body-bg-rgb), 0.65)), $soft-pattern;
-    background-size: auto, $soft-pattern-size;
-    box-shadow: 0 0.5rem 0.75rem -0.5rem rgba(0, 0, 0, 0.12);
-
-    &.is-open {
-      display: block;
-    }
-  }
 }
 
 // for test and debug: with the Cheat switch on, the working area (`.board-root`) has a yellow border and the three areas of a round are drawn with a dotted line of their own colour (`.show-areas` is on `.jigsaw-play`): the area the pieces are drawn in (yellow), the picture area

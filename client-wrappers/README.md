@@ -11,7 +11,7 @@ The native apps that wrap the live web app (`frontend/`). The web app stays the 
 Run everything from the project root with the npm scripts (`android:sync`, `android:open`, `android:config`, `ios:sync`, `ios:open`, `ios:config`, `windows:run`, `windows:release`, `windows:msix`). The scripts are in `scripts/`. Capacitor finds the two folders through `frontend/capacitor.config.json` (`android.path`, `ios.path`).
 
 ## Always the play module
-Every wrapper opens `https://karins-jigsaw.web.app/play` (the app, `frontend/src/play/`), never the website at `/jigsaw`: `server.url` in `frontend/capacitor.config.json` (Android and iOS; `android:sync` and `ios:sync` copy it into the apps) and `AppUrl` in `windows/MainWindow.xaml.cs`. Opening anything under `/play` also sets the mode of the device to `play`, so the top routes follow it. Change them together.
+Every wrapper opens `https://karins-jigsaw.web.app/play` (the app, `frontend/src/play/`, where everything a player does is; `/jigsaw` is only the admin): `server.url` in `frontend/capacitor.config.json` (Android and iOS; `android:sync` and `ios:sync` copy it into the apps) and `AppUrl` in `windows/MainWindow.xaml.cs`. Change them together.
 
 ## What was changed from the Seven Friends copy
 - **The pictures** are made from `frontend/public/logo.svg` by `npm run icons` (`scripts/make-icons.mjs`; run `npm i --no-save sharp` first): launcher icons, splash screens, `windows/app.ico`, `windows/msix/Assets/` and the web icons. Change the logo or the constants in the script and run it again.

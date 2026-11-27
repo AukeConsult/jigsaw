@@ -78,11 +78,6 @@ describe("a filter of jigsaws", () => {
     expect(JigsawFilters.is(kept)).toBe(true);
   });
 
-  it("has a text with the spaces tidied and not longer than a search takes", () => {
-    expect(JigsawFilters.withText(on({}), "  the   harbour ").text).toBe("the harbour ");
-    expect(JigsawFilters.withText(on({}), "x".repeat(SEARCH_MAX_TEXT + 20)).text).toHaveLength(SEARCH_MAX_TEXT);
-  });
-
   it("is checked when it is read again from a device: only what the model allows", () => {
     expect(JigsawFilters.is(on({}))).toBe(true);
     expect(JigsawFilters.is(on({ favorites: true }))).toBe(true);

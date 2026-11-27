@@ -6,8 +6,8 @@ import { PlayCards } from '../../components/play-cards/play-cards';
 import { ListView } from '../../list-view';
 
 /**
- * The page of the route `/list`, the home page: the picture list, as the cards of the jigsaws, newest first (the component `play-cards`), and, on the top, **the band of the rounds that are going** (`app-my-rounds` of the jigsaw app, in its mode
- * `inApp`: only the rounds that are going, each a picture that opens its puzzle). The preferences have the switch that shows the band and takes it away (`ListView`). A press on a card opens its puzzle
+ * The page of the route `/list`, the home page: the picture list, as the cards of the jigsaws, newest first (the component `play-cards`), and, on the top, **the band of the rounds that are going** (`app-my-rounds`: only the rounds that are
+ * going, each a picture that opens its puzzle). The preferences have the switch that shows the band and takes it away (`ListView`). A press on a card opens its puzzle
  * (`/play/jigsaw/:id`), or, for a picture, the start of a round.
  */
 @Component({

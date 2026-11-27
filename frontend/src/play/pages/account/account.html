@@ -114,10 +114,8 @@
         </div>
       }
 
-      @if (auth.user()) {
-        <!-- a person who is signed in: the real component, with the accounts their login is verified for (play as one, make a new one, delete one, add the login to one with a code) -->
-        <app-my-logon-users />
-      }
+      <!-- signed in: the accounts the login is verified for (play as one, make a new one, delete one, add the login to one with a code); signed out: the way to log on with a verified account -->
+      <app-my-logon-users />
 
       @if (mode() === 'start') {
         <!-- a person who is new only says their name: the alias is made from it. A signed-in person makes a new account in the box above, so there is no name to type then -->

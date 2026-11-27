@@ -17,7 +17,6 @@
   "you": "Deg",
   "couldNotSave": "Kunne ikke lagre nivået: prøv igjen.",
   "couldNotRead": "Kunne ikke lese kontoene.",
-  "publicLocked": "Bare en utgiver kan gjøre et puslespill offentlig.",
   "loading": "Leser kontoene …",
   "account": {
     "edit": "Rediger",
@@ -35,5 +34,6 @@
     "back": "Tilbake til {{ name }}",
     "notAllowed": "Bare en admin kan gå inn i en konto."
   },
-  "noAdminYet": "Det finnes ingen admin ennå. Gjør din egen konto til admin under: bare en admin kan endre, åpne eller slette andres kontoer."
+  "noAdminYet": "Det finnes ingen admin ennå. Gjør din egen konto til admin under: bare en admin kan endre, åpne eller slette andres kontoer.",
+  "backToApp": "Tilbake til appen"
 }

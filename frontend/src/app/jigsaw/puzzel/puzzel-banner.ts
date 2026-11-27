@@ -4,7 +4,7 @@ import { PuzzelRound } from './puzzel-round';
 
 /**
  * **The band on top of the puzzle when the round is finished** (every piece is in its place): it says so, with the time the round took when it has a clock. It lies over the top of the puzzle (`app-puzzel-banner` in `styles.scss`), so the
- * board does not move when it comes. It shows what the round (`PuzzelRound`, provided by the page) has. The same component in the website and in the app.
+ * board does not move when it comes. It shows what the round (`PuzzelRound`, provided by the page) has.
  */
 @Component({
   selector: 'app-puzzel-banner',

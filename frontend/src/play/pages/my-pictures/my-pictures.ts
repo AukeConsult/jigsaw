@@ -7,8 +7,8 @@ import { MyJigsaws } from '../../../app/jigsaw/my-jigsaws/my-jigsaws';
 import { FeedItem } from '../../../app/models/shared/feed-item';
 
 /**
- * The page of the route `/play/mine/pictures`: **the packages the user has added or bought**, as tiles that open them (only while there are any), and the pictures the user has made, in the list of the jigsaw app (the component
- * `app-my-jigsaws`, in its mode `inApp`: no adding here, since the app has its own Add picture, and no links to the pages of the website).
+ * The page of the route `/play/mine/pictures`: **the packages the user has added or bought**, as tiles that open them (only while there are any), and the pictures the user has made (the component
+ * `app-my-jigsaws`).
  */
 @Component({
   selector: 'play-my-pictures',
@@ -28,7 +28,7 @@ import { FeedItem } from '../../../app/models/shared/feed-item';
       </section>
       <h2 class="subsection-title">{{ t('play.pictures') || 'Pictures' }}</h2>
     }
-    <app-my-jigsaws [inApp]="true" />
+    <app-my-jigsaws />
   </main>`,
 })
 export class PlayMyPictures {

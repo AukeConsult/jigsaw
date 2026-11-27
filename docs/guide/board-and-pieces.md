@@ -5,7 +5,7 @@ This describes what happens to a piece from the moment a jigsaw is cut to the mo
 ## 1. Where the pieces come from and where they are kept
 
 - **Cutting** (`JigsawCut.cut`, `functions/src/models/shared/jigsaw.ts`): one piece for each whole cell of the grid, each a square the size of the grid with its four edges (tab 1, blank -1, flat 0). The pieces are scattered in the **store**, a frame beside the picture area.
-- **The jigsaw** keeps its pieces as documents of their own (`jigsaw/<id>/pieces/<piece id>`: `col`, `row`, edges, size, place and layer) and their graphics as files. These are the pieces as the jigsaw was cut.
+- **The jigsaw** keeps its pieces as documents of their own (`jigsaw/<id>/pieces/<piece id>`: `col`, `row`, edges, size, place and layer). There is no picture of a piece: the board draws each from the picture of the jigsaw. These are the pieces as the jigsaw was cut.
 - **A round** (a play) keeps only where each piece is: one document with `piece id -> [centerX, centerY, layer]` (`PlayPositions`). `Plays.piecesOf` puts the two together when a round is opened. A piece the round has no place for (an older round) is still there, where the jigsaw has it, so a piece cannot go missing through a missing entry.
 - **Coordinates are stored pixels** (a place is a whole or a half pixel) and never depend on the screen. The board draws at a scale and turns every pointer position back with `/ scale()` before it reaches the model.
 

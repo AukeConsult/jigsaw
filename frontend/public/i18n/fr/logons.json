@@ -48,11 +48,6 @@
     "failed": "Impossible de te connecter avec ce lien. Demande-en un nouveau."
   },
   "account": {
-    "title": "Ta connexion",
-    "signedInAs": "Connecté en tant que",
-    "verified": "E-mail vérifié",
-    "notVerified": "E-mail non vérifié",
-    "shared": "Cette connexion fonctionne dans Karins jigsaw et dans Seven Friends.",
     "signOut": "Se déconnecter"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "Aucun compte n'a encore cette connexion.",
     "makeNew": "Créer un nouveau compte avec ma connexion",
     "haveCode": "J'ai un code de liaison",
-    "codeHelp": "Une personne qui peut utiliser le compte crée le code : elle ouvre le compte, appuie sur Modifier le compte, puis sur Ajouter une autre connexion. Saisis ici l'alias du compte et le code.",
+    "codeHelp": "Une personne qui peut utiliser le compte crée le code : elle ouvre le compte, puis appuie sur Ajouter une autre connexion. Saisis ici l'alias du compte et le code.",
     "username": "Alias du compte",
     "code": "Code de liaison",
     "use": "Utiliser le code",

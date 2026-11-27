@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
@@ -17,7 +17,7 @@ import { apiError } from '../../core/api-error';
 /**
  * What the login that is signed in can do about the users, for a person who has chosen no user yet (or wants another): play as one of the users that the login is verified for, make a new user
  * with the login (its name is the name of the login, to begin with), or add the login to a user with a link code that another login of that user made. Without a login signed in it is only the
- * way to sign in. `chosen` says a user was chosen, so the page can go on.
+ * way to sign in.
  */
 @Component({
   selector: 'app-my-logon-users',
@@ -34,7 +34,6 @@ export class MyLogonUsers {
   /** why the person was sent here, when they were (`?logon=`): the user they had belongs to other logins (`wrong`) or needs a login (`needlogin`); it is read as the address changes, since the page may already be open */
   protected readonly notice = toSignal(inject(ActivatedRoute).queryParamMap.pipe(map((q) => q.get('logon'))), { initialValue: null });
 
-  readonly chosen = output<void>();
 
   protected readonly busy = signal(false);
   protected readonly error = signal('');
@@ -62,7 +61,6 @@ export class MyLogonUsers {
     await this.run(async () => {
       const error = await this.users.selectById(id);
       if (error) throw new Error(error);
-      this.chosen.emit();
     });
   }
 
@@ -96,7 +94,6 @@ export class MyLogonUsers {
       if (made.takenUsername) made = await this.users.createFromName(name, undefined, true, true);
       if (made.error) throw new Error(made.error);
       await this.auth.loadLinked();
-      this.chosen.emit();
     });
   }
 

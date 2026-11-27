@@ -17,8 +17,8 @@ import { SNAP_LEVELS, snapLevelOf } from '../snap-level';
 
 /**
  * **One round that is open, and everything that goes with playing it**: the jigsaw and the round as the database has them, the pieces on the board (`placed`), the difficulty and the look, how many pieces are matched, the time played, the
- * moves of pieces that are kept in the database (`PieceSync`) and the things a player may do with the round (make it private or public, reset it, delete it, start an own round). It is the one logic of playing, **shared by the website's page of a
- * round and by the app's puzzle page**: each provides its own (`providers: [PuzzelRound]`), opens a round with `open`, and shows it with the components `app-puzzel-board` (the board) and `app-puzzel-details` (the details). What is saved
+ * moves of pieces that are kept in the database (`PieceSync`) and the things a player may do with the round (make it private or public, reset it, delete it, start an own round). It is the one logic of playing, **apart from the page that shows it**
+ * (the app's puzzle page): the page provides its own (`providers: [PuzzelRound]`), opens a round with `open`, and shows it with the components `app-puzzel-board` (the board) and `app-puzzel-details` (the details). What is saved
  * is saved as the round is left, or a pause after it changes; the page that provides this leaves with it.
  */
 @Injectable()
@@ -136,7 +136,7 @@ export class PuzzelRound {
   }
 
   /**
-   * Opens **the round of the account that plays, in a jigsaw** (the route `<module>/jigsaw/:id`, the same in the website and in the app): the round that is going, else the one that is solved (it can be looked at), else a new one. What it
+   * Opens **the round of the account that plays, in a jigsaw** (the route `/play/jigsaw/:id`): the round that is going, else the one that is solved (it can be looked at), else a new one. What it
    * says: `opened` (the round is being read), `logon` (nobody plays: an account is needed), `choose` (a picture has no round yet: the number of pieces and the difficulty are chosen first, which the page of the picture does), or `missing`.
    */
   async openFor(jigsawId: string): Promise<'opened' | 'logon' | 'choose' | 'missing'> {

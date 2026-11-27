@@ -4,9 +4,9 @@ import { LANGUAGES, LanguageService } from '../../core/language.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 
 /**
- * The choice of the language of the app, in the form of the website's menu on a phone: **one row that shows the flag and the name of the language in use, and opens the list of languages one step down**
- * (each with its flag; the one in use is marked). The app is shown in the language at once, and it is kept on the device and as the language of the account that plays (`JigsawUserService.changeLanguage`,
- * the same as the website's menu). The app has it as the last row of its menu (the helper); the account page has the language among the account's own settings. The host is a row of the list it is in
+ * The choice of the language of the app: **one row that shows the flag and the name of the language in use, and opens the list of languages one step down**
+ * (each with its flag; the one in use is marked). The app is shown in the language at once, and it is kept on the device and as the language of the account that plays (`JigsawUserService.changeLanguage`).
+ * The app has it as the last row of the home page menu for nobody (the helper; a user has the language in the preferences and in the account), and the frames of the admin and of signing in have it in their bar. The host is a row of the list it is in
  * (`list-group-item`), so it can be put in a menu that is a `list-group`. **In a bar** (`inBar` says at which edge of the window the bar is) it is one button of the bar, and its list opens over the page, away from that edge; a press elsewhere closes it.
  */
 @Component({

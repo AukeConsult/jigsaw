@@ -48,11 +48,6 @@
     "failed": "Die Anmeldung mit diesem Link hat nicht geklappt. Fordere einen neuen an."
   },
   "account": {
-    "title": "Deine Anmeldung",
-    "signedInAs": "Angemeldet als",
-    "verified": "E-Mail bestätigt",
-    "notVerified": "E-Mail nicht bestätigt",
-    "shared": "Diese Anmeldung gilt in Karins jigsaw und in Seven Friends.",
     "signOut": "Abmelden"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "Noch kein Konto hat diese Anmeldung.",
     "makeNew": "Neues Konto mit meiner Anmeldung erstellen",
     "haveCode": "Ich habe einen Verknüpfungscode",
-    "codeHelp": "Wer das Konto benutzen kann, erstellt den Code: Konto öffnen, Konto bearbeiten drücken, dann Weitere Anmeldung hinzufügen. Gib hier den Konto-Alias und den Code ein.",
+    "codeHelp": "Wer das Konto benutzen kann, erstellt den Code: Konto öffnen, dann Weitere Anmeldung hinzufügen drücken. Gib hier den Konto-Alias und den Code ein.",
     "username": "Konto-Alias",
     "code": "Verknüpfungscode",
     "use": "Code benutzen",

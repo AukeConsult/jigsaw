@@ -14,6 +14,7 @@ import { JigsawKind, JigsawKinds } from '../../../app/models/shared/jigsaw-kind'
 import { JIGSAW_MAX_NAME, JIGSAW_MAX_PICTURE_NAME, JigsawInput, JigsawSettings, JigsawSpec } from '../../../app/models/shared/jigsaw-settings';
 import { JigsawMotives, MotiveLevel } from '../../../app/models/shared/motive';
 import { tr } from '../../../app/core/i18n';
+import { apiError } from '../../../app/core/api-error';
 import { PlayListFilter } from '../../play-list-filter';
 import { CutChoice } from './cut-choice';
 
@@ -37,11 +38,11 @@ const isDefaults = (v: unknown): v is NewPictureDefaults | null => {
 };
 
 /**
- * Adding a picture, in the app (what the website's page of a new jigsaw does, as its own class: **the pages of the website are not shared with the app, only components and services are**): **a picture, or a ready jigsaw.** A picture file
+ * The logic of the form of a picture (`play-picture-form`), for adding one and for changing one: **a picture, or a ready jigsaw.** A picture file
  * is chosen; for a picture it is kept whole at its own size (`JigsawKinds.pictureSize`; the pieces and the difficulty are chosen in each round), for a ready jigsaw it is cut to the shape chosen (`CutChoice`: size, pieces, difficulty, clock; the part
- * of the picture that is used is found with the cropper) and cut into pieces that are kept with their graphics. It gets a name, a description, a language, categories, a motive difficulty and who sees it, and it is
+ * of the picture that is used is found with the cropper) and cut into pieces that are kept. It gets a name, a description, a language, categories, a motive difficulty and who sees it, and it is
  * saved: the jigsaw document, then its picture. "Save and analyse" also has the AI set the categories, the motive difficulty, the name and the description; saving with no name does that too. If a step fails what was made
- * is taken away again: nothing half made is left. When it is saved its categories and who sees it (private to begin with) are added to the filter of the picture list (`PlayListFilter`), so the new picture is not left out of the list. The page (`add-picture`) provides a new one of these, so it starts empty each time.
+ * is taken away again: nothing half made is left. **A picture that is there** can also be analysed by the AI again, and, when rounds have been played of it, its owner can take them all away to change what the rounds share; a new size or number of pieces cuts the saved picture again. When it is saved its categories and who sees it (private to begin with) are added to the filter of the picture list (`PlayListFilter`), so the new picture is not left out of the list. The page (`add-picture`) provides a new one of these, so it starts empty each time.
  */
 @Injectable()
 export class NewPicture {
@@ -115,7 +116,7 @@ export class NewPicture {
   /** the id of the picture that was saved (null: nothing yet) */
   readonly savedId = signal<string | null>(null);
 
-  /** the jigsaw as it will look at the top of the page (the same top as the page of a jigsaw): what the form says so far */
+  /** the jigsaw as it will look at the top of the page (`app-jigsaw-header`): what the form says so far */
   readonly draft = computed(() => ({ id: this.editId() ?? '', ...this.settings(this.name().trim()) }) as JigsawSpec);
 
   /** the name is missing: not a reason to turn Save away, and nothing is said about it (the AI sets one) */
@@ -128,7 +129,7 @@ export class NewPicture {
   /** Save needs a picture and, to keep it, a name (when there is none, Save runs the AI, which sets one) */
   readonly canSave = computed(() =>
     this.editId()
-      ? this.mayChange() && !this.loading() && !this.saving() && !!this.name().trim() && !this.problem() && (!this.file() || (!!this.cut() && !this.stale()))
+      ? this.mayChange() && !this.loading() && !this.saving() && !this.analysing() && !!this.name().trim() && !this.problem() && (!this.file() || (!!this.cut() && !this.stale()))
       : this.canAnalyse(),
   );
 
@@ -143,7 +144,10 @@ export class NewPicture {
       this.choice.timed.set(saved.timed);
       this.pictureShape.set(saved.shape === 'whole' || this.choice.sizePresets.some((p) => p.key === saved.shape) ? (saved.shape ?? 'whole') : 'whole');
     }
-    effect(() => writePreference(DEFAULTS_KEY, { kind: this.kind(), size: this.choice.sizeKey(), pieces: this.choice.pieceChoice(), snapPercent: this.choice.snapPercent(), timed: this.choice.timed(), shape: this.pictureShape() } satisfies NewPictureDefaults));
+    effect(() => {
+      if (this.editId()) return; // what a saved picture has is not what was chosen for a new one
+      writePreference(DEFAULTS_KEY, { kind: this.kind(), size: this.choice.sizeKey(), pieces: this.choice.pieceChoice(), snapPercent: this.choice.snapPercent(), timed: this.choice.timed(), shape: this.pictureShape() } satisfies NewPictureDefaults);
+    });
   }
 
   /**
@@ -167,11 +171,7 @@ export class NewPicture {
       this.visibility.set(jigsaw.visibility ?? 'everyone');
       this.size.set({ width: jigsaw.width, height: jigsaw.height });
       this.pictureShape.set('whole');
-      this.choice.width.set(jigsaw.width);
-      this.choice.height.set(jigsaw.height);
-      this.choice.gridSize.set(jigsaw.gridSize);
-      this.choice.snapPercent.set(jigsaw.snapPercent ?? this.choice.snapPercent());
-      this.choice.timed.set(jigsaw.timed !== false);
+      if (!JigsawKinds.isPicture(jigsaw)) this.choice.show(jigsaw);
       this.played.set(await this.plays.played(id).catch(() => false));
       this.setPreview(this.images.url(jigsaw, 1));
     } catch {
@@ -203,11 +203,86 @@ export class NewPicture {
 
   /** A size was chosen: the same list for both kinds (a picture can also be the whole picture); the picture is fitted to the shape. */
   async chooseSize(key: string): Promise<void> {
-    if (!this.canChangePicture()) return;
+    if (!this.canChangePicture() || !(await this.useSaved())) return;
     if (this.isPicture()) this.pictureShape.set(key);
     else this.choice.chooseSize(key);
     const file = this.file();
     if (file) await this.fit(file);
+  }
+
+  /** A number of pieces was chosen. A saved jigsaw is cut again; when the shape comes out a little different, the cut has to be adjusted again (`stale`). */
+  async choosePieces(key: string): Promise<void> {
+    if (!this.canChangePicture() || !(await this.useSaved())) return;
+    this.choice.choosePieces(key);
+  }
+
+  /** To cut a saved picture again when no new file is chosen, the saved picture is read and stands as the chosen file, whole (it is cut to its shape already). False when it could not be read. */
+  private async useSaved(): Promise<boolean> {
+    const saved = this.original;
+    if (!saved || this.file()) return true;
+    try {
+      const response = await fetch(this.images.url(saved, 1));
+      if (!response.ok) throw new Error();
+      const blob = await response.blob();
+      const bitmap = await createImageBitmap(blob);
+      this.cut.set({ x: 0, y: 0, w: bitmap.width, h: bitmap.height });
+      bitmap.close();
+      this.cutShape.set(saved.width / saved.height);
+      this.file.set(new File([blob], saved.pictureName ?? '', { type: blob.type }));
+      return true;
+    } catch {
+      this.error.set(tr('play.picture.couldNotRead', 'Could not read the picture: try again.'));
+      return false;
+    }
+  }
+
+  /** "Delete all rounds" was pressed and waits for "Yes" */
+  readonly confirmingReset = signal(false);
+
+  /** All the rounds of the picture are taken away (also other players'), so its picture, size and cut can be changed. True when it was done. */
+  async resetRounds(): Promise<boolean> {
+    const id = this.editId();
+    if (!id || !this.mayChange() || this.saving()) return false;
+    this.saving.set(true);
+    this.error.set('');
+    try {
+      await this.plays.removeAll(id);
+      this.played.set(false);
+      return true;
+    } catch {
+      this.error.set(tr('jigsawPage.couldNotResetRounds', 'Could not take away the rounds: only its owner can.'));
+      return false;
+    } finally {
+      this.saving.set(false);
+      this.confirmingReset.set(false);
+    }
+  }
+
+  /** why the AI could not look at the saved picture (empty: nothing is wrong) */
+  readonly classifyError = signal('');
+  /** the AI can look at the saved picture: the person may change it, and no other picture or cut waits to be saved */
+  readonly canClassify = computed(() => !!this.editId() && !this.loading() && this.mayChange() && !this.file() && !this.saving() && !this.analysing());
+
+  /**
+   * The AI looks at the saved picture and says its categories, motive difficulty, name and description, the texts in the language of the form. The server puts them on the picture at once (only for its owner), and they
+   * are put in the form too, so what Save sends is the same.
+   */
+  async classify(): Promise<void> {
+    const id = this.editId();
+    if (!id || !this.canClassify()) return;
+    this.analysing.set(true);
+    this.classifyError.set('');
+    try {
+      const found = await this.jigsaws.classify(id, true, this.language());
+      if (found.name) this.name.set(found.name);
+      if (found.description) this.description.set(found.description);
+      if (found.categories.length) this.categories.set(found.categories);
+      if (found.motive) this.motive.set(found.motive);
+    } catch (err) {
+      this.classifyError.set(apiError(err) ?? tr('jigsawNew.classifyFailed', 'The AI could not do it: try again.'));
+    } finally {
+      this.analysing.set(false);
+    }
   }
 
   /** The picture is fitted to the shape that is chosen: the whole picture of a picture is kept as it is; every other shape, of a picture or of a ready jigsaw, has its cut found in the cropper. */
@@ -283,6 +358,8 @@ export class NewPicture {
       ...(this.categories().length ? { categories: this.categories() } : {}),
       ...(JigsawMotives.is(this.motive()) ? { motive: this.motive() as MotiveLevel } : {}),
       ...(fixed ?? { width: this.width(), height: this.height(), ...cutting, placed: [] }),
+      // the difficulty of a ready jigsaw nobody has played is changed without cutting it again
+      ...(fixed && !this.isPicture() && !this.played() ? { snapPercent: this.choice.snapPercent() } : {}),
       lineWidth: this.original?.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH,
       lineColor: this.original?.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR,
       backColor: this.original?.backColor ?? JigsawSettings.DEFAULT_BACK_COLOR,
@@ -324,7 +401,7 @@ export class NewPicture {
       if (file && cut) {
         const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut);
         await this.images.upload(id, picture);
-        if (cutting) await this.maker.keepPieces(id, picture, cutting, { width: this.original?.lineWidth ?? JigsawSettings.DEFAULT_LINE_WIDTH, color: this.original?.lineColor ?? JigsawSettings.DEFAULT_LINE_COLOR });
+        if (cutting) await this.maker.keepPieces(id, cutting);
       }
       this.savedId.set(id);
     } catch {
@@ -356,7 +433,7 @@ export class NewPicture {
     try {
       const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut);
       const made = await this.maker.createWithPicture(this.settings(withAi ? this.nameForAi() : this.name().trim(), cutting?.storeWidth), picture, async (saved) => {
-        if (cutting) await this.maker.keepPieces(saved.id, picture, cutting, { width: JigsawSettings.DEFAULT_LINE_WIDTH, color: JigsawSettings.DEFAULT_LINE_COLOR });
+        if (cutting) await this.maker.keepPieces(saved.id, cutting);
       });
       if (withAi) {
         this.analysing.set(true);

@@ -20,7 +20,7 @@ const PICTURES: { width: number; height: number; grid: number }[] = [
   { width: 400, height: 400, grid: 50 },
   { width: 900, height: 450, grid: 50 },
 ];
-const SIDEBAR_PX = 272; // from 1200 px the sidebar of the jigsaw takes 17rem of the room
+const SIDEBAR_PX = 272; // from 1200 px the spec leaves 17rem of the window out of the room, as if something stood beside the board
 
 class NoTexts implements TranslocoLoader {
   getTranslation(): Observable<Record<string, string>> {

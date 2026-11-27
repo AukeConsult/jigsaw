@@ -6,8 +6,8 @@ import { JigsawImageService } from '../jigsaw-image.service';
 import { FeedAction, FeedItem, InfoItem, KeptItem, OfferItem, PackageItem } from '../../models/shared/feed-item';
 
 /**
- * A tile of the home page that is not a picture: information, an offer or a package, each in its own form but in the same frame as a card, so the grid stays in line. It is shared by the website's finder
- * and the app's list. The words are in the language that is chosen (`titleFor`, `textFor` and `labelFor`: the master's where a language has none). A press does what the tile's `action()` says (a page of the site, another site, or nothing); a tile with nothing to do is not pressed.
+ * A tile of the home page that is not a picture: information, an offer or a package, each in its own form but in the same frame as a card, so the grid stays in line. It is shared by the list of the home page, My pictures
+ * and the page of all the packages. The words are in the language that is chosen (`titleFor`, `textFor` and `labelFor`: the master's where a language has none). A press does what the tile's `action()` says (a page of the site, another site, or nothing); a tile with nothing to do is not pressed.
  */
 @Component({
   selector: 'app-feed-tile',
@@ -64,6 +64,6 @@ export class FeedTile {
     const action = this.action();
     if (action.type === 'route') void this.router.navigateByUrl(action.to);
     else if (action.type === 'link') window.open(action.url, '_blank', 'noopener');
-    else if (action.type === 'package') void this.router.navigate(['/play/package', action.packageId]); // the page of a package is in the app (opening it sets the mode)
+    else if (action.type === 'package') void this.router.navigate(['/play/package', action.packageId]); // the page of a package
   }
 }

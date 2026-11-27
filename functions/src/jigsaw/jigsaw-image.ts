@@ -5,12 +5,12 @@ import express from "express";
 import { JIGSAW } from "../models";
 import { apiRouter, bad } from "../common/http";
 
-// The files of a jigsaw: its background picture and the graphics of its pieces. They are kept in Firebase Storage under `jigsaw/<id of the
+// The file of a jigsaw: its background picture. It is kept in Firebase Storage under `jigsaw/<id of the
 // jigsaw>/`, the way Seven Friends keeps its files: written and read by the backend only (the Admin SDK ignores the storage rules, which let nobody
 // in, so they are not touched), the app sends the bytes as the request body, the type is found from the first bytes (never from what the app says), and
 // a file comes back through the API. What describes the jigsaw (its settings, its pieces and where they are) is in Firestore.
 
-/** The folder of the files of the jigsaws in the bucket: `jigsaw/<id>/picture` and `jigsaw/<id>/pieces/<piece id>`. */
+/** The folder of the files of the jigsaws in the bucket: `jigsaw/<id>/picture`. */
 export const JIGSAW_ROOT = "jigsaw";
 /** The biggest background picture, in bytes. */
 export const MAX_PICTURE_BYTES = 5 * 1024 * 1024;

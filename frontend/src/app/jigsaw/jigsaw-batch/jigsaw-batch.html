@@ -101,14 +101,14 @@
                 @case ('waiting') { <span class="text-body-secondary">{{ t('jigsawBatch.waiting') || 'Waiting' }}</span> }
                 @case ('cutting') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.cutting') || 'Cutting…' }} }
                 @case ('uploading') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.uploading') || 'Saving the picture…' }} }
-                @case ('drawing') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.drawing') || 'Saving the pieces…' }} }
+                @case ('keeping') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.keeping') || 'Saving the pieces…' }} }
                 @case ('classifying') { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('jigsawBatch.classifying') || 'The AI looks at it…' }} }
                 @case ('done') { <span class="text-success"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('jigsawBatch.done') || 'Done' }}</span> }
                 @case ('failed') { <span class="text-danger"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>{{ t('jigsawBatch.failed') || 'Failed' }}</span> }
               }
               <div class="toolbar justify-content-end">
                 @if (item.jigsaw) {
-                  <a class="link-action" [routerLink]="openRoute(item.jigsaw.id)">{{ t('jigsawBatch.open') || 'Open' }}</a>
+                  <a class="link-action" [routerLink]="['/play/jigsaw', item.jigsaw.id]">{{ t('jigsawBatch.open') || 'Open' }}</a>
                 }
                 @if (item.state === 'waiting' || item.state === 'failed') {
                   <button type="button" class="link-action danger" (click)="remove(item)">{{ t('jigsawBatch.remove') || 'Take away' }}</button>
@@ -124,7 +124,7 @@
   @if (finished()) {
     <div class="alert alert-success py-2" role="status">
       {{ t('jigsawBatch.summary', { made: made(), classified: classified(), failed: failed() }) || made() + ' made, ' + classified() + ' classified by the AI, ' + failed() + ' failed.' }}
-      <a [routerLink]="picturesRoute()">{{ t('jigsawBatch.yourJigsaws') || 'Your pictures' }}</a>
+      <a routerLink="/play/mine/pictures">{{ t('jigsawBatch.yourJigsaws') || 'Your pictures' }}</a>
     </div>
   }
 
@@ -143,6 +143,6 @@
         <button type="button" class="btn btn-outline-secondary" (click)="clear()">{{ t('jigsawBatch.clear') || 'Clear the list' }}</button>
       }
     }
-    <a class="link-action" [routerLink]="picturesRoute()">{{ t('jigsawBatch.back') || 'Back' }}</a>
+    <a class="link-action" routerLink="/play/mine/pictures">{{ t('jigsawBatch.back') || 'Back' }}</a>
   </div>
 </main>

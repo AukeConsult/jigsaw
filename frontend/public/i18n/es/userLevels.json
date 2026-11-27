@@ -17,7 +17,6 @@
   "you": "Tú",
   "couldNotSave": "No se pudo guardar el nivel: inténtalo de nuevo.",
   "couldNotRead": "No se pudieron leer las cuentas.",
-  "publicLocked": "Solo un editor puede hacer público un puzle.",
   "loading": "Leyendo las cuentas…",
   "account": {
     "edit": "Editar",
@@ -35,5 +34,6 @@
     "back": "Volver a {{ name }}",
     "notAllowed": "Solo un admin puede entrar en una cuenta."
   },
-  "noAdminYet": "Todavía no hay ningún admin. Haz de tu propia cuenta un admin abajo: solo un admin puede cambiar, abrir o borrar las cuentas de otros."
+  "noAdminYet": "Todavía no hay ningún admin. Haz de tu propia cuenta un admin abajo: solo un admin puede cambiar, abrir o borrar las cuentas de otros.",
+  "backToApp": "Volver a la aplicación"
 }

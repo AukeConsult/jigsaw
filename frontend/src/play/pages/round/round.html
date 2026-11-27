@@ -1,4 +1,10 @@
 <main class="container-fluid page-margin page-max" *transloco="let t">
+  @if (mayChange() && state() !== 'opening' && state() !== 'missing') {
+    <!-- the owner and an admin: to the page where it is changed or deleted -->
+    <div class="d-flex justify-content-end mb-2">
+      <a class="btn btn-sm btn-outline-primary" [routerLink]="['/play/mine/picture', id]" [queryParams]="{ from: 'round' }"><i class="bi bi-pencil me-1" aria-hidden="true"></i>{{ t('play.editOrDelete') || 'Edit or delete' }}</a>
+    </div>
+  }
   @switch (state()) {
     @case ('opening') {
       <div class="text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</div>
@@ -39,6 +45,7 @@
         </div>
         <ng-container *ngTemplateOutlet="howMany" />
         <play-share-picture class="mt-2" [jigsaw]="j" />
+        <ng-container *ngTemplateOutlet="roundList" />
       }
     }
     @case ('logon') {
@@ -56,6 +63,7 @@
         </div>
         <ng-container *ngTemplateOutlet="howMany" />
         <play-share-picture class="mt-2" [jigsaw]="j" />
+        <ng-container *ngTemplateOutlet="roundList" />
       }
     }
     @case ('choose') {
@@ -69,6 +77,7 @@
         @if (error()) {
           <div class="alert alert-warning py-2 small mt-3" role="alert">{{ error() }}</div>
         }
+        <ng-container *ngTemplateOutlet="roundList" />
       }
     }
   }
@@ -105,6 +114,10 @@
         <span class="text-nowrap"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ j.createdAt | date: 'mediumDate' }}</span>
       }
     </div>
+  </ng-template>
+  <!-- the rounds that have been played of it, also other players' (to look at) -->
+  <ng-template #roundList>
+    <play-picture-rounds class="mt-4" [jigsawId]="id" [quiet]="true" (removed)="read()" />
   </ng-template>
   <!-- how many have played it: only information -->
   <ng-template #howMany>

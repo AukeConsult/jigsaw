@@ -3,14 +3,14 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { AiUsageList, AiUsageService } from '../ai-usage.service';
-import { JigsawService } from '../jigsaw.service';
-import { JigsawUserService } from '../jigsaw-user.service';
+import { JigsawService } from '../../jigsaw/jigsaw.service';
+import { JigsawUserService } from '../../jigsaw/jigsaw-user.service';
 
-/** What the AI has used for the account (`/jigsaw/ai-use`, a page of its own, opened from the user page; for an admin): every call and the sum. For internal use: nothing is billed. */
+/** What the AI has used for the account (`/jigsaw/ai-use`, for an admin): every call and the sum. For internal use: nothing is billed. */
 @Component({
   selector: 'app-ai-use',
   imports: [DatePipe, RouterLink, TranslocoDirective],
-  providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawPackages')],
+  providers: [provideTranslocoScope('jigsawUser')],
   templateUrl: './ai-use.html',
 })
 export class AiUse {

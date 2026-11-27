@@ -14,7 +14,7 @@
     "test:reach": "node scripts/test-reach.mjs",
     "dev:functions": "npm --prefix functions run build:watch",
     "predev:emulators": "npm --prefix functions run build",
-    "dev:emulators": "node scripts/with-java.mjs firebase emulators:start --only auth,functions,firestore,storage --project demo-canvas --import=.emulator-data --export-on-exit=.emulator-data",
+    "dev:emulators": "node scripts/with-java.mjs --temp=dev firebase emulators:start --only auth,functions,firestore,storage --project demo-canvas --import=.emulator-data --export-on-exit=.emulator-data",
     "dev:frontend": "npm --prefix frontend start",
     "build": "npm --prefix frontend run build && npm --prefix functions run build",
     "test": "npm --prefix functions run test:run",
@@ -34,7 +34,6 @@
     "sync:env": "node scripts/sync-env.mjs",
     "sync:firestore": "node scripts/sync-firestore.mjs",
     "icons": "node scripts/make-icons.mjs",
-    "welcome:art": "node scripts/make-welcome-art.mjs",
     "check:env": "node scripts/sync-env.mjs --check",
     "check:models": "node scripts/sync-models.mjs --check",
     "check:i18n": "node scripts/check-i18n.mjs",
@@ -43,7 +42,7 @@
     "classify:dummies": "node scripts/classify-dummies.mjs",
     "classify:dummies:all": "node scripts/classify-dummies.mjs --all",
     "classify:dummies:apply": "node scripts/classify-dummies.mjs --all --apply",
-    "test:emulator": "node scripts/with-java.mjs firebase emulators:exec --config firebase.test.json --only firestore,storage --project demo-canvas-test \"npm --prefix functions run test:emulator\""
+    "test:emulator": "node scripts/with-java.mjs --temp=test firebase emulators:exec --config firebase.test.json --only firestore,storage --project demo-canvas-test \"npm --prefix functions run test:emulator\""
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.2.0"

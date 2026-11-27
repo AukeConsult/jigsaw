@@ -42,7 +42,7 @@
 
     <!-- many files at once: each is made into a picture of the package -->
     <h2 class="form-section"><i class="bi bi-upload" aria-hidden="true"></i>{{ t('play.feed.addPictures') || 'Add pictures' }}</h2>
-    <app-jigsaw-batch [packageId]="pack.id" [inApp]="true" (madeOne)="reload()" />
+    <app-jigsaw-batch [packageId]="pack.id" (madeOne)="reload()" />
   } @else {
     <div class="text-center py-4"><span class="spinner-border" role="presentation" aria-hidden="true"></span></div>
   }

@@ -7,7 +7,7 @@ import { JigsawUserService } from './jigsaw-user.service';
 const EDIT_PAUSE_MS = 800;
 
 /**
- * Editing the account that plays, **the same for the website's page of the user and the app's page of the account**: the form has the alias, the name, a picture and a language, and **saves by itself** a pause after the
+ * Editing the account that plays, on the page of the account (`/play/account`): the form has the alias, the name, a picture and a language, and **saves by itself** a pause after the
  * last change (there is no Save and nothing to press: what is waiting is saved when the form is closed or the page is left, `close`). Nothing is saved while the name is empty, or the alias is not allowed or, when it is a new one, has not been looked up and found free.
  * The page shows the fields and calls this; it provides its own, so it starts new each time the page is opened.
  */

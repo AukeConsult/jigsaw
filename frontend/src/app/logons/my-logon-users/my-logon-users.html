@@ -60,7 +60,7 @@
       </div>
       @if (moreOpen() && codeOpen()) {
         <form class="mt-3" (submit)="$event.preventDefault(); useCode()">
-          <p class="form-text mt-0">{{ t('logons.myUsers.codeHelp') || 'Someone who can use the account makes the code: they open the account, press Edit, then Add another sign-in. Type the alias and the code here.' }}</p>
+          <p class="form-text mt-0">{{ t('logons.myUsers.codeHelp') || 'Someone who can use the account makes the code: they open the account page, then press Add another sign-in. Type the alias and the code here.' }}</p>
           <div class="row g-2 mb-2">
             <div class="col-sm-6">
               <label class="form-label" for="link-username">{{ t('logons.myUsers.username') || 'Account alias' }}</label>

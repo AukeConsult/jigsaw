@@ -45,9 +45,6 @@ function memoryPieces(): PieceStore {
       docs.set(id, pieces);
       return true;
     },
-    async graphic() {
-      return null;
-    },
     async removeAll(id) {
       docs.delete(id);
     },

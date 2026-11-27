@@ -48,11 +48,6 @@
     "failed": "Could not sign you in with this link. Ask for a new one."
   },
   "account": {
-    "title": "Your sign-in",
-    "signedInAs": "Signed in as",
-    "verified": "Email verified",
-    "notVerified": "Email not verified",
-    "shared": "This sign-in works in Karins jigsaw and in Seven Friends.",
     "signOut": "Sign out"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "No account has this sign-in yet.",
     "makeNew": "Make a new account with my sign-in",
     "haveCode": "I have a link code",
-    "codeHelp": "Someone who can use the account makes the code: they open the account, press Edit account, then Add another sign-in. Type the alias and the code here.",
+    "codeHelp": "Someone who can use the account makes the code: they open the account page, then press Add another sign-in. Type the alias and the code here.",
     "username": "Account alias",
     "code": "Link code",
     "use": "Use the code",

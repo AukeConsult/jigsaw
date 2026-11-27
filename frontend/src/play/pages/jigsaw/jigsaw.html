@@ -19,7 +19,7 @@
           </main>
         }
         @case ('ready') {
-          <!-- the puzzle fills the screen and does not scroll: the same frame as the website's round. The details and the table and sound are panels that lie over it, opened from the menu of the helper -->
+          <!-- the puzzle fills the screen and does not scroll: the details and the board. The details and the table and sound are panels that lie over it, opened from the menu of the helper -->
           <div class="jigsaw-play" [class.show-areas]="round.debug()">
             <app-puzzel-banner />
             <div class="jigsaw-main">
@@ -33,7 +33,7 @@
                     <button type="button" class="btn-close ms-auto" [attr.aria-label]="t('play.puzzelClose') || 'Close'" (click)="view.details.set(false)"></button>
                   </div>
                   <div class="card-body">
-                    <app-puzzel-details [inApp]="true" (deleted)="onDeleted()" (own)="onOwn($event)" />
+                    <app-puzzel-details (deleted)="onDeleted()" (own)="onOwn($event)" />
                   </div>
                 </section>
               }

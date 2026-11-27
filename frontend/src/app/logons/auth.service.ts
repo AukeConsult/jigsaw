@@ -19,7 +19,7 @@ import { environment } from '../../environments/environment';
 import { tr } from '../core/i18n';
 import { LinkedUser, LogonSession } from '../models/shared/logon';
 import { auth } from './firebase';
-import { isLocalPath } from '../core/app-mode';
+import { isLocalPath } from '../core/local-path';
 
 /** Where the email is kept between asking for a sign-in link and opening it (the same device). */
 const EMAIL_KEY = 'jigsaw.emailForSignIn';
@@ -101,7 +101,7 @@ export class AuthService {
       await user.getIdToken(true); // the token made at sign-up has no name yet: the API reads the name from the token
     }
     try {
-      await sendEmailVerification(user, { url: `${location.origin}/account` });
+      await sendEmailVerification(user, { url: `${location.origin}/play/account` });
     } catch {
       /* the email could not be sent: the account is there, and the address can be confirmed later */
     }
@@ -145,7 +145,7 @@ export class AuthService {
     await this.finishLogin(user);
   }
 
-  /** Where to go after signing in: the page the person came from (only an address inside the app), else the front page. */
+  /** Where to go after signing in: the page the person came from (only an address inside the app), else home. */
   landingPath(next: string | null): string {
     return isLocalPath(next) ? next : '/';
   }

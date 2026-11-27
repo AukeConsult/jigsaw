@@ -1,12 +1,7 @@
 <ng-container *transloco="let t">
   @if (round.item(); as it) {
     @let m = round.matched();
-    <!-- the title of the jigsaw: in the website a link to its page, with its rounds; in the app only the name -->
-    @if (inApp()) {
-      <h1 class="page-title mb-2 text-name">{{ it.name }}</h1>
-    } @else {
-      <h1 class="page-title mb-2"><a class="d-block text-reset text-decoration-none text-name" [routerLink]="['/jigsaw', round.jigsawId]" [title]="t('jigsawPlay.openJigsaw') || 'Open the page of the jigsaw'">{{ it.name }}</a></h1>
-    }
+    <h1 class="page-title mb-2 text-name">{{ it.name }}</h1>
     @if (it.author) {
       <div class="small text-author"><i class="bi bi-person-fill me-1" aria-hidden="true"></i>{{ it.author }}</div>
     }
@@ -23,6 +18,10 @@
     <div class="small text-count mb-3" role="status" aria-live="polite">
       {{ t('jigsawPlay.matched') || 'Matched:' }} <strong>{{ m.count }}</strong> {{ t('jigsawPlay.ofTotal', { total: m.total }) || 'of ' + m.total }}{{ round.solved() ? (t('jigsawPlay.solved') || ' – solved!') : '' }}
     </div>
+    @if (it.timed !== false) {
+      <!-- the time played, which runs while the round is open on the screen -->
+      <div class="small mb-3" role="timer"><i class="bi bi-stopwatch me-1" aria-hidden="true"></i>{{ t('jigsawShell.timePlayed') || 'Time played' }}: <span class="font-monospace">{{ round.clock() }}</span></div>
+    }
     @if (round.pieceSync.state() === 'failed') {
       <div class="small text-danger mb-2" role="alert">{{ t('jigsawPlay.couldNotSavePieces') || 'Could not save the pieces, trying again' }}</div>
     }
@@ -31,7 +30,7 @@
       <div class="alert py-1 px-2 small" [class.alert-success]="msg.kind === 'success'" [class.alert-danger]="msg.kind === 'danger'" role="status">{{ msg.text }}</div>
     }
 
-    <!-- who sees the round, for its player: public (in the list of rounds on the front page) or private (only the player); saved at once -->
+    <!-- who sees the round, for its player: public (others see it among the rounds of the picture) or private (only the player); saved at once -->
     @if (!round.viewOnly() && round.play(); as play) {
       <fieldset class="mb-3">
         <legend class="form-label mb-1">{{ t('jigsawPage.roundWho') || 'Who sees the round' }}</legend>
@@ -63,11 +62,6 @@
           <button type="button" class="btn btn-outline-danger text-nowrap" (click)="confirmingDelete.set(true)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawPlay.deleteRound') || 'Delete round' }}</button>
         }
       </div>
-    }
-
-    <!-- the table and the sound of this round (in the app the menu has them in a panel of their own) -->
-    @if (!inApp()) {
-      <app-round-look />
     }
 
     @if (!round.viewOnly()) {

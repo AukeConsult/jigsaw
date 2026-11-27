@@ -92,7 +92,7 @@
 
       <!-- who sees it: private is for checking how it looks (it has a banner that says so), and has to be made public to be seen by everybody -->
       <div>
-        <app-visibility-choice [(visibility)]="visibility" [ownerKnown]="true" [showHelp]="false" />
+        <app-visibility-choice [(visibility)]="visibility" [ownerKnown]="true" />
         <div class="form-text mt-0">{{ t('play.feed.visibilityHelp') || 'Public: everybody sees it. Private: only you see it, with a banner on it, so you can check how it looks. Hidden: it is not shown on the home page.' }}</div>
       </div>
 

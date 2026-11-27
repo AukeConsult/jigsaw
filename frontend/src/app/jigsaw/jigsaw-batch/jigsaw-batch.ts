@@ -55,7 +55,7 @@ export interface BatchItem {
 }
 
 /**
- * Many jigsaws at once (`/jigsaw/batch`, from the page of the user; the app frames the same component at `/play/mine/many` with `inApp`, for a publisher or an admin): how many pieces and how hard, then many pictures chosen from the computer at one time. Each picture is made into a
+ * Many jigsaws at once (`/play/mine/many`, and the page of a package; for a publisher or an admin): how many pieces and how hard, then many pictures chosen from the computer at one time. Each picture is made into a
  * jigsaw (cut to its shape and cut into pieces, `JigsawMaker`) one after the other, and the AI is asked for its categories, name and description, which are put on the jigsaw. The
  * owner is the user who plays. A picture that could not be made says why, the others go on; the AI failing leaves the jigsaw made.
  */
@@ -66,13 +66,9 @@ export interface BatchItem {
   templateUrl: './jigsaw-batch.html',
 })
 export class JigsawBatch implements OnDestroy {
-  /** the app's page frames it: a made jigsaw opens in the app's puzzle (`/play/jigsaw/:id`) and the way back is the user's pictures there */
-  readonly inApp = input(false);
   /** the pictures belong to this package: only pictures are made (no size, pieces or difficulty), each linked to the package, and the package page (which frames this) is told after each (`madeOne`) */
   readonly packageId = input<string | undefined>(undefined);
   readonly madeOne = output<JigsawSpec>();
-  protected readonly openRoute = (id: string): string[] => (this.inApp() ? ['/play/jigsaw', id] : ['/jigsaw', id]);
-  protected readonly picturesRoute = computed(() => (this.inApp() ? '/play/mine/pictures' : '/jigsaw/user'));
 
   private readonly maker = inject(JigsawMaker);
   private readonly jigsaws = inject(JigsawService);

@@ -237,5 +237,6 @@
   "newLink": "Make a new link: the old one stops working",
   "newLinkMade": "A new link is made. Share it again.",
   "close": "Close",
-  "infoBack": "Back"
+  "infoBack": "Back",
+  "editOrDelete": "Edit or delete"
 }

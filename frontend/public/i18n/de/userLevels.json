@@ -17,7 +17,6 @@
   "you": "Du",
   "couldNotSave": "Die Stufe konnte nicht gespeichert werden: versuche es noch einmal.",
   "couldNotRead": "Die Konten konnten nicht gelesen werden.",
-  "publicLocked": "Nur ein Herausgeber kann ein Puzzle öffentlich machen.",
   "loading": "Konten werden gelesen …",
   "account": {
     "edit": "Bearbeiten",
@@ -35,5 +34,6 @@
     "back": "Zurück zu {{ name }}",
     "notAllowed": "Nur ein Admin kann in ein Konto wechseln."
   },
-  "noAdminYet": "Es gibt noch keinen Admin. Mach unten dein eigenes Konto zum Admin: nur ein Admin kann die Konten anderer ändern, öffnen oder löschen."
+  "noAdminYet": "Es gibt noch keinen Admin. Mach unten dein eigenes Konto zum Admin: nur ein Admin kann die Konten anderer ändern, öffnen oder löschen.",
+  "backToApp": "Zurück zur App"
 }

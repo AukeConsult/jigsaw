@@ -48,11 +48,6 @@
     "failed": "Kunne ikke logge dig ind med dette link. Bed om et nyt."
   },
   "account": {
-    "title": "Dit login",
-    "signedInAs": "Logget ind som",
-    "verified": "E-mail bekræftet",
-    "notVerified": "E-mail ikke bekræftet",
-    "shared": "Dette login virker i Karins jigsaw og i Seven Friends.",
     "signOut": "Log ud"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "Ingen konto har dette login endnu.",
     "makeNew": "Lav en ny konto med mit login",
     "haveCode": "Jeg har en linkkode",
-    "codeHelp": "Den, der kan bruge kontoen, laver koden: åbn kontoen, tryk Ret kontoen, så Tilføj et andet login. Skriv kontoaliaset og koden her.",
+    "codeHelp": "Den, der kan bruge kontoen, laver koden: åbn kontoen og tryk på Tilføj et andet login. Skriv kontoaliaset og koden her.",
     "username": "Kontoalias",
     "code": "Linkkode",
     "use": "Brug koden",

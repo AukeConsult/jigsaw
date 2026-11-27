@@ -1,11 +1,8 @@
 import { inject } from '@angular/core';
 import { Router, Routes } from '@angular/router';
-import { adminGuard } from '../app/jigsaw/admin.guard';
 import { publisherGuard } from '../app/jigsaw/publisher.guard';
-import { modeGuard } from '../app/core/app-mode';
 import { accountMenu, infoMenu, pageMenu, jigsawMenu, listMenu, pictureMenu, roundMenu, mineMenu, packagesMenu, publishMenu } from './helper/menus';
 import { PlayAccount } from './pages/account/account';
-import { PlayAdmin } from './pages/admin/admin';
 import { PlayAddPicture } from './pages/add-picture/add-picture';
 import { PlayMany } from './pages/many/many';
 import { PlayPackage } from './pages/package/package';
@@ -27,8 +24,7 @@ import { lastPage, pageBeforeInfo } from './last-page';
 
 /**
  * The routes of the app, under `/play`: **the main page is the main route, and the pages are its sub routes**, each shown in the one router outlet of the main page: `/play/list` the picture list, `/play/account` the account (who is on, and all that has to
- * do with the account) with `/play/account/preferences` the preferences of the account, `/play/prefs` the picture preferences, `/play/jigsaw/:id` the puzzle of a jigsaw (where a card of a ready jigsaw leads) and `/play/round/:id` the start of a round (where a card of a picture leads), and **`/play/mine` (it goes to the user's pictures) with its sub pages: `/play/mine/addpicture`, `/play/mine/pictures` and `/play/mine/rounds`, which all show the user menu** (`/play` goes to the list, and a top route
- * such as `/list` comes here in play mode). Opening any of these pages sets the mode `play` (`core/app-mode.ts`). **Every route carries a page and the menu that goes with it** (`data.menu`, see `helper/menus.ts`), and the helper shows that menu
+ * do with the account) with `/play/account/preferences` the preferences of the account, `/play/prefs` the picture preferences, `/play/jigsaw/:id` the puzzle of a jigsaw (where a card of a ready jigsaw leads) and `/play/round/:id` the start of a round (where a card of a picture leads), and **`/play/mine` (it goes to the user's pictures) with its sub pages: `/play/mine/addpicture`, `/play/mine/pictures` and `/play/mine/rounds`, which all show the user menu** (`/play` goes to the list). **Every route carries a page and the menu that goes with it** (`data.menu`, see `helper/menus.ts`), and the helper shows that menu
  * inside its button.
  */
 export const PLAY_ROUTES: Routes = [
@@ -36,7 +32,6 @@ export const PLAY_ROUTES: Routes = [
     path: '',
     component: PlayMain,
     title: 'Play',
-    canActivate: [modeGuard('play')], // opening the new app sets the mode play
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'list' }, // /play goes to the list
       { path: 'list', component: PlayList, title: 'Pictures', data: { menu: listMenu } },
@@ -50,7 +45,6 @@ export const PLAY_ROUTES: Routes = [
       },
       { path: 'round/:id', component: PlayRound, title: 'Start a round', data: { menu: roundMenu } }, // where a picture leads: the choice of the pieces and the difficulty
       { path: 'jigsaw/:id', component: PlayJigsaw, title: 'Jigsaw', data: { menu: jigsawMenu } },
-      { path: 'admin', component: PlayAdmin, title: 'Admin', canActivate: [adminGuard], data: { menu: accountMenu } }, // the levels of the accounts: for an admin, and for every account that plays while there is no admin
       {
         path: 'info', // the info about the app: the route is only the frame of its pages, so its menu (every page in it) is the menu of each
         data: { menu: infoMenu },

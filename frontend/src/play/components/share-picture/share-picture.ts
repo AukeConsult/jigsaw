@@ -17,7 +17,7 @@ import { JigsawSpec } from '../../../app/models/shared/jigsaw-settings';
   template: `
     <ng-container *transloco="let t">
       @if (link(); as url) {
-        <app-share-button variant="button" [url]="url" />
+        <app-share-button [url]="url" />
         @if (isPrivate()) {
           <p class="tiny text-body-secondary mt-1 mb-0">{{ t('play.linkPlays') || 'Anybody who gets this link can see this picture and play it.' }}</p>
           @if (renewable()) {

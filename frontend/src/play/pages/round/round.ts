@@ -19,6 +19,7 @@ import { JigsawSpec } from '../../../app/models/shared/jigsaw-settings';
 import { BoughtPackages } from '../../../app/models/shared/bought-package';
 import { PackageItem } from '../../../app/models/shared/feed-item';
 import { PlayChoice } from '../../../app/models/shared/play';
+import { PictureRounds } from '../../components/picture-rounds/picture-rounds';
 import { SharePicture } from '../../components/share-picture/share-picture';
 import { goBack } from '../../go-back';
 import { apiError } from '../../../app/core/api-error';
@@ -26,15 +27,17 @@ import { tr } from '../../../app/core/i18n';
 
 /**
  * The page of the route `/play/round/:id`, where **a card leads when it is pressed**: what comes before putting it together, with Cancel back to where the person came from. It is also **where a link to a picture leads** (the key of a
- * private one comes after `#`, is kept on the device and taken out of the address), and where a picture is shared from (`play-share-picture`).
- * - A **picture** is cut in each round, so this is the start of a round: the player chooses the number of pieces and the difficulty (the component `app-round-choice`, the same as the website's page of a picture has), and the round is
+ * private one comes after `#`, is kept on the device and taken out of the address), and where a picture is shared from (`play-share-picture`). **Under it are the rounds that have been played of it** (`play-picture-rounds`, also other
+ * players', to look at; not for a picture of a package the account has not got).
+ * - A **picture** is cut in each round, so this is the start of a round: the player chooses the number of pieces and the difficulty (the component `app-round-choice`), and the round is
  *   started and opened (`/play/jigsaw/:id`). A picture that the player has a round going of goes straight to it.
  * - A **ready jigsaw** (cut already) is looked at first: its picture, what is told about it, and a button that opens the puzzle: Start the round, Continue (a round is going) or Look (it is solved: a jigsaw is not played twice).
+ * **The owner of the picture, and an admin, have Edit or delete on top**: the page of the picture (`/play/mine/picture/:id?from=round`), which comes back here.
  * **Anybody may look; starting a round is what asks for more.** A picture of a package the account has not got (and neither owns nor made, and any package picture when nobody plays) has **no choice and no button to start**: only the picture, a line that says so and the way to the package (the server refuses such a round too). When nobody plays, the picture and what is told about it are shown, and in place of the start the way to log on.
  */
 @Component({
   selector: 'play-round',
-  imports: [TranslocoDirective, RouterLink, RoundChoice, CategoryTags, DatePipe, NgTemplateOutlet, SharePicture],
+  imports: [TranslocoDirective, RouterLink, RoundChoice, CategoryTags, DatePipe, NgTemplateOutlet, SharePicture, PictureRounds],
   providers: [provideTranslocoScope('play'), provideTranslocoScope('jigsawPlay'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
   host: { class: 'd-block' },
   templateUrl: './round.html',
@@ -56,6 +59,11 @@ export class PlayRound implements OnInit {
 
   /** what the page is: being opened, the choice of a round of a picture, the look at a ready jigsaw, a picture of a package the account has not got, the look of somebody who is not logged on, or there is no such jigsaw */
   protected readonly state = signal<'opening' | 'choose' | 'view' | 'package' | 'logon' | 'missing'>('opening');
+  /** the owner of the picture, or an admin: they may change it and delete it */
+  protected readonly mayChange = computed(() => {
+    const me = this.users.acting();
+    return !!me && !!this.jigsaw() && (this.jigsaw()!.ownerUid === me.id || this.users.isAdmin());
+  });
   /** how much it has been played, told under the page as a piece of information (null: not read, or not told to this person) */
   protected readonly crowd = signal<{ rounds: number; players: number } | null>(null);
   /** of a ready jigsaw: the player has not played it, has a round going, or has solved it */
@@ -78,6 +86,11 @@ export class PlayRound implements OnInit {
   async ngOnInit(): Promise<void> {
     // a link to a private picture: its key is kept for the picture, and taken out of the address (so it is not left to be seen or copied by chance)
     if (keepShareKey(this.id, this.address.fragment)) await this.router.navigate(['/play/round', this.id], { replaceUrl: true });
+    await this.read();
+  }
+
+  /** What the page is, for who plays (read again when the player deletes a round of theirs in the list). */
+  protected async read(): Promise<void> {
     await this.users.load();
     await this.auth.ready; // a sign-in of an earlier visit is restored first
     const jigsaw = await this.jigsaws.get(this.id).catch(() => null);

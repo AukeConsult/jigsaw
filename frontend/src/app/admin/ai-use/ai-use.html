@@ -27,7 +27,7 @@
             @for (u of aiUsage()!.items; track u.id) {
               <tr>
                 <td class="text-nowrap">{{ u.createdAt | date: 'short' }}</td>
-                <td>@if (u.jigsawId) { <a [routerLink]="['/jigsaw', u.jigsawId]">{{ jigsawName(u.jigsawId) }}</a> }</td>
+                <td>@if (u.jigsawId) { <a [routerLink]="['/play/round', u.jigsawId]">{{ jigsawName(u.jigsawId) }}</a> }</td>
                 <td class="text-nowrap">{{ u.responseModel || u.model }}</td>
                 <td class="text-end">{{ u.inputTokens }}</td>
                 <td class="text-end">{{ u.outputTokens }}</td>
@@ -41,5 +41,4 @@
         </table>
       </div>
     }
-  <a class="btn btn-outline-primary mt-3" routerLink="/jigsaw/user"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ t('jigsawPackages.make.back') || 'Back to your account' }}</a>
 </main>

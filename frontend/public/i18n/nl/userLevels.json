@@ -17,7 +17,6 @@
   "you": "Jij",
   "couldNotSave": "Het niveau kon niet worden opgeslagen: probeer het opnieuw.",
   "couldNotRead": "De accounts konden niet worden gelezen.",
-  "publicLocked": "Alleen een uitgever kan een puzzel openbaar maken.",
   "loading": "Accounts worden gelezen…",
   "account": {
     "edit": "Bewerken",
@@ -35,5 +34,6 @@
     "back": "Terug naar {{ name }}",
     "notAllowed": "Alleen een beheerder kan in een account gaan."
   },
-  "noAdminYet": "Er is nog geen beheerder. Maak hieronder je eigen account beheerder: alleen een beheerder kan de accounts van anderen wijzigen, openen of verwijderen."
+  "noAdminYet": "Er is nog geen beheerder. Maak hieronder je eigen account beheerder: alleen een beheerder kan de accounts van anderen wijzigen, openen of verwijderen.",
+  "backToApp": "Terug naar de app"
 }

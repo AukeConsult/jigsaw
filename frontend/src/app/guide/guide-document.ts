@@ -7,7 +7,7 @@ import { LanguageService } from '../core/language.service';
 import { renderMarkdown } from '../core/markdown';
 
 /**
- * **A user guide, shown from its Markdown file** (the document, with no page round it: `GuidePage` frames it at `/jigsaw/guide` and `/jigsaw/about`, and the app's info page frames it too): the guide of the language chosen
+ * **A user guide, shown from its Markdown file** (the document, with no page round it: the app's info page frames it, at `/play/info/help` and `/play/info/about`): the guide of the language chosen
  * (`i18n/<language>/<name>`), else the English one. Which guide is the input `name` (`jigsaw-guide.md`, `jigsaw-about.md`).
  */
 @Component({

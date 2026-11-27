@@ -12,7 +12,7 @@ import { JigsawCategories } from '../../../app/models/shared/category';
 import { JigsawKinds } from '../../../app/models/shared/jigsaw-kind';
 import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
 
-/** One jigsaw as a card (a fresh copy of the website's card for the app): its picture with a play button, the name, the pieces and the difficulty, and the details a player can leave out (`TileDetails`). Press it to open its puzzle, or, for a picture, the start of a round. */
+/** One jigsaw as a card: its picture with a play button, the name, the pieces and the difficulty, and the details a player can leave out (`TileDetails`). Press it to open its puzzle, or, for a picture, the start of a round. */
 @Component({
   selector: 'play-card',
   imports: [TranslocoDirective, RouterLink, DatePipe, CategoryTags],

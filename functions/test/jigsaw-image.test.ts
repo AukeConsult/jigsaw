@@ -119,7 +119,7 @@ describe("the background picture of a jigsaw", () => {
     expect((await request(app).get(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(404);
   });
 
-  it("goes with its jigsaw: deleting the jigsaw takes away its pieces, their graphics and the picture", async () => {
+  it("goes with its jigsaw: deleting the jigsaw takes away its pieces and the picture", async () => {
     const { app, removedPieces } = setup();
     const body = { name: "Puzzle", width: 800, height: 600, gridSize: 50, gridVisible: true, placed: [] };
     const made = (await request(app).post("/jigsaw/api/jigsaw").send(body)).body;

@@ -11,8 +11,7 @@ import { PlaySpec } from '../../../app/models/shared/play';
 import { PuzzelView } from '../../puzzel-view';
 
 /**
- * The page of the route `/play/jigsaw/:id`, where a card of the list (or of the rounds) leads: **the puzzle of one jigsaw**, the round of the account that plays (the one going, else a new one), the same route and the same components as the
- * website's `/jigsaw/jigsaw/:id`: the board (`app-puzzel-board`) and the details (`app-puzzel-details`), both of the round (`PuzzelRound`, provided here). There is no menu of its own on the page: the menu of the helper (`jigsawMenu`) has the
+ * The page of the route `/play/jigsaw/:id`, where a card of the list (or of the rounds) leads: **the puzzle of one jigsaw**, the round of the account that plays (the one going, else a new one): the board (`app-puzzel-board`) and the details (`app-puzzel-details`), both of the round (`PuzzelRound`, provided here). There is no menu of its own on the page: the menu of the helper (`jigsawMenu`) has the
  * switches for the help picture, the border pieces and the two panels over the puzzle, Details and Table and sound (`PuzzelView`). A picture with no round yet, and a visitor who is not logged on, go to the page before the puzzle (`/play/round/:id`): one may look there without logging on, and a round is started there.
  */
 @Component({

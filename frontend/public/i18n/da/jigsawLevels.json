@@ -1,11 +1,4 @@
 {
-  "line": {
-    "none": "Ingen",
-    "hairline": "Hårfin",
-    "thin": "Tynd",
-    "medium": "Middel",
-    "thick": "Tyk"
-  },
   "snap": {
     "hard": "Svær",
     "medium": "Middel",

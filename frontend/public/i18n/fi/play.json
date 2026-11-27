@@ -237,5 +237,6 @@
   "newLink": "Tee uusi linkki: vanha lakkaa toimimasta",
   "newLinkMade": "Uusi linkki on tehty. Jaa se uudelleen.",
   "close": "Sulje",
-  "infoBack": "Takaisin"
+  "infoBack": "Takaisin",
+  "editOrDelete": "Muokkaa tai poista"
 }

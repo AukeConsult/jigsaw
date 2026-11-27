@@ -32,6 +32,9 @@ export class PlayPicture {
   protected readonly fromPackage = this.address.queryParamMap.get('package');
   protected readonly packagePage = `/play/mine/packages/${encodeURIComponent(this.fromPackage ?? '')}/pictures`;
 
+  /** opened from the page before the puzzle (`?from=round`, where the owner or an admin has Edit or delete): Save and Cancel go back there; after Delete there is nothing to go back to */
+  protected readonly fromRound = this.address.queryParamMap.get('from') === 'round';
+
   /** the person may change the picture (its owner, or an admin): what the form found out */
   protected readonly mayChange = signal(false);
   /** Delete was pressed and waits for "Yes" */
@@ -45,8 +48,9 @@ export class PlayPicture {
     void this.jigsaws.get(this.id).then((found) => this.picture.set(found), () => undefined);
   }
 
-  /** back to the list the picture was opened from */
+  /** back to where the picture was opened from */
   protected leave(): Promise<boolean> {
+    if (this.fromRound) return this.router.navigate(['/play/round', this.id], { replaceUrl: true });
     return this.router.navigateByUrl(this.fromPackage ? this.packagePage : '/play/mine/pictures');
   }
 
@@ -59,7 +63,7 @@ export class PlayPicture {
     this.error.set('');
     try {
       await this.jigsaws.removeAs(this.id, me.id);
-      await this.leave();
+      await (this.fromRound ? this.router.navigateByUrl('/play/list', { replaceUrl: true }) : this.leave());
     } catch {
       this.error.set(tr('play.picture.couldNotDelete', 'Could not delete the picture: only its owner can.'));
       this.busy.set(false);

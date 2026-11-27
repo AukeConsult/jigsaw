@@ -9,7 +9,7 @@ const DOWNLOADS = { android: 'installs/KarinsJigsaw.apk', windows: 'installs/Kar
 type Download = keyof typeof DOWNLOADS;
 
 /**
- * **How to get Karins jigsaw as an app** (the document, with no page round it: `InstallPage` frames it at `/install`, and the app's info page frames it too): the Android app and the Windows app to download, how to put the site on the
+ * **How to get Karins jigsaw as an app** (the document, with no page round it: the app's info page frames it, at `/play/info/install`; `/install` leads there): the Android app and the Windows app to download, how to put the site on the
  * home screen of an iPhone or iPad, and how to install it from Chrome or Edge. The device of the visitor comes first. It has a Share button, so it can be sent to somebody who wants the app. A download is offered only when its file is on
  * the site.
  */
@@ -22,7 +22,7 @@ type Download = keyof typeof DOWNLOADS;
       <article class="guide mx-auto" [attr.aria-label]="t('install.title') || 'Get the app'">
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
           <h1 class="mb-0 me-auto">{{ t('install.title') || 'Get the app' }}</h1>
-          <app-share-button variant="button" />
+          <app-share-button />
         </div>
         <p>{{ t('install.intro') || 'Karins jigsaw works in any browser. You can also have it as an app on your phone, tablet or computer.' }}</p>
         @if (inApp) {
@@ -75,7 +75,7 @@ type Download = keyof typeof DOWNLOADS;
         <section class="mb-4">
           <h2>{{ t('install.share.title') || 'Tell others' }}</h2>
           <p>{{ t('install.share.text') || 'Share this page with friends who would like the app.' }}</p>
-          <app-share-button variant="button" />
+          <app-share-button />
         </section>
       </article>
 

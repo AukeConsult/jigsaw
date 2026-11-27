@@ -9,9 +9,8 @@ import { JigsawFacets } from '../../../app/models/shared/jigsaw-search';
 import { PlayListFilter } from '../../play-list-filter';
 
 /**
- * The page of the route `/play/prefs`, the preferences: **the app's own page made of the shared component `app-jigsaw-filter`, the "Filter pictures" choices** (the page of the website that holds it is not shared, so this one is written
- * here). What is ticked is kept at once on the device and with the user, and is what the picture list is filtered by (`PlayListFilter`), so the list shows only the pictures that match; how many match, and how many there are for each choice, is counted
- * as in the jigsaw app. The title is the jigsaw app's own page, outside the component, and is not here; **Show** is, under the choices: it goes back to the home page (the list), where the choices are already used. Its texts are the scope `jigsawList` of the jigsaw app, in every language.
+ * The page of the route `/play/prefs`, the preferences: **a page made of the shared component `app-jigsaw-filter`, the "Filter pictures" choices**. What is ticked is kept at once on the device and with the user, and is what the picture list is filtered by (`PlayListFilter`), so the list shows only the pictures that match; how many match, and how many there are for each choice, is counted
+ * by the server (`/jigsaw-search/facets`). The title is only for a screen reader; **Show** is under the choices: it goes back to the home page (the list), where the choices are already used. Its texts are the scope `jigsawList`, in every language.
  */
 @Component({
   selector: 'play-prefs',

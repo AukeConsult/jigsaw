@@ -4,7 +4,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { ShareLinks } from '../share-link';
 
 /**
- * The Share button of the menu: it shares the page the person is on (a round as the page of its jigsaw, see `ShareLinks`). It opens the share dialog of the device, the one each system has
+ * The Share button: it shares the page the person is on, or the address it is given. It opens the share dialog of the device, the one each system has
  * (Android, iPhone and iPad, Mac, Windows), where the browser has it; a browser without it gets a short list: copy the link, Facebook, X, WhatsApp, e-mail. Nothing is sent anywhere until the person chooses.
  */
 @Component({
@@ -17,9 +17,6 @@ import { ShareLinks } from '../share-link';
 export class ShareButton {
   private readonly router = inject(Router);
 
-  /** `menu`: a link of the menu; `button`: a button of a page (the page of a jigsaw); `item`: an item of a submenu; the same sharing */
-  readonly variant = input<'menu' | 'button' | 'item'>('menu');
-
   /** what is shared instead of the page the person is on (empty: the page) */
   readonly url = input('');
 
@@ -31,7 +28,7 @@ export class ShareButton {
   protected services: ReturnType<typeof ShareLinks.services> = [];
 
   private page(): { url: string; title: string } {
-    return { url: this.url() || window.location.origin + ShareLinks.pathOf(this.router.url.split(/[?#]/)[0]), title: document.title || 'Karins jigsaw' };
+    return { url: this.url() || window.location.origin + this.router.url.split(/[?#]/)[0], title: document.title || 'Karins jigsaw' };
   }
 
   protected async press(event: MouseEvent): Promise<void> {

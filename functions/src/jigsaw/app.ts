@@ -31,15 +31,13 @@ export const JIGSAW_API = "/jigsaw/api";
 export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: ImageStore; accountPictures?: ImageStore; jigsawPieces?: PieceStore; jigsawSearch?: JigsawSearchStore; favorites?: FavoriteStore; feedInfo?: FeedStore; feedOffers?: FeedStore; feedPackages?: FeedStore; packagePictures?: PackagePictures; bought?: BoughtStore; translator?: Translator; classifier?: Classifier; tokenUsage?: TokenUsageStore; jigsawExists?: (id: string) => Promise<boolean>; plays?: PlayStore; users?: UserStore; logons?: LogonDeps; viewKeySecret?: SecretSource; shares?: ShareStore; levels?: Levels; now?: () => number; random?: () => number } = {}): express.Express {
   const app = express();
   app.use(cors({ origin: ALLOWED_ORIGINS }));
-  // the pieces of a jigsaw come with their graphics: that route reads its own, bigger body
-  const json = express.json({ limit: "600kb" });
-  app.use((req, res, next) => (req.path.startsWith(`${JIGSAW_API}/jigsaw-pieces/`) ? next() : json(req, res, next)));
+  app.use(express.json({ limit: "600kb" }));
 
   const router = apiRouter();
   router.get("/health", (_req, res) => {
     res.json({ status: "ok", app: "jigsaw" });
   });
-  // a jigsaw: its settings are a document in Firestore; its pieces are documents under it, and its picture and the graphics of its pieces are files in
+  // a jigsaw: its settings are a document in Firestore; its pieces are documents under it, and its picture is a file in
   // Storage. A jigsaw that is deleted takes all of that with it.
   const jigsaw = stores.jigsaw ?? firestoreJigsawStore(JIGSAW);
   const pieces = stores.jigsawPieces ?? firestorePieceStore();
@@ -309,7 +307,7 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
           search.forget();
           imageAccess.forget();
           const saved = await jigsaw.update(id, input);
-          if (saved && before && !JigsawKinds.isPicture(before)) await pieces.replaceAll(id, [], new Map());
+          if (saved && before && !JigsawKinds.isPicture(before)) await pieces.replaceAll(id, []);
           return saved;
         },
         list: () => jigsaw.list(),
@@ -322,8 +320,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
       async (c, me) => (!c.packageId || BoughtPackages.mayUse(c, me, await bought.ids(me))) && (!JigsawVisibilities.restricted(c.visibility) || isOwnerOf(c, me) || (c.visibility === "owner" && (await hasRoundOn(c, me)))), // the list: public, the owner's own, and the private ones the person has a round on (an admin opens others' by their address, but does not find them here)
     ),
   );
-  // a picture, or the graphic of a piece, of a jigsaw that is private or hidden is read only with its key (a jigsaw that everybody sees has none); this is before the routes that give them
-  router.get(["/jigsaw-image/:id", "/jigsaw-pieces/:id/graphic/:pieceId"], imageAccess.guard);
+  // the picture of a jigsaw that is private or hidden is read only with its key (a jigsaw that everybody sees has none); this is before the route that gives it
+  router.get("/jigsaw-image/:id", imageAccess.guard);
   router.use("/jigsaw-image", jigsawImageRouter(images, jigsawExists));
   router.use("/jigsaw-pieces", jigsawPiecesRouter(pieces, jigsawExists));
   // signing in with Firebase, beside the users above (which are not changed): the account is shared with Seven Friends

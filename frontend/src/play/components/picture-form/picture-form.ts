@@ -15,15 +15,15 @@ import { NewPicture } from './new-picture';
 
 /**
  * **The form of a picture, a component that is framed into different pages**: `/play/mine/addpicture` (a new picture) and `/play/mine/picture/:id` (a picture that is there, with `pictureId`), so the person sees the same layout each time. It is made
- * of the same shared components as the jigsaw app's form (`app-jigsaw-header`, the picture card with the name and the description edited in place, `app-category-picker`, `app-visibility-choice`, the cropper), and its logic is `NewPicture`,
+ * of shared components (`app-jigsaw-header`, the picture card with the name and the description edited in place, `app-category-picker`, `app-visibility-choice`, the cropper), and its logic is `NewPicture`,
  * which it provides: a picture or a ready jigsaw (the kind, the size and the cut, and for a ready jigsaw the pieces, the difficulty and the clock), a name, a description, a language, the categories and the motive difficulty (folded under "Advanced"),
- * who sees it, then Save (or Save and analyse, for a new picture). **There is no looking-only mode for the user's own picture: the form is open for changes at once.** **A picture that is changed has restrictions: only its owner changes it (an admin too), and its picture, size and cut can not be changed once rounds have been played of it**; the
- * name, the description, the categories and who sees it can. Its texts are the scopes `jigsawNew` and `jigsawLevels` of the jigsaw app, in every language.
+ * who sees it, then Save (or Save and analyse, for a new picture; a picture that is there has a button that has the AI analyse it again). **There is no looking-only mode for the user's own picture: the form is open for changes at once.** **A picture that is changed has restrictions: only its owner changes it (an admin too), and its picture, size and cut can not be changed once rounds have been played of it**; the
+ * name, the description, the categories and who sees it can, and **its owner can take all the rounds away** (asked first) to change the rest. Its texts are the scopes `jigsawNew` and `jigsawLevels`, in every language.
  */
 @Component({
   selector: 'play-picture-form',
   imports: [TranslocoDirective, RouterLink, UploadLimit, JigsawHeader, JigsawExample, PictureCropper, CategoryPicker, VisibilityChoice],
-  providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('play'), NewPicture],
+  providers: [provideTranslocoScope('jigsawNew'), provideTranslocoScope('jigsawLevels'), provideTranslocoScope('jigsawPage'), provideTranslocoScope('play'), NewPicture],
   host: { class: 'd-block' },
   templateUrl: './picture-form.html',
 })
@@ -36,15 +36,16 @@ export class PictureForm implements OnInit, OnDestroy {
   readonly saved = output<string>();
   /** Cancel, for a picture that is there: the changes are let go and the page that frames the form leaves */
   readonly cancelled = output<void>();
+  /** all the rounds of the picture were taken away */
+  readonly roundsRemoved = output<void>();
   /** whether the person may change the picture (its owner, or an admin): said once the picture is read, so the page can offer Delete only to them */
   readonly access = output<boolean>();
 
   protected readonly languages = LANGUAGES;
   protected readonly motives = MOTIVES;
-  /** the line and the colours of the pieces of a ready jigsaw: the model's own (nothing to choose here) */
+  /** the line round the pieces of a ready jigsaw: the model's own (nothing to choose here) */
   protected readonly lineWidth = JigsawSettings.DEFAULT_LINE_WIDTH;
   protected readonly lineColor = JigsawSettings.DEFAULT_LINE_COLOR;
-  protected readonly backColor = JigsawSettings.DEFAULT_BACK_COLOR;
   protected readonly maxName = JIGSAW_MAX_NAME;
   protected readonly maxDescription = JIGSAW_MAX_DESCRIPTION;
   /** the name or the description is being edited in place in the card (the others show the text with a pencil) */
@@ -75,6 +76,10 @@ export class PictureForm implements OnInit, OnDestroy {
     await this.n.save(analyse);
     const id = this.n.savedId();
     if (id) this.saved.emit(id);
+  }
+
+  protected async resetRounds(): Promise<void> {
+    if (await this.n.resetRounds()) this.roundsRemoved.emit();
   }
 
   ngOnDestroy(): void {

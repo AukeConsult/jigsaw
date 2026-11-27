@@ -48,11 +48,6 @@
     "failed": "Kunne ikke logge deg inn med denne lenken. Be om en ny."
   },
   "account": {
-    "title": "Innloggingen din",
-    "signedInAs": "Logget inn som",
-    "verified": "E-post bekreftet",
-    "notVerified": "E-post ikke bekreftet",
-    "shared": "Denne innloggingen virker i Karins jigsaw og i Seven Friends.",
     "signOut": "Logg ut"
   },
   "errors": {
@@ -103,7 +98,7 @@
     "none": "Ingen konto har denne innloggingen ennå.",
     "makeNew": "Lag en ny konto med innloggingen min",
     "haveCode": "Jeg har en koblingskode",
-    "codeHelp": "Den som kan bruke kontoen lager koden: åpne kontoen, trykk Endre kontoen, så Legg til en annen innlogging. Skriv kontoaliaset og koden her.",
+    "codeHelp": "Den som kan bruke kontoen lager koden: åpne kontoen og trykk Legg til en annen innlogging. Skriv kontoaliaset og koden her.",
     "username": "Kontoalias",
     "code": "Koblingskode",
     "use": "Bruk koden",

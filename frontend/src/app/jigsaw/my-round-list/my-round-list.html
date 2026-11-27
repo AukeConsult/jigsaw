@@ -25,8 +25,8 @@
                   }
                 </div>
                 <div class="round-info">
-                  <!-- the stretched link makes the whole row (picture, text) open the page of the jigsaw; the buttons sit above it -->
-                  <a class="text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id, game.play.id)">{{ game.jigsaw.name }}</a>
+                  <!-- the stretched link makes the whole row (picture, text) open the puzzle; the buttons sit above it -->
+                  <a class="text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id)">{{ game.jigsaw.name }}</a>
                   <div class="d-flex align-items-center gap-2 flex-wrap small">
                     @if (game.play.status === 'solved') {
                       <span class="badge text-bg-success"><i class="bi bi-check-lg" aria-hidden="true"></i>{{ t('jigsawUser.solved') || 'Solved' }}</span>
@@ -42,7 +42,7 @@
                     <button type="button" class="link-action danger" (click)="removeGame(game)">{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>
                     <button type="button" class="link-action" (click)="confirmingPlayId.set(null)">{{ t('jigsawUser.cancel') || 'Cancel' }}</button>
                   } @else {
-                    <a class="link-action text-nowrap" [routerLink]="link(game.jigsaw.id, game.play.id)" [title]="game.play.status === 'solved' ? (t('jigsawUser.look') || 'Look') : (t('jigsawUser.keepPlaying') || 'Continue')">
+                    <a class="link-action text-nowrap" [routerLink]="link(game.jigsaw.id)" [title]="game.play.status === 'solved' ? (t('jigsawUser.look') || 'Look') : (t('jigsawUser.keepPlaying') || 'Continue')">
                       <i class="bi bi-play-fill" aria-hidden="true"></i><span class="round-action-text">@if (game.play.status === 'solved') { {{ t('jigsawUser.look') || 'Look' }} } @else { {{ t('jigsawUser.keepPlaying') || 'Continue' }} }</span>
                     </a>
                     <button type="button" class="link-action danger text-nowrap" [title]="t('jigsawUser.deleteRound') || 'Delete'" (click)="confirmingPlayId.set(game.play.id)"><i class="bi bi-trash" aria-hidden="true"></i><span class="round-action-text">{{ t('jigsawUser.deleteRound') || 'Delete' }}</span></button>

@@ -67,8 +67,8 @@ function memoryImages(ids: string[]) {
   return store;
 }
 
-/** pieces with a graphic for every jigsaw and piece id asked for */
-const pieces = { graphic: async () => ({ data: jpeg, mime: "image/jpeg", etag: etagOf(jpeg) }), removeAll: async () => undefined, list: async () => [] } as unknown as PieceStore;
+/** no jigsaw here has pieces */
+const pieces = { removeAll: async () => undefined, list: async () => [] } as unknown as PieceStore;
 
 function setup() {
   const jigsaws = memoryJigsaws();
@@ -131,7 +131,6 @@ describe("the pictures of a jigsaw everybody sees", () => {
     const { app } = setup();
     expect((await get(app, `/jigsaw-image/${PUBLIC}`)).status).toBe(200);
     expect((await request(app).head(`/jigsaw/api/jigsaw-image/${PUBLIC}`)).status).toBe(200);
-    expect((await get(app, `/jigsaw-pieces/${PUBLIC}/graphic/piece-0001`)).status).toBe(200);
   });
 
   it("have no key in the answers about the jigsaw", async () => {
@@ -154,18 +153,16 @@ describe("the pictures of a private or hidden jigsaw", () => {
       expect((await get(app, `/jigsaw-image/${id}`)).status).toBe(404);
       expect((await get(app, `/jigsaw-image/${id}`, "u3")).status).toBe(404);
       expect((await request(app).head(`/jigsaw/api/jigsaw-image/${id}`)).status).toBe(404);
-      expect((await get(app, `/jigsaw-pieces/${id}/graphic/piece-0001`)).status).toBe(404);
     }
   });
 
-  it("are read with the key that the owner is given when the jigsaw is opened, also the graphics of the pieces and with HEAD", async () => {
+  it("are read with the key that the owner is given when the jigsaw is opened, also with HEAD", async () => {
     const { app } = setup();
     for (const id of [PRIVATE, HIDDEN]) {
       const key = (await get(app, `/jigsaw/${id}`, "u1")).body.imageKey as string;
       expect(key).toMatch(/^\d+\.[A-Za-z0-9_-]{22}$/);
       expect((await get(app, `/jigsaw-image/${id}?v=1&k=${key}`)).status).toBe(200);
       expect((await request(app).head(`/jigsaw/api/jigsaw-image/${id}?k=${key}`)).status).toBe(200);
-      expect((await get(app, `/jigsaw-pieces/${id}/graphic/piece-0001?k=${key}`)).status).toBe(200);
     }
   });
 
@@ -182,11 +179,11 @@ describe("the pictures of a private or hidden jigsaw", () => {
     expect((await get(app, `/jigsaw-image/${PRIVATE}?k=${key}`)).status).toBe(404); // and then it has run out
   });
 
-  it("are read with a good key without asking about the jigsaw (a round reads many graphics)", async () => {
+  it("are read with a good key without asking about the jigsaw (a list shows many pictures)", async () => {
     const { app, state } = setup();
     const key = (await get(app, `/jigsaw/${PRIVATE}`, "u1")).body.imageKey as string;
     const before = state.asked;
-    for (let i = 0; i < 20; i++) expect((await get(app, `/jigsaw-pieces/${PRIVATE}/graphic/piece-${1000 + i}?k=${key}`)).status).toBe(200);
+    for (let i = 0; i < 20; i++) expect((await get(app, `/jigsaw-image/${PRIVATE}?v=${i}&k=${key}`)).status).toBe(200);
     expect(state.asked).toBe(before);
   });
 

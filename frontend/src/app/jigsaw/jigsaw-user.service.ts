@@ -233,18 +233,6 @@ export class JigsawUserService {
     }
   }
 
-  /** Plays as a user that exists: found by the user name. The reason when there is no such user. */
-  async use(username: string): Promise<string> {
-    const error = JigsawUsers.usernameError(username);
-    if (error) return error;
-    try {
-      this.choose(await this.readByAlias(username));
-      return '';
-    } catch (err) {
-      return err instanceof HttpErrorResponse && err.status === 404 ? tr('jigsawUser.noSuchUser', 'There is no user with that alias.') : reasonOf(err);
-    }
-  }
-
   /**
    * Changes the user who plays: only what is given (an e-mail address that is null is taken away; the address is private and is never read back). The reason when it could
    * not be changed (the user name is taken, a field is not allowed).

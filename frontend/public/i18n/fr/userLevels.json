@@ -17,7 +17,6 @@
   "you": "Vous",
   "couldNotSave": "Impossible d'enregistrer le niveau : réessayez.",
   "couldNotRead": "Impossible de lire les comptes.",
-  "publicLocked": "Seul un éditeur peut rendre un puzzle public.",
   "loading": "Lecture des comptes…",
   "account": {
     "edit": "Modifier",
@@ -35,5 +34,6 @@
     "back": "Retour à {{ name }}",
     "notAllowed": "Seul un admin peut entrer dans un compte."
   },
-  "noAdminYet": "Il n'y a pas encore d'admin. Faites de votre propre compte un admin ci-dessous : seul un admin peut modifier, ouvrir ou supprimer les comptes des autres."
+  "noAdminYet": "Il n'y a pas encore d'admin. Faites de votre propre compte un admin ci-dessous : seul un admin peut modifier, ouvrir ou supprimer les comptes des autres.",
+  "backToApp": "Retour à l’application"
 }

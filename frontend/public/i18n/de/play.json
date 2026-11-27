@@ -237,5 +237,6 @@
   "newLink": "Neuen Link erstellen: der alte funktioniert dann nicht mehr",
   "newLinkMade": "Ein neuer Link ist erstellt. Teile ihn erneut.",
   "close": "Schließen",
-  "infoBack": "Zurück"
+  "infoBack": "Zurück",
+  "editOrDelete": "Bearbeiten oder löschen"
 }

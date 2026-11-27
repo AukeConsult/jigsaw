@@ -4,7 +4,7 @@ import { PuzzelRound } from './puzzel-round';
 
 /**
  * **The board of the round that is open**: the pieces in their store beside the picture, with the helper picture (the picture area, the store, the pieces and the pointer tools are `app-jigsaw-board`). It only shows what the round
- * (`PuzzelRound`, provided by the page) has, and gives back what the player does with the pieces. The same component in the website and in the app.
+ * (`PuzzelRound`, provided by the page) has, and gives back what the player does with the pieces.
  */
 @Component({
   selector: 'app-puzzel-board',
