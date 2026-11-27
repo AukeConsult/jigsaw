@@ -6,7 +6,7 @@ export const TILE_DETAILS = ['none', 'short', 'details', 'full'] as const;
 export type TileDetail = (typeof TILE_DETAILS)[number];
 
 /** what a person has who has chosen nothing */
-export const DEFAULT_TILE_DETAIL: TileDetail = 'full';
+export const DEFAULT_TILE_DETAIL: TileDetail = 'none';
 
 export class TileDetailLevels {
   static is(value: unknown): value is TileDetail {

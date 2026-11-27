@@ -2226,7 +2226,8 @@ $mood-angry: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 
 // the picture area is a mat on the table (a jigsaw that has its own background colour keeps it)
 // the watermark of an empty picture area: big, faint words in its middle, over nothing that can be pressed; the board is drawn at a scale (`--app-scale`), the words keep their size on the screen
-.picture-watermark {
+.picture-watermark,
+.store-watermark { // the store has one too (what a press on it does), under the pieces
   position: absolute;
   inset: 0;
   display: flex;
@@ -2242,7 +2243,7 @@ $mood-angry: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 }
 
 // on the dark tables the words are light
-.board-root:is([data-table='felt'], [data-table='wood'], [data-table='summer'], [data-table='autumn'], [data-table='angry']) .picture-watermark {
+.board-root:is([data-table='felt'], [data-table='wood'], [data-table='summer'], [data-table='autumn'], [data-table='angry']) :is(.picture-watermark, .store-watermark) {
   color: rgba(255, 255, 255, 0.38);
 }
 
@@ -2528,6 +2529,10 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 .board-root {
   position: relative;
   z-index: var(--app-z-play);
+  // nothing on the board is text to select: a selection (a double click on the empty scroller made one) is what the browser then drags when a piece is pressed, instead of the piece
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 // a bar with a menu or a popup that is open is lifted over the play (the menu is part of the bar, and a bar is under the play)
@@ -2577,7 +2582,12 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   transform: translateY(-50%);
 }
 
-// the tiny hint in the store frame: it lies on top of the pieces and lets the click through to the frame
+// (the store is lower than the picture area: its watermark is a heading's size)
+.store-watermark {
+  font-size: calc(var(--app-fs-heading) / var(--app-scale, 1));
+}
+
+// the first-move hint in the store frame: it lies on top of the pieces and lets the click through to the frame
 .store-hint {
   position: absolute;
   z-index: var(--app-z-controls);

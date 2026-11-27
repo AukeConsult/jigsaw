@@ -15,7 +15,7 @@ export interface TextLookSetup {
 }
 
 /** what a person has who has chosen nothing */
-export const DEFAULT_TEXT_LOOK: TextLookSetup = { size: 'normal', font: 'standard' };
+export const DEFAULT_TEXT_LOOK: TextLookSetup = { size: 'normal', font: 'playful' };
 
 export class TextLooks {
   /** The value is a whole choice: a size and a font that are known. */

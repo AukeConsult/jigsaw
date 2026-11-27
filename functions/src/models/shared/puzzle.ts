@@ -25,6 +25,17 @@ const PIECE_NEIGHBOURS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0
  * moved as a group. It never changes: every change gives a new puzzle, or this one when nothing changed.
  */
 export class Puzzle {
+  /** with no more pieces than this in what the piece scroller area shows, it counts as almost empty */
+  static readonly SCROLLER_ALMOST_EMPTY = 2;
+
+  /**
+   * Whether the piece scroller area is to collect pieces by itself: it shows hardly any (`shown`) while others wait further on (`ahead`: further to the right, or further down, than what is shown). With nothing further on there is
+   * nothing to bring, so nothing is moved, even if there are pieces back where the person has scrolled from.
+   */
+  static scrollerNeedsPieces(shown: number, ahead: number): boolean {
+    return ahead > 0 && shown <= Puzzle.SCROLLER_ALMOST_EMPTY;
+  }
+
   private constructor(
     readonly items: readonly PlacedFigure[],
     readonly width: number,

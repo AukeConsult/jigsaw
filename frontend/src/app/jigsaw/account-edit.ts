@@ -2,6 +2,7 @@ import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { JigsawUsers, UserEdit } from '../models/shared/jigsaw-user';
 import { pictureFromFile } from './account-picture';
 import { JigsawUserService } from './jigsaw-user.service';
+import { LanguageService } from '../core/language.service';
 
 /** how long the account form waits after the last change before it saves it */
 const EDIT_PAUSE_MS = 800;
@@ -14,6 +15,7 @@ const EDIT_PAUSE_MS = 800;
 @Injectable()
 export class AccountEdit {
   private readonly users = inject(JigsawUserService);
+  private readonly languages = inject(LanguageService);
 
   /** the account that plays is being edited, and what is in the form */
   readonly editing = signal(false);
@@ -61,7 +63,7 @@ export class AccountEdit {
     if (!me) return;
     this.name.set(me.name);
     this.username.set(me.username);
-    this.language.set(me.language);
+    this.language.set(this.shownLanguage(me.language));
     this.picture.set(undefined);
     this.pictureFailed.set(false);
     this.usernameCheck.set('');
@@ -105,13 +107,18 @@ export class AccountEdit {
   }
 
   /** What the form changes in the account: only what differs from it (nothing: an empty object). */
+  /** the language the form shows for an account: its own, or the one the app is in (the browser's) when it has chosen none */
+  private shownLanguage(own: string): string {
+    return own || this.languages.lang();
+  }
+
   private change(): UserEdit {
     const me = this.users.user();
     const change: UserEdit = {};
     if (!me) return change;
     if (this.name().trim() !== me.name) change.name = this.name();
     if (this.username().trim().toLowerCase() !== me.username) change.username = this.username();
-    if (this.language() !== me.language) change.language = this.language();
+    if (this.language() !== this.shownLanguage(me.language)) change.language = this.language();
     if (this.picture() !== undefined && (this.picture() !== null || me.pictureAt)) change.picture = this.picture();
     return change;
   }

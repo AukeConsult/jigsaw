@@ -4,7 +4,7 @@ import { PartSize, PartSizes } from './part-size';
 import { TileDetail, TileDetailLevels } from './tile-details';
 import { MenuPlace, MenuPlaces } from './menu-place';
 import { JigsawFilter, JigsawFilters } from './jigsaw-filter';
-import { DEFAULT_LANGUAGE, JigsawLanguages } from './language';
+import { JigsawLanguages } from './language';
 import { UserLevel, UserLevels } from './user-level';
 
 // A user of the jigsaws: someone who plays. There is no sign-in yet: a person chooses a user name and a name, and plays as that user (the plays of a jigsaw say which user
@@ -27,7 +27,7 @@ export interface JigsawUserSpec {
   username: string;
   /** the name that is shown ("Karin") */
   name: string;
-  /** the language the app is shown in for the user (a code of `JIGSAW_LANGUAGES`; English when the user has not chosen) */
+  /** the language the app is shown in for the user (a code of `JIGSAW_LANGUAGES`; empty when the user has not chosen: the app is then in the language of the browser) */
   language: string;
   /** what the app's picture list is filtered by (the preferences of the app), kept with the user so it is the same on every device; none until the user has chosen something */
   listFilter?: JigsawFilter;
@@ -235,7 +235,7 @@ export class JigsawUsers {
 
   /** The user as it is stored (the UID is the id of the document), for one that is allowed: only the known fields, the user name in small letters, the name trimmed. */
   static stored(input: { username: string; name: string; language?: string }, createdAt: number): Omit<JigsawUserSpec, 'id'> {
-    return { username: JigsawUsers.normalised(input.username), name: input.name.trim(), language: JigsawLanguages.is(input.language) ? input.language : DEFAULT_LANGUAGE, createdAt };
+    return { username: JigsawUsers.normalised(input.username), name: input.name.trim(), language: JigsawLanguages.is(input.language) ? input.language : '', createdAt };
   }
 
   /** The user as the API tells it to anyone: without the e-mail address, which is private, and without the verified accounts (`protected` says there are some). */
@@ -264,6 +264,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, language: JigsawLanguages.of(doc), ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(TileDetailLevels.of(doc.tileDetails) ? { tileDetails: TileDetailLevels.of(doc.tileDetails) } : {}), ...(MenuPlaces.is(doc.menuPlace) ? { menuPlace: doc.menuPlace } : {}), ...(typeof doc.showOngoing === 'boolean' ? { showOngoing: doc.showOngoing } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
+    return { id, username, name: doc.name ?? username, language: JigsawLanguages.is(doc.language) ? doc.language : '', ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(TileDetailLevels.of(doc.tileDetails) ? { tileDetails: TileDetailLevels.of(doc.tileDetails) } : {}), ...(MenuPlaces.is(doc.menuPlace) ? { menuPlace: doc.menuPlace } : {}), ...(typeof doc.showOngoing === 'boolean' ? { showOngoing: doc.showOngoing } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
   }
 }

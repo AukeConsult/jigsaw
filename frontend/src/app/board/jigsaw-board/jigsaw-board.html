@@ -17,7 +17,8 @@
   shown whole, in its own proportions, whatever the size of the screen (the sizer takes the room the scaled content takes).
 -->
 <div #root class="board-root rounded p-1" [attr.data-table]="look().table" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
-     (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()">
+     (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()" (dragstart)="$event.preventDefault()">
+<!-- (dragstart: the browser's own drag never starts here, it would take the pointer from the piece that is held) -->
 <div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
 <div class="scale-content position-relative d-flex align-items-start" [style.padding-top.px]="margin()" [style.padding-left.px]="margin()" [style.padding-right.px]="store() && !stacked() ? 0 : margin()" [style.padding-bottom.px]="store() && stacked() ? 0 : margin()" [class.flex-column]="stacked()" [style.gap.px]="stacked() ? gridSize() : gutter()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
   <div class="picture-surface position-relative shadow-sm flex-shrink-0" [class.bg-white]="!ownColor() && look().table === 'plain'" [class.picture-mat]="!ownColor() && look().table !== 'plain'" [style.background-color]="ownColor()" [class.picture-frame]="(lineWidth() ?? 0) > 0" [style.width.px]="width()" [style.height.px]="height()" [style.outline-width.px]="lineWidth() === null ? null : lineWidth()! / scale()" [style.outline-color]="lineColor()"
@@ -52,13 +53,14 @@
         }
       </div>
     </div>
-    <!-- a tiny hint, on top of the pieces: a click on an empty place of the store collects the pieces -->
+    <!-- what the store says: a click on an empty place of it collects the pieces -->
     @if (storePieceIds().length) {
       @if (!hasMoved() && !viewOnly()) {
         <!-- the first time: what to do, big enough to read -->
         <span class="store-hint store-hint-first text-primary fw-semibold">{{ t('jigsawBoard.dragHint') || 'Drag a piece to the picture' }}</span>
       } @else {
-        <span class="store-hint text-body-secondary" aria-hidden="true">{{ t('jigsawBoard.clickToGet') || 'Click to get pieces' }}</span>
+        <!-- a watermark of the store, under the pieces that lie on it -->
+        <span class="store-watermark" aria-hidden="true">{{ t('jigsawBoard.clickToGet') || 'Click to get pieces' }}</span>
       }
     }
     <!-- below the picture the store scrolls sideways: two buttons over its edges scroll it a step to the left or right (only where there is more to see) -->

@@ -216,7 +216,7 @@ export class JigsawBoard {
   /**
    * the pieces that lie in the store (by their middle) and are shown (not hidden by "only corner and edge pieces"): the ones that are collected. This is deliberately not `belongsToStore` (rule 3,
    * whole inside): the first scatter of a round, made without knowing the width of a slice, leaves pieces over the edge of a slice that no pointer can put there, so by rule 3 they are free pieces;
-   * a click on the scroller (and the Edges switch) still has to gather them, or they would stay lying over the frame for ever. It only runs when the person asks.
+   * a click on the scroller (and the Edges switch) still has to gather them, or they would stay lying over the frame for ever. It runs when the person asks, or when they have all but emptied what the frame shows (`refillScroller`).
    */
   readonly storePieceIds = computed(() => {
     const store = this.store();
@@ -242,7 +242,7 @@ export class JigsawBoard {
   }
 
   /** Puts pieces together in the store: with `all` the pieces of the store and the strays (a click on the empty store), without it only the strays (the automatic check). */
-  private collect(all: boolean): void {
+  private collect(all: boolean, only?: readonly string[]): void {
     if (this.viewOnly()) return;
     const store = this.store();
     if (!store) return;
@@ -258,7 +258,7 @@ export class JigsawBoard {
     // an overall check: a piece that is in none of the places a person can see and reach (it strayed when the window was made smaller, or the store was changed) is brought back with the rest
     const hidden = this.hiddenIds();
     const strays = before.strayPieces(this.visiblePlaces()).filter((id) => !hidden.has(id));
-    const ids = all ? [...new Set([...this.storePieceIds(), ...strays])] : strays;
+    const ids = only ? [...only] : all ? [...new Set([...this.storePieceIds(), ...strays])] : strays;
     if (!ids.length) return;
     const across = stacked ? { bandHeight: this.bandHeight(), stride: this.bandStride() } : undefined;
     const down = stacked ? undefined : { sliceWidth: slice, sliceHeight: this.sliceStride() }; // a slice is packed down to where the next one begins, so the two do not lie over each other
@@ -273,6 +273,56 @@ export class JigsawBoard {
       frame.scrollTop = 0;
       frame.scrollLeft = 0;
     }
+  }
+
+  /** the pieces that belong to the piece scroller area (whole inside it, rule 3, and shown): not the free pieces that only lie partly over it */
+  private scrollerPieces(): ReadonlySet<string> {
+    const store = new Set(this.storePieceIds());
+    return new Set(this.view().filter((v) => v.inStore && store.has(v.p.id)).map((v) => v.p.id));
+  }
+
+  /** how far along the piece scroller area the middle of a piece of it lies, in the pixels of the scroller: across below the picture (its bands side by side), down beside it (its slices one under the other) */
+  private alongScroller(item: { left: number; top: number; centerY: number; object: { width: number } }): number {
+    const store = this.store()!;
+    const half = item.object.width / 2;
+    if (this.stacked()) return item.left - store.left + this.bandOf(item.centerY) * this.bandStride() + half;
+    return item.top + this.sliceOfAcross(item.left + half - store.left) * this.sliceStride() + half;
+  }
+
+  /** of these pieces of the scroller, those it shows now (their middle is in it) and those further on than that */
+  private scrollerContent(pieces: ReadonlySet<string>): { shown: ReadonlySet<string>; ahead: number } {
+    const shown = new Set<string>();
+    let ahead = 0;
+    if (!this.store()) return { shown, ahead };
+    const start = this.stacked() ? this.storeScrollX() : this.storeScroll();
+    const end = start + (this.stacked() ? this.storeFrameWidth() : this.storeViewHeight());
+    for (const item of this.puzzle().items) {
+      if (!pieces.has(item.id)) continue;
+      const along = this.alongScroller(item);
+      if (along > end) ahead++;
+      else if (along >= start) shown.add(item.id);
+    }
+    return { shown, ahead };
+  }
+
+  /** where the piece scroller area begins on the board: beside the picture area, a small gap from it, or below it */
+  private frameOrigin(): { left: number; top: number } {
+    const stacked = this.stacked();
+    return {
+      left: stacked ? this.margin() : this.margin() + this.width() + this.gutter() + this.frameExtra(),
+      top: stacked ? this.margin() + this.height() + this.gridSize() + this.stripExtra() : this.margin(),
+    };
+  }
+
+  /**
+   * **A piece scroller area that is emptied fills itself**: when a piece was taken out of it, and it shows hardly any while others wait further on (`Puzzle.scrollerNeedsPieces`), its pieces are collected. **Nothing of what was just
+   * moved is touched**, nor a free piece that only lies over the scroller; nothing happens when the piece was put down in the scroller again, or when there is nothing further on to bring (at its end), and never by scrolling.
+   */
+  private refillScroller(moved: readonly string[]): void {
+    const pieces = this.scrollerPieces();
+    if (moved.some((id) => pieces.has(id))) return;
+    const { shown, ahead } = this.scrollerContent(pieces);
+    if (Puzzle.scrollerNeedsPieces(shown.size, ahead)) this.collect(true, [...pieces]);
   }
 
   /**
@@ -514,9 +564,7 @@ export class JigsawBoard {
     let reach = 0;
     for (const item of this.puzzle().items) {
       if (!item.data.piece || item.centerX < store.left) continue;
-      const own = item.object.width;
-      if (this.stacked()) reach = Math.max(reach, item.left - store.left + this.bandOf(item.centerY) * this.bandStride() + own);
-      else reach = Math.max(reach, item.top + this.sliceOfAcross(item.left + own / 2 - store.left) * this.sliceStride() + own);
+      reach = Math.max(reach, this.alongScroller(item) + item.object.width / 2);
     }
     return reach + size;
   });
@@ -611,8 +659,7 @@ export class JigsawBoard {
     const cutLeft = scrollX > 0 || stacked ? Math.max(0, -across) : 0;
     const cutRight = Math.max(0, across + size - shownAcross);
     const sideReach = reach + size;
-    const frameLeft = stacked ? this.margin() : this.margin() + this.width() + this.gutter() + this.frameExtra(); // the frame is beside the picture area, a small gap from it, or below it
-    const frameTop = stacked ? this.margin() + this.height() + this.gridSize() + this.stripExtra() : this.margin();
+    const { left: frameLeft, top: frameTop } = this.frameOrigin();
     return {
       shift: v.left - (frameLeft + across),
       shiftY: v.top - (frameTop + top),
@@ -745,7 +792,7 @@ export class JigsawBoard {
   readonly backdrop = computed(() => (this.placed().some((p) => p.piece) ? null : this.picture()));
 
   /** the placed object that is being moved: the pointer's distance from its centre (or from the end that was grabbed), and the picture area it is in */
-  private moving: { id: string; ids: string[]; dx: number; dy: number; screen?: { dx: number; dy: number }; free?: FreeDrag; matchedAtStart: ReadonlySet<string>; stuckAtStart: ReadonlySet<string> } | null = null;
+  private moving: { id: string; ids: string[]; dx: number; dy: number; screen?: { dx: number; dy: number }; free?: FreeDrag; matchedAtStart: ReadonlySet<string>; stuckAtStart: ReadonlySet<string>; fromScroller: boolean } | null = null;
 
   /** where a rectangle drag on the empty picture area started */
   private marqueeStart: { x: number; y: number } | null = null;
@@ -903,7 +950,7 @@ export class JigsawBoard {
     const screen = item.piece ? { dx: event.clientX - (box.left + box.width / 2), dy: event.clientY - (box.top + box.height / 2) } : undefined;
     this.held.set(new Set(ids));
     const freeDrag = screen ? this.freeDragOf(ids, event, box) : undefined;
-    this.moving = { id: item.id, ids, dx: x - grabbed.x, dy: y - grabbed.y, screen, free: freeDrag, matchedAtStart: this.matchedAmong(this.puzzle(), ids), stuckAtStart: new Set(this.puzzle().stuckGroup(ids)) };
+    this.moving = { id: item.id, ids, dx: x - grabbed.x, dy: y - grabbed.y, screen, free: freeDrag, matchedAtStart: this.matchedAmong(this.puzzle(), ids), stuckAtStart: new Set(this.puzzle().stuckGroup(ids)), fromScroller: this.scrollerPieces().has(item.id) };
     this.capture(this.root().nativeElement, event); // not the object: it is made again in the store frame when it is moved there
   }
 
@@ -1058,6 +1105,7 @@ export class JigsawBoard {
     const before = this.puzzle();
     const dropped = this.movedTo(before, moving).dropPieces(ids, this.snapRange(), { left: 0, top: 0, width: this.width(), height: this.height() }); // it clicks only on the picture area (the blue one)
     this.commitFree(moving, dropped !== before ? dropped : null);
+    if (moving.fromScroller) this.refillScroller(ids);
     const fresh = [...this.matchedAmong(dropped, ids)].filter((id) => !moving.matchedAtStart.has(id)); // in place now, and was not when it was picked up
     const joined = dropped.stuckGroup(ids).filter((id) => !moving.stuckAtStart.has(id)); // pieces that stick to what was moved now, and did not when it was picked up
     // only the piece that was dropped blinks (not the whole group it clicked into): the person sees which piece clicked

@@ -11,7 +11,7 @@ import { JigsawSpec } from '../../../app/models/shared/jigsaw-settings';
 
 /**
  * The page of the route `/play/mine/picture/:id`, where a picture in the list of the user's pictures leads: **a picture that is there**. It frames the form of a picture (`play-picture-form`, the same form as Add picture) and
- * the rounds that have been played of the picture (`play-picture-rounds`). **The user's own picture is open for changes at once** (there is no Edit to press first), with Save and Cancel in the form, and a red Delete on top of it
+ * the rounds that have been played of the picture (`play-picture-rounds`). **The user's own picture is open for changes at once** (there is no Edit to press first), with Save and Cancel in the form. On top of it: to the left **Start playing** (to the page before the puzzle) and to the right a red Delete
  * (asked first: the picture and all its rounds go). Only its owner changes a picture (an admin too; anybody else only looks), and not its picture, size or cut once rounds have been played of it: the form knows. The menu of the helper
  * (`pictureMenu`) has the way back. Save and Cancel go back to where the picture was opened from.
  */

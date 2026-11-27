@@ -11,7 +11,7 @@ export interface PlayLookSetup {
 }
 
 /** what a person has who has chosen nothing */
-export const DEFAULT_PLAY_LOOK: PlayLookSetup = { table: 'jigsaw', sound: true };
+export const DEFAULT_PLAY_LOOK: PlayLookSetup = { table: 'spring', sound: true };
 
 export class PlayLooks {
   static isTable(value: unknown): value is Table {
