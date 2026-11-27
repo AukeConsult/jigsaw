@@ -55,6 +55,8 @@
     "glass": "Glas",
     "flat": "Flach"
   },
+  "chapterShow": "Zeigen",
+  "chapterHide": "Verbergen",
   "effects": "Effekte",
   "effectGroups": {
     "moving": "Beim Bewegen",

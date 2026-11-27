@@ -5,7 +5,7 @@ Gør et hvilket som helst billede til et puslespil og læg det på skærmen. Alt
 1. Tryk på et billede på forsiden. Vælg antal **Brikker** (fra 20 til 1000), hvor let en brik klikker på plads (**Snap-afstand**: **Let**, **Middel** eller **Svær**) og, hvis du vil, **Tidtagning**. Tryk derefter på **Start runden**.
 2. Træk brikkerne fra rammen ved siden af billedet (under billedet på en lille skærm) hen på billedet.
 3. Slip en brik tæt på sin plads, så klikker den på plads. Brikker, der passer sammen, hænger sammen.
-4. Menuen har kontakter: **Hjælpebillede** viser hele billedet i en lille ramme, og **Kantbrikker** viser kun kantbrikkerne, så du kan bygge rammen først. **Detaljer** viser spilletiden og har **Nulstil runden** og **Slet runden**, og **Bord** vælger, hvad brikkerne ligger på, og lyden.
+4. Menuen har kontakter: **Hjælpebillede** viser hele billedet i en lille ramme, og **Kantbrikker** viser kun kantbrikkerne, så du kan bygge rammen først. **Detaljer** viser spilletiden og har **Nulstil runden** og **Slet runden**, og **Bord** vælger, hvad brikkerne ligger på, og lyden. **Fuld skærm** lader puslespillet fylde hele skærmen, også næste gang du åbner et puslespil (ikke på iPhone eller i appsene til Android og Windows).
 
 Point kommer senere.
 

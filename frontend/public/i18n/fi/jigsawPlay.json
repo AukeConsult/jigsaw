@@ -55,6 +55,8 @@
     "glass": "Lasi",
     "flat": "Litteä"
   },
+  "chapterShow": "Näytä",
+  "chapterHide": "Piilota",
   "effects": "Tehosteet",
   "effectGroups": {
     "moving": "Kun siirrät paloja",

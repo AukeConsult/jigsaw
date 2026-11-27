@@ -4,6 +4,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { isBoolean, readPreference, writePreference } from '../../app/core/preferences';
 import { MenuSpot, Spot } from './menu-spot';
 import { FavoritesService } from '../../app/jigsaw/favorites.service';
+import { FullScreen } from '../full-screen';
 import { LanguageSelect } from '../../app/jigsaw/language-select/language-select';
 import { ListView } from '../list-view';
 import { PhotoShot } from '../photo-shot';
@@ -49,19 +50,33 @@ export class Helper implements OnInit, OnDestroy {
   /** the switches of the puzzle page: an entry of the menu can be one of them */
   protected readonly view = inject(PuzzelView);
   private readonly listView = inject(ListView);
+  private readonly screen = inject(FullScreen);
   private readonly favorites = inject(FavoritesService);
   private readonly listFilter = inject(PlayListFilter);
   /** the filter of the list has some choice set: its entry has a dot, so a list that is short for that reason is not a riddle */
   protected readonly filterOn = computed(() => JigsawFilters.isOn(this.listFilter.filter()));
 
-  /** a switch that is not offered now: the help picture and the border pieces of a puzzle that is finished, and My favorites when the user has no favorites (while the list is only the favorites the switch stays, or there would be no way back) */
+  /** a switch that is not offered now: Full screen where the browser cannot, the help picture and the border pieces of a puzzle that is finished, and My favorites when the user has no favorites (while the list is only the favorites the switch stays, or there would be no way back) */
   protected hidden(toggle: NonNullable<PlayMenuItem['toggle']>): boolean {
+    if (toggle === 'fullscreen') return !this.screen.available;
     if (toggle === 'favorites') return this.favorites.ids().size === 0 && !this.listView.favorites();
     return (toggle === 'help' || toggle === 'edges') && this.view.solved();
   }
 
+  /** whether a switch is on */
+  protected isOn(toggle: NonNullable<PlayMenuItem['toggle']>): boolean {
+    return toggle === 'fullscreen' ? this.screen.on() : this.stateOf(toggle)();
+  }
+
+  /** A switch was pressed. */
+  protected flip(toggle: NonNullable<PlayMenuItem['toggle']>): void {
+    if (toggle === 'fullscreen') return this.screen.flip(); // (on this press: a browser fills the screen only then)
+    const state = this.stateOf(toggle);
+    state.set(!state());
+  }
+
   /** the switch, as a signal: the entry says which page it is a switch of (the puzzle, or the home page) */
-  protected stateOf(toggle: NonNullable<PlayMenuItem['toggle']>): WritableSignal<boolean> {
+  private stateOf(toggle: Exclude<NonNullable<PlayMenuItem['toggle']>, 'fullscreen'>): WritableSignal<boolean> {
     return toggle === 'favorites' ? this.listView.favorites : this.view.state(toggle as PuzzelToggle);
   }
 

@@ -24,12 +24,17 @@ export function cameraWay(win: Window = window): 'field' | 'live' | null {
   return typeof win.navigator.mediaDevices?.getUserMedia === 'function' ? 'live' : null;
 }
 
+/** The web app runs inside one of the native apps (the Android or iPhone app, any Android web view, the Windows app): a web view of theirs, which does not do all that a browser does. */
+export function isInWrapper(win: Window = window): boolean {
+  const host = win as unknown as AppHost;
+  return !!host.Capacitor?.isNativePlatform?.() || !!host.chrome?.webview || /; wv\)/.test(win.navigator.userAgent);
+}
+
 /**
  * The web app is already running as an app: the Android app (Capacitor, or any Android web view), the Windows app (WebView2), or a web app put on the home screen or
  * installed from the browser (standalone). Then there is nothing to install, so the install page and its hint have nothing to offer.
  */
 export function isInApp(win: Window = window): boolean {
-  const host = win as unknown as AppHost;
   const standalone = (win.navigator as Navigator & { standalone?: boolean }).standalone === true || !!win.matchMedia?.('(display-mode: standalone)').matches;
-  return !!host.Capacitor?.isNativePlatform?.() || !!host.chrome?.webview || /; wv\)/.test(win.navigator.userAgent) || standalone;
+  return isInWrapper(win) || standalone;
 }

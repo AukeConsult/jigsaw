@@ -55,6 +55,8 @@
     "glass": "Cristal",
     "flat": "Plano"
   },
+  "chapterShow": "Ver",
+  "chapterHide": "Ocultar",
   "effects": "Efectos",
   "effectGroups": {
     "moving": "Mientras las mueves",

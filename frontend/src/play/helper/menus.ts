@@ -13,7 +13,7 @@ export interface PlayMenuItem {
   /** the press takes the place of the page that is open in the history of the browser, instead of coming after it */
   readonly replace?: boolean;
   /** the entry is a switch of the page that is open (the puzzle, or the home page), not a link */
-  readonly toggle?: PuzzelToggle | ListToggle;
+  readonly toggle?: PuzzelToggle | ListToggle | 'fullscreen';
   /** the entry can carry a dot on its icon that says something about the app is on: `filter`, that the filter of the list has choices set */
   readonly mark?: 'filter';
   readonly text?: string;
@@ -126,7 +126,7 @@ export const infoMenu: PlayMenu = () => [
  */
 export const accountMenu: PlayMenu = (user, may) => (user ? [BRAND, { icon: 'bi-person-circle', route: '/play/account', key: 'play.accountEntry', english: 'Account' }, ...(may.levels ? [ADMIN] : []), PREFERENCES, HELP, MY_STUFF] : [BRAND, HELP]);
 
-/** The menu of the puzzle: the way home (the brand), for a user, next to it, the way to their own pages, four switches, each on or off (the help picture, the details of the round, the border pieces: only the corner and edge pieces in the store, and the table), and Help. */
+/** The menu of the puzzle: the way home (the brand), for a user, next to it, the way to their own pages, five switches, each on or off (the help picture, the details of the round, the border pieces: only the corner and edge pieces in the store, the table, and Full screen where the browser can: `FullScreen`), and Help. */
 export const jigsawMenu: PlayMenu = (user) => [
   BRAND,
   ...(user ? [MY_STUFF] : []),
@@ -134,6 +134,7 @@ export const jigsawMenu: PlayMenu = (user) => [
   { icon: 'bi-card-list', toggle: 'details', key: 'play.puzzelDetails', english: 'Details' },
   { icon: 'bi-bounding-box', toggle: 'edges', key: 'play.puzzelEdges', english: 'Border pieces' },
   { icon: 'bi-palette', toggle: 'look', key: 'play.puzzelTable', english: 'Table' },
+  { icon: 'bi-arrows-fullscreen', toggle: 'fullscreen', key: 'play.fullScreen', english: 'Full screen' },
   HELP,
 ];
 

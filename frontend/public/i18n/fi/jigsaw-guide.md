@@ -5,7 +5,7 @@ Tee mistä tahansa kuvasta palapeli ja kokoa se näytöllä. Kaikki tallentuu it
 1. Paina kuvaa etusivulla. Valitse **Palat** (20–1000), kuinka helposti pala napsahtaa paikalleen (**Napsahdusetäisyys**: **Helppo**, **Keskitaso** tai **Vaikea**) ja halutessasi **Ajastettu**. Paina sitten **Aloita kierros**.
 2. Vedä palat kuvan vieressä olevasta kehyksestä (pienellä näytöllä sen alta) kuvaan.
 3. Päästä pala irti lähellä sen paikkaa, niin se napsahtaa paikalleen. Toisiinsa sopivat palat tarttuvat yhteen.
-4. Valikossa on kytkimet: **Apukuva** näyttää koko kuvan pienessä kehyksessä, ja **Reunapalat** näyttää vain reunapalat, jotta voit rakentaa kehyksen ensin. **Tiedot** näyttää peliajan ja sisältää toiminnot **Nollaa kierros** ja **Poista kierros**, ja **Pöytä**-kohdassa valitset, millä alustalla palat ovat, sekä äänen.
+4. Valikossa on kytkimet: **Apukuva** näyttää koko kuvan pienessä kehyksessä, ja **Reunapalat** näyttää vain reunapalat, jotta voit rakentaa kehyksen ensin. **Tiedot** näyttää peliajan ja sisältää toiminnot **Nollaa kierros** ja **Poista kierros**, ja **Pöytä**-kohdassa valitset, millä alustalla palat ovat, sekä äänen. **Koko näyttö** täyttää palapelillä koko näytön, myös kun seuraavan kerran avaat palapelin (ei iPhonessa eikä Android- ja Windows-sovelluksissa).
 
 Pisteet tulevat myöhemmin.
 

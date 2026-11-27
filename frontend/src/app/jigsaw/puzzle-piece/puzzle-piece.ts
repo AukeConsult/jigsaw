@@ -52,6 +52,6 @@ export class PuzzlePiece {
   readonly gloss = computed(() => {
     const s = this.size();
     const band = (top: number, width: number) => [[top, -0.3], [top + width, -0.3], [top + width - 0.75, 1.3], [top - 0.75, 1.3]].map(([x, y]) => `${x * s},${y * s}`).join(' ');
-    return { wide: band(-0.3, 0.95), narrow: band(0.85, 0.22), shade: band(1.5, 0.8) }; // the last is a faint shade low to the right, so a light part of a picture shows the shine too
+    return { wide: band(-0.06, 0.475), narrow: band(0.9, 0.11), shade: band(1.7, 0.4) }; // the last is a faint shade low to the right, so a light part of a picture shows the shine too
   });
 }

@@ -2,6 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { playSnap } from '../../board/snap-sound';
 import { isBoolean, preferenceSignal } from '../../core/preferences';
+import { OpenWord } from '../open-word/open-word';
 import { PIECE_EFFECT_GROUPS, PIECE_STYLES, PieceEffect, PieceEffectGroup, PlayLookSetup, PlayLooks, SOUND_STYLES, SoundStyle, TABLES } from '../../models/shared/play-look';
 
 /**
@@ -10,7 +11,7 @@ import { PIECE_EFFECT_GROUPS, PIECE_STYLES, PieceEffect, PieceEffectGroup, PlayL
  */
 @Component({
   selector: 'app-play-look-choice',
-  imports: [TranslocoDirective],
+  imports: [TranslocoDirective, OpenWord],
   providers: [provideTranslocoScope('jigsawPlay')],
   host: { class: 'd-block' },
   template: `
@@ -37,7 +38,7 @@ import { PIECE_EFFECT_GROUPS, PIECE_STYLES, PieceEffect, PieceEffectGroup, PlayL
           </div>
         </fieldset>
         <details class="more-options mb-3" [open]="open()" (toggle)="open.set($any($event.target).open)">
-          <summary><i class="bi bi-stars me-1" aria-hidden="true"></i>{{ t('jigsawPlay.effects') || 'Effects' }}</summary>
+          <summary><i class="bi bi-stars me-1" aria-hidden="true"></i>{{ t('jigsawPlay.effects') || 'Effects' }}<app-open-word class="ms-2" /></summary>
           @for (group of groups; track group) {
             <fieldset class="mt-2">
               <legend class="form-label mb-1">{{ t('jigsawPlay.effectGroups.' + group) || group }}</legend>

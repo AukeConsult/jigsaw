@@ -49,10 +49,10 @@ const PULL_MS = 220;
 const RIPPLE_STEP_MS = 70;
 const RIPPLE_MAX_MS = 700;
 const TRAIL_EVERY_MS = 55;
-const TRAIL_MS = 320;
+const TRAIL_MS = 160;
 const CELEBRATION_MS = 4200;
 /** a carried piece leans at most this much, in degrees, and straightens when it has rested this long */
-const LEAN_MAX_DEG = 14;
+const LEAN_MAX_DEG = 7;
 const LEAN_REST_MS = 120;
 const HELPER_SCALE_MIN = 0.1;
 const HELPER_SCALE_MAX = 0.5;
@@ -1115,7 +1115,7 @@ export class JigsawBoard {
     const element = free.elements.find((e) => e.dataset['id'] === moving.id);
     if (!element) return;
     if (effects.has('lean') && moving.ids.length === 1) {
-      element.style.setProperty('--app-lean', `${Math.max(-LEAN_MAX_DEG, Math.min(LEAN_MAX_DEG, across * 0.9))}deg`);
+      element.style.setProperty('--app-lean', `${Math.max(-LEAN_MAX_DEG, Math.min(LEAN_MAX_DEG, across * 0.45))}deg`);
       clearTimeout(this.leanTimer);
       this.leanTimer = setTimeout(() => element.style.removeProperty('--app-lean'), LEAN_REST_MS);
     }

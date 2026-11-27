@@ -55,6 +55,8 @@
     "glass": "Glas",
     "flat": "Platt"
   },
+  "chapterShow": "Visa",
+  "chapterHide": "Dölj",
   "effects": "Effekter",
   "effectGroups": {
     "moving": "Medan du flyttar dem",

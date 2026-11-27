@@ -55,6 +55,8 @@
     "glass": "Glas",
     "flat": "Flad"
   },
+  "chapterShow": "Vis",
+  "chapterHide": "Skjul",
   "effects": "Effekter",
   "effectGroups": {
     "moving": "Mens du flytter dem",

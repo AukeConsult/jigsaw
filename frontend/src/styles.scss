@@ -131,7 +131,7 @@ $font-on-phone: math.div(8, 9); // 16 px: the smallest a field can have without 
   --app-piece-wood: #c08a45; // the wooden rim of a piece
   --app-piece-wood-dark: #6e4310;
   // the frame round the picture area, which goes with how the pieces are drawn
-  --app-board-frame: 0.5rem; // how wide it is on the screen
+  --app-board-frame: 0.25rem; // how wide it is on the screen
   --app-board-lit: rgba(255, 255, 255, 0.9);
   --app-board-shade: rgba(0, 0, 0, 0.35);
   --app-board-paper: #f4eddc;
@@ -1644,6 +1644,57 @@ app-my-rounds {
   transform: rotate(90deg);
 }
 
+// a chapter of the preferences: its whole heading opens and closes it
+.chapter > summary {
+  cursor: pointer;
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  > h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+// no hairline under the headings of such chapters (the headings of a form have one)
+.chapter > summary > .form-section {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+// the word at the end of such a heading: a soft pill that says Show or Hide (`app-open-word`)
+.open-word {
+  display: inline-block;
+  padding: 0.15rem 0.75rem;
+  border-radius: 2rem;
+  background: color-mix(in srgb, var(--app-primary) 10%, transparent);
+  color: var(--app-primary);
+  font-size: var(--app-fs-small);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+summary:hover .open-word {
+  background: color-mix(in srgb, var(--app-primary) 20%, transparent);
+}
+
+.open-word > .when-open,
+details[open] > summary .open-word > .when-closed {
+  display: none;
+}
+
+details[open] > summary .open-word > .when-open {
+  display: inline;
+}
+
+.chapter:not([open]) > summary > h2 {
+  margin-bottom: 0; // a closed card is as high as its heading
+}
+
 // menu style: one text size for everything that is written in a menu or a bar (the links, the switches, the clock, the name, the buttons): the normal text size. 
 // menu label: the type of the words under the icons of a menu across the top or the bottom (`menu-label`, beside `menu-font` for the rest of the menu): as big as the rest of the menu, set tight; only on a phone, where there is no room, small
 .menu-label {
@@ -2588,50 +2639,50 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 .board-root[data-pieces='cardboard'] .picture-surface::before {
   border-color: var(--app-piece-edge);
   border-radius: var(--w);
-  box-shadow: inset 0 0 0 var(--px) var(--app-board-shade), inset 0 calc(2 * var(--px)) 0 var(--px) var(--app-board-shade), 0 calc(3 * var(--px)) 0 var(--app-piece-wood-dark), 0 calc(5 * var(--px)) calc(10 * var(--px)) var(--app-board-shade);
+  box-shadow: inset 0 0 0 var(--px) var(--app-board-shade), inset 0 var(--px) 0 var(--px) var(--app-board-shade), 0 calc(1.5 * var(--px)) 0 var(--app-piece-wood-dark), 0 calc(2.5 * var(--px)) calc(5 * var(--px)) var(--app-board-shade);
 }
 
 // raised: lit from the upper left, as the pieces are (the sides let the table through, so it suits every table)
 .board-root[data-pieces='bevel'] .picture-surface::before {
   border-color: var(--app-board-lit) var(--app-board-shade) var(--app-board-shade) var(--app-board-lit);
-  box-shadow: 0 0 0 var(--px) var(--app-board-shade), 0 calc(2 * var(--px)) calc(6 * var(--px)) var(--app-board-shade);
+  box-shadow: 0 0 0 var(--px) var(--app-board-shade), 0 var(--px) calc(3 * var(--px)) var(--app-board-shade);
 }
 
 // a polished frame with the light across it
 .board-root[data-pieces='glossy'] .picture-surface::before {
   border-image: linear-gradient(135deg, var(--app-board-gloss-light), var(--app-board-gloss) 20%, var(--app-board-gloss-dark) 45%, var(--app-board-gloss-light) 55%, var(--app-board-gloss-dark) 75%, var(--app-board-gloss)) 1;
-  box-shadow: 0 0 0 var(--px) var(--app-board-gloss-dark), 0 calc(3 * var(--px)) calc(10 * var(--px)) var(--app-board-shade);
+  box-shadow: 0 0 0 var(--px) var(--app-board-gloss-dark), 0 calc(1.5 * var(--px)) calc(5 * var(--px)) var(--app-board-shade);
 }
 
 // a picture frame of wood: the four sides meet at the corners, the upright ones a little darker
 .board-root[data-pieces='wood'] .picture-surface {
-  --app-board-frame: 0.75rem;
+  --app-board-frame: 0.375rem;
 
   &::before {
     border-color: var(--app-piece-wood) color-mix(in srgb, var(--app-piece-wood) 72%, black);
-    box-shadow: inset 0 0 0 calc(2 * var(--px)) var(--app-piece-wood-dark), 0 0 0 calc(2 * var(--px)) var(--app-piece-wood-dark), 0 calc(4 * var(--px)) calc(12 * var(--px)) var(--app-board-shade);
+    box-shadow: inset 0 0 0 var(--px) var(--app-piece-wood-dark), 0 0 0 var(--px) var(--app-piece-wood-dark), 0 calc(2 * var(--px)) calc(6 * var(--px)) var(--app-board-shade);
   }
 }
 
 // a mount of paper
 .board-root[data-pieces='grain'] .picture-surface {
-  --app-board-frame: 0.75rem;
+  --app-board-frame: 0.375rem;
 
   &::before {
     border-color: var(--app-board-paper);
-    box-shadow: inset 0 0 0 var(--px) var(--app-board-shade), 0 0 0 var(--px) color-mix(in srgb, var(--app-board-shade) 60%, transparent), 0 calc(2 * var(--px)) calc(8 * var(--px)) var(--app-board-shade);
+    box-shadow: inset 0 0 0 var(--px) var(--app-board-shade), 0 0 0 var(--px) color-mix(in srgb, var(--app-board-shade) 60%, transparent), 0 var(--px) calc(4 * var(--px)) var(--app-board-shade);
   }
 }
 
 // a pane of glass: the table shows through, with a bright edge
 .board-root[data-pieces='glass'] .picture-surface::before {
   border-color: color-mix(in srgb, var(--app-board-lit) 45%, transparent);
-  box-shadow: inset 0 0 0 var(--px) var(--app-board-lit), 0 0 0 var(--px) var(--app-board-lit), 0 0 0 calc(2 * var(--px)) color-mix(in srgb, var(--app-board-shade) 40%, transparent), 0 calc(4 * var(--px)) calc(14 * var(--px)) var(--app-board-shade);
+  box-shadow: inset 0 0 0 var(--px) var(--app-board-lit), 0 0 0 var(--px) var(--app-board-lit), 0 0 0 calc(2 * var(--px)) color-mix(in srgb, var(--app-board-shade) 40%, transparent), 0 calc(2 * var(--px)) calc(7 * var(--px)) var(--app-board-shade);
 }
 
 // one plain line in the colour of the app
 .board-root[data-pieces='flat'] .picture-surface {
-  --app-board-frame: 0.25rem;
+  --app-board-frame: 0.125rem;
 
   &::before {
     border-color: var(--app-primary); // (the theme's own, where it has one)
@@ -2987,8 +3038,8 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: calc(4px / var(--app-scale, 1)) solid var(--app-matched);
-  box-shadow: 0 0 1em var(--app-matched), inset 0 0 1em var(--app-matched);
+  border: calc(2px / var(--app-scale, 1)) solid var(--app-matched);
+  box-shadow: 0 0 0.5em var(--app-matched), inset 0 0 0.5em var(--app-matched);
   pointer-events: none;
   animation: snap-ring var(--app-blink-duration) ease-out forwards;
 }
@@ -3019,12 +3070,12 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 
 @keyframes snap-ring {
   from {
-    transform: scale(0.5);
+    transform: scale(0.25);
     opacity: 1;
   }
 
   to {
-    transform: scale(2.4);
+    transform: scale(1.2);
     opacity: 0;
   }
 }
@@ -3105,13 +3156,13 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 }
 @keyframes piece-land {
   0% {
-    scale: 1.1;
+    scale: 1.05;
   }
   35% {
-    scale: 1.1 0.88;
+    scale: 1.05 0.94;
   }
   65% {
-    scale: 0.97 1.04;
+    scale: 0.985 1.02;
   }
   100% {
     scale: 1;
@@ -3134,7 +3185,7 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 // trail: faint copies that fade where the piece has been
 .placed-object.piece-trail {
   pointer-events: none;
-  animation: piece-trail 0.32s linear forwards;
+  animation: piece-trail 0.16s linear forwards;
 }
 @keyframes piece-trail {
   from {
@@ -3166,10 +3217,10 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 // sparkle: four stars at the corners
 .snap-sparkle {
   position: absolute;
-  inset: -20%;
+  inset: -10%;
   pointer-events: none;
   color: var(--app-piece-glow);
-  font-size: calc(1.4rem / var(--app-scale, 1));
+  font-size: calc(0.7rem / var(--app-scale, 1));
   line-height: 1;
 
   i {
@@ -3247,7 +3298,7 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   rect {
     fill: none;
     stroke: var(--app-piece-glow);
-    stroke-width: calc(10px / var(--app-scale, 1)); // half of it is outside the picture area and cut off
+    stroke-width: calc(5px / var(--app-scale, 1)); // half of it is outside the picture area and cut off
     stroke-dasharray: 80 320;
     animation: celebrate-border 2s linear 2;
     animation-fill-mode: forwards;
@@ -3262,8 +3313,8 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 45%;
-  left: -50%;
+  width: 22%;
+  left: -25%;
   background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.7) 50%, transparent 80%);
   animation: celebrate-shine 1.6s ease-in-out 0.3s 2;
 }
@@ -3282,7 +3333,7 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   border-radius: 999px;
   background: var(--bs-body-bg);
   box-shadow: var(--bs-box-shadow);
-  font-size: calc(var(--app-fs-title) / var(--app-scale, 1));
+  font-size: calc(var(--app-fs-small) / var(--app-scale, 1));
   animation: celebrate-word 3.6s ease both;
 }
 @keyframes celebrate-word {
@@ -3302,8 +3353,8 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
 .confetti {
   position: absolute;
   top: -5%;
-  width: calc(8px / var(--app-scale, 1));
-  height: calc(13px / var(--app-scale, 1));
+  width: calc(4px / var(--app-scale, 1));
+  height: calc(6.5px / var(--app-scale, 1));
   animation-name: confetti-fall;
   animation-timing-function: linear;
   animation-fill-mode: both;

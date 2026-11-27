@@ -55,6 +55,8 @@
     "glass": "Glas",
     "flat": "Plat"
   },
+  "chapterShow": "Tonen",
+  "chapterHide": "Verbergen",
   "effects": "Effecten",
   "effectGroups": {
     "moving": "Tijdens het verplaatsen",

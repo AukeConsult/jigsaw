@@ -55,6 +55,8 @@
     "glass": "Glass",
     "flat": "Flat"
   },
+  "chapterShow": "Show",
+  "chapterHide": "Hide",
   "effects": "Effects",
   "effectGroups": {
     "moving": "While you move them",

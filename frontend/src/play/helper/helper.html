@@ -15,7 +15,7 @@
       } @else if (item.toggle; as toggle) {
         @if (!hidden(toggle)) {
           <!-- a switch of the page: no little control in a bar, the icon itself is marked when it is on -->
-          <button type="button" class="nav-link d-flex align-items-center gap-1" role="switch" [attr.aria-checked]="stateOf(toggle)()" [title]="label" (click)="stateOf(toggle).set(!stateOf(toggle)())">
+          <button type="button" class="nav-link d-flex align-items-center gap-1" role="switch" [attr.aria-checked]="isOn(toggle)" [title]="label" (click)="flip(toggle)">
             <i class="bi" [class]="item.icon" aria-hidden="true"></i><span class="fit-label" [class.menu-label]="!upright()">{{ label }}</span>
           </button>
         }
@@ -47,9 +47,9 @@
       } @else if (item.toggle; as toggle) {
         @if (!hidden(toggle)) {
         <!-- a switch of the page that is open: on or off, the entry says which (a puzzle that is finished has no help picture and no border pieces to switch) -->
-        <button type="button" class="list-group-item list-group-item-action d-flex align-items-center" role="switch" [attr.aria-checked]="stateOf(toggle)()" (click)="stateOf(toggle).set(!stateOf(toggle)())">
+        <button type="button" class="list-group-item list-group-item-action d-flex align-items-center" role="switch" [attr.aria-checked]="isOn(toggle)" (click)="flip(toggle)">
           <i class="bi me-2" [class]="item.icon" aria-hidden="true"></i>{{ item.text || (item.key ? (t(item.key) || item.english) : '') }}
-          <span class="form-check form-switch mb-0 ms-auto ps-0"><input class="form-check-input ms-2" type="checkbox" role="presentation" tabindex="-1" [checked]="stateOf(toggle)()" (click)="$event.preventDefault()"></span>
+          <span class="form-check form-switch mb-0 ms-auto ps-0"><input class="form-check-input ms-2" type="checkbox" role="presentation" tabindex="-1" [checked]="isOn(toggle)" (click)="$event.preventDefault()"></span>
         </button>
         }
       } @else if (item.photo) {

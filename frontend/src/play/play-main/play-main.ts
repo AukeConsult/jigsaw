@@ -16,6 +16,7 @@ import { rememberPage } from '../last-page';
 import { PhotoShot } from '../photo-shot';
 import { PlayFrame } from '../play-frame/play-frame';
 import { menuOfRoute } from '../play-route';
+import { FullScreen } from '../full-screen';
 
 /**
  * The main page of the app: **one router outlet, for the page that is open, and the frame that lies over it and shows the helper.** Main is what finds out whether a user is logged on (a user is logged on when an account plays) and gives
@@ -33,6 +34,10 @@ import { menuOfRoute } from '../play-route';
     }`,
 })
 export class PlayMain implements OnInit {
+  constructor() {
+    inject(FullScreen); // made here, so the way to a puzzle is watched from the start
+  }
+
   protected readonly photo = inject(PhotoShot);
   /** the theme of the app, the account's preference: the stylesheet paints it behind the pages and the menu */
   protected readonly look = inject(PlayLook);
