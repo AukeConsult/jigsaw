@@ -13,7 +13,7 @@ import { JigsawSpec } from '../../../app/models/shared/jigsaw-settings';
  * The page of the route `/play/mine/picture/:id`, where a picture in the list of the user's pictures leads: **a picture that is there**. It frames the form of a picture (`play-picture-form`, the same form as Add picture) and
  * the rounds that have been played of the picture (`play-picture-rounds`). **The user's own picture is open for changes at once** (there is no Edit to press first), with Save and Cancel in the form. On top of it: to the left **Start playing** (to the page before the puzzle) and to the right a red Delete
  * (asked first: the picture and all its rounds go). Only its owner changes a picture (an admin too; anybody else only looks), and not its picture, size or cut once rounds have been played of it: the form knows. The menu of the helper
- * (`pictureMenu`) has the way back. Save and Cancel go back to where the picture was opened from.
+ * (`pictureMenu`) has the way back. **Save stays on the page** (the form says it is saved); Cancel, which then reads Close, goes back to where the picture was opened from.
  */
 @Component({
   selector: 'play-picture',
@@ -28,11 +28,14 @@ export class PlayPicture {
   private readonly users = inject(JigsawUserService);
   private readonly address = inject(ActivatedRoute).snapshot;
   protected readonly id = this.address.paramMap.get('id') ?? '';
-  /** opened from the detail of a package (`?package=`): the link on top, Save, Cancel and Delete go back there, since that is where the person was */
+  /** opened from the detail of a package (`?package=`): the link on top, Cancel and Delete go back there, since that is where the person was */
   protected readonly fromPackage = this.address.queryParamMap.get('package');
-  protected readonly packagePage = `/play/mine/packages/${encodeURIComponent(this.fromPackage ?? '')}/pictures`;
+  /** opened by the owner of a package from the page of the package (`?view=`): back there the same way */
+  private readonly fromView = this.address.queryParamMap.get('view');
+  /** the package page one came from ('' when not from a package) */
+  protected readonly packagePage = this.fromPackage ? `/play/mine/packages/${encodeURIComponent(this.fromPackage)}/pictures` : this.fromView ? `/play/package/${encodeURIComponent(this.fromView)}` : '';
 
-  /** opened from the page before the puzzle (`?from=round`, where the owner or an admin has Edit or delete): Save and Cancel go back there; after Delete there is nothing to go back to */
+  /** opened from the page before the puzzle (`?from=round`, where the owner or an admin has Edit or delete): Cancel goes back there; after Delete there is nothing to go back to */
   protected readonly fromRound = this.address.queryParamMap.get('from') === 'round';
 
   /** the person may change the picture (its owner, or an admin): what the form found out */
@@ -44,14 +47,22 @@ export class PlayPicture {
   /** the picture as it is saved, for sending it (read when the page opens) */
   protected readonly picture = signal<JigsawSpec | null>(null);
 
+  /** the page of a new picture sent the person here as it was saved (kept with the entry of the history) */
+  protected readonly cameSaved = (history.state?.saved as { ai: boolean } | undefined) ?? null;
+
   constructor() {
+    this.read();
+  }
+
+  /** the picture as it is saved now */
+  protected read(): void {
     void this.jigsaws.get(this.id).then((found) => this.picture.set(found), () => undefined);
   }
 
   /** back to where the picture was opened from */
   protected leave(): Promise<boolean> {
     if (this.fromRound) return this.router.navigate(['/play/round', this.id], { replaceUrl: true });
-    return this.router.navigateByUrl(this.fromPackage ? this.packagePage : '/play/mine/pictures');
+    return this.router.navigateByUrl(this.packagePage || '/play/mine/pictures');
   }
 
   /** The picture is deleted for good, with its picture and all its rounds (only its owner can), and the person goes back to the list of their pictures. */

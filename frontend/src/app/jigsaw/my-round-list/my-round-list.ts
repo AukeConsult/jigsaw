@@ -6,6 +6,7 @@ import { tr } from '../../core/i18n';
 import { clockOf } from '../duration';
 import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
+import { JigsawWords } from '../jigsaw-words.service';
 import { PlaysService, UserGame } from '../plays.service';
 import { ViewSwitch, cardInfoPreference, viewShapePreference } from '../view-switch/view-switch';
 import { ArrivingPicture } from '../../core/arriving-picture';
@@ -25,6 +26,7 @@ export class MyRoundList {
   protected readonly users = inject(JigsawUserService);
   private readonly plays = inject(PlaysService);
   private readonly images = inject(JigsawImageService);
+  protected readonly texts = inject(JigsawWords);
 
   /** rows or cards, and what a card shows (kept on the device) */
   protected readonly view = viewShapePreference('jigsaw.roundsView');

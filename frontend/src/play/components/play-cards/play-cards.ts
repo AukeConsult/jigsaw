@@ -10,12 +10,14 @@ import { JigsawSearchRequest, JigsawService } from '../../../app/jigsaw/jigsaw.s
 import { PackageItem } from '../../../app/models/shared/feed-item';
 import { JigsawFilter, JigsawFilters } from '../../../app/models/shared/jigsaw-filter';
 import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
+import { TileShapes } from '../../../app/models/shared/tile-shape';
 import { ListView } from '../../list-view';
 import { PlayListFilter, listQuestion } from '../../play-list-filter';
 import { PlayCard } from '../play-card/play-card';
 
 /**
- * All the jigsaws, the newest first, as cards (no search, no list view and no count), filtered by what the preferences chose: the next page when the end comes into view.
+ * All the jigsaws, the newest first, as cards (no search, no list view and no count), filtered by what the preferences chose: the next page when the end comes into view. **The tiles keep the shapes of their
+ * pictures** and lie in lines that are filled from side to side (`.tile-rows` in `styles.scss`): all a tile says here is its shape (`TileShapes`).
  */
 @Component({
   selector: 'play-cards',
@@ -41,6 +43,12 @@ export class PlayCards implements OnInit {
   /** the pictures with the other tiles (information, offers, packages) among them: the rule is the model's (`HomeFeed.merge`, through `FeedService`) */
   protected readonly tiles = computed(() => this.feed.tiles(this.items(), !this.hasMore(), this.filter()));
   protected readonly isPicture = isPicture;
+  protected readonly plainShape = TileShapes.PLAIN;
+
+  /** the width of a tile for each unit of its height: the picture's own, and the plain one for the other tiles */
+  protected shapeOf(tile: ReturnType<PlayCards['tiles']>[number]): number {
+    return isPicture(tile) ? TileShapes.of(tile.summary.width, tile.summary.height) : TileShapes.PLAIN;
+  }
   /** how many grey tiles stand in for the pictures while the first page is read */
   protected readonly waiting = [1, 2, 3, 4, 5, 6, 7, 8];
   /** the effects on the tiles are on: the grey tiles are one of them */

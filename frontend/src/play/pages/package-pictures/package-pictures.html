@@ -23,10 +23,11 @@
     } @else if (!pictures()!.length) {
       <p class="text-body-secondary">{{ t('play.feed.noPictures') || 'No pictures in this package yet.' }}</p>
     } @else {
-      <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3 mb-3">
+      <!-- the pictures in their own shapes, in lines, each with its Delete under it (the card takes what is left of the height, so Delete is never pushed under the next line) -->
+      <div class="tile-grid tile-rows mb-3">
         @for (picture of pictures(); track picture.id) {
-          <div class="col">
-            <play-card [jigsaw]="picture" [editIn]="pack.id" />
+          <div class="d-flex flex-column" [style.--app-tile-shape]="shapeOf(picture)">
+            <div class="flex-grow-1"><play-card [jigsaw]="picture" [editIn]="pack.id" /></div>
             <div class="toolbar justify-content-center mt-1">
               @if (deleting() === picture.id) {
                 <button type="button" class="link-action danger" (click)="remove(picture)"><i class="bi bi-trash" aria-hidden="true"></i>{{ t('jigsawUser.yesDelete') || 'Yes, delete' }}</button>

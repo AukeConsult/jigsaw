@@ -22,7 +22,6 @@
   "matchOne": "{{ count }} afbeelding past",
   "matchMany": "{{ count }} afbeeldingen passen",
   "ownersHelp": "(kies er een of meer, maximaal {{ max }})",
-  "language": "Taal",
   "noOwner": "Geen eigenaar",
   "details": "Details",
   "motive": "Moeilijkheid van het motief",

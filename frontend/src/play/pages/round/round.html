@@ -1,10 +1,11 @@
 <main class="container-fluid page-margin page-max" *transloco="let t">
-  @if (mayChange() && state() !== 'opening' && state() !== 'missing') {
-    <!-- the owner and an admin: to the page where it is changed or deleted -->
-    <div class="d-flex justify-content-end mb-2">
+  <!-- on top, where it is seen at once: Back to where one came from, and for the owner and an admin the way to the page where it is changed or deleted -->
+  <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="back()"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ t('play.infoBack') || 'Back' }}</button>
+    @if (mayChange() && state() !== 'opening' && state() !== 'missing') {
       <a class="btn btn-sm btn-outline-primary" [routerLink]="['/play/mine/picture', id]" [queryParams]="{ from: 'round' }"><i class="bi bi-pencil me-1" aria-hidden="true"></i>{{ t('play.editOrDelete') || 'Edit or delete' }}</a>
-    </div>
-  }
+    }
+  </div>
   @switch (state()) {
     @case ('opening') {
       <div class="text-body-secondary" role="status">{{ t('jigsawPlay.opening') || 'Opening the jigsaw…' }}</div>
@@ -15,7 +16,7 @@
     @case ('package') {
       @if (jigsaw(); as j) {
         <!-- a picture of a package the account has not got: no choice and no start, only the picture and the way to the package -->
-        <h1 class="page-title text-center text-break">{{ j.name }}</h1>
+        <h1 class="page-title text-center text-break">{{ words()?.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <p class="text-center mb-3" role="status"><i class="bi bi-lock-fill me-1" aria-hidden="true"></i>{{ t('play.notYourPackage') || 'This picture is in a package you do not have.' }}</p>
         <div class="d-flex flex-wrap justify-content-center gap-2">
@@ -27,7 +28,7 @@
     @case ('view') {
       @if (jigsaw(); as j) {
         <!-- a ready jigsaw is looked at first: its picture, what is told about it, and the button that opens the puzzle -->
-        <h1 class="page-title text-center text-break">{{ j.name }}</h1>
+        <h1 class="page-title text-center text-break">{{ words()?.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <div class="card card-body gap-2">
           <ng-container *ngTemplateOutlet="facts; context: { $implicit: j }" />
@@ -51,7 +52,7 @@
     @case ('logon') {
       @if (jigsaw(); as j) {
         <!-- nobody is logged on: they may look; in place of the start is the way to log on -->
-        <h1 class="page-title text-center text-break">{{ j.name }}</h1>
+        <h1 class="page-title text-center text-break">{{ words()?.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <div class="card card-body gap-2">
           <ng-container *ngTemplateOutlet="facts; context: { $implicit: j }" />
@@ -69,7 +70,7 @@
     @case ('choose') {
       @if (jigsaw(); as j) {
         <!-- the picture and its name, and under them the choice of the pieces and the difficulty, which starts the round -->
-        <h1 class="page-title text-center text-break">{{ j.name }}</h1>
+        <h1 class="page-title text-center text-break">{{ words()?.name }}</h1>
         <ng-container *ngTemplateOutlet="picture; context: { $implicit: j }" />
         <app-round-choice [jigsaw]="j" [solved]="solved()" [busy]="busy()" [askWho]="!byLink()" (chosen)="start($event)" (cancelled)="back()" />
         <ng-container *ngTemplateOutlet="howMany" />
@@ -111,8 +112,8 @@
         <span class="text-nowrap" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + j.motive) || j.motive }}</span>
       }
     </div>
-    @if (j.description) {
-      <p class="text-break mb-0">{{ j.description }}</p>
+    @if (words()?.description; as description) {
+      <p class="text-break mb-0">{{ description }}</p>
     }
     <app-category-tags [keys]="j.categories" />
     <div class="d-flex flex-wrap column-gap-3 text-body-secondary small">

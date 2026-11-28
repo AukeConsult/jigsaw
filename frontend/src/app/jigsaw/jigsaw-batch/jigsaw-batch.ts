@@ -10,6 +10,7 @@ import { JigsawKind, JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { JigsawMaker, MakeStep } from '../jigsaw-maker';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
+import { JigsawWords } from '../jigsaw-words.service';
 import { SNAP_LEVELS, SnapLevelKey } from '../snap-level';
 import { CategoryTags } from '../category-tags/category-tags';
 import { apiError } from '../../core/api-error';
@@ -58,7 +59,7 @@ export interface BatchItem {
 
 /**
  * Many jigsaws at once (`/play/mine/many`, and the page of a package; for a publisher or an admin): how many pieces and how hard, then many pictures chosen from the computer at one time. Each picture is made into a
- * jigsaw (cut to its shape and cut into pieces, `JigsawMaker`) one after the other, and the AI is asked for its categories, name and description, which are put on the jigsaw. The
+ * jigsaw (cut to its shape and cut into pieces, `JigsawMaker`) one after the other, and the AI is asked for its categories and name, which are put on the jigsaw (and the name is then translated). The
  * owner is the user who plays. A picture that could not be made says why, the others go on; the AI failing leaves the jigsaw made.
  */
 @Component({
@@ -74,6 +75,7 @@ export class JigsawBatch implements OnDestroy {
 
   private readonly maker = inject(JigsawMaker);
   private readonly jigsaws = inject(JigsawService);
+  private readonly texts = inject(JigsawWords);
   private readonly users = inject(JigsawUserService);
 
   private readonly saved = readPreference(BATCH_KEY, DEFAULTS, isBatchPreferences);
@@ -84,7 +86,7 @@ export class JigsawBatch implements OnDestroy {
   /** ready jigsaws (cut into pieces here) or pictures (cut in each round: no pieces, size or difficulty are chosen here) */
   readonly kind = signal<JigsawKind>(this.saved.kind ?? 'picture');
   readonly isPicture = computed(() => !!this.packageId() || this.kind() === 'picture');
-  /** the language of the names and descriptions: the one chosen last, the language the app is shown in to begin with */
+  /** the language of the names: the one chosen last, the language the app is shown in to begin with (in a package it is the package's: the service stamps it on each picture) */
   readonly language = signal(this.saved.language ?? inject(LanguageService).lang());
 
   protected readonly pieceChoices = BATCH_PIECES;
@@ -150,7 +152,7 @@ export class JigsawBatch implements OnDestroy {
 
   /**
    * Makes something of each picture that waits, one after the other: a ready jigsaw (cut into pieces here) or, when the choice is pictures, a stored picture (each round cuts it).
-   * Either way the AI looks at it and sets its categories, name and description.
+   * Either way the AI looks at it and sets its categories and name, and the name is translated.
    */
   async start(): Promise<void> {
     const kind: JigsawKind = this.isPicture() ? 'picture' : 'jigsaw';
@@ -177,11 +179,12 @@ export class JigsawBatch implements OnDestroy {
           this.change(item, {
             state: 'done',
             classified: true,
-            jigsaw: { ...jigsaw, ...(found.name ? { name: found.name } : {}), ...(found.description ? { description: found.description } : {}), ...(found.categories.length ? { categories: found.categories } : {}), ...(found.motive ? { motive: found.motive } : {}) },
+            jigsaw: { ...jigsaw, ...(found.name ? { name: found.name } : {}), ...(found.categories.length ? { categories: found.categories } : {}), ...(found.motive ? { motive: found.motive } : {}) },
           });
         } catch (err) {
           this.change(item, { state: 'done', problem: reasonOf(err) }); // the jigsaw is made: only the AI did not
         }
+        void this.texts.saved(jigsaw.id); // translated while the next one is made
       }
     } finally {
       this.running.set(false);

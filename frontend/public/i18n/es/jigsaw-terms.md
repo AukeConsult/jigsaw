@@ -25,7 +25,7 @@ Solo tú respondes de las imágenes que añades. Si una imagen vulnera los derec
 Nunca vendemos tus imágenes por nuestra cuenta y solo las usamos para que la aplicación funcione. Si eres editor y las ofreces en un paquete, se venden a petición tuya y en tu nombre. Para que la aplicación funcione:
 
 - las imágenes se guardan en nuestro proveedor de alojamiento (Google Firebase),
-- una imagen que añadas puede enviarse a un servicio de IA (OpenAI) que propone nombre, descripción y categorías,
+- una imagen que añadas puede enviarse a un servicio de IA (OpenAI) que propone nombre y categorías, así como su nombre y descripción para traducirlos a los demás idiomas de la aplicación,
 - una imagen que hagas pública, compartas o pongas en un paquete puede ser vista y jugada por otros,
 - nuestros administradores pueden ver, cambiar o eliminar imágenes cuando sea necesario para prestar el servicio o atender quejas.
 
@@ -57,4 +57,4 @@ Si crees que una imagen vulnera tus derechos, escribe a [karinauke2@gmail.com](m
 
 Podemos actualizar estas condiciones. La versión más reciente está siempre en la aplicación.
 
-*Última actualización: 27 de noviembre de 2026*
+*Última actualización: 28 de noviembre de 2026*

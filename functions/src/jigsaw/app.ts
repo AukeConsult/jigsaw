@@ -9,11 +9,12 @@ import { FeedStore, PackagePictures, feedManageRouter, firestoreFeedStore, fires
 import { Translator, configuredTranslator } from "./translator";
 import { Classifier, configuredClassifier } from "./classifier";
 import { jigsawClassifyRouter } from "./jigsaw-classify";
+import { jigsawTranslateRouter } from "./jigsaw-translate";
 import { TokenUsageStore, firestoreTokenUsageStore, tokenUsageRouter } from "./token-usage";
 import { ALLOWED_ORIGINS } from "../common/cors";
 import { ImageStore, JIGSAW_ROOT, firestoreJigsawExists, jigsawImageRouter, storageImageStore } from "./jigsaw-image";
 import { PieceStore, firestorePieceStore, jigsawPiecesRouter } from "./jigsaw-pieces";
-import { AccountLimits, BoughtPackages, PackageItem, JIGSAW_INFO, JIGSAW_OFFERS, JIGSAW_PACKAGES, FeedItems, JigsawKinds, JigsawSettings, JigsawSpec, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity, UserLevels } from "../models";
+import { AccountLimits, BoughtPackages, PackageItem, JIGSAW_INFO, JIGSAW_OFFERS, JIGSAW_PACKAGES, FeedItems, JigsawKinds, JigsawSettings, JigsawSpec, JigsawTexts, JigsawVisibilities, JIGSAW, JigsawUsers, Popularity, UserLevels, JigsawInput } from "../models";
 import { ImageAccess } from "./image-access";
 import { SecretSource, ViewKeys, firestoreSecret } from "./view-key";
 import { UserStore, firestoreUserStore, jigsawUsersRouter } from "./jigsaw-users";
@@ -187,7 +188,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   // languages when one is saved), the packages are made up for now, and `GET /jigsaw-feed` gives the ones to show (see `jigsaw-feed.ts`)
   const feedInfo = stores.feedInfo ?? firestoreFeedStore(JIGSAW_INFO, "info");
   const feedOffers = stores.feedOffers ?? firestoreFeedStore(JIGSAW_OFFERS, "offer");
-  const feedDeps = { levels, translator: stores.translator ?? configuredTranslator(), keepUsage: (userId: string, usage: Parameters<typeof tokenUsage.add>[1]) => tokenUsage.add(userId, usage), now: stores.now ?? Date.now };
+  const translator = stores.translator ?? configuredTranslator();
+  const feedDeps = { levels, translator, keepUsage: (userId: string, usage: Parameters<typeof tokenUsage.add>[1]) => tokenUsage.add(userId, usage), now: stores.now ?? Date.now };
   const packagePictures = stores.packagePictures ?? firestorePackagePictures();
   router.use("/jigsaw-info", feedManageRouter("info", feedInfo, feedDeps));
   router.use("/jigsaw-offers", feedManageRouter("offer", feedOffers, feedDeps));
@@ -195,17 +197,30 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
   router.use("/jigsaw-feed", jigsawFeedRouter([() => feedInfo.list(), () => feedOffers.list(), () => feedPackages.list()], stores.now ?? Date.now, packagePictures, stores.random, {
     ids: (me) => bought.ids(me),
     find: packageById,
-    isAdmin: (me) => isAdmin(me),
   }));
   router.use("/jigsaw-search", jigsawSearchRouter(search, (c, me) => canFind(c, me), () => (users.ids ? users.ids() : users.list().then((all) => all.map((u) => u.id))), (userId) => favorites.list(userId), (userId, among) => solvedBy(userId, among), imageAccess.keyed, (userId) => bought.ids(userId)));
-  // the AI classification of one jigsaw by its picture (categories, name and description); its settings are read when it is asked for (before the routes of one jigsaw)
+  // a change of a picture, saved with the base language it got when it was made, and with its translations while its words are the same (`JigsawTexts.keptOver`): what the page sends of either is not used
+  const saveChange = async (id: string, input: JigsawInput, before: JigsawSpec | null) => (search.forget(), imageAccess.forget(), jigsaw.update(id, before ? JigsawTexts.keptOver(before, input) : input));
+  // the name and the description of a picture in the other languages, made by the AI when the page asks (before the routes of one jigsaw)
+  router.use(
+    "/jigsaw/:id/translate",
+    jigsawTranslateRouter({
+      translator,
+      jigsawById,
+      maySee: async (c, req) => (await byLink(c, req)) || (await mayLook(c, askerOf(req))),
+      keep: async (id, translations) => (search.forget(), jigsaw.setTranslations?.(id, translations)),
+      keepUsage: (userId, usage) => tokenUsage.add(userId, usage),
+      now: stores.now,
+    }),
+  );
+  // the AI classification of one jigsaw by its picture (categories and name); its settings are read when it is asked for (before the routes of one jigsaw)
   router.use(
     "/jigsaw/:id/classify",
     jigsawClassifyRouter({
       classifier: stores.classifier ?? configuredClassifier(),
       jigsawById,
       pictureOf: (id) => images.get(id),
-      update: async (id, input) => (search.forget(), imageAccess.forget(), jigsaw.update(id, input)),
+      update: async (id, input) => saveChange(id, input, await jigsawById(id)),
       keepUsage: (userId, usage) => tokenUsage.add(userId, usage),
       now: stores.now,
     }),
@@ -233,6 +248,8 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     const pack = typeof id === "string" ? await packageById(id) : null;
     if (!pack) return bad(res, "That package does not exist.");
     if (!FeedItems.mayChange(pack, me, await isAdmin(me))) return bad(res, "Only the owner of a package can put pictures in it.", 403);
+    // a new picture of a package is stamped with the language of the package: it is the base language of its words, whatever the page says
+    if (req.method === "POST") req.body = { ...(req.body as object), language: (pack as { masterLanguage?: string }).masterLanguage };
     next();
   };
   // how many pictures an account can have (`AccountLimits`: few when it is not verified; a user who is no publisher has a limit on the ones that are not public): a new one for it is refused when it is full, and so is giving it one that was another's (an admin is not stopped)
@@ -312,14 +329,12 @@ export function createJigsawApp(stores: { jigsaw?: JigsawStore; jigsawImages?: I
     jigsawListRouter(
       {
         // what the search has read is forgotten when a jigsaw is made, changed or deleted, so the next question sees it
-        add: async (input) => (search.forget(), imageAccess.forget(), jigsaw.add(input)),
+        add: async (input) => (search.forget(), imageAccess.forget(), jigsaw.add(JigsawTexts.asNew(input))),
         update: async (id, input) => {
+          const before = await jigsawById(id);
+          const saved = await saveChange(id, input, before);
           // a ready jigsaw that is made a picture (it can only be while nobody has played it) loses its pieces: a picture is cut in each round
-          const before = JigsawKinds.isPicture(input) ? ((await jigsawById(id)) ?? undefined) : undefined;
-          search.forget();
-          imageAccess.forget();
-          const saved = await jigsaw.update(id, input);
-          if (saved && before && !JigsawKinds.isPicture(before)) await pieces.replaceAll(id, []);
+          if (saved && before && JigsawKinds.isPicture(input) && !JigsawKinds.isPicture(before)) await pieces.replaceAll(id, []);
           return saved;
         },
         list: () => jigsaw.list(),

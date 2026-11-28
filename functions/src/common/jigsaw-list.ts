@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { DocumentStore, documentStore, findById } from "./document-store";
-import { JIGSAW_HEAD_FIELDS, JigsawSettings, JigsawInput, JigsawSpec, JigsawVisibilities } from "../models";
+import { JIGSAW_HEAD_FIELDS, JigsawSettings, JigsawInput, JigsawSpec, JigsawVisibilities, Translations } from "../models";
 import { apiRouter, askerOf, bad } from "./http";
 import { filterAsync } from "./filter-async";
 
@@ -13,6 +13,8 @@ export type JigsawStore = DocumentStore<JigsawInput, JigsawSpec> & {
   countNotPublic?(ownerUid: string): Promise<number>;
   /** the ids of the ones in the category Recommended (a fake store may leave it out) */
   recommendedOf?(ownerUid: string): Promise<string[]>;
+  /** puts the translations of its words on a picture, and nothing else of it (a fake store may leave it out) */
+  setTranslations?(id: string, translations: Translations): Promise<void>;
 };
 
 /** The jigsaws in a Firestore collection (`jigsaw`): the newest 100; a jigsaw that an older version saved is read as the model says (see `JigsawSettings.fromStored`). */
@@ -26,6 +28,7 @@ export function firestoreJigsawStore(collection: string): JigsawStore {
   });
   return {
     ...store,
+    setTranslations: async (id, translations) => void (await getFirestore().collection(collection).doc(id).update({ translations })),
     // one equality on one field, counted by Firestore: no composite index, and no document is read
     countOwned: async (ownerUid) => (await getFirestore().collection(collection).where("ownerUid", "==", ownerUid).count().get()).data().count,
     // (only who sees each is read, and counted here: no composite index)

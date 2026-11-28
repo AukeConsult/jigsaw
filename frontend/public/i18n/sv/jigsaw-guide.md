@@ -5,13 +5,13 @@ Gör vilken bild som helst till ett pussel och lägg det på skärmen. Allt spar
 1. Tryck på en bild på startsidan. Välj antal **Bitar** (från 20 till 1000), hur lätt en bit klickar på plats (**Snap-avstånd**: **Lätt**, **Medel** eller **Svår**) och, om du vill, **Tidtagning**. Tryck sedan på **Starta ronden**.
 2. Dra bitarna från ramen bredvid bilden (under bilden på en liten skärm) till bilden.
 3. Släpp en bit nära sin plats så klickar den på plats. Bitar som passar ihop sitter ihop.
-4. Menyn har reglage: **Hjälpbild** visar hela bilden i en liten ram, och **Kantbitar** visar bara kantbitarna, så att du kan bygga ramen först. Det stängs av av sig självt när alla kantbitar ligger på plats, och resten visas. **Detaljer** visar speltiden och har **Nollställ omgången** och **Ta bort omgången**, och **Bord** väljer vad bitarna ligger på och ljudet. **Helskärm** låter pusslet fylla hela skärmen, även nästa gång du öppnar ett pussel (inte på iPhone eller i apparna för Android och Windows).
+4. Menyn har reglage: **Hela bilden** visar hela bilden i en liten ram, och **Bara kanten** visar bara kantbitarna, så att du kan bygga ramen först. Det stängs av av sig självt när alla kantbitar ligger på plats, och resten visas. **Omgången** visar speltiden och har **Nollställ omgången** och **Ta bort omgången**, och **Utseende** väljer vad bitarna ligger på och ljudet. **Helskärm** låter pusslet fylla hela skärmen, även nästa gång du öppnar ett pussel (inte på iPhone eller i apparna för Android och Windows).
 
 Poäng kommer senare.
 
 ## Gör ditt eget
 
-* Tryck på **Lägg till bild** i menyn, ge det ett namn, välj en bild (eller ta ett foto) och tryck på **Spara**.
+* Tryck på **Min sida** i menyn och sedan på **Lägg till bild**, ge det ett namn, välj en bild (eller ta ett foto) och tryck på **Spara**. Namnet, och en beskrivning om du skriver en, översätts till de andra språken när du sparar. Skriv på det språk formuläret anger.
 * En bild du lägger till är **Privat**: bara du ser den.
 * För att göra bilder **Offentlig**, så att alla kan spela dem, måste du godkännas som **Utgivare**: skicka ett e-postmeddelande till [karinauke2@gmail.com](mailto:karinauke2@gmail.com) och be om det.
 * Du kan också dela en privat bild med vänner: tryck på **Dela** under den. Alla som får länken kan spela den.

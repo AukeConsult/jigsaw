@@ -19,9 +19,9 @@ export interface ClassifyDeps {
 }
 
 /**
- * The classification of one jigsaw by its picture, `POST /jigsaw/:id/classify` (mounted at `/jigsaw/:id/classify`): the AI says the categories, the motive difficulty, the name and the description the picture
- * suggests (the texts in the language of the jigsaw), and the answer is given back. With `?apply=true` they are also put on the jigsaw: the categories (when it said some), the motive difficulty, the name
- * and the description (when it said one); nothing else of the jigsaw changes. `?language=sv` asks for the texts in that language instead of the language of the jigsaw (and with `apply` the jigsaw gets that language). Only its owner may (a jigsaw from before owners is anybody's; the header `X-Jigsaw-User` is the UID of who asks).
+ * The classification of one jigsaw by its picture, `POST /jigsaw/:id/classify` (mounted at `/jigsaw/:id/classify`): the AI says the categories, the motive difficulty and the name the picture
+ * suggests (in the base language of the picture; never a description), and the answer is given back. With `?apply=true` they are also put on the jigsaw: the categories (when it said some), the motive difficulty and the name;
+ * nothing else of the jigsaw changes. Only its owner may (a jigsaw from before owners is anybody's; the header `X-Jigsaw-User` is the UID of who asks).
  */
 export function jigsawClassifyRouter(deps: ClassifyDeps): express.Router {
   const router = apiRouter({ mergeParams: true });
@@ -31,9 +31,7 @@ export function jigsawClassifyRouter(deps: ClassifyDeps): express.Router {
     const jigsaw = await deps.jigsawById(id);
     if (!jigsaw) return bad(res, "No such jigsaw.", 404);
     if (jigsaw.ownerUid && askerOf(req) !== jigsaw.ownerUid) return bad(res, "Only the owner of a jigsaw can classify it.", 403);
-    const asked = req.query.language;
-    if (asked !== undefined && !JigsawLanguages.is(asked)) return bad(res, "That is not a language the jigsaws are written in.", 400);
-    const language = asked ?? JigsawLanguages.of(jigsaw); // the language that is asked for, else the one of the jigsaw
+    const language = JigsawLanguages.of(jigsaw); // the name is written in the base language of the picture
     const picture = await deps.pictureOf(id);
     if (!picture) return bad(res, "This jigsaw has no picture to look at.", 409);
 
@@ -61,11 +59,9 @@ export function jigsawClassifyRouter(deps: ClassifyDeps): express.Router {
     }
     const settings = new JigsawSettings({
       ...jigsaw,
-      ...(asked ? { language } : {}),
       ...(answer.categories.length ? { categories: answer.categories } : {}),
       ...(answer.motive ? { motive: answer.motive } : {}),
       ...(answer.name ? { name: answer.name } : {}),
-      ...(answer.description ? { description: answer.description } : {}),
     });
     const error = settings.error();
     if (error) {

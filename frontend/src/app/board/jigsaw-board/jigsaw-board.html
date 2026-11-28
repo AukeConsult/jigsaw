@@ -32,6 +32,8 @@
     @if (celebration(); as party) {
       <app-board-celebration [show]="party" />
     }
+    <!-- what the one who shows the board lays over the picture (the note of a finished round) -->
+    <ng-content />
     @if (emptyPicture() && !viewOnly()) {
       <!-- an empty picture area says where the pieces go -->
       <span class="picture-watermark">{{ t('jigsawBoard.addHere') || 'Add pieces here' }}</span>

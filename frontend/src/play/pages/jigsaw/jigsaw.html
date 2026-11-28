@@ -21,15 +21,14 @@
         @case ('ready') {
           <!-- the puzzle fills the screen and does not scroll: the details and the board. The details and the table and sound are panels that lie over it, opened from the menu of the helper -->
           <div class="jigsaw-play" [class.show-areas]="round.debug()">
-            <app-puzzel-banner />
             <div class="jigsaw-main">
               <app-puzzel-board />
             </div>
             <div class="puzzle-panels">
               @if (view.details()) {
-                <section class="card shadow" [attr.aria-label]="t('play.puzzelDetails') || 'Details'">
+                <section class="card shadow" [attr.aria-label]="t('play.puzzelDetails') || 'Round'">
                   <div class="card-header d-flex align-items-center gap-2 py-2">
-                    <h2 class="subsection-title m-0"><i class="bi bi-info-circle me-2" aria-hidden="true"></i>{{ t('play.puzzelDetails') || 'Details' }}</h2>
+                    <h2 class="subsection-title m-0"><i class="bi bi-info-circle me-2" aria-hidden="true"></i>{{ t('play.puzzelDetails') || 'Round' }}</h2>
                     <button type="button" class="btn-close ms-auto" [attr.aria-label]="t('play.puzzelClose') || 'Close'" (click)="view.details.set(false)"></button>
                   </div>
                   <div class="card-body">
@@ -39,9 +38,9 @@
               }
               <!-- the table and the sound of this round: what is chosen is seen on the puzzle at once -->
               @if (view.look()) {
-                <section class="card shadow" [attr.aria-label]="t('play.puzzelLook') || 'Table and sound'">
+                <section class="card shadow" [attr.aria-label]="t('play.puzzelLook') || 'Look and sound'">
                   <div class="card-header d-flex align-items-center gap-2 py-2">
-                    <h2 class="subsection-title m-0"><i class="bi bi-palette me-2" aria-hidden="true"></i>{{ t('play.puzzelLook') || 'Table and sound' }}</h2>
+                    <h2 class="subsection-title m-0"><i class="bi bi-palette me-2" aria-hidden="true"></i>{{ t('play.puzzelLook') || 'Look and sound' }}</h2>
                     <button type="button" class="btn-close ms-auto" [attr.aria-label]="t('play.puzzelClose') || 'Close'" (click)="view.look.set(false)"></button>
                   </div>
                   <div class="card-body pb-0">

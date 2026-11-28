@@ -25,7 +25,7 @@ Alleen jij bent verantwoordelijk voor de foto's die je toevoegt. Als een foto he
 Wij verkopen je foto's nooit zelf en gebruiken ze alleen om de app te laten werken. Als je uitgever bent en ze in een pakket aanbiedt, worden ze op jouw verzoek en namens jou verkocht. Om de app te laten werken:
 
 - worden foto's opgeslagen bij onze hostingprovider (Google Firebase),
-- kan een foto die je toevoegt naar een AI-dienst (OpenAI) worden gestuurd die een naam, beschrijving en categorieën voorstelt,
+- kan een foto die je toevoegt naar een AI-dienst (OpenAI) worden gestuurd die een naam en categorieën voorstelt, en de naam en beschrijving om ze naar de andere talen van de app te vertalen,
 - kan een foto die je openbaar maakt, deelt of in een pakket zet door anderen worden bekeken en gespeeld,
 - kunnen onze beheerders foto's bekijken, wijzigen of verwijderen wanneer dat nodig is om de dienst te draaien of klachten te behandelen.
 
@@ -57,4 +57,4 @@ Als je vindt dat een foto jouw rechten schendt, schrijf dan naar [karinauke2@gma
 
 Wij kunnen deze voorwaarden aanpassen. De nieuwste versie staat altijd in de app.
 
-*Laatst bijgewerkt: 27 november 2026*
+*Laatst bijgewerkt: 28 november 2026*

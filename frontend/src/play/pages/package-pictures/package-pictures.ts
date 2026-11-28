@@ -8,13 +8,14 @@ import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
 import { FeedItems, PackageItem } from '../../../app/models/shared/feed-item';
 import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
+import { TileShapes } from '../../../app/models/shared/tile-shape';
 import { PlayCard } from '../../components/play-card/play-card';
 import { priceText } from '../feed/feed-kind';
 
 /**
  * The page of the route `/play/mine/packages/:id/pictures`, **the detail of a package**, for the one who wrote it (or an admin): the pictures that are in it and the upload of more. The pictures are ordinary
- * pictures (the same collection as every other) that are linked to the package (`packageId`); here they are looked at as cards, a press on one opens the page of the picture to change it, and each can be deleted. **Many files are chosen at once** (the component
- * `app-jigsaw-batch`, in its mode for a package: only pictures, each linked to the package; the AI sets its name, description and categories), and the list is read again as each one is made.
+ * pictures (the same collection as every other) that are linked to the package (`packageId`); here they are looked at as cards in their own shapes, a press on one opens the page of the picture to change it, and each can be deleted. **Many files are chosen at once** (the component
+ * `app-jigsaw-batch`, in its mode for a package: only pictures, each linked to the package; the AI sets its name and categories), and the list is read again as each one is made.
  */
 @Component({
   selector: 'play-package-pictures',
@@ -33,6 +34,10 @@ export class PlayPackagePictures {
   protected readonly item = signal<PackageItem | null>(null);
   protected readonly missing = signal(false);
   protected readonly pictures = signal<JigsawSummary[] | null>(null);
+  /** the width of a picture's tile for each unit of its height */
+  protected shapeOf(picture: JigsawSummary): number {
+    return TileShapes.of(picture.width, picture.height);
+  }
   /** the picture that Delete was pressed on, waiting for "Yes" */
   protected readonly deleting = signal<string | null>(null);
   protected readonly error = signal(false);

@@ -201,17 +201,17 @@ describe("the pictures of a package", () => {
     }
   });
 
-  it("are on the page of the package for everybody to see, which says who has it and who may play them", async () => {
+  it("are on the page of the package for everybody to see, which says who has it", async () => {
     const { call, pack, picture, get, words } = setup();
     const id = await pack();
     await picture(id, "Inside");
     const page = (as?: string) => call("get", `/jigsaw-feed/package/${id}`, as);
-    expect((await page("plain")).body).toMatchObject({ bought: false, mayPlay: false });
+    expect((await page("plain")).body).toMatchObject({ bought: false });
     expect((await page("plain")).body.pictures).toHaveLength(1); // looked at as what the package holds
-    expect((await page("pub")).body).toMatchObject({ bought: false, mayPlay: true });
-    expect((await page("boss")).body).toMatchObject({ bought: false, mayPlay: true });
+    expect((await page("pub")).body).toMatchObject({ bought: false });
+    expect((await page("boss")).body).toMatchObject({ bought: false });
     await get("plain", id);
-    expect((await page("plain")).body).toMatchObject({ bought: true, mayPlay: true });
+    expect((await page("plain")).body).toMatchObject({ bought: true });
     // what was got stays there for the one who has it, also when it is not on the home page any more
     await call("put", `/jigsaw-packages/${id}`, "pub").send({ ...words, visibility: "hidden" });
     expect((await page("plain")).status).toBe(200);

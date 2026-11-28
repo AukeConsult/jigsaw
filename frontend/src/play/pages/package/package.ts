@@ -8,8 +8,10 @@ import { CategoryTags } from '../../../app/jigsaw/category-tags/category-tags';
 import { FeedService } from '../../../app/jigsaw/feed.service';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { AccountLimits } from '../../../app/models/shared/account-limits';
+import { BoughtPackages } from '../../../app/models/shared/bought-package';
 import { FeedItems, PackageItem } from '../../../app/models/shared/feed-item';
 import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
+import { TileShapes } from '../../../app/models/shared/tile-shape';
 import { PlayCard } from '../../components/play-card/play-card';
 import { FEED_PATHS, priceText } from '../feed/feed-kind';
 
@@ -43,6 +45,10 @@ export class PlayPackage {
   /** who has published it: the name of its owner's account, or '' */
   protected readonly publisher = computed(() => this.accounts.nameOf(this.item()?.data.ownerUid));
   protected readonly pictures = signal<JigsawSummary[]>([]);
+  /** the width of a picture's tile for each unit of its height */
+  protected shapeOf(picture: JigsawSummary): number {
+    return TileShapes.of(picture.width, picture.height);
+  }
   /** the account has got the package */
   protected readonly had = signal(false);
   /** the account that plays cannot add packages: it is not verified (an admin is not stopped) */
@@ -50,8 +56,13 @@ export class PlayPackage {
     const me = this.users.acting();
     return !!me && !this.users.isAdmin() && !!AccountLimits.packageError(me);
   });
-  /** the account may open and play the pictures: it has the package, owns it, or is an admin (the server says) */
-  protected readonly mayPlay = signal(false);
+  /** the account that plays owns the package: a press on a picture opens it to be looked at and changed, not the start of a round */
+  protected readonly owns = computed(() => !!this.users.acting() && this.item()?.data.ownerUid === this.users.acting()!.id);
+  /** whether no round of this picture can be started by who plays (`BoughtPackages.mayUse`, the rule the server starts rounds by: it has not added the package, and owns neither the package nor the picture; an admin neither) */
+  protected locked(picture: JigsawSummary): boolean {
+    const pack = this.item();
+    return !BoughtPackages.mayUse(picture, this.users.acting()?.id, new Set(pack && this.had() ? [pack.id] : []), pack?.data.ownerUid);
+  }
   protected readonly loading = signal(true);
   protected readonly busy = signal(false);
   protected readonly failed = signal(false);
@@ -66,7 +77,6 @@ export class PlayPackage {
       this.item.set(found.item as PackageItem);
       this.pictures.set(found.pictures);
       this.had.set(found.bought);
-      this.mayPlay.set(found.mayPlay);
     }
     this.loading.set(false);
   }

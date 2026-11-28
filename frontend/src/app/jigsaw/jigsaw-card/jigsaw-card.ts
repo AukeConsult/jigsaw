@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawSummary } from '../../models/shared/jigsaw-search';
 import { JigsawImageService } from '../jigsaw-image.service';
+import { JigsawWords } from '../jigsaw-words.service';
 import { ArrivingPicture } from '../../core/arriving-picture';
 
 /** One jigsaw as a small card: its picture, with the name as a tooltip, and under it what the page puts there. Press the picture to go where `route` says. */
@@ -15,6 +16,7 @@ import { ArrivingPicture } from '../../core/arriving-picture';
 })
 export class JigsawCard {
   private readonly images = inject(JigsawImageService);
+  private readonly texts = inject(JigsawWords);
 
   readonly jigsaw = input.required<JigsawSummary>();
   /** where pressing the card goes */
@@ -23,4 +25,5 @@ export class JigsawCard {
   protected readonly noPicture = signal(false);
 
   protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw(), 1));
+  protected readonly words = computed(() => this.texts.of(this.jigsaw()));
 }

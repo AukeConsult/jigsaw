@@ -77,6 +77,7 @@ export class Helper implements OnInit, OnDestroy {
 
   /** the switch, as a signal: the entry says which page it is a switch of (the puzzle, or the home page) */
   private stateOf(toggle: Exclude<NonNullable<PlayMenuItem['toggle']>, 'fullscreen'>): WritableSignal<boolean> {
+    if (toggle === 'homePrefs') return this.listView.prefs;
     return toggle === 'favorites' ? this.listView.favorites : this.view.state(toggle as PuzzelToggle);
   }
 

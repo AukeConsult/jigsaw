@@ -187,18 +187,16 @@ function sampled<T>(items: readonly T[], count: number, random: () => number): T
   return out;
 }
 
-/** What the page of a package asks about the person: what they have got, the package even when it is not on the home page any more, and whether they are an admin. */
+/** What the page of a package asks about the person: what they have got, and the package even when it is not on the home page any more. */
 export interface PackageAccess {
   ids(me: string | undefined): Promise<ReadonlySet<string>>;
   find(packageId: string): Promise<FeedItemData | null>;
-  isAdmin(me: string | undefined): Promise<boolean>;
 }
 
 /**
  * What the home page shows of the tiles that are not pictures: the collections are read and each tile that is right and whose time it is, is given (`GET /jigsaw-feed`, open to every visitor). This is where
  * a rule of who is shown what, or how many offers, will be added; the collections and their pages do not change for it. **A package comes with how many pictures it holds and the ids of a few of them,
- * chosen at random each time**, so the tile can show one; `GET /jigsaw-feed/package/:id` gives a package with all its pictures, for its page, and says whether the person has got it (`bought`) and may play
- * its pictures (`mayPlay`: they have it, own it or are an admin). A package that is active is there for everybody who may see it; one a person has got stays there for them also when it is not.
+ * chosen at random each time**, so the tile can show one; `GET /jigsaw-feed/package/:id` gives a package with all its pictures, for its page, and says whether the person has got it (`bought`). A package that is active is there for everybody who may see it; one a person has got stays there for them also when it is not.
  */
 export function jigsawFeedRouter(
   sources: readonly (() => Promise<readonly object[]>)[],
@@ -254,8 +252,7 @@ export function jigsawFeedRouter(
       let item = (await read(me)).find((i) => i.kind === "package" && i.id === req.params.id);
       if (!item && bought) item = (await keptPackage(req.params.id)) ?? undefined; // what a person has got stays theirs to look at
       if (!item || !pictures) return bad(res, "No such package.", 404);
-      const mayPlay = bought || (!!me && item.ownerUid === me) || (!!access && (await access.isAdmin(me)));
-      res.json({ item: await sent(item), pictures: shownPictures(await pictures.list(item.id)), bought, mayPlay });
+      res.json({ item: await sent(item), pictures: shownPictures(await pictures.list(item.id)), bought });
     } catch (err) {
       console.error("Could not read a package", err);
       bad(res, "Try again.", 503);

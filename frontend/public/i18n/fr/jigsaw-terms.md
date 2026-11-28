@@ -25,7 +25,7 @@ Vous êtes seul responsable des images que vous ajoutez. Si une image viole le d
 Nous ne vendons jamais vos images nous-mêmes et nous ne les utilisons que pour faire fonctionner l’application. Si vous êtes éditeur et les proposez dans un lot, elles sont vendues à votre demande et en votre nom. Pour faire fonctionner l’application :
 
 - les images sont stockées chez notre hébergeur (Google Firebase),
-- une image ajoutée peut être envoyée à un service d’IA (OpenAI) qui propose un nom, une description et des catégories,
+- une image ajoutée peut être envoyée à un service d’IA (OpenAI) qui propose un nom et des catégories, de même que son nom et sa description pour les traduire dans les autres langues de l’application,
 - une image que vous rendez publique, partagez ou placez dans un lot peut être vue et jouée par d’autres,
 - nos administrateurs peuvent consulter, modifier ou supprimer des images lorsque c’est nécessaire pour assurer le service ou traiter des plaintes.
 
@@ -57,4 +57,4 @@ Si vous estimez qu’une image viole vos droits, écrivez à [karinauke2@gmail.c
 
 Nous pouvons mettre à jour ces conditions. La version la plus récente se trouve toujours dans l’application.
 
-*Dernière mise à jour : 27 novembre 2026*
+*Dernière mise à jour : 28 novembre 2026*

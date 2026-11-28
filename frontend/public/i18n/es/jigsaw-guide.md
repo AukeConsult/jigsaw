@@ -5,13 +5,13 @@ Convierte cualquier imagen en un puzle y arma el puzle en la pantalla. Todo se g
 1. Pulsa una imagen en la página de inicio. Elige el número de **Piezas** (de 20 a 1000), lo fácil que encaja una pieza (**Imán**: **Fácil**, **Media** o **Difícil**) y, si quieres, **Cronometrado**. Luego pulsa **Empezar la ronda**.
 2. Arrastra las piezas desde el marco junto a la imagen (debajo en una pantalla pequeña) hasta la imagen.
 3. Suelta una pieza cerca de su sitio y encaja. Las piezas que encajan entre sí se quedan unidas.
-4. El menú tiene interruptores: **Imagen de ayuda** muestra la imagen entera en un marco pequeño, y **Piezas de borde** muestra solo las piezas del borde, para armar primero el marco. Se desactiva solo cuando todas las piezas del borde están en su sitio, y se muestran las demás. **Detalles** muestra el tiempo jugado y tiene **Reiniciar partida** y **Eliminar partida**, y en **Mesa** eliges sobre qué están las piezas y el sonido. **Pantalla completa** hace que el puzle ocupe toda la pantalla, también la próxima vez que abras un puzle (no en iPhone ni en las aplicaciones de Android y Windows).
+4. El menú tiene interruptores: **Imagen entera** muestra la imagen entera en un marco pequeño, y **Solo bordes** muestra solo las piezas del borde, para armar primero el marco. Se desactiva solo cuando todas las piezas del borde están en su sitio, y se muestran las demás. **Partida** muestra el tiempo jugado y tiene **Reiniciar partida** y **Eliminar partida**, y en **Aspecto** eliges sobre qué están las piezas y el sonido. **Pantalla completa** hace que el puzle ocupe toda la pantalla, también la próxima vez que abras un puzle (no en iPhone ni en las aplicaciones de Android y Windows).
 
 Las puntuaciones llegarán más adelante.
 
 ## Haz el tuyo
 
-* Pulsa **Añadir imagen** en el menú, ponle un nombre, elige una imagen (o haz una foto) y pulsa **Guardar**.
+* Pulsa **Lo mío** en el menú y después **Añadir imagen**, ponle un nombre, elige una imagen (o haz una foto) y pulsa **Guardar**. El nombre, y una descripción si la escribes, se traducen a los demás idiomas al guardar. Escribe en el idioma que indica el formulario.
 * Una imagen que añades es **Privado**: solo tú la ves.
 * Para hacer imágenes **Público**, de modo que todos puedan jugarlas, hace falta que te aprueben como **Editor**: envía un correo a [karinauke2@gmail.com](mailto:karinauke2@gmail.com) y pídelo.
 * También puedes compartir una imagen privada con amigos: pulsa **Compartir** debajo de ella. Cualquiera que reciba el enlace puede jugarla.

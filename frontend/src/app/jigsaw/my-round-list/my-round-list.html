@@ -29,7 +29,7 @@
                   </div>
                   <div class="round-info">
                     <!-- the stretched link makes the whole row (picture, text) open the puzzle; the buttons sit above it -->
-                    <a class="text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id)">{{ game.jigsaw.name }}</a>
+                    <a class="text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id)">{{ texts.of(game.jigsaw).name }}</a>
                     <ng-container *ngTemplateOutlet="about; context: { $implicit: game }" />
                   </div>
                   <div class="round-actions" [class.confirming]="confirmingPlayId() === game.play.id">
@@ -55,11 +55,11 @@
                     </div>
                     @if (cardInfo() === 'info') {
                       <div class="p-2 text-break">
-                        <a class="d-block card-name text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id)">{{ game.jigsaw.name }}</a>
+                        <a class="d-block card-name text-name text-decoration-none stretched-link" [routerLink]="link(game.jigsaw.id)">{{ texts.of(game.jigsaw).name }}</a>
                         <ng-container *ngTemplateOutlet="about; context: { $implicit: game }" />
                       </div>
                     } @else {
-                      <a class="stretched-link" [routerLink]="link(game.jigsaw.id)" [title]="game.jigsaw.name" [attr.aria-label]="game.jigsaw.name"></a>
+                      <a class="stretched-link" [routerLink]="link(game.jigsaw.id)" [title]="texts.of(game.jigsaw).name" [attr.aria-label]="texts.of(game.jigsaw).name"></a>
                       <!-- only the picture: still going or solved is said on it -->
                       <div class="position-absolute bottom-0 start-0 m-1 pe-none">
                         <ng-container *ngTemplateOutlet="state; context: { $implicit: game }" />

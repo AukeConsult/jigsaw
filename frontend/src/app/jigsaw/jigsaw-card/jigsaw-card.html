@@ -1,7 +1,7 @@
 <ng-container *transloco="let t">
-  @let item = jigsaw();
+  @let name = words().name;
   <div class="card h-100">
-    <a [routerLink]="route()" [title]="item.name" [attr.aria-label]="t('jigsawList.playName', { name: item.name }) || 'Show ' + item.name" tabindex="-1">
+    <a [routerLink]="route()" [title]="name" [attr.aria-label]="t('jigsawList.playName', { name: name }) || 'Show ' + name" tabindex="-1">
       <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
         @if (!noPicture()) {
           <img appArriving class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">

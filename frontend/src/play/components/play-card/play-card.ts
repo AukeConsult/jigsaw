@@ -7,6 +7,7 @@ import { AccountAliases } from '../../../app/jigsaw/account-aliases';
 import { CategoryTags } from '../../../app/jigsaw/category-tags/category-tags';
 import { FavoritesService } from '../../../app/jigsaw/favorites.service';
 import { JigsawImageService } from '../../../app/jigsaw/jigsaw-image.service';
+import { JigsawWords } from '../../../app/jigsaw/jigsaw-words.service';
 import { snapLevelOfJigsaw } from '../../../app/jigsaw/snap-level';
 import { SolvedService } from '../../../app/jigsaw/solved.service';
 import { pieceGrid } from '../../../app/models/shared/jigsaw';
@@ -24,6 +25,7 @@ import { JigsawSummary } from '../../../app/models/shared/jigsaw-search';
 })
 export class PlayCard {
   private readonly images = inject(JigsawImageService);
+  private readonly texts = inject(JigsawWords);
   private readonly router = inject(Router);
   protected readonly favorites = inject(FavoritesService);
   private readonly solved = inject(SolvedService);
@@ -34,6 +36,8 @@ export class PlayCard {
   readonly stamp = input(true);
   /** the card is in the detail of this package: a press opens the page of the picture ready to be changed, not the start of a round */
   readonly editIn = input<string | null>(null);
+  /** the card is on the page of this package and who looks owns the package: a press opens the page of the picture (to look at it and change it), with the way back to the package */
+  readonly ownedIn = input<string | null>(null);
   /** the picture belongs to a package the person has not got: it has a lock; a press opens it to be looked at (no round is started there) */
   readonly locked = input(false);
   /** the picture is among others and comes from a package: the name of the package, for the tooltip of its mark, which leads to the package ('' when the name is not known; null: no mark) */
@@ -48,9 +52,13 @@ export class PlayCard {
   protected show(): void {
     const pack = this.editIn();
     if (pack) return void this.router.navigate(['/play/mine/picture', this.jigsaw().id], { queryParams: { package: pack } });
+    const owned = this.ownedIn();
+    if (owned) return void this.router.navigate(['/play/mine/picture', this.jigsaw().id], { queryParams: { view: owned } });
     void this.router.navigate(['/play/round', this.jigsaw().id]);
   }
   protected readonly pictureUrl = computed(() => this.images.url(this.jigsaw(), 1));
+  /** the name and the description in the reader's language */
+  protected readonly words = computed(() => this.texts.of(this.jigsaw()));
   /** the entry is only a picture: it is cut in each round */
   protected readonly isPicture = computed(() => JigsawKinds.isPicture(this.jigsaw()));
   protected readonly pieces = computed(() => {

@@ -303,7 +303,8 @@ textarea { // (a button and a field do not take the spacing of the page by thems
   }
 }
 
-// how big the person of the app likes the picture tiles (`TileSizeChoice`, said by `play-main`): how many are in a row, on a phone and from each wider screen. Medium is what Bootstrap's classes on the grids say.
+// how big the person of the app likes the picture tiles (`TileSizeChoice`, said by `play-main`): how many are in a row, on a phone and from each wider screen. Medium is what Bootstrap's classes on the grids say (and, for the
+// rows of real shapes, `.tile-rows`, how many tiles of the plain shape a line holds).
 @each $size, $phone, $small, $large, $huge in ("small", 3, 4, 6, 8), ("large", 1, 2, 3, 4) {
   play-main[data-tiles='#{$size}'] .row.tile-grid > * {
     width: math.div(100%, $phone);
@@ -319,6 +320,98 @@ textarea { // (a button and a field do not take the spacing of the page by thems
     @include from($bp-xxl) {
       width: math.div(100%, $huge);
     }
+  }
+
+  play-main[data-tiles='#{$size}'] .tile-rows {
+    --app-tile-cols: #{$phone};
+
+    @include from($bp-sm) {
+      --app-tile-cols: #{$small};
+    }
+
+    @include from($bp-lg) {
+      --app-tile-cols: #{$large};
+    }
+
+    @include from($bp-xxl) {
+      --app-tile-cols: #{$huge};
+    }
+  }
+}
+
+// **The tiles of the home page and of a package (also where its pictures are uploaded) keep the shapes of their pictures** (`--app-tile-shape` on each, from `TileShapes`) and lie in lines. The tile size says how many tiles of the plain shape (4:3) a line holds, and so
+// how high a line is; each tile asks for the width that height gives its shape, and the tiles of a line grow alike to fill it, so their pictures stay one height. Plain tiles alone make the same grid as the columns
+// of the other lists.
+.tile-rows {
+  --app-tile-gap: 0.5rem;
+  --app-tile-cols: 2;
+  container-type: inline-size; // the widths below are shares of this line
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-tile-gap);
+
+  @include from($bp-sm) {
+    --app-tile-gap: 1rem;
+    --app-tile-cols: 3;
+  }
+
+  @include from($bp-lg) {
+    --app-tile-cols: 4;
+  }
+
+  @include from($bp-xxl) {
+    --app-tile-cols: 5;
+  }
+
+  > * {
+    // the plain tile's share of the line (less a pixel, so rounding never breaks a line of plain tiles), wider or narrower as the shape is: 0.75 is the height of the plain shape for its width
+    --app-tile-basis: calc(var(--app-tile-shape) * 0.75 * ((100cqw - (var(--app-tile-cols) - 1) * var(--app-tile-gap)) / var(--app-tile-cols) - 1px));
+    flex: var(--app-tile-shape) 1 var(--app-tile-basis);
+    max-width: min(100%, calc(1.5 * var(--app-tile-basis))); // a line with little in it is left short rather than made very high
+    min-width: 0;
+  }
+
+  // takes what is left of the last line, so its tiles are not stretched
+  &::after {
+    content: '';
+    flex: 1000000 1 0;
+  }
+
+  .tile-picture.ratio {
+    --bs-aspect-ratio: calc(100% / var(--app-tile-shape));
+  }
+
+  // the cards of one's own pictures have a box and two buttons on the picture: a very tall one is made no narrower than they need
+  &.own-cards > * {
+    min-width: min(100%, 7rem);
+  }
+
+  // the tiles are of many widths: the words under a picture are kept short, so a narrow one does not make its whole line high
+  .tile-text .tile-description {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  // in a very narrow tile (a tall picture, small tiles, a phone) only the name is under the picture, smaller, so a word is not broken in two: there is no room to read more
+  .tile-text {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 4.5rem) {
+    .card-name {
+      font-size: var(--app-fs-tiny);
+    }
+
+    .tile-description,
+    .tile-details {
+      display: none !important;
+    }
+  }
+
+  // one line of whole labels: a label that does not fit wraps to a line that is not shown (a label is 1.55 of these em high)
+  app-category-tags > span {
+    max-height: 1.65em;
+    overflow: hidden;
   }
 }
 
@@ -1115,12 +1208,36 @@ play-jigsaw {
 }
 
 // the band on top of a puzzle that is finished lies over the top of the puzzle (the board is not moved by it), over the play
+// the note of a finished round: in the middle of the picture, over the pieces, as big on the screen at every scale of the board; it comes, stays a few seconds and fades away, and never takes a click
 app-puzzel-banner {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: var(--app-z-overlay);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: var(--app-z-controls);
+}
+
+.finished-note {
+  padding: 0.4em 1em;
+  font-size: calc(var(--app-fs-heading) / var(--app-scale, 1));
+  border-width: calc(1px / var(--app-scale, 1));
+  animation: finished-note 6s ease both; // (only the light changes, so it also fades for those who ask for less motion)
+}
+
+@keyframes finished-note {
+  0% {
+    opacity: 0;
+  }
+  8%,
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 play-jigsaw .jigsaw-play {
@@ -1661,29 +1778,7 @@ app-my-rounds {
   transform: rotate(90deg);
 }
 
-// a chapter of the preferences: its whole heading opens and closes it
-.chapter > summary {
-  cursor: pointer;
-  list-style: none;
-
-  &::-webkit-details-marker {
-    display: none;
-  }
-
-  > h2 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-}
-
-// no hairline under the headings of such chapters (the headings of a form have one)
-.chapter > summary > .form-section {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-// the word at the end of such a heading: a soft pill that says Show or Hide (`app-open-word`)
+// the word at the end of a line that opens and closes a part: a soft pill that says Show or Hide (`app-open-word`)
 .open-word {
   display: inline-block;
   padding: 0.15rem 0.75rem;
@@ -1706,10 +1801,6 @@ details[open] > summary .open-word > .when-closed {
 
 details[open] > summary .open-word > .when-open {
   display: inline;
-}
-
-.chapter:not([open]) > summary > h2 {
-  margin-bottom: 0; // a closed card is as high as its heading
 }
 
 // menu style: one text size for everything that is written in a menu or a bar (the links, the switches, the clock, the name, the buttons): the normal text size. 
@@ -3534,6 +3625,15 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
     flex-shrink: 0;
     pointer-events: auto;
   }
+}
+
+// the same panel over a page that scrolls (the preferences of the home page): fixed in the window, clear of the bars of the menu
+.puzzle-panels.over-page {
+  position: fixed;
+  top: calc(var(--app-play-bar-top, 0px) + 0.75rem);
+  right: calc(var(--app-play-bar-right, 0px) + 0.75rem);
+  bottom: calc(var(--app-play-bar-bottom, 0px) + 0.75rem);
+  max-width: calc(100% - var(--app-play-bar-left, 0px) - var(--app-play-bar-right, 0px) - 1.5rem);
 }
 
 .jigsaw-main {

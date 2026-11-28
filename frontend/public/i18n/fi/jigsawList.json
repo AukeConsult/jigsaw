@@ -22,7 +22,6 @@
   "matchOne": "{{ count }} kuva vastaa",
   "matchMany": "{{ count }} kuvaa vastaa",
   "ownersHelp": "(valitse yksi tai useampi, enintään {{ max }})",
-  "language": "Kieli",
   "noOwner": "Ei omistajaa",
   "details": "Tiedot",
   "motive": "Kuvan vaikeus",

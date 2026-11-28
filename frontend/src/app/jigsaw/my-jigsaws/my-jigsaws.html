@@ -108,7 +108,7 @@
                       <ng-container *ngTemplateOutlet="mark; context: { $implicit: item }" />
                     </div>
                     <div class="round-info">
-                      <a class="text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ item.name }}</a>
+                      <a class="text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ texts.of(item).name }}</a>
                       <ng-container *ngTemplateOutlet="about; context: { $implicit: item }" />
                     </div>
                   </div>
@@ -130,25 +130,26 @@
           </ul>
         } @else {
           <!-- the same pictures as cards, with the same things to do: the box, the star and Delete lie on the picture -->
-          <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
+          <!-- the pictures in their own shapes, in lines (`own-cards`: no tile so narrow that the box and the buttons on the picture do not fit) -->
+          <div class="tile-grid tile-rows own-cards">
             @for (item of shownJigsaws(); track item.id + ':' + visRev()) {
-              <div class="col">
+              <div [style.--app-tile-shape]="shapeOf(item)">
                 <div class="card own-card" [class.h-100]="cardInfo() === 'info'" [class.row-selected]="selected().has(item.id)" [class.vis-hidden]="item.visibility === 'hidden'" [class.vis-private]="item.visibility === 'owner'" [class.vis-public]="!item.visibility || item.visibility === 'everyone'">
                   <!-- a press anywhere on the card opens the page of the picture (one link covers the card); the box, the buttons and the choices lie over it -->
                   <div [class.flex-grow-1]="cardInfo() === 'info'">
                     <div class="position-relative">
-                      <div class="ratio ratio-4x3 bg-body-secondary overflow-hidden" [class.card-img-top]="cardInfo() === 'info'" [class.rounded]="cardInfo() === 'picture'">
+                      <div class="tile-picture ratio ratio-4x3 bg-body-secondary overflow-hidden" [class.card-img-top]="cardInfo() === 'info'" [class.rounded]="cardInfo() === 'picture'">
                         <ng-container *ngTemplateOutlet="thumb; context: { $implicit: item }" />
                       </div>
                       <ng-container *ngTemplateOutlet="mark; context: { $implicit: item }" />
                     </div>
                     @if (cardInfo() === 'info') {
                       <div class="p-2 pb-0 text-break">
-                        <a class="d-block card-name text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ item.name }}</a>
+                        <a class="d-block card-name text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ texts.of(item).name }}</a>
                         <ng-container *ngTemplateOutlet="about; context: { $implicit: item }" />
                       </div>
                     } @else {
-                      <a class="stretched-link" [routerLink]="link(item)" [title]="item.name" [attr.aria-label]="item.name"></a>
+                      <a class="stretched-link" [routerLink]="link(item)" [title]="texts.of(item).name" [attr.aria-label]="texts.of(item).name"></a>
                     }
                     <label class="btn btn-overlay position-absolute top-0 start-0 m-1 z-2">
                       <ng-container *ngTemplateOutlet="tick; context: { $implicit: item }" />
@@ -185,7 +186,7 @@
       }
   <!-- what a row and a card have in common -->
   <ng-template #tick let-item>
-    <input class="form-check-input m-0" type="checkbox" [id]="'select-' + item.id" [checked]="selected().has(item.id)" [disabled]="deletingSelected()" [attr.aria-label]="t('jigsawUser.select', { name: item.name }) || 'Select ' + item.name" (change)="toggleSelected(item.id)">
+    <input class="form-check-input m-0" type="checkbox" [id]="'select-' + item.id" [checked]="selected().has(item.id)" [disabled]="deletingSelected()" [attr.aria-label]="t('jigsawUser.select', { name: texts.of(item).name }) || 'Select ' + texts.of(item).name" (change)="toggleSelected(item.id)">
   </ng-template>
   <ng-template #thumb let-item>
     @if (!noPicture().has(item.id)) {

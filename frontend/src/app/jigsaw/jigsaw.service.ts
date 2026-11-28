@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { firstValueFrom } from 'rxjs';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
+import { Translations } from '../models/shared/jigsaw-texts';
 import { JigsawInput, JigsawSpec } from '../models/shared/jigsaw-settings';
 import { JigsawKind } from '../models/shared/jigsaw-kind';
 import { MotiveLevel } from '../models/shared/motive';
@@ -75,14 +76,17 @@ export class JigsawService extends ApiCollection<JigsawInput, JigsawSpec> {
   }
 
   /**
-   * The AI looks at the picture of the jigsaw and says its categories, a name and a description (the texts in the language of the jigsaw). With `apply` they are also put on the
+   * The AI looks at the picture of the jigsaw and says its categories and a name (in the base language of the picture; never a description). With `apply` they are also put on the
    * jigsaw. Only the owner may. Throws when the AI cannot be asked or fails (the error says why).
    */
-  classify(id: string, apply = false, language?: string): Promise<{ categories: string[]; motive?: MotiveLevel; name: string; description: string; applied: boolean }> {
-    let params = new HttpParams();
-    if (apply) params = params.set('apply', 'true');
-    if (language) params = params.set('language', language); // the texts in this language (and with apply the jigsaw gets it), not the language the jigsaw has
-    return firstValueFrom(this.client.post<{ categories: string[]; motive?: MotiveLevel; name: string; description: string; applied: boolean }>(`${environment.jigsawApi}/jigsaw/${encodeURIComponent(id)}/classify`, null, { params }));
+  classify(id: string, apply = false): Promise<{ categories: string[]; motive?: MotiveLevel; name: string; applied: boolean }> {
+    const params = apply ? new HttpParams().set('apply', 'true') : new HttpParams();
+    return firstValueFrom(this.client.post<{ categories: string[]; motive?: MotiveLevel; name: string; applied: boolean }>(`${environment.jigsawApi}/jigsaw/${encodeURIComponent(id)}/classify`, null, { params }));
+  }
+
+  /** The name and the description of a jigsaw in every language it lacks: the service makes them from what is saved and keeps them, and gives all of them. */
+  async translate(id: string): Promise<Translations> {
+    return (await firstValueFrom(this.client.post<{ translations: Translations }>(`${environment.jigsawApi}/jigsaw/${encodeURIComponent(id)}/translate`, null))).translations;
   }
 
   /** The most popular jigsaws the person may see (at most ten), the best first: by the rounds played and by being new. The server ranks them (`Popularity`). */

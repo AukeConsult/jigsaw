@@ -25,7 +25,7 @@ You alone are responsible for the pictures you add. If a picture violates someon
 We never sell your pictures ourselves, and we use them only to run the app. If you are a publisher and offer them in a package, they are sold at your request and on your behalf. To run the app:
 
 - pictures are stored with our hosting provider (Google Firebase),
-- a picture you add may be sent to an AI service (OpenAI) to suggest a name, description and categories,
+- a picture you add may be sent to an AI service (OpenAI) to suggest a name and categories, and its name and description to translate them into the other languages of the app,
 - a picture you make public, share or put in a package can be seen and played by others,
 - our administrators can view, change or remove pictures when needed to run the service or handle complaints.
 
@@ -57,4 +57,4 @@ If you believe a picture violates your rights, write to [karinauke2@gmail.com](m
 
 We may update these terms. The newest version is always in the app.
 
-*Last updated: 27 November 2026*
+*Last updated: 28 November 2026*

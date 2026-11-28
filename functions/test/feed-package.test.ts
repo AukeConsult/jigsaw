@@ -126,6 +126,16 @@ describe("a package", () => {
     expect(JigsawSettings.fromStored("x", { ...settings(), packageId: "k1" } as never).packageId).toBe("k1");
   });
 
+  it("stamps its language on each new picture of it, whatever the page says, and the picture keeps it", async () => {
+    const { call, picture } = setup();
+    const id = (await call("post", "/jigsaw-packages", "pub").send({ ...pack, masterLanguage: "nb" })).body.item.id as string;
+    const made = (await picture("pub", { packageId: id, language: "de", visibility: undefined })).body as JigsawSpec;
+    expect(made.language).toBe("nb");
+    const { id: pictureId, createdAt: _at, ...input } = made;
+    expect((await call("put", `/jigsaw/${pictureId}`, "pub").send({ ...input, language: "fr" })).body.language).toBe("nb");
+    expect((await picture("pub", { language: "de" })).body.language).toBe("de"); // a picture in no package has the one it was made with
+  });
+
   it("stays in it when the picture is changed, though the change does not say the package, and is not moved by one that names another", async () => {
     const { call, picture } = setup();
     const id = (await call("post", "/jigsaw-packages", "pub").send(pack)).body.item.id as string;

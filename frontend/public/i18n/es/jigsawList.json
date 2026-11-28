@@ -22,7 +22,6 @@
   "matchOne": "{{ count }} imagen coincide",
   "matchMany": "{{ count }} imágenes coinciden",
   "ownersHelp": "(elige uno o más, hasta {{ max }})",
-  "language": "Idioma",
   "noOwner": "Sin propietario",
   "details": "Detalles",
   "motive": "Dificultad del motivo",

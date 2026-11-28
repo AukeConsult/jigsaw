@@ -1,9 +1,11 @@
 <ng-container *transloco="let t">
   @let item = jigsaw();
+  @let name = words().name;
+  @let description = words().description;
   <div class="card h-100">
     <!-- the picture: pressed, it opens (as the name does) -->
     <div class="position-relative">
-      <button type="button" class="d-block w-100 p-0 border-0 bg-transparent" (click)="show()" [title]="item.name" [attr.aria-label]="t('play.playName', { name: item.name }) || 'Show ' + item.name">
+      <button type="button" class="d-block w-100 p-0 border-0 bg-transparent" (click)="show()" [title]="name" [attr.aria-label]="t('play.playName', { name: name }) || 'Show ' + name">
         <div class="tile-picture ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
           @if (!noPicture()) {
             <img appArriving class="object-fit-cover" [src]="pictureUrl()" loading="lazy" decoding="async" alt="" (error)="noPicture.set(true)">
@@ -43,7 +45,7 @@
       </div>
     </div>
     <div class="tile-text card-body p-2 text-break">
-      <button type="button" class="card-name text-name text-decoration-none p-0 border-0 bg-transparent text-start" (click)="show()">{{ item.name }}</button>@if (item.timed !== false) {<i class="bi bi-stopwatch tile-details tiny ms-1 text-body-secondary" [title]="t('play.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tile-details tiny ms-1 text-body-secondary" [title]="t('play.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tile-details tiny ms-1 text-body-secondary" [title]="t('play.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
+      <button type="button" class="card-name text-name text-decoration-none p-0 border-0 bg-transparent text-start" (click)="show()">{{ name }}</button>@if (item.timed !== false) {<i class="bi bi-stopwatch tile-details tiny ms-1 text-body-secondary" [title]="t('play.timed') || 'Timed'" aria-hidden="true"></i>}@if (item.visibility === 'hidden') {<i class="bi bi-eye-slash tile-details tiny ms-1 text-body-secondary" [title]="t('play.hiddenNote') || 'Hidden: only in your list of jigsaws'" aria-hidden="true"></i>}@if (item.visibility === 'owner') {<i class="bi bi-lock tile-details tiny ms-1 text-body-secondary" [title]="t('play.onlyYou') || 'Only you see it'" aria-hidden="true"></i>}
       @if (!isPicture()) {
         <!-- a ready jigsaw: how many pieces and how hard (the words are in the tooltips). A picture says neither: they are chosen when a round starts -->
         <div class="text-body-secondary tiny">
@@ -52,8 +54,8 @@
         </div>
       }
       <!-- the description: only with the full grade -->
-      @if (item.description) {
-        <div class="tile-description text-body-secondary tiny mt-1">{{ item.description }}</div>
+      @if (description) {
+        <div class="tile-description text-body-secondary tiny mt-1">{{ description }}</div>
       }
       <!-- the details, which the player of the app can leave out (`tile-details`, as the marks after the name are): the categories and when it was added; only what is filled in -->
       <div class="tile-details text-body-secondary tiny">

@@ -1,22 +1,22 @@
 import { JigsawMotives } from "../src/models/shared/motive";
 import { describe, expect, it } from "vitest";
-import { Classifications, JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JigsawCategories } from "../src/models";
+import { Classifications, JIGSAW_MAX_NAME, JigsawCategories } from "../src/models";
 
 describe("what the AI may fill on a picture when it runs by itself", () => {
-  const found = { categories: ["nature"], motive: "normal" as const, name: "A forest", description: "Trees." };
+  const found = { categories: ["nature"], motive: "normal" as const, name: "A forest" };
 
   it("fills everything that is empty", () => {
     expect(Classifications.lacks({})).toBe(true);
-    expect(Classifications.fill({ name: "  ", description: "", categories: [] }, found)).toEqual(found);
+    expect(Classifications.fill({ name: "  ", categories: [] }, found)).toEqual(found);
   });
 
   it("keeps what the person has typed or chosen", () => {
-    expect(Classifications.fill({ name: "Mine", categories: ["recommended"] }, found)).toEqual({ motive: "normal", description: "Trees." });
+    expect(Classifications.fill({ name: "Mine", categories: ["recommended"] }, found)).toEqual({ motive: "normal" });
   });
 
   it("has nothing to ask when nothing is empty, and fills nothing the AI did not say", () => {
-    expect(Classifications.lacks({ name: "Mine", description: "Text", categories: ["nature"], motive: "easy" })).toBe(false);
-    expect(Classifications.fill({}, { categories: [], name: "", description: "" })).toEqual({});
+    expect(Classifications.lacks({ name: "Mine", categories: ["nature"], motive: "easy" })).toBe(false);
+    expect(Classifications.fill({}, { categories: [], name: "" })).toEqual({});
   });
 });
 
@@ -30,18 +30,18 @@ describe("what the AI is asked and allowed to say about a picture", () => {
     expect(keys).toHaveLength(JigsawCategories.all().length + JigsawCategories.all().reduce((n, c) => n + c.subs.length, 0));
   });
 
-  it("is a strict schema: categories (only the keys), the three ratings of the motive (detail, colour, landmark), a name and a description, and nothing more", () => {
+  it("is a strict schema: categories (only the keys), the three ratings of the motive (detail, colour, landmark), a name, and nothing more (a person writes the description)", () => {
     const schema = Classifications.schema() as { type: string; required: string[]; additionalProperties: boolean; properties: Record<string, { type: string; enum?: (string | number)[]; items?: { enum: string[] } }> };
     expect(schema.type).toBe("object");
     expect(schema.additionalProperties).toBe(false);
-    expect(schema.required).toEqual(["categories", "detail", "colour", "landmark", "name", "description"]);
+    expect(schema.required).toEqual(["categories", "detail", "colour", "landmark", "name"]);
     expect(schema.properties.detail.enum).toEqual([1, 2, 3, 4, 5]);
     expect(schema.properties.colour.enum).toEqual([1, 2, 3, 4, 5]);
     expect(schema.properties.landmark.type).toBe("boolean");
     expect(schema.properties).not.toHaveProperty("motive"); // the level is worked out from the ratings
     expect(schema.properties.categories.items?.enum).toEqual(Classifications.keys());
     expect(schema.properties.name.type).toBe("string");
-    expect(schema.properties.description.type).toBe("string");
+    expect(schema.properties).not.toHaveProperty("description");
   });
 
   it("is told the categories, the limits and the language to write in (English for one that is not a language of the app)", () => {
@@ -50,13 +50,13 @@ describe("what the AI is asked and allowed to say about a picture", () => {
     expect(nb).toContain("nature/forest = Forest");
     expect(nb).toContain("at most 3");
     expect(nb).toContain(String(JIGSAW_MAX_NAME));
-    expect(nb).toContain(String(JIGSAW_MAX_DESCRIPTION));
+    expect(nb).not.toMatch(/description/i);
     expect(Classifications.prompt("xx")).toContain("English");
   });
 
   it("is checked when it comes back: only categories that exist, once each, at most three, in the order they are shown", () => {
     const read = Classifications.read({ categories: ["nature/forest", "boats", "nature/forest", "family", "art", "kids"], name: "Forest walk", description: "A path." });
-    expect(read).toEqual({ categories: ["family", "nature/forest", "art"], name: "Forest walk", description: "A path." });
+    expect(read).toEqual({ categories: ["family", "nature/forest", "art"], name: "Forest walk" }); // a description it says anyway is not used
   });
 
   it("gives the categories as one would choose them: a sub-category instead of its category, and other only when it is all there is", () => {
@@ -70,15 +70,14 @@ describe("what the AI is asked and allowed to say about a picture", () => {
     expect(Classifications.read({ categories: ["family", "family/friends", "other"], name: "n", description: "d" })).toMatchObject({ categories: ["family/friends"] });
   });
 
-  it("has the texts tidied and cut to their limits, and an empty one when it said none or said something that is not text", () => {
-    const read = Classifications.read({ categories: [], name: `  ${"a ".repeat(100)}  `, description: `x${" ".repeat(5)}y ${"z".repeat(600)}` }) as { name: string; description: string };
+  it("has the name tidied and cut to its limit, and an empty one when it said none or said something that is not text", () => {
+    const read = Classifications.read({ categories: [], name: `  ${"a ".repeat(100)}  ` }) as { name: string };
     expect(read.name.length).toBeLessThanOrEqual(JIGSAW_MAX_NAME);
     expect(read.name.startsWith("a a")).toBe(true);
     expect(read.name.endsWith(" ")).toBe(false);
-    expect(read.description.length).toBeLessThanOrEqual(JIGSAW_MAX_DESCRIPTION);
-    expect(read.description.startsWith("x y z")).toBe(true); // runs of spaces are one
-    expect(Classifications.read({ categories: "nature", name: 3, description: null })).toEqual({ categories: [], name: "", description: "" });
-    expect(Classifications.read({})).toEqual({ categories: [], name: "", description: "" });
+    expect((Classifications.read({ name: `x${" ".repeat(5)}y` }) as { name: string }).name).toBe("x y"); // runs of spaces are one
+    expect(Classifications.read({ categories: "nature", name: 3 })).toEqual({ categories: [], name: "" });
+    expect(Classifications.read({})).toEqual({ categories: [], name: "" });
   });
 
   it("is refused when it is not an object", () => {

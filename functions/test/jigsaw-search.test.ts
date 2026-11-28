@@ -32,12 +32,11 @@ describe("what a jigsaw is matched by", () => {
     expect(JigsawIndex.tagsOf(undefined)).toEqual([]);
   });
 
-  it("is worked out from the jigsaw: its tags and language, and the difficulty and size it is found by (nothing of it is kept in the document)", () => {
-    expect(JigsawIndex.of(jigsaw("a", { snapPercent: 40, categories: ["nature/forest"] }))).toEqual({ tags: ["nature", "nature/forest"], language: "en" });
+  it("is worked out from the jigsaw: its tags, and the difficulty and size it is found by (nothing of it is kept in the document)", () => {
+    expect(JigsawIndex.of(jigsaw("a", { snapPercent: 40, categories: ["nature/forest"] }))).toEqual({ tags: ["nature", "nature/forest"] });
     expect([JigsawIndex.levelsOf(jigsaw("a", { snapPercent: 40 })), JigsawIndex.sizeClassesOf(jigsaw("a", { snapPercent: 40 }))]).toEqual([["easy"], ["large"]]);
-    expect(JigsawIndex.of(jigsaw("b", { width: 200, height: 100 }))).toEqual({ language: "en" }); // no tags when it is in no category
+    expect(JigsawIndex.of(jigsaw("b", { width: 200, height: 100 }))).toEqual({}); // no tags when it is in no category
     expect([JigsawIndex.levelsOf(jigsaw("b")), JigsawIndex.sizeClassesOf(jigsaw("b", { width: 200, height: 100 }))]).toEqual([["medium"], ["small"]]);
-    expect(JigsawIndex.of(jigsaw("c", { language: "nb" })).language).toBe("nb");
   });
 
   it("is a summary of a stored document without the pieces, the objects and the details of the picture", () => {
@@ -58,7 +57,7 @@ describe("the parameters of a search", () => {
     expect(ok({ favorites: "true" })).toMatchObject({ favorites: true });
     expect(ok({ favorites: "1" })).toMatchObject({ favorites: true });
     expect("favorites" in ok({})).toBe(false);
-    expect(ok({ languages: "nb,en", sizes: "small" })).toMatchObject({ languages: ["nb", "en"], sizes: ["small"] });
+    expect(ok({ languages: "nb,en", sizes: "small" })).not.toHaveProperty("languages"); // pictures are not looked for by language
     expect(ok({ categories: "", sizes: "", text: "  " })).toEqual({ sort: "new", limit: SEARCH_PAGE, page: 1 }); // an empty field says nothing
   });
 
@@ -72,7 +71,6 @@ describe("the parameters of a search", () => {
     expect(bad({ categories: "nature,boats" })).toMatch(/"boats" is not allowed in categories/);
     expect(bad({ categories: "family,travel,nature,animals,flowers,food,art" })).toMatch(/At most 6/);
     expect(bad({ sizes: "small,tiny" })).toMatch(/"tiny" is not allowed in sizes/);
-    expect(bad({ languages: "nb,xx" })).toMatch(/"xx" is not allowed in languages/);
     expect(bad({ favorites: "yes" })).toMatch(/favorites must be true/);
     expect(bad({ difficulties: "insane" })).toMatch(/is not allowed in difficulties/);
     expect(bad({ owners: "u1,a/b" })).toMatch(/is not allowed in owners/);
@@ -97,7 +95,6 @@ describe("matching and paging what came back", () => {
     summary(jigsaw("mid", { createdAt: 2, name: "Apple", categories: ["nature/forest", "family"], ownerUid: "u1" })),
     summary(jigsaw("new-small", { createdAt: 3, name: "Mango", width: 200, height: 150, snapPercent: 40, ownerUid: "u2" })),
   ];
-  const withNorwegian = [...items, summary(jigsaw("lang-nb", { createdAt: 4, name: "Fjord", language: "nb" }))];
 
   it("matches any of each list, and every list together: categories, sizes, difficulties and owners", () => {
     const found = (q: Partial<JigsawQuery>) => ids(items.filter((j) => JigsawSearch.matches(j, query(q))));
@@ -110,11 +107,6 @@ describe("matching and paging what came back", () => {
     expect(found({ sizes: ["small", "large"] })).toEqual(["old-big", "mid", "new-small"]);
     expect(found({ difficulties: ["hard"] })).toEqual(["old-big"]);
     expect(found({ difficulties: ["hard", "easy"] })).toEqual(["old-big", "new-small"]);
-    const inLanguages = (languages: string[]) => ids(withNorwegian.filter((j) => JigsawSearch.matches(j, query({ languages }))));
-    expect(inLanguages(["en"])).toEqual(["old-big", "mid", "new-small"]); // a jigsaw that says nothing is English
-    expect(inLanguages(["nb"])).toEqual(["lang-nb"]);
-    expect(inLanguages(["nb", "en"])).toEqual(["old-big", "mid", "new-small", "lang-nb"]); // any of them
-    expect(inLanguages(["sv"])).toEqual([]);
     expect(found({ owners: ["u2"] })).toEqual(["new-small"]);
     expect(found({ owners: ["u1", "u2"] })).toEqual(["mid", "new-small"]);
     expect(found({ categories: ["family"], difficulties: ["medium"], owners: ["u1"] })).toEqual(["mid"]); // every list
@@ -173,11 +165,10 @@ describe("the counts of a filter", () => {
     expect(f.categories).toEqual({ nature: 2, "nature/forest": 1, family: 1 }); // a category counts its sub-categories
     expect(f.sizes).toEqual({ large: 2, small: 1 });
     expect(f.difficulties).toEqual({ hard: 1, easy: 1, medium: 1 });
-    expect(f.languages).toEqual({ nb: 1, en: 2 });
     expect(f.owners).toEqual([{ id: "u1", name: "Karin", count: 2 }, { id: "u2", name: "Leif", count: 1 }]);
-    // everything adds up: the sizes, the difficulties, the languages and the owners (those with no owner too) each come to all the jigsaws
+    // everything adds up: the sizes, the difficulties and the owners (those with no owner too) each come to all the jigsaws
     const sum = (counts: Record<string, number>) => Object.values(counts).reduce((a, b) => a + b, 0);
-    expect([sum(f.sizes), sum(f.difficulties), sum(f.languages), f.owners.reduce((a, o) => a + o.count, 0)]).toEqual([f.total, f.total, f.total, f.total]);
+    expect([sum(f.sizes), sum(f.difficulties), f.owners.reduce((a, o) => a + o.count, 0)]).toEqual([f.total, f.total, f.total]);
     const withNone = JigsawSearch.facets([...items, summary(jigsaw("old", { createdAt: 0 }))], query());
     expect(withNone.owners.at(-1)).toEqual({ id: NO_OWNER, name: "", count: 1 }); // from before owners: counted, last
     expect(withNone.owners.reduce((a, o) => a + o.count, 0)).toBe(withNone.total);
@@ -196,7 +187,7 @@ describe("the counts of a filter", () => {
     expect(f.total).toBe(2);
     expect(f.owners).toEqual([{ id: "u1", name: "Karin", count: 2 }]);
     expect("family" in f.categories).toBe(false);
-    expect(JigsawSearch.facets([], query())).toEqual({ total: 0, kinds: {}, categories: {}, sizes: {}, difficulties: {}, motives: {}, languages: {}, owners: [] });
+    expect(JigsawSearch.facets([], query())).toEqual({ total: 0, kinds: {}, categories: {}, sizes: {}, difficulties: {}, motives: {}, owners: [] });
   });
 });
 
@@ -367,18 +358,14 @@ describe("the route", () => {
     expect(all.total).toBe(4); // not the private one
     expect(all.categories).toEqual({ nature: 1, "nature/forest": 1, family: 1 });
     expect(all.sizes).toEqual({ large: 3, small: 1 });
-    expect(all.languages).toEqual({ nb: 1, en: 3 }); // only the languages there are, and a jigsaw that says nothing is English
     expect(all.owners).toEqual([{ id: "u1", name: "Ann", count: 1 }, { id: "u2", name: "Zoe", count: 2 }, { id: "~none", name: "", count: 1 }]); // the one with no owner is counted, last; not the private one
     const sum = (counts: Record<string, number>) => Object.values(counts).reduce((a: number, b: number) => a + b, 0);
-    expect([sum(all.sizes), sum(all.difficulties), sum(all.languages), all.owners.reduce((a: number, o: { count: number }) => a + o.count, 0)]).toEqual([4, 4, 4, 4]); // each adds up to all
+    expect([sum(all.sizes), sum(all.difficulties), all.owners.reduce((a: number, o: { count: number }) => a + o.count, 0)]).toEqual([4, 4, 4]); // each adds up to all
     // with the rest kept and the list itself not: an owner ticked does not take the other owners away
     const zoe = (await get(app, "/facets?owners=u2")).body;
     expect(zoe.total).toBe(2);
     expect(zoe.owners.map((o: { id: string }) => o.id)).toEqual(["u1", "u2", "~none"]);
     expect(zoe.categories).toEqual({ nature: 1, "nature/forest": 1 }); // the categories of Zoe's jigsaws
-    expect(zoe.languages).toEqual({ nb: 1, en: 1 });
-    const nb = (await get(app, "/facets?languages=nb")).body;
-    expect([nb.total, nb.languages]).toEqual([1, { nb: 1, en: 3 }]);
     expect((await get(app, "/facets?sizes=tiny")).status).toBe(400);
     expect((await get(app, "/facets", "u3")).body.total).toBe(5); // the private one is seen by its owner
   });

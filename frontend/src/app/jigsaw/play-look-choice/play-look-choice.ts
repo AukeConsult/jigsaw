@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, input, output } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { playSnap } from '../../board/snap-sound';
@@ -6,12 +7,12 @@ import { OpenWord } from '../open-word/open-word';
 import { PIECE_EFFECT_GROUPS, PIECE_STYLES, PieceEffect, PieceEffectGroup, PlayLookSetup, PlayLooks, SOUND_STYLES, SoundStyle, TABLES } from '../../models/shared/play-look';
 
 /**
- * The choices of how the play area looks and sounds (`PlayLooks`): the table, as pills with a spot of each; how the pieces look, and the effects (a switch each, under a line that opens them); the sound of a click into place, what it
+ * The choices of how the play area looks and sounds (`PlayLooks`): the table, as pills with a spot of each; how the pieces look, and the effects (a switch each; under a line that opens them where there is little room, `foldEffects`); the sound of a click into place, what it
  * sounds like, and a tap as a piece is picked up or put down. Each part can be left out, where a page has them apart. It shows what it is given and tells what is chosen: the account's preference, or a round's own.
  */
 @Component({
   selector: 'app-play-look-choice',
-  imports: [TranslocoDirective, OpenWord],
+  imports: [TranslocoDirective, NgTemplateOutlet, OpenWord],
   providers: [provideTranslocoScope('jigsawPlay')],
   host: { class: 'd-block' },
   template: `
@@ -37,8 +38,18 @@ import { PIECE_EFFECT_GROUPS, PIECE_STYLES, PieceEffect, PieceEffectGroup, PlayL
             }
           </div>
         </fieldset>
-        <details class="more-options mb-3" [open]="open()" (toggle)="open.set($any($event.target).open)">
-          <summary><i class="bi bi-stars me-1" aria-hidden="true"></i>{{ t('jigsawPlay.effects') || 'Effects' }}<app-open-word class="ms-2" /></summary>
+        @if (foldEffects()) {
+          <details class="more-options mb-3" [open]="open()" (toggle)="open.set($any($event.target).open)">
+            <summary><i class="bi bi-stars me-1" aria-hidden="true"></i>{{ t('jigsawPlay.effects') || 'Effects' }}<app-open-word class="ms-2" /></summary>
+            <ng-container *ngTemplateOutlet="effectChoices" />
+          </details>
+        } @else {
+          <div class="mb-3">
+            <div><i class="bi bi-stars me-1" aria-hidden="true"></i>{{ t('jigsawPlay.effects') || 'Effects' }}</div>
+            <ng-container *ngTemplateOutlet="effectChoices" />
+          </div>
+        }
+        <ng-template #effectChoices>
           @for (group of groups; track group) {
             <fieldset class="mt-2">
               <legend class="form-label mb-1">{{ t('jigsawPlay.effectGroups.' + group) || group }}</legend>
@@ -53,7 +64,7 @@ import { PIECE_EFFECT_GROUPS, PIECE_STYLES, PieceEffect, PieceEffectGroup, PlayL
             </fieldset>
           }
           <p class="form-text mb-0">{{ t('jigsawPlay.lessMotion') || 'A device that is set to less motion shows no moving effects.' }}</p>
-        </details>
+        </ng-template>
       }
       @if (showSound()) {
         <div class="form-check form-switch mb-2">
@@ -84,6 +95,8 @@ export class PlayLookChoice {
   readonly showTable = input(true);
   readonly showPieces = input(true);
   readonly showSound = input(true);
+  /** the effects are behind a line that opens them (the panel over the puzzle); the preferences show them all */
+  readonly foldEffects = input(true);
   /** what the ids of the fields begin with (the choices can be on a page more than once) */
   readonly idPrefix = input('look');
   /** what the choice of table is called (empty: Table; on the account preferences it is the theme of the app) */

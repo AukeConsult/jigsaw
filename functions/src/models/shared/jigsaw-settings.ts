@@ -2,6 +2,7 @@ import { Puzzle } from './puzzle';
 import { PlacedFigure, PlacedObject } from './placed';
 import { JigsawCategories } from './category';
 import { JigsawLanguages } from './language';
+import { JigsawTexts, Translations } from './jigsaw-texts';
 import { JigsawMotives, MotiveLevel } from './motive';
 import { JigsawKind, JigsawKinds, PICTURE_MAX_SIDE } from './jigsaw-kind';
 import { CutShape, CutShapes } from './cut-shape';
@@ -70,8 +71,10 @@ export interface JigsawSpec {
   packageId?: string;
   /** a jigsaw: a few words about the picture, shown on its page (a place, a day, a memory; optional) */
   description?: string;
-  /** a jigsaw: the language its name and description are written in (a code of `JIGSAW_LANGUAGES`; English when it says nothing): the language of the user who made it, to begin with */
+  /** a jigsaw: **its base language**, what its name and description are written in (a code of `JIGSAW_LANGUAGES`; English when it says nothing): set when it is made (the language of the user who made it) and the same ever after (see `JigsawTexts`) */
   language?: string;
+  /** a jigsaw: its name and description in the other languages, made by the service from the words as written (see `JigsawTexts`); what a page sends of it is not used */
+  translations?: Translations;
   /** a jigsaw: the keys of the categories it is in (see `JigsawCategories`; none when it says nothing, at most `CATEGORIES_MAX_PER_JIGSAW`) */
   categories?: string[];
   /** a jigsaw: the motive difficulty, how hard the picture itself is to put together (see `JigsawMotives`; none when nobody has said it): a property of the jigsaw, not a category */
@@ -110,14 +113,14 @@ export interface JigsawSpec {
 }
 
 /** What the page sends to make a jigsaw. */
-export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'pictureName' | 'packageId' | 'description' | 'categories' | 'motive' | 'language' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'cutShape' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
+export type JigsawInput = Pick<JigsawSpec, 'name' | 'author' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'pictureName' | 'packageId' | 'description' | 'categories' | 'motive' | 'language' | 'translations' | 'width' | 'height' | 'gridSize' | 'gridVisible' | 'placed' | 'storeWidth' | 'snapPercent' | 'cutShape' | 'frameWidth' | 'lineWidth' | 'lineColor' | 'backColor'>;
 
 /** The stored fields of a jigsaw except `placed` (the objects on its board, most of a big document) and the id: what a list that only names, counts or ranks jigsaws reads. A test keeps it in step with `JigsawInput`. */
-export const JIGSAW_HEAD_FIELDS = ['name', 'author', 'ownerUid', 'kind', 'visibility', 'timed', 'pictureName', 'packageId', 'description', 'categories', 'motive', 'language', 'width', 'height', 'gridSize', 'gridVisible', 'storeWidth', 'snapPercent', 'cutShape', 'frameWidth', 'lineWidth', 'lineColor', 'backColor', 'createdAt'] as const satisfies readonly (keyof JigsawInput | 'createdAt')[];
+export const JIGSAW_HEAD_FIELDS = ['name', 'author', 'ownerUid', 'kind', 'visibility', 'timed', 'pictureName', 'packageId', 'description', 'categories', 'motive', 'language', 'translations', 'width', 'height', 'gridSize', 'gridVisible', 'storeWidth', 'snapPercent', 'cutShape', 'frameWidth', 'lineWidth', 'lineColor', 'backColor', 'createdAt'] as const satisfies readonly (keyof JigsawInput | 'createdAt')[];
 
 /** A jigsaw as it comes from outside (the page, the API): it checks itself. */
 export class JigsawSettings {
-  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; kind?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; packageId?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; cutShape?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
+  constructor(readonly input: { name?: unknown; author?: unknown; ownerUid?: unknown; kind?: unknown; visibility?: unknown; timed?: unknown; pictureName?: unknown; packageId?: unknown; description?: unknown; categories?: unknown; motive?: unknown; language?: unknown; translations?: unknown; width?: unknown; height?: unknown; gridSize?: unknown; gridVisible?: unknown; placed?: unknown; storeWidth?: unknown; snapPercent?: unknown; cutShape?: unknown; frameWidth?: unknown; lineWidth?: unknown; lineColor?: unknown; backColor?: unknown }) {}
 
   /**
    * A side of a jigsaw whose grid points are half a step in from the edge, made to fit the grid: a whole number of steps (at least one, at most
@@ -227,6 +230,7 @@ export class JigsawSettings {
       ...(JigsawCategories.stored(i.categories).length ? { categories: JigsawCategories.stored(i.categories) } : {}),
       ...(JigsawMotives.is(i.motive) ? { motive: i.motive } : {}),
       ...(JigsawLanguages.is(i.language) ? { language: i.language } : {}),
+      ...(JigsawTexts.stored(i.translations) ? { translations: JigsawTexts.stored(i.translations) } : {}),
       width: i.width as number,
       height: i.height as number,
       gridSize: picture ? 0 : (i.gridSize as number),
@@ -258,6 +262,7 @@ export class JigsawSettings {
       ...(JigsawCategories.stored(doc.categories).length ? { categories: JigsawCategories.stored(doc.categories) } : {}),
       ...(JigsawMotives.of(doc) ? { motive: JigsawMotives.of(doc) } : {}), // a motive difficulty that an older version kept among the categories is the property now
       ...(JigsawLanguages.is(doc.language) ? { language: doc.language } : {}),
+      ...(JigsawTexts.stored(doc.translations) ? { translations: JigsawTexts.stored(doc.translations) } : {}),
       width: doc.width ?? 800,
       height: doc.height ?? 600,
       gridSize: doc.gridSize ?? LEGACY_GRID,

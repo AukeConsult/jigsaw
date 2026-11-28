@@ -6,6 +6,7 @@ import { JigsawMaker } from '../../../app/jigsaw/jigsaw-maker';
 import { readPreference, writePreference } from '../../../app/core/preferences';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
+import { JigsawWords } from '../../../app/jigsaw/jigsaw-words.service';
 import { PlaysService } from '../../../app/jigsaw/plays.service';
 import { Classifications } from '../../../app/models/shared/classification';
 import { JigsawLanguages } from '../../../app/models/shared/language';
@@ -47,11 +48,12 @@ const isDefaults = (v: unknown): v is NewPictureDefaults | null => {
  * is chosen, and **one size for both** (`sizeKey`: the whole picture at its own size, `JigsawKinds.pictureSize`, or a standard size it is cut to), with one cut that the person may adjust, which stays when they change what is made.
  * For a picture the pieces and the difficulty are chosen in each round; a ready jigsaw has them here (`CutChoice`: pieces, difficulty, clock) and is cut into pieces that are kept. It gets a name, a description, a language, categories, a motive difficulty and who sees it, and it is
  * saved: the jigsaw document, then its picture. If a step fails what was made
- * is taken away again: nothing half made is left. **The AI looks at a new picture, and at one whose picture file was replaced, as it is saved** (there is nothing to press), and fills what is empty of the name, the description, the categories and the motive difficulty (`fillByAi`). **A picture that is there**: when rounds have been played of it, its owner can take them all away to change what the rounds share; a new size or number of pieces cuts the saved picture again. When it is saved its categories and who sees it (private to begin with) are added to the filter of the picture list (`PlayListFilter`), so the new picture is not left out of the list. The page (`add-picture`) provides a new one of these, so it starts empty each time.
+ * is taken away again: nothing half made is left. **The AI looks at a new picture, and at one whose picture file was replaced, as it is saved** (there is nothing to press), and fills what is empty of the name, the categories and the motive difficulty (`fillByAi`; never the description). **The words are translated as the picture is saved** (`JigsawWords.saved`). **A picture that is there**: when rounds have been played of it, its owner can take them all away to change what the rounds share; a new size or number of pieces cuts the saved picture again. When it is saved its categories and who sees it (private to begin with) are added to the filter of the picture list (`PlayListFilter`), so the new picture is not left out of the list. The page (`add-picture`) provides a new one of these, so it starts empty each time.
  */
 @Injectable()
 export class NewPicture {
   private readonly jigsaws = inject(JigsawService);
+  private readonly texts = inject(JigsawWords);
   private readonly images = inject(JigsawImageService);
   private readonly maker = inject(JigsawMaker);
   private readonly users = inject(JigsawUserService);
@@ -84,8 +86,10 @@ export class NewPicture {
 
   readonly name = signal('');
   readonly description = signal('');
-  /** the language the name and description are written in: the language the app is shown in, to begin with */
+  /** **the base language of the picture**, what its name and description are written in: for a new one the language the app is shown in, and the same ever after */
   readonly language = signal(inject(LanguageService).lang());
+  /** its name, as the form says in which language to write */
+  readonly languageName = computed(() => JigsawLanguages.nameOf(this.language()));
   readonly categories = signal<string[]>([]);
   readonly motive = signal('');
   /** who sees it: a new one is private to begin with (only its owner) until its owner makes it hidden, or public (a publisher) */
@@ -117,10 +121,26 @@ export class NewPicture {
   /** the AI is looking at the picture that was just saved */
   readonly analysing = signal(false);
   /** a picture file was chosen here (not the saved picture read to be cut again) */
-  private replaced = false;
+  private readonly replaced = signal(false);
+  /** the person has adjusted the cut in the cropper */
+  private readonly adjusted = signal(false);
   readonly error = signal('');
-  /** the id of the picture that was saved (null: nothing yet) */
+  /** the id of the picture that was saved (null: nothing yet, or the last save failed) */
   readonly savedId = signal<string | null>(null);
+  /** the AI filled something in at the last save: the person is told to look it over */
+  readonly filledByAi = signal(false);
+  /** what the person had chosen when the picture was read or last saved (null: a new picture, or not read yet) */
+  private readonly kept = signal<string | null>(null);
+  /** what the person has chosen now: all that a save would change (the size, the pieces and the cut as they are asked for, not as they are worked out) */
+  private readonly choices = computed(() =>
+    JSON.stringify([this.name().trim(), this.description().trim(), [...this.categories()].sort(), this.motive(), this.visibility(), this.sizeKey(), this.choice.pieceChoice(), this.choice.snapPercent(), this.choice.timed(), this.choice.cutShape(), this.replaced(), this.adjusted()]),
+  );
+  /** **there is something to save**: always for a new picture, and for one that is there only when something differs from what is saved */
+  readonly changed = computed(() => !this.editId() || (this.kept() !== null && this.kept() !== this.choices()));
+  /** the picture was saved here a moment ago */
+  private readonly savedHere = signal(false);
+  /** **it was saved and nothing has been changed since**: the person stays on the form to look at what was saved */
+  readonly justSaved = computed(() => this.savedHere() && !this.changed());
 
   /** the jigsaw as it will look at the top of the page (`app-jigsaw-header`): what the form says so far */
   readonly draft = computed(() => ({ id: this.editId() ?? '', ...this.settings(this.name().trim()) }) as JigsawSpec);
@@ -179,11 +199,28 @@ export class NewPicture {
       if (!JigsawKinds.isPicture(jigsaw)) this.choice.show(jigsaw);
       this.played.set(await this.plays.played(id).catch(() => false));
       this.setPreview(this.images.url(jigsaw, 1));
+      this.kept.set(this.choices());
     } catch {
       this.error.set(tr('play.picture.couldNotRead', 'Could not read the picture: try again.'));
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** The form says what is saved now. */
+  markSaved(filledByAi = this.filledByAi()): void {
+    this.filledByAi.set(filledByAi);
+    this.kept.set(this.choices());
+    this.savedHere.set(true);
+  }
+
+  /** A save begins: nothing said about the one before holds. */
+  private begin(): void {
+    this.savedId.set(null);
+    this.savedHere.set(false);
+    this.filledByAi.set(false);
+    this.error.set('');
+    this.saving.set(true);
   }
 
   /** A picture file was chosen in a file field (or taken with the camera of a phone). */
@@ -198,7 +235,7 @@ export class NewPicture {
   async use(file: File): Promise<void> {
     if (!this.canChangePicture()) return;
     this.error.set('');
-    this.replaced = true;
+    this.replaced.set(true);
     this.cut.set(null); // the cut of another picture says nothing about this one
     this.file.set(file);
     await this.fit(file);
@@ -278,19 +315,19 @@ export class NewPicture {
   }
 
   /**
-   * The AI looks at the picture that was just kept and fills what is empty (`Classifications.fill`): the name, the description, the categories and the motive difficulty, the texts in the language of the picture; what the
+   * The AI looks at the picture that was just kept and fills what is empty (`Classifications.fill`): the name (in the base language of the picture), the categories and the motive difficulty; what the
    * person typed or chose stays, and when nothing is empty the AI is not asked. The picture is saved already, so when the AI (or keeping what it said) fails, nothing is said and the picture stays as it was saved.
    */
   private async fillByAi(id: string, storeWidth?: number): Promise<void> {
     const motive = this.motive();
-    const has = { name: this.name(), description: this.description(), categories: this.categories(), motive: JigsawMotives.is(motive) ? (motive as MotiveLevel) : undefined };
+    const has = { name: this.name(), categories: this.categories(), motive: JigsawMotives.is(motive) ? (motive as MotiveLevel) : undefined };
     if (!Classifications.lacks(has)) return;
     this.analysing.set(true);
     try {
-      const fill = Classifications.fill(has, await this.jigsaws.classify(id, false, this.language()));
+      const fill = Classifications.fill(has, await this.jigsaws.classify(id, false));
       if (!Object.keys(fill).length) return;
+      this.filledByAi.set(true);
       if (fill.name) this.name.set(fill.name);
-      if (fill.description) this.description.set(fill.description);
       if (fill.categories) this.categories.set(fill.categories);
       if (fill.motive) this.motive.set(fill.motive);
       await this.jigsaws.update(id, new JigsawSettings(this.settings(this.nameOrFile(), storeWidth)).stored());
@@ -327,6 +364,12 @@ export class NewPicture {
       this.setPreview(null);
       this.error.set(tr('play.picture.couldNotRead', 'Could not read the picture: try again.'));
     }
+  }
+
+  /** The person adjusted the cut in the cropper. */
+  async adjustCut(rect: SourceRect): Promise<void> {
+    this.adjusted.set(true);
+    await this.useCut(rect);
   }
 
   /** This is the cut: the one the picture got by itself, or the one the person adjusted in the cropper. */
@@ -419,16 +462,26 @@ export class NewPicture {
       this.error.set(cutting.error);
       return;
     }
-    this.error.set('');
-    this.saving.set(true);
+    this.begin();
     try {
       await this.jigsaws.update(id, new JigsawSettings(this.settings(this.name().trim(), cutting?.storeWidth)).stored());
       if (file && cut) {
         const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut);
         await this.images.upload(id, picture);
         if (cutting) await this.maker.keepPieces(id, cutting);
-        if (this.replaced) await this.fillByAi(id, cutting?.storeWidth);
+        if (this.replaced()) await this.fillByAi(id, cutting?.storeWidth);
       }
+      void this.texts.saved(id); // translated while the person goes on
+      // the form goes on from the picture as it is saved: no new file is waiting any more
+      const saved = await this.jigsaws.get(id).catch(() => null);
+      if (saved) {
+        this.original = saved;
+        this.file.set(null);
+        this.cut.set(null);
+        this.replaced.set(false);
+        this.adjusted.set(false);
+      }
+      this.markSaved();
       this.savedId.set(id);
     } catch (err) {
       this.error.set(this.recommendedFull(err) || tr('play.picture.couldNotChange', 'Could not save the changes: only the owner can change a picture, and not its picture once rounds have been played.'));
@@ -449,14 +502,14 @@ export class NewPicture {
       this.error.set(cutting.error);
       return;
     }
-    this.error.set('');
-    this.saving.set(true);
+    this.begin();
     try {
       const picture = await fitPicture(file, this.width(), this.height(), MAX_PICTURE_BYTES, cut);
       const made = await this.maker.createWithPicture(this.settings(this.nameOrFile(), cutting?.storeWidth), picture, async (saved) => {
         if (cutting) await this.maker.keepPieces(saved.id, cutting);
       });
       await this.fillByAi(made.id, cutting?.storeWidth);
+      void this.texts.saved(made.id); // translated while the person goes on (after the AI, so a name it gave is translated too)
       this.savedId.set(made.id);
       this.listFilter.addPicture(this.categories(), this.visibility() === 'hidden' ? null : this.visibility() === 'owner' ? 'private' : 'public');
     } catch (err) {

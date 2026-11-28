@@ -1,7 +1,7 @@
 <main class="container-fluid page-margin page-max" [class.p-0]="packageId()" *transloco="let t">
   @if (!packageId()) {
   <h1 class="page-title mb-2"><i class="bi bi-images me-2" aria-hidden="true"></i>{{ t('jigsawBatch.title') || 'Make many jigsaws' }}</h1>
-  <p class="text-body-secondary">{{ t('jigsawBatch.intro') || 'Choose how big and how hard, then pick pictures from your computer. Each picture becomes a jigsaw, and the AI sets its categories, name and description.' }}</p>
+  <p class="text-body-secondary">{{ t('jigsawBatch.intro') || 'Choose how big and how hard, then pick pictures from your computer. Each picture becomes a jigsaw, and the AI sets its categories and name.' }}</p>
   }
 
   <form (submit)="$event.preventDefault()">
@@ -47,6 +47,8 @@
         </select>
       </div>
       }
+      <!-- (in a package the pictures get the language of the package, chosen on its form) -->
+      @if (!packageId()) {
       <div class="col-6 col-md-3">
         <label class="form-label" for="batch-language">{{ t('jigsawBatch.language') || 'Language' }}</label>
         <select id="batch-language" name="language" class="form-select" [disabled]="running()" [ngModel]="language()" (ngModelChange)="language.set($event)">
@@ -55,8 +57,11 @@
           }
         </select>
       </div>
+      }
     </div>
+    @if (!packageId()) {
     <div class="form-text mb-3">{{ t('jigsawBatch.languageHelp') || 'The language the names and the descriptions are written in.' }}</div>
+    }
     @if (!isPicture()) {
     <div class="form-check form-switch mb-3">
       <input id="batch-timed" name="timed" class="form-check-input" type="checkbox" role="switch" [disabled]="running()" [ngModel]="timed()" (ngModelChange)="timed.set($event)">
@@ -86,9 +91,6 @@
             <img class="rounded border object-fit-cover flex-shrink-0" [src]="item.preview" alt="" width="64" height="48">
             <div class="flex-grow-1 min-w-0">
               <div class="fw-semibold text-break">{{ item.jigsaw?.name || item.file.name }}</div>
-              @if (item.jigsaw?.description) {
-                <div class="tiny text-facts text-break">{{ item.jigsaw?.description }}</div>
-              }
               @if (item.jigsaw?.categories?.length) {
                 <app-category-tags [keys]="item.jigsaw?.categories" />
               }

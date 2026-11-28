@@ -15,7 +15,7 @@
     <form class="vstack gap-3" (submit)="$event.preventDefault(); save()">
       <div>
         <label class="form-label" for="feed-master">{{ t('play.feed.masterLanguage') || 'Language you write in' }}</label>
-        <select id="feed-master" class="form-select" [value]="masterLanguage()" (change)="masterLanguage.set($any($event.target).value)">
+        <select id="feed-master" class="form-select form-select-sm w-auto" [value]="masterLanguage()" (change)="masterLanguage.set($any($event.target).value)">
           @for (l of languages; track l.code) {
             <option [value]="l.code" [selected]="l.code === masterLanguage()">{{ l.name }}</option>
           }

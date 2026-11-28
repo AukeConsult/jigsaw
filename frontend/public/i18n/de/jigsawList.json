@@ -22,7 +22,6 @@
   "matchOne": "{{ count }} Bild passt",
   "matchMany": "{{ count }} Bilder passen",
   "ownersHelp": "(wähle einen oder mehrere, bis zu {{ max }})",
-  "language": "Sprache",
   "noOwner": "Kein Besitzer",
   "details": "Details",
   "motive": "Motiv-Schwierigkeit",

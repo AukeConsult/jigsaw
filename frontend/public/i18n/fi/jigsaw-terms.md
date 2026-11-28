@@ -25,7 +25,7 @@ Vastaat yksin lisäämistäsi kuvista. Jos kuva loukkaa jonkun tekijänoikeutta,
 Emme koskaan itse myy kuviasi, ja käytämme niitä vain sovelluksen toimintaan. Jos olet julkaisija ja tarjoat niitä paketissa, ne myydään pyynnöstäsi ja puolestasi. Sovelluksen toimintaa varten:
 
 - kuvat tallennetaan palveluntarjoajallemme (Google Firebase),
-- lisäämäsi kuva voidaan lähettää tekoälypalveluun (OpenAI), joka ehdottaa nimeä, kuvausta ja luokkia,
+- lisäämäsi kuva voidaan lähettää tekoälypalveluun (OpenAI), joka ehdottaa nimeä ja luokkia, ja nimi ja kuvaus käännettäviksi sovelluksen muille kielille,
 - muut voivat nähdä ja pelata kuvaa, jonka teet julkiseksi, jaat tai lisäät pakettiin,
 - ylläpitäjämme voivat katsella, muuttaa tai poistaa kuvia, kun palvelun ylläpito tai valitusten käsittely sitä vaatii.
 
@@ -57,4 +57,4 @@ Jos katsot, että kuva loukkaa oikeuksiasi, kirjoita osoitteeseen [karinauke2@gm
 
 Voimme päivittää näitä ehtoja. Uusin versio on aina sovelluksessa.
 
-*Päivitetty viimeksi: 27. marraskuuta 2026*
+*Päivitetty viimeksi: 28. marraskuuta 2026*

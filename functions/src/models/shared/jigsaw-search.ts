@@ -1,5 +1,5 @@
 import { JigsawCategories } from './category';
-import { JigsawLanguages, JIGSAW_LANGUAGES } from './language';
+import { JigsawTexts } from './jigsaw-texts';
 import { JigsawMotives, MotiveLevel } from './motive';
 import { pieceGrid } from './jigsaw';
 import { JigsawSettings, JigsawSpec } from './jigsaw-settings';
@@ -45,15 +45,13 @@ export interface JigsawIndexFields {
   tags?: string[];
   /** the motive difficulty of the jigsaw (none when nobody has said it) */
   motive?: MotiveLevel;
-  /** the language of the jigsaw (English when it says nothing) */
-  language: string;
 }
 
 /** The part of a jigsaw a list needs: everything but the pieces and the picture's details. It is all a search reads (`SUMMARY_FIELDS`). */
-export type JigsawSummary = Pick<JigsawSpec, 'id' | 'name' | 'author' | 'description' | 'language' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'packageId' | 'categories' | 'motive' | 'width' | 'height' | 'gridSize' | 'snapPercent' | 'createdAt' | 'imageKey'>;
+export type JigsawSummary = Pick<JigsawSpec, 'id' | 'name' | 'author' | 'description' | 'language' | 'translations' | 'ownerUid' | 'kind' | 'visibility' | 'timed' | 'packageId' | 'categories' | 'motive' | 'width' | 'height' | 'gridSize' | 'snapPercent' | 'createdAt' | 'imageKey'>;
 
 /** The fields of a document a search reads (not `placed`, the biggest). */
-export const SUMMARY_FIELDS = ['name', 'author', 'description', 'language', 'ownerUid', 'kind', 'visibility', 'timed', 'packageId', 'categories', 'motive', 'width', 'height', 'gridSize', 'snapPercent', 'createdAt'] as const;
+export const SUMMARY_FIELDS = ['name', 'author', 'description', 'language', 'translations', 'ownerUid', 'kind', 'visibility', 'timed', 'packageId', 'categories', 'motive', 'width', 'height', 'gridSize', 'snapPercent', 'createdAt'] as const;
 
 /** What is worked out from a jigsaw to match it by. */
 export class JigsawIndex {
@@ -96,9 +94,9 @@ export class JigsawIndex {
   }
 
   /** What a jigsaw is matched by (its size and difficulty are not here: a picture has every one, see `sizeClassesOf` and `levelsOf`). */
-  static of(jigsaw: Pick<JigsawSpec, 'categories' | 'language'> & { motive?: MotiveLevel }): JigsawIndexFields {
+  static of(jigsaw: Pick<JigsawSpec, 'categories'> & { motive?: MotiveLevel }): JigsawIndexFields {
     const tags = JigsawIndex.tagsOf(jigsaw.categories);
-    return { ...(tags.length ? { tags } : {}), ...(jigsaw.motive ? { motive: jigsaw.motive } : {}), language: JigsawLanguages.of(jigsaw) };
+    return { ...(tags.length ? { tags } : {}), ...(jigsaw.motive ? { motive: jigsaw.motive } : {}) };
   }
 
   /** A summary of a stored document (only the fields a search reads are in it; a document an older version saved gets what it lacked). */
@@ -137,8 +135,6 @@ export interface JigsawFacets {
   kinds: Record<string, number>;
   /** by level of the motive difficulty (only the levels that jigsaws have are there) */
   motives: Record<string, number>;
-  /** by language code (only the languages that jigsaws have are there) */
-  languages: Record<string, number>;
   /** the users who made the jigsaws, by name, each with how many; the jigsaws from before owners are one more, with `NO_OWNER` as the id and no name, last */
   owners: { id: string; name: string; count: number }[];
 }
@@ -156,11 +152,9 @@ export interface JigsawQuery {
   kinds?: JigsawKind[];
   /** levels of the motive difficulty (a jigsaw that has none is never found by it) */
   motives?: MotiveLevel[];
-  /** language codes (a jigsaw without a language is English) */
-  languages?: string[];
   /** the users (UIDs) whose jigsaws are looked for (at most `SEARCH_MAX_OWNERS`) */
   owners?: string[];
-  /** words that are in the name, the author or the description of the jigsaw, in any order and in any case (a part of a word is enough); every word has to be there */
+  /** words that are in the name, the author or the description of the jigsaw (in any language it has them in), in any order and in any case (a part of a word is enough); every word has to be there */
   text?: string;
   /** only the jigsaws the user who asks has ticked as favorites (the route knows them; a jigsaw is a favorite of a user, not a property of itself) */
   favorites?: true;
@@ -183,7 +177,7 @@ export class JigsawSearch {
       if (v === undefined || v === '') return undefined;
       return typeof v === 'string' ? v : { error: `${name} must be text.` };
     };
-    const names = ['kinds', 'categories', 'sizes', 'difficulties', 'motives', 'languages', 'owners', 'text', 'favorites', 'solved', 'visibilities', 'sort', 'limit', 'page'] as const;
+    const names = ['kinds', 'categories', 'sizes', 'difficulties', 'motives', 'owners', 'text', 'favorites', 'solved', 'visibilities', 'sort', 'limit', 'page'] as const;
     const fields = Object.fromEntries(names.map((n) => [n, text(n)])) as Record<string, string | undefined | { error: string }>;
     for (const v of Object.values(fields)) if (v && typeof v === 'object') return v;
     const f = fields as Partial<Record<(typeof names)[number], string>>;
@@ -205,8 +199,6 @@ export class JigsawSearch {
     if (!Array.isArray(difficulties)) return difficulties;
     const motives = list(f.motives, 'motives', (x) => JigsawMotives.is(x), JigsawMotives.keys().length);
     if (!Array.isArray(motives)) return motives;
-    const languages = list(f.languages, 'languages', (x) => JigsawLanguages.is(x), JIGSAW_LANGUAGES.length);
-    if (!Array.isArray(languages)) return languages;
     const owners = list(f.owners, 'owners', (x) => x === NO_OWNER || (x.length > 0 && x.length <= 60 && !/[/\s~]/.test(x)), SEARCH_MAX_OWNERS);
     if (!Array.isArray(owners)) return owners;
     const visibilities = list(f.visibilities, 'visibilities', (x) => FILTER_VISIBILITIES.some((v) => v === x), FILTER_VISIBILITIES.length);
@@ -232,7 +224,6 @@ export class JigsawSearch {
         ...(sizes.length ? { sizes: sizes as SizeClass[] } : {}),
         ...(difficulties.length ? { difficulties: difficulties as Difficulty[] } : {}),
         ...(motives.length ? { motives: motives as MotiveLevel[] } : {}),
-        ...(languages.length ? { languages } : {}),
         ...(owners.length ? { owners } : {}),
         ...(words ? { text: words } : {}),
         ...(f.favorites !== undefined ? { favorites: true as const } : {}),
@@ -254,7 +245,6 @@ export class JigsawSearch {
       (!query.sizes?.length || JigsawIndex.sizeClassesOf(jigsaw).some((s) => query.sizes!.includes(s))) &&
       (!query.difficulties?.length || JigsawIndex.levelsOf(jigsaw).some((d) => query.difficulties!.includes(d))) &&
       (!query.motives?.length || (!!index.motive && query.motives.includes(index.motive))) &&
-      (!query.languages?.length || query.languages.includes(index.language)) &&
       (!query.owners?.length || query.owners.includes(jigsaw.ownerUid ?? NO_OWNER)) &&
       (!query.visibilities?.length || JigsawSearch.isAmong(jigsaw, query.visibilities)) &&
       JigsawSearch.hasWords(jigsaw, query.text)
@@ -267,10 +257,10 @@ export class JigsawSearch {
     return (seen === 'everyone' && visibilities.includes('public')) || (seen === 'owner' && visibilities.includes('private'));
   }
 
-  /** Whether every word of the text is in the name, the author or the description of the jigsaw (a part of a word is enough, case does not matter); no text matches all. */
-  static hasWords(jigsaw: Pick<JigsawSummary, 'name' | 'author' | 'description'>, text: string | undefined): boolean {
+  /** Whether every word of the text is in the name, the author or the description of the jigsaw, in any language it has them in (a part of a word is enough, case does not matter); no text matches all. */
+  static hasWords(jigsaw: Pick<JigsawSummary, 'name' | 'author' | 'description' | 'translations'>, text: string | undefined): boolean {
     const words = (text ?? '').toLowerCase().split(/\s+/).filter(Boolean);
-    const hay = `${jigsaw.name} ${jigsaw.author ?? ''} ${jigsaw.description ?? ''}`.toLowerCase();
+    const hay = `${jigsaw.author ?? ''} ${JigsawTexts.all(jigsaw)}`.toLowerCase();
     return words.every((w) => hay.includes(w));
   }
 
@@ -279,7 +269,7 @@ export class JigsawSearch {
    * (so ticking one more in the list is what the number says), and in all how many match everything. A choice that no jigsaw has is not there; the owners are by name.
    */
   static facets(items: readonly JigsawSummary[], query: JigsawQuery): JigsawFacets {
-    const without = (list: 'kinds' | 'categories' | 'sizes' | 'difficulties' | 'motives' | 'languages' | 'owners') => items.filter((j) => JigsawSearch.matches(j, { ...query, [list]: undefined }));
+    const without = (list: 'kinds' | 'categories' | 'sizes' | 'difficulties' | 'motives' | 'owners') => items.filter((j) => JigsawSearch.matches(j, { ...query, [list]: undefined }));
     const count = (found: readonly JigsawSummary[], keysOf: (j: JigsawSummary) => string[]): Record<string, number> => {
       const counts: Record<string, number> = {};
       for (const j of found) for (const key of keysOf(j)) counts[key] = (counts[key] ?? 0) + 1;
@@ -299,7 +289,6 @@ export class JigsawSearch {
       sizes: count(without('sizes'), (j) => JigsawIndex.sizeClassesOf(j)),
       difficulties: count(without('difficulties'), (j) => JigsawIndex.levelsOf(j)),
       motives: count(without('motives'), (j) => (j.motive ? [j.motive] : [])),
-      languages: count(without('languages'), (j) => [JigsawLanguages.of(j)]),
       owners: [...owners.values()].sort((a, b) => (a.id === NO_OWNER ? 1 : 0) - (b.id === NO_OWNER ? 1 : 0) || a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })), // no owner last
     };
   }

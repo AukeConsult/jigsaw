@@ -43,16 +43,6 @@
       </fieldset>
     }
   }
-  @if (shows('languages') && shownLanguages().length) {
-    <fieldset class="mb-2">
-      <legend class="form-label">{{ t('jigsawList.language') || 'Language' }}</legend>
-      <div class="choice-group">
-        @for (l of shownLanguages(); track l.code) {
-          <button type="button" class="btn btn-sm" [class.btn-primary]="chosen('languages', l.code)" [class.btn-outline-secondary]="!chosen('languages', l.code)" [attr.aria-pressed]="chosen('languages', l.code)" (click)="toggle('languages', l.code)">{{ l.name }}@if (chosen('languages', l.code)) {<span class="choice-count">{{ count('languages', l.code) }}</span>}</button>
-        }
-      </div>
-    </fieldset>
-  }
   @if (shows('sizes') && shownSizes().length) {
     <fieldset class="mb-2">
       <legend class="form-label">{{ t('jigsawList.size') || 'Size' }}</legend>

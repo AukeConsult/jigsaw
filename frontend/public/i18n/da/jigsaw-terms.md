@@ -25,7 +25,7 @@ Du alene er ansvarlig for de billeder, du lægger ind. Hvis et billede krænker 
 Vi sælger aldrig selv dine billeder, og vi bruger dem kun til at drive appen. Hvis du er udgiver og tilbyder dem i en pakke, sælges de på din anmodning og på dine vegne. For at drive appen:
 
 - gemmes billederne hos vores driftsleverandør (Google Firebase),
-- kan et billede, du lægger ind, blive sendt til en AI-tjeneste (OpenAI), der foreslår navn, beskrivelse og kategorier,
+- kan et billede, du lægger ind, blive sendt til en AI-tjeneste (OpenAI), der foreslår navn og kategorier, og navnet og beskrivelsen for at oversætte dem til appens andre sprog,
 - kan et billede, du gør offentligt, deler eller lægger i en pakke, ses og spilles af andre,
 - kan vores administratorer se, ændre eller fjerne billeder, når det er nødvendigt for at drive tjenesten eller behandle klager.
 
@@ -57,4 +57,4 @@ Hvis du mener, at et billede krænker dine rettigheder, så skriv til [karinauke
 
 Vi kan opdatere disse vilkår. Den nyeste version findes altid i appen.
 
-*Sidst opdateret: 27. november 2026*
+*Sidst opdateret: 28. november 2026*

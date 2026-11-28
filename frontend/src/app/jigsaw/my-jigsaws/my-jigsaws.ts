@@ -12,10 +12,12 @@ import { JigsawCategories } from '../../models/shared/category';
 import { AccountLimits, RECOMMENDED_FULL, RECOMMENDED_PICTURES_MAX } from '../../models/shared/account-limits';
 import { JigsawInput, JigsawSettings, JigsawSpec, JigsawVisibility } from '../../models/shared/jigsaw-settings';
 import { JigsawSummary, SearchSort } from '../../models/shared/jigsaw-search';
+import { TileShapes } from '../../models/shared/tile-shape';
 import { CategoryTags } from '../category-tags/category-tags';
 import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
+import { JigsawWords } from '../jigsaw-words.service';
 import { snapLevelOfJigsaw } from '../snap-level';
 import { ViewSwitch, cardInfoPreference, viewShapePreference } from '../view-switch/view-switch';
 import { ArrivingPicture } from '../../core/arriving-picture';
@@ -39,8 +41,14 @@ export type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number];
   templateUrl: './my-jigsaws.html',
 })
 export class MyJigsaws {
+  /** the width of a picture's card for each unit of its picture's height */
+  protected shapeOf(item: JigsawSummary): number {
+    return TileShapes.of(item.width, item.height);
+  }
+
   protected readonly users = inject(JigsawUserService);
   private readonly images = inject(JigsawImageService);
+  protected readonly texts = inject(JigsawWords);
   private readonly jigsaws = inject(JigsawService);
 
   /** something went wrong (said above the list) */

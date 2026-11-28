@@ -10,6 +10,7 @@ import { JigsawImageService } from '../../../app/jigsaw/jigsaw-image.service';
 import { keepShareKey } from '../../../app/jigsaw/share-keys';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
+import { JigsawWords } from '../../../app/jigsaw/jigsaw-words.service';
 import { PlaysService } from '../../../app/jigsaw/plays.service';
 import { RoundChoice } from '../../../app/jigsaw/round-choice/round-choice';
 import { snapLevelOfJigsaw } from '../../../app/jigsaw/snap-level';
@@ -50,6 +51,7 @@ export class PlayRound implements OnInit {
   private readonly users = inject(JigsawUserService);
   private readonly auth = inject(AuthService);
   private readonly images = inject(JigsawImageService);
+  private readonly texts = inject(JigsawWords);
   private readonly bought = inject(BoughtService);
   private readonly feed = inject(FeedService);
   private readonly language = inject(LanguageService).lang;
@@ -79,6 +81,8 @@ export class PlayRound implements OnInit {
   });
   protected readonly level = computed(() => (this.jigsaw() ? snapLevelOfJigsaw(this.jigsaw()!) : ''));
   protected readonly jigsaw = signal<JigsawSpec | null>(null);
+  /** the name and the description in the reader's language */
+  protected readonly words = computed(() => (this.jigsaw() ? this.texts.of(this.jigsaw()!) : null));
   /** the package the picture is in, and its name in the language that is chosen ('' for a picture of no package, or until it is read) */
   private readonly pack = signal<PackageItem | null>(null);
   protected readonly packageName = computed(() => this.pack()?.titleFor(this.language()) ?? '');

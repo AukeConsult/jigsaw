@@ -40,10 +40,10 @@ export class FeedService {
   }
 
   /** A package with all its public pictures, whether the account has got it and may play them (for its page); null when there is no such package. */
-  async package(id: string): Promise<{ item: FeedItem; pictures: JigsawSummary[]; bought: boolean; mayPlay: boolean } | null> {
+  async package(id: string): Promise<{ item: FeedItem; pictures: JigsawSummary[]; bought: boolean } | null> {
     try {
-      const found = await firstValueFrom(this.http.get<{ item: FeedItemData; pictures: JigsawSummary[]; bought: boolean; mayPlay: boolean }>(`${environment.jigsawApi}/jigsaw-feed/package/${encodeURIComponent(id)}`));
-      return { item: FeedItems.of(found.item), pictures: found.pictures, bought: found.bought, mayPlay: found.mayPlay };
+      const found = await firstValueFrom(this.http.get<{ item: FeedItemData; pictures: JigsawSummary[]; bought: boolean }>(`${environment.jigsawApi}/jigsaw-feed/package/${encodeURIComponent(id)}`));
+      return { item: FeedItems.of(found.item), pictures: found.pictures, bought: found.bought };
     } catch {
       return null;
     }

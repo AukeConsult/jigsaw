@@ -25,7 +25,7 @@ Du allein bist für die Bilder verantwortlich, die du hinzufügst. Verletzt ein 
 Wir selbst verkaufen deine Bilder niemals und verwenden sie nur zum Betrieb der App. Wenn du Herausgeber bist und sie in einem Paket anbietest, werden sie auf deinen Wunsch und in deinem Namen verkauft. Für den Betrieb der App gilt:
 
 - die Bilder werden bei unserem Hosting-Anbieter (Google Firebase) gespeichert,
-- ein hinzugefügtes Bild kann an einen KI-Dienst (OpenAI) gesendet werden, der Name, Beschreibung und Kategorien vorschlägt,
+- ein hinzugefügtes Bild kann an einen KI-Dienst (OpenAI) gesendet werden, der Name und Kategorien vorschlägt, und Name und Beschreibung, um sie in die anderen Sprachen der App zu übersetzen,
 - ein Bild, das du öffentlich machst, teilst oder in ein Paket legst, kann von anderen gesehen und gespielt werden,
 - unsere Administratoren können Bilder ansehen, ändern oder entfernen, wenn dies für den Betrieb oder die Bearbeitung von Beschwerden nötig ist.
 
@@ -57,4 +57,4 @@ Wenn du meinst, dass ein Bild deine Rechte verletzt, schreibe an [karinauke2@gma
 
 Wir können diese Bedingungen aktualisieren. Die neueste Fassung steht immer in der App.
 
-*Zuletzt aktualisiert: 27. November 2026*
+*Zuletzt aktualisiert: 28. November 2026*

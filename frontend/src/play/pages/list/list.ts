@@ -3,6 +3,7 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { MyRounds } from '../../../app/jigsaw/my-rounds/my-rounds';
 import { SolvedService } from '../../../app/jigsaw/solved.service';
 import { PlayCards } from '../../components/play-cards/play-cards';
+import { PlayHomePanel } from '../../components/home-panel/home-panel';
 import { ListView } from '../../list-view';
 
 /**
@@ -12,7 +13,7 @@ import { ListView } from '../../list-view';
  */
 @Component({
   selector: 'play-list',
-  imports: [TranslocoDirective, PlayCards, MyRounds],
+  imports: [TranslocoDirective, PlayCards, MyRounds, PlayHomePanel],
   providers: [provideTranslocoScope('play')],
   host: { class: 'd-block' },
   template: `
@@ -26,6 +27,8 @@ import { ListView } from '../../list-view';
         <play-cards />
       </section>
     </main>
+    <!-- the preferences of this page, over it (the menu entry Preferences) -->
+    <play-home-panel />
   `,
 })
 export class PlayList {

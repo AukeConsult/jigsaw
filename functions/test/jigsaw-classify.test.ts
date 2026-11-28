@@ -62,7 +62,7 @@ function setup(opts: { jigsaw?: JigsawSpec; picture?: boolean; classify?: Classi
       opts.classify ??
       (async (p, language) => {
         asked.push({ language, bytes: p.data.length });
-        return { categories: ["nature/forest", "travel"], name: "Forest path", description: "A path in a forest." } satisfies Classification;
+        return { categories: ["nature/forest", "travel"], name: "Forest path" } satisfies Classification;
       }),
   };
   const app = createJigsawApp({ jigsaw: store as never, jigsawImages: images, classifier, plays: memoryPlays(), users: memoryUsers("u1", "u2") });
@@ -78,45 +78,38 @@ describe("classifying one jigsaw", () => {
     const a = setup();
     const res = await classify(a, "u1");
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ categories: ["nature/forest", "travel"], name: "Forest path", description: "A path in a forest.", applied: false });
+    expect(res.body).toEqual({ categories: ["nature/forest", "travel"], name: "Forest path", applied: false });
     expect(a.asked).toEqual([{ language: "nb", bytes: "picture bytes".length }]); // the stored picture, and the language of the jigsaw
     expect(a.updates).toEqual([]);
   });
 
-  it("with apply, puts the categories, the name and the description on the jigsaw, and nothing else of it changes", async () => {
+  it("with apply, puts the categories and the name on the jigsaw (never a description), and nothing else of it changes", async () => {
     const a = setup();
     const res = await classify(a, "u1", "?apply=true");
     expect([res.status, res.body.applied]).toEqual([200, true]);
     expect(a.updates).toHaveLength(1);
     const saved = a.updates[0].input;
     expect(a.updates[0].id).toBe("jig12345");
-    expect(saved).toMatchObject({ name: "Forest path", description: "A path in a forest.", categories: ["travel", "nature/forest"] }); // in the order the categories are shown
+    expect(saved).toMatchObject({ name: "Forest path", description: "Old words", categories: ["travel", "nature/forest"] }); // in the order the categories are shown
     // what was not classified stays as it was
     expect(saved).toMatchObject({ width: 200, height: 150, gridSize: 50, ownerUid: "u1", author: "Test Owner", language: "nb", snapPercent: 25, lineWidth: 2, lineColor: "#112233" });
     expect("id" in saved || "createdAt" in saved).toBe(false);
   });
 
-  it("writes the texts in the language that is asked for, and with apply the jigsaw gets that language; a language that does not exist is refused", async () => {
+  it("writes the name in the base language of the picture, whatever the call says, and the picture keeps that language", async () => {
     const a = setup();
-    const dry = await classify(a, "u1", "?language=sv");
-    expect(dry.status).toBe(200);
-    expect(a.asked).toEqual([{ language: "sv", bytes: "picture bytes".length }]); // not the nb of the jigsaw
-    expect(a.updates).toEqual([]); // and nothing changes without apply
-    const applied = await classify(a, "u1", "?apply=true&language=de");
-    expect(applied.status).toBe(200);
-    expect(a.asked[1].language).toBe("de");
-    expect(a.updates[0].input).toMatchObject({ language: "de", name: "Forest path" });
-    const bad = await classify(a, "u1", "?language=xx");
-    expect(bad.status).toBe(400);
-    expect(a.asked).toHaveLength(2); // the AI was not asked
+    const res = await classify(a, "u1", "?apply=true&language=de");
+    expect(res.status).toBe(200);
+    expect(a.asked.map((x) => x.language)).toEqual(["nb"]);
+    expect(a.updates[0].input).toMatchObject({ language: "nb", name: "Forest path" });
   });
 
   it("puts the motive difficulty on the jigsaw as its own property (not among the categories), and keeps the one that is there when the AI said none", async () => {
-    const said = setup({ classify: async () => ({ categories: ["nature"], motive: "expert", name: "N", description: "D" }) });
+    const said = setup({ classify: async () => ({ categories: ["nature"], motive: "expert", name: "N" }) });
     const res = await classify(said, "u1", "?apply=true");
     expect(res.body).toMatchObject({ motive: "expert", categories: ["nature"], applied: true });
     expect(said.updates[0].input).toMatchObject({ motive: "expert", categories: ["nature"] });
-    const silent = setup({ jigsaw: jigsaw({ motive: "easy" }), classify: async () => ({ categories: ["nature"], name: "N", description: "D" }) });
+    const silent = setup({ jigsaw: jigsaw({ motive: "easy" }), classify: async () => ({ categories: ["nature"], name: "N" }) });
     await classify(silent, "u1", "?apply=true");
     expect(silent.updates[0].input).toMatchObject({ motive: "easy" }); // the AI said none: what was there stays
     const dry = await classify(said, "u1");
@@ -125,9 +118,9 @@ describe("classifying one jigsaw", () => {
   });
 
   it("keeps the categories, the name and the description that are there when the AI said none", async () => {
-    const a = setup({ classify: async () => ({ categories: [], name: "", description: "" }) });
+    const a = setup({ classify: async () => ({ categories: [], name: "" }) });
     const res = await classify(a, "u1", "?apply=true");
-    expect(res.body).toEqual({ categories: [], name: "", description: "", applied: true });
+    expect(res.body).toEqual({ categories: [], name: "", applied: true });
     expect(a.updates[0].input).toMatchObject({ name: "Test 01 - IMG_1", description: "Old words", categories: ["family"] });
   });
 

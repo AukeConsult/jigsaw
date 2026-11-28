@@ -9,9 +9,9 @@
   } @else if (first) {
     <!-- the first time, with nothing to show yet: grey tiles where the pictures will be, so nothing jumps when they come (the words are for a screen reader) -->
     <span class="visually-hidden" role="status">{{ t('play.loading') || 'Fetching the jigsaws…' }}</span>
-    <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3" aria-hidden="true">
+    <div class="tile-grid tile-rows" aria-hidden="true">
       @for (n of waiting; track n) {
-        <div class="col">
+        <div [style.--app-tile-shape]="plainShape">
           <div class="card placeholder-glow">
             <div class="ratio ratio-4x3"><span class="placeholder rounded-top"></span></div>
             <div class="card-body p-2"><span class="placeholder col-7"></span></div>
@@ -25,11 +25,11 @@
     <div class="alert alert-danger py-2 small" role="alert">{{ t('play.loadFailed') || 'Could not load the jigsaws.' }}</div>
   }
 
-  <!-- at least three cards in a row, on any width: the text in a card wraps -->
-  <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
+  <!-- lines of tiles, each as wide as its picture's shape asks for; how high a line is follows the tile size -->
+  <div class="tile-grid tile-rows">
     <!-- (the other tiles wait for the first pictures, so they do not move when those come) -->
     @for (tile of first ? [] : tiles(); track tile.kind + tile.id) {
-      <div class="col">
+      <div [style.--app-tile-shape]="shapeOf(tile)">
         @if (isPicture(tile)) {
           <play-card [jigsaw]="tile.summary" [packageName]="packageName(tile.summary)" />
         } @else {

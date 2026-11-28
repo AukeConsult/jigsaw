@@ -6,13 +6,13 @@ const on = (over: Partial<JigsawFilter>): JigsawFilter => ({ ...JigsawFilters.em
 
 describe("a filter of jigsaws", () => {
   it("asks for everything when it is empty, and is on when any choice is made", () => {
-    expect(JigsawFilters.empty()).toEqual({ text: "", kinds: [], categories: [], sizes: [], difficulties: [], motives: [], languages: [], owners: [], visibilities: [] });
+    expect(JigsawFilters.empty()).toEqual({ text: "", kinds: [], categories: [], sizes: [], difficulties: [], motives: [], owners: [], visibilities: [] });
     expect(JigsawFilters.isOn(JigsawFilters.empty())).toBe(false);
     expect(JigsawFilters.isOn(on({ text: "  " }))).toBe(false); // no words
     expect(JigsawFilters.isOn(on({ text: "harbour" }))).toBe(true);
     expect("favorites" in JigsawFilters.empty()).toBe(false);
     expect(JigsawFilters.isOn(on({ favorites: true }))).toBe(true); // only the favorites is a choice too
-    for (const over of [{ categories: ["art"] }, { sizes: ["small"] }, { difficulties: ["hard"] }, { motives: ["expert"] }, { languages: ["nb"] }, { owners: ["u1"] }] as Partial<JigsawFilter>[]) expect(JigsawFilters.isOn(on(over))).toBe(true);
+    for (const over of [{ categories: ["art"] }, { sizes: ["small"] }, { difficulties: ["hard"] }, { motives: ["expert"] }, { owners: ["u1"] }] as Partial<JigsawFilter>[]) expect(JigsawFilters.isOn(on(over))).toBe(true);
   });
 
   it("is never changed: a choice gives a new filter", () => {
@@ -83,9 +83,9 @@ describe("a filter of jigsaws", () => {
     expect(JigsawFilters.is(on({ favorites: true }))).toBe(true);
     expect(JigsawFilters.is({ ...on({}), favorites: false })).toBe(false); // it is there, and true, or it is not there
     expect(JigsawFilters.is({ ...on({}), favorites: "yes" })).toBe(false);
-    expect(JigsawFilters.is(on({ text: "harbour", categories: ["nature/forest", "family"], sizes: ["huge", "small"], difficulties: ["hard"], languages: ["nb", "en"], owners: ["u1", "u2"] }))).toBe(true);
+    expect(JigsawFilters.is(on({ text: "harbour", categories: ["nature/forest", "family"], sizes: ["huge", "small"], difficulties: ["hard"], owners: ["u1", "u2"] }))).toBe(true);
     const tooMany = Array.from({ length: 11 }, (_, i) => `u${i}`);
-    for (const bad of [null, undefined, "x", {}, { category: null }, on({ categories: ["boats"] }), on({ sizes: ["tiny" as never] }), on({ difficulties: ["insane" as never] }), on({ languages: ["xx"] }), on({ languages: ["nb", "nb"] }),
+    for (const bad of [null, undefined, "x", {}, { category: null }, on({ categories: ["boats"] }), on({ sizes: ["tiny" as never] }), on({ difficulties: ["insane" as never] }),
       on({ owners: ["a/b"] }), on({ owners: ["x".repeat(61)] }), on({ owners: ["u1", "u1"] }), on({ owners: tooMany }), on({ categories: ["family", "family"] }), on({ text: "x".repeat(SEARCH_MAX_TEXT + 1) }),
       { ...on({}), owners: "u1" }, { ...on({}), sizes: "small" }, { ...on({}), text: 3 }]) {
       expect(JigsawFilters.is(bad)).toBe(false);
@@ -102,8 +102,8 @@ describe("a filter of jigsaws", () => {
 
   it("makes the question for the search: only what is chosen, and the page", () => {
     expect(JigsawFilters.query(on({}))).toEqual({ page: 1 });
-    expect(JigsawFilters.query(on({ text: " harbour  ", categories: ["nature/forest"], sizes: ["large", "huge"], difficulties: ["easy"], languages: ["nb"], owners: ["u1", "u2"] }), 2, 12)).toEqual({
-      categories: ["nature/forest"], sizes: ["large", "huge"], difficulties: ["easy"], languages: ["nb"], owners: ["u1", "u2"], text: "harbour", page: 2, limit: 12,
+    expect(JigsawFilters.query(on({ text: " harbour  ", categories: ["nature/forest"], sizes: ["large", "huge"], difficulties: ["easy"], owners: ["u1", "u2"] }), 2, 12)).toEqual({
+      categories: ["nature/forest"], sizes: ["large", "huge"], difficulties: ["easy"], owners: ["u1", "u2"], text: "harbour", page: 2, limit: 12,
     });
     expect(JigsawFilters.query(on({ text: "   " }))).toEqual({ page: 1 });
     expect(JigsawFilters.query(on({ favorites: true }))).toEqual({ favorites: true, page: 1 });
@@ -134,8 +134,8 @@ describe("a filter with categories added (what was just made is not left out of 
 
 describe("the filter of the list kept with a user", () => {
   it("is kept as a change when it is a filter, only with the known fields", () => {
-    const filter = on({ categories: ["nature"], languages: ["nb"] });
-    expect(JigsawUsers.change({ listFilter: { ...filter, extra: 1 } })).toEqual({ change: { listFilter: filter } });
+    const filter = on({ categories: ["nature"] });
+    expect(JigsawUsers.change({ listFilter: { ...filter, extra: 1, languages: ["nb"] } })).toEqual({ change: { listFilter: filter } }); // a choice of languages kept before is dropped
   });
 
   it("is refused when it is not a filter", () => {

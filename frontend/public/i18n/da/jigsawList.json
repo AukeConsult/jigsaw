@@ -22,7 +22,6 @@
   "matchOne": "{{ count }} billede passer",
   "matchMany": "{{ count }} billeder passer",
   "ownersHelp": "(vælg en eller flere, op til {{ max }})",
-  "language": "Sprog",
   "noOwner": "Ingen ejer",
   "details": "Detaljer",
   "motive": "Motivets sværhedsgrad",

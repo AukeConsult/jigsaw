@@ -42,7 +42,7 @@ describe("the classifier that asks OpenAI", () => {
   it("sends the picture and the strict schema to the model of the settings, with the key, and gives back what was said, checked", async () => {
     const { fetchFn, calls } = fakeFetch(200, answer({ categories: ["nature/forest", "boats"], name: "Forest path", description: "A path in a forest." }));
     const found = await openAiClassifier({ ...settings, orgId: "org-1", projectId: "proj-1" }, fetchFn).classify(picture, "nb");
-    expect(found).toEqual({ categories: ["nature/forest"], name: "Forest path", description: "A path in a forest." }); // "boats" is not a category
+    expect(found).toEqual({ categories: ["nature/forest"], name: "Forest path" }); // "boats" is not a category
     expect(calls).toHaveLength(1);
     const { url, init } = calls[0];
     expect(url).toBe("https://api.openai.com/v1/chat/completions");

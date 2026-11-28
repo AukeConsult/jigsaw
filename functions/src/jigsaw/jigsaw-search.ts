@@ -1,6 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
-import { JigsawIndex, JigsawSearch, JigsawSummary, JigsawVisibilities, SEARCH_MAX_READ, SUMMARY_FIELDS } from "../models";
+import { JigsawIndex, JigsawSearch, JigsawSummary, JigsawTexts, JigsawVisibilities, SEARCH_MAX_READ, SUMMARY_FIELDS } from "../models";
 import { apiRouter, askerOf, bad } from "../common/http";
 import { TtlCache } from "../common/ttl-cache";
 import { filterAsync } from "../common/filter-async";
@@ -56,7 +56,7 @@ export function firestoreJigsawSearch(
 }
 
 /**
- * The route of the search (mounted at `/jigsaw-search`). GET with categories, sizes, difficulties, languages, owners, text, favorites, sort, limit and page: the jigsaws the person may see that
+ * The route of the search (mounted at `/jigsaw-search`). GET with categories, sizes, difficulties, owners, text, favorites, sort, limit and page: the jigsaws the person may see that
  * match, a page of them, with how many there are in all. `/facets` counts the jigsaws for each choice. Both are over what `store.load` reads (the newest jigsaws, and up to
  * `SEARCH_MAX_READ` of each owner's, `owners` says who the owners are). **Public jigsaws are found by everybody, and a private one only by those it is private for** (`canFind`: its owner and each
  * player who has a round on it, the one who asks says who they are in `X-Jigsaw-User`; an admin finds only their own): it is on the front page and in the search of those. A hidden one is never
@@ -97,7 +97,8 @@ export function jigsawSearchRouter(
     if (only !== undefined && only !== "" && only !== "everyone" && only !== "owner" && only !== "hidden" && only !== "recommended") return bad(res, "The visibility must be everyone, owner, hidden or recommended.");
     const own = (await store.load([me], SEARCH_MAX_READ)).filter((j) => j.ownerUid === me);
     const answer = JigsawSearch.mine(own, parsed.query, only === "everyone" || only === "owner" || only === "hidden" || only === "recommended" ? only : undefined);
-    res.json({ ...answer, items: await Promise.all(answer.items.map(({ description: _description, ...summary }) => keyed(summary))) });
+    // (without the descriptions, in any language: this list does not show them)
+    res.json({ ...answer, items: await Promise.all(answer.items.map(({ description: _description, translations, ...summary }) => keyed({ ...summary, ...(translations ? { translations: JigsawTexts.namesOnly(translations) } : {}) }))) });
   });
   // how many jigsaws there are for each choice of the filter, with the rest of it kept (what the Find page shows beside each tick)
   router.get("/facets", async (req, res) => {

@@ -1,7 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
-import { PuzzelBanner } from '../../../app/jigsaw/puzzel/puzzel-banner';
 import { PuzzelBoard } from '../../../app/jigsaw/puzzel/puzzel-board';
 import { PuzzelDetails } from '../../../app/jigsaw/puzzel/puzzel-details';
 import { PuzzelRound } from '../../../app/jigsaw/puzzel/puzzel-round';
@@ -16,7 +15,7 @@ import { PuzzelView } from '../../puzzel-view';
  */
 @Component({
   selector: 'play-jigsaw',
-  imports: [TranslocoDirective, RouterLink, PuzzelBanner, PuzzelBoard, PuzzelDetails, RoundLook],
+  imports: [TranslocoDirective, RouterLink, PuzzelBoard, PuzzelDetails, RoundLook],
   providers: [PuzzelRound, provideTranslocoScope('play'), provideTranslocoScope('jigsawPlay')],
   host: { class: 'd-block' },
   templateUrl: './jigsaw.html',

@@ -1,3 +1,4 @@
+import { Translations } from '../models/shared/jigsaw-texts';
 import { PlayLookSetup } from '../models/shared/play-look';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
@@ -21,7 +22,7 @@ export interface PlayDetail {
 export interface UserGame {
   play: PlaySpec;
   /** `imageKey`: the key of the pictures of a jigsaw that is private or hidden, given by the API to those who may see it (see `JigsawImageService.url`) */
-  jigsaw: { id: string; name: string; imageKey?: string };
+  jigsaw: { id: string; name: string; language?: string; translations?: Translations; imageKey?: string };
 }
 
 /** The plays of a jigsaw (one game of one user each), through the API. A play can only choose the difficulty and the look. */

@@ -2,7 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
 import { documentExists } from "./jigsaw-image";
 import { PieceStore } from "./jigsaw-pieces";
-import { CutShapes, JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays, PlayLookSetup } from "../models";
+import { CutShapes, JIGSAW_MAX_SIDE, JigsawPiece, JigsawPieces, JigsawSpec, JigsawTexts, Translations, JIGSAW, PLAYS, PLAY_PIECES, PLAY_POSITIONS_DOC, PLAY_STATE, PieceMove, PlayChoice, PlayPositions, PlaySpec, Plays, PlayLookSetup } from "../models";
 import { apiRouter, askerOf, bad } from "../common/http";
 
 // The plays of a jigsaw: one game each, `jigsaw/<id>/plays/<play id>`, with the positions of its pieces in one document under it, `state/positions`.
@@ -144,7 +144,7 @@ export function firestorePlayStore(): PlayStore {
 export interface UserGame {
   play: PlaySpec;
   /** `imageKey`: the key of the pictures, for a jigsaw that is private or hidden and that whoever asks may see (see `ImageAccess`); output only */
-  jigsaw: { id: string; name: string; imageKey?: string };
+  jigsaw: { id: string; name: string; language?: string; translations?: Translations; imageKey?: string };
 }
 
 /**
@@ -181,7 +181,9 @@ export function userPlaysRouter(
     const keys = new Map(await Promise.all([...new Set(shown.map((r) => r.jigsawId))].map(async (id) => [id, deps.imageKeyFor ? await deps.imageKeyFor(named.get(id)!, me) : undefined] as const)));
     const games = shown.map((r): UserGame => {
       const imageKey = keys.get(r.jigsawId);
-      return { play: Plays.publicOf(r.play), jigsaw: { id: r.jigsawId, name: named.get(r.jigsawId)!.name, ...(imageKey ? { imageKey } : {}) } };
+      const { name, language, translations } = named.get(r.jigsawId)!;
+      const words = { name, ...(language ? { language } : {}), ...(translations ? { translations: JigsawTexts.namesOnly(translations) } : {}) };
+      return { play: Plays.publicOf(r.play), jigsaw: { id: r.jigsawId, ...words, ...(imageKey ? { imageKey } : {}) } };
     });
     res.json(games);
   });

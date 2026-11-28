@@ -5,13 +5,13 @@ Maak van elke afbeelding een puzzel en leg hem op het scherm in elkaar. Alles wo
 1. Tik op een afbeelding op de startpagina. Kies het aantal **Stukjes** (van 20 tot 1000), hoe makkelijk een stukje vastklikt (**Klikafstand**: **Makkelijk**, **Middel** of **Moeilijk**) en, als je wilt, **Met tijdmeting**. Tik daarna op **Start de ronde**.
 2. Sleep de stukjes uit het kader naast de afbeelding (op een klein scherm eronder) naar de afbeelding.
 3. Laat een stukje dicht bij zijn plek los en het klikt vast. Stukjes die bij elkaar passen, blijven aan elkaar zitten.
-4. Het menu heeft schakelaars: **Hulpafbeelding** toont de hele afbeelding in een klein kader en **Randstukjes** toont alleen de randstukjes, zodat je eerst de rand kunt leggen. De schakelaar gaat vanzelf uit als alle randstukjes op hun plaats liggen, en de rest wordt getoond. **Details** toont de speeltijd en heeft **Ronde resetten** en **Ronde verwijderen**, en bij **Tafel** kies je waarop de stukjes liggen en het geluid. **Volledig scherm** laat de puzzel het hele scherm vullen, ook de volgende keer dat je een puzzel opent (niet op een iPhone of in de apps voor Android en Windows).
+4. Het menu heeft schakelaars: **Hele afbeelding** toont de hele afbeelding in een klein kader en **Alleen rand** toont alleen de randstukjes, zodat je eerst de rand kunt leggen. De schakelaar gaat vanzelf uit als alle randstukjes op hun plaats liggen, en de rest wordt getoond. **Ronde** toont de speeltijd en heeft **Ronde resetten** en **Ronde verwijderen**, en bij **Uiterlijk** kies je waarop de stukjes liggen en het geluid. **Volledig scherm** laat de puzzel het hele scherm vullen, ook de volgende keer dat je een puzzel opent (niet op een iPhone of in de apps voor Android en Windows).
 
 Scores komen later.
 
 ## Maak je eigen
 
-* Tik in het menu op **Afbeelding toevoegen**, geef een naam, kies een afbeelding (of maak een foto) en tik op **Opslaan**.
+* Tik in het menu op **Mijn spullen** en dan op **Afbeelding toevoegen**, geef een naam, kies een afbeelding (of maak een foto) en tik op **Opslaan**. De naam, en een beschrijving als je die schrijft, worden naar de andere talen vertaald als je opslaat. Schrijf in de taal die het formulier noemt.
 * Een afbeelding die je toevoegt is **Privé**: alleen jij ziet hem.
 * Om afbeeldingen **Openbaar** te maken, zodat iedereen ze kan spelen, moet je als **Uitgever** worden goedgekeurd: stuur een e-mail naar [karinauke2@gmail.com](mailto:karinauke2@gmail.com) en vraag erom.
 * Je kunt een privé-afbeelding ook met vrienden delen: tik eronder op **Delen**. Iedereen die de link krijgt, kan hem spelen.
