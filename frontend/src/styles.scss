@@ -957,11 +957,13 @@ small,
 
   // the grip of a bar lies on no entry: the bar has a little room for it on that side
   &.docked-top .play-bar {
+    padding-top: 0.125rem;
     padding-bottom: 0.5rem;
   }
 
   &.docked-bottom .play-bar {
     padding-top: 0.5rem;
+    padding-bottom: 0.125rem;
   }
 
   &.docked-left .play-bar {
@@ -1007,24 +1009,24 @@ small,
     }
   }
 
-  // across the top or the bottom every entry is its icon with its word under it, so a row of icons is never a riddle: the room is shared by how long the words are (a long one takes two lines at most when there is little)
+  // across the top or the bottom every entry is its icon with its word under it, so a row of icons is never a riddle: an entry is as wide as what is in it, so its words stay on one line while there is room and the bar
+  // is low (a long one takes two lines at most when there is little)
   &.docked-top,
   &.docked-bottom {
     .play-bar {
-      --bs-nav-link-padding-x: 0.1em;
-      column-gap: 0.125rem !important;
+      --bs-nav-link-padding-x: 0.25em;
+      column-gap: 0.375rem !important;
       flex-wrap: nowrap;
       align-items: stretch !important;
 
       > :not(.brand-lockup, .play-grip) {
-        flex: 1 1 auto;
+        flex: 0 1 auto;
         min-width: min-content; // a word is never broken: another entry gives up room, taking a second line
-        max-width: 7rem;
       }
 
-      // the logo and the name (the way home) sit at the top of the bar, level with the icons of the entries, not in the middle of its height
-      > app-home {
-        align-self: flex-start;
+      // the logo and the name (the way home) are in the middle of their frame, which is as high as those of the entries
+      > app-home > a {
+        justify-content: center;
       }
 
       .nav-link:not(.brand-lockup) {
@@ -1033,6 +1035,12 @@ small,
         width: 100%;
         height: 100%;
         gap: 0 !important;
+      }
+
+      // all as high as the highest on their line, not each as high as its own words
+      > .nav-link:not(.brand-lockup) {
+        width: auto;
+        height: auto;
       }
 
       .fit-label {
@@ -1060,7 +1068,7 @@ small,
       .play-bar {
         flex-wrap: wrap;
 
-        // each entry asks for no more than its longest word, so a line holds as many as can be read (what is left over is shared as before)
+        // each entry asks for no more than its longest word, so a line holds as many as can be read
         > :not(.brand-lockup, .play-grip) {
           flex-basis: 0;
         }
@@ -1124,10 +1132,20 @@ small,
 
   // down a side of a low screen (a phone on its side) the entries are closer together, so they all fit
   @media (max-height: 32rem) {
-    &.docked-left .play-bar,
-    &.docked-right .play-bar {
-      --bs-nav-link-padding-y: 0.15em;
+    &.docked-left .play-bar .nav-link,
+    &.docked-right .play-bar .nav-link {
+      --bs-nav-link-padding-y: 0.1em;
     }
+  }
+
+  // in a bar every entry, the way home too, has a frame of its own inside it, raised off the bar: the frame takes the colour of the words, so it is seen on a light and on a dark table
+  .play-bar .nav-link {
+    --bs-nav-link-padding-y: 0.25em; // a little room above and below inside the frame
+    line-height: 1.2;
+    border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+    border-radius: 0.5rem;
+    background-color: color-mix(in srgb, var(--bs-white) 30%, transparent);
+    box-shadow: 0 0.125rem 0.25rem color-mix(in srgb, var(--bs-black) 30%, transparent);
   }
 
   // the entry of the page that is open (and, in the list of languages, the language in use) is marked quietly: a light wash of the colour of the app behind it, its icon and words as those of the others
@@ -1163,6 +1181,7 @@ small,
 
       > a {
         padding: calc(var(--app-logo-gap) - 0.25rem);
+        padding-block: 0.25rem;
       }
     }
 
@@ -1695,12 +1714,14 @@ app-my-rounds {
   top: 0.5rem; // a little below the top of the page, so the pattern shows above it
   z-index: var(--app-z-band);
   margin: 1rem 0.75rem 0; // room round it, so the soft pattern of the page shows (it is a frame of its own, like the lists)
-  padding: 0.875rem 0 0.25rem;
+  // the cards have the same gap on all sides, the 1rem of `.band-inner` at the sides: here it is what the row's own room (`.card-row`, 0.375rem above and 0.5rem below, for a tile that lifts) does not give
+  padding: 0.625rem 0 0.5rem;
   border-radius: var(--bs-border-radius-lg);
   box-shadow: var(--bs-box-shadow-sm);
 
   @include below($bp-sm) {
     margin-inline: 0.375rem; // half, like the page margin
+    padding: 0.125rem 0 0; // the gap is 0.5rem on a phone
   }
 }
 
@@ -1850,6 +1871,11 @@ details[open] > summary .open-word > .when-open {
 }
 
 /* a round button over the middle of the side of a row of cards that scrolls */
+// every white area (a card), on every page, is slightly raised off the page
+.card {
+  box-shadow: 0 0.1875rem 0.625rem color-mix(in srgb, var(--bs-black) 20%, transparent);
+}
+
 .card-row-button {
   position: absolute;
   top: 50%;
