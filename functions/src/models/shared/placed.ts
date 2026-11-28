@@ -38,6 +38,14 @@ export interface PiecePlace {
   shape?: CutShape;
 }
 
+/**
+ * Where the places of the store (the scroller) begin, across: far from every place on the board, so the two are never taken for each other. A place **on the board** is where the piece is seen (from the top left corner of the
+ * picture area); a place **in the store** is counted from here, and the board shows it where the store frame has it.
+ */
+export const STORE_LEFT = 100000;
+/** A piece with its centre this far across or further is in the store: half way, so a piece of a group that hangs out to the left of the store is in it with the rest. */
+export const STORE_SPACE = STORE_LEFT / 2;
+
 /** The most columns or rows of pieces. */
 export const MAX_PIECE_INDEX = 1000;
 /** A piece this close (pixels) to its own place is in place: half a pixel is the finest a piece is put (the same as `JigsawPieces.MATCH_TOLERANCE_PX`). */
@@ -120,6 +128,11 @@ export class PlacedFigure {
 
   get top(): number {
     return this.centerY - this.object.height / 2;
+  }
+
+  /** whether it is in the store (the scroller), not on the board: what its place says (`STORE_LEFT`) */
+  get inStore(): boolean {
+    return this.centerX >= STORE_SPACE;
   }
 
   /** whether it is inside a picture area of this size */

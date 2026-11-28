@@ -1,7 +1,6 @@
 // Run in the browser console on the page of a round (or with the Browser tool's javascript): drops one piece at many points over and round the scroller (the store frame) and checks rule 3
 // of the board, a piece belongs to the scroller only when the WHOLE of it is inside what the scroller shows. The piece is dropped by the pointer (`areaPoint`), and what the page then says
-// (`belongsToStore`, `inStore` of the drawn piece) is compared with what the screen shows: the piece box against the frame. They are two ways of telling the same rule (the pointer's and the
-// stored place's), so a difference is a bug in one of them. Along the way the scroller scrolls (up and down beside the picture) a piece may hang over the visible edge and still belongs to the
+// (`inStore` of the drawn piece) is compared with what the screen shows: the piece box against the frame. A difference is a bug. Along the way the scroller scrolls (up and down beside the picture) a piece may hang over the visible edge and still belongs to the
 // store (it moves with the scroll), so only the sides across it are judged there (and the top edge while it is not scrolled). It moves one piece of the round that is open (saved like any move). The result is a list of problems: empty is good.
 (async () => {
   const board = document.querySelector('app-jigsaw-board');
@@ -17,7 +16,12 @@
   const shown = stacked ? { left: f.left, right: f.right, top: f.top, bottom: f.bottom - 5 * scale } : { left: f.left, right: f.left + c.sliceWidth() * scale, top: f.top, bottom: f.bottom };
   const problems = [];
   let checked = 0;
-  const first = [...board.querySelectorAll('.placed-object[data-id]')].find((e) => c.view().find((v) => v.p.id === e.dataset.id)?.piece && !c.view().find((v) => v.p.id === e.dataset.id)?.matched);
+  // pieces join anywhere on the board when they are dropped by one that fits: only a piece whose neighbours all wait in the scroller is swept, so no group is made on the way (a group stops short by its own width)
+  const lonely = (id) => {
+    const me = c.placed().find((q) => q.id === id)?.piece;
+    return !!me && c.puzzle().stuckGroup([id]).length === 1 && !c.puzzle().items.some((q) => !q.inStore && q.data.piece && Math.abs(q.data.piece.col - me.col) + Math.abs(q.data.piece.row - me.row) === 1);
+  };
+  const first = [...board.querySelectorAll('.placed-object[data-id]')].find((e) => lonely(e.dataset.id) && !c.view().find((v) => v.p.id === e.dataset.id)?.matched);
   if (!first) return { problems: ['no piece to take'] };
   const id = first.dataset.id;
   const margin = 3; // a drop this near an edge is not judged: half a pixel of the pointer decides there

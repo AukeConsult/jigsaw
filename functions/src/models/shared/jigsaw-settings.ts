@@ -1,5 +1,5 @@
 import { Puzzle } from './puzzle';
-import { PlacedFigure, PlacedObject } from './placed';
+import { PlacedFigure, PlacedObject, STORE_LEFT } from './placed';
 import { JigsawCategories } from './category';
 import { JigsawLanguages } from './language';
 import { JigsawTexts, Translations } from './jigsaw-texts';
@@ -28,11 +28,8 @@ const LEGACY_GRID = 5;
 /** How many times the height of the picture area the store frame of a jigsaw is: its pieces are spread over it and it scrolls. */
 export const STORE_HEIGHT_FACTOR = 3;
 
-/**
- * The free space beside the picture (when the store is below it, on a narrow screen) stands for stored places under the picture. When the room beside the picture is wider than the picture it is cut into
- * columns, each as wide as the picture, one under the other in the stored places: at most this many (the area has the room for them, `JigsawSettings.extent`).
- */
-export const FREE_SPACE_COLUMNS_MAX = 12;
+/** The furthest down a place on the board can be (the working area round the picture, which follows the screen). */
+export const BOARD_MAX_PX = 2 * JIGSAW_MAX_SIDE;
 
 /** who sees a jigsaw in the lists: everyone (public), its owner and its players (private), or only its owner in the list of the owner's own jigsaws (hidden) */
 export type JigsawVisibility = 'everyone' | 'owner' | 'hidden';
@@ -89,7 +86,7 @@ export interface JigsawSpec {
   gridVisible: boolean;
   /** the objects placed on the picture area */
   placed: PlacedObject[];
-  /** a jigsaw: how wide its store frame is in pixels, beside the picture area (without it, 0: no store; see `JigsawSettings.storeFrame`) */
+  /** a jigsaw: how wide its store frame is in pixels (without it, 0: no store; see `JigsawSettings.storeFrame`) */
   storeWidth?: number;
   /** a jigsaw, a game setting: how close to the grid point it belongs on a piece has to be dropped to click into place, in percent of the grid size (0: never; without it, `JigsawSettings.DEFAULT_SNAP_PERCENT`) */
   snapPercent?: number;
@@ -134,37 +131,22 @@ export class JigsawSettings {
   }
 
   /**
-   * The store frame of a jigsaw (where its pieces wait): beside the picture area, `storeGap` from its right edge, as high
+   * The store of a jigsaw (where its pieces wait), as its places are counted: from `STORE_LEFT` across (not where it is drawn, the board decides that), as high
    * as `STORE_HEIGHT_FACTOR` times the height of the picture area and `storeWidth` wide; null when there is no store.
    */
-  static storeFrame(width: number, height: number, grid: number, storeWidth: number | undefined): { left: number; width: number; height: number } | null {
-    return storeWidth && storeWidth > 0 ? { left: width + JigsawSettings.storeGap(grid), width: storeWidth, height: STORE_HEIGHT_FACTOR * height } : null;
+  static storeFrame(height: number, storeWidth: number | undefined): { left: number; width: number; height: number } | null {
+    return storeWidth && storeWidth > 0 ? { left: STORE_LEFT, width: storeWidth, height: STORE_HEIGHT_FACTOR * height } : null;
   }
 
-  /** The room between the picture area and its store frame: an eighth of a grid step (a tiny gap, so the frame is close to the picture). */
+  /** The room the board draws between the picture area and the store frame beside it: an eighth of a grid step (a tiny gap, so the frame is close to the picture). */
   static storeGap(grid: number): number {
     return Math.round(Math.max(0, grid) / 8);
   }
 
-  /** Everything the objects can be on: the picture area, and its store frame when it has one (one box, so an object is checked against it). */
-  static extent(width: number, height: number, grid: number, storeWidth: number | undefined): { width: number; height: number } {
-    const store = JigsawSettings.storeFrame(width, height, grid, storeWidth);
-    return store ? { width: store.left + store.width, height: Math.max(height, store.height, JigsawSettings.freeSpaceBottom(height, grid)) } : { width, height };
-  }
-
-  /** Where the stored places of the free space beside the picture begin: a little under the picture (the picture, a grid step and half a piece). */
-  static freeSpaceTop(height: number, grid: number): number {
-    return height + grid + grid / 2;
-  }
-
-  /** How high a column of the free space is: as high as the picture and a step above and below it, so a piece can be taken all the way from it to the store. */
-  static freeSpaceColumnHeight(height: number, grid: number): number {
-    return height + 2 * grid;
-  }
-
-  /** The lowest stored place of the free space, with all its columns (the area is high enough for it). */
-  static freeSpaceBottom(height: number, grid: number): number {
-    return JigsawSettings.freeSpaceTop(height, grid) + FREE_SPACE_COLUMNS_MAX * JigsawSettings.freeSpaceColumnHeight(height, grid);
+  /** Every place an object can have: on the picture area and round it, and in the store when there is one (one box, so an object is checked against it). */
+  static extent(width: number, height: number, storeWidth: number | undefined): { width: number; height: number } {
+    const store = JigsawSettings.storeFrame(height, storeWidth);
+    return store ? { width: store.left + store.width, height: Math.max(store.height, BOARD_MAX_PX) } : { width, height };
   }
 
   /** How close a piece has to be dropped to its own grid point to click into place when the jigsaw says nothing: half a grid step (50 %). */
@@ -343,7 +325,7 @@ export class JigsawSettings {
       if (grid !== 0 || store !== undefined || range !== undefined) return 'A picture has no grid, store or difficulty: the pieces and the difficulty are chosen in each round.';
       if (Array.isArray(input.placed) && input.placed.length > 0) return 'A picture has no pieces or objects of its own.';
     }
-    const extent = JigsawSettings.extent(input.width as number, input.height as number, grid, store);
+    const extent = JigsawSettings.extent(input.width as number, input.height as number, store);
     return Puzzle.validate(input.placed, extent.width, extent.height);
   }
 }

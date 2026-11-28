@@ -228,7 +228,7 @@ describe("the plays of a jigsaw", () => {
     const res = await anna(app).patch(`/jigsaw/api/jigsaw/${made.id}/plays/${play.id}/positions`).send({ moves });
     expect(res.body).toMatchObject({ moved: 12, matched: 12, total: 12, status: "solved" });
     expect((await request(app).get(`/jigsaw/api/jigsaw/${made.id}/plays?userId=anna`)).body[0]).toMatchObject({ status: "solved" });
-    expect((await anna(app).patch(`/jigsaw/api/jigsaw/${made.id}/plays/${play.id}/positions`).send({ moves: [{ id: "piece-0-0", centerX: -5, centerY: 1, layer: 1 }] })).status).toBe(400);
+    expect((await anna(app).patch(`/jigsaw/api/jigsaw/${made.id}/plays/${play.id}/positions`).send({ moves: [{ id: "piece-0-0", centerX: -20000, centerY: 1, layer: 1 }] })).status).toBe(400);
     expect((await anna(app).patch(`/jigsaw/api/jigsaw/${made.id}/plays/${play.id}/positions`).send({ moves: "x" })).status).toBe(400);
   });
 

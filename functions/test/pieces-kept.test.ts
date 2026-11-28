@@ -25,8 +25,8 @@ describe("pieces are never lost", () => {
         const random = seeded(seed);
         const result = JigsawCut.cut(width, height, grid, random);
         if ("error" in result) throw new Error(result.error);
-        const extent = JigsawSettings.extent(width, height, grid, result.storeWidth)!;
-        const store = JigsawSettings.storeFrame(width, height, grid, result.storeWidth)!;
+        const extent = JigsawSettings.extent(width, height, result.storeWidth)!;
+        const store = JigsawSettings.storeFrame(height, result.storeWidth)!;
         let puzzle = Puzzle.from(result.placed, extent.width, extent.height).settled();
         const ids = puzzle.items.map((p) => p.id);
         const pick = () => ids[Math.floor(random() * ids.length)];

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FREE_SPACE_COLUMNS_MAX, JIGSAW_MAX_PIECES, JigsawLanguages, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid, areaMargin } from "../src/models";
+import { BOARD_MAX_PX, JIGSAW_MAX_PIECES, JigsawLanguages, JigsawSettings, Puzzle, DEFAULT_OBJECT, JigsawCut, JigsawPieces, PlacedFigure, pieceGrid, areaMargin, STORE_LEFT } from "../src/models";
 
 /** a steady "random" so the tests give the same cut every time */
 function seeded(seed: number) {
@@ -26,10 +26,11 @@ describe("cutting a picture into jigsaw pieces", () => {
     for (const p of placed) expect([p.object.width, p.object.height]).toEqual([50, 50]);
   });
 
-  it("scatters the pieces in the store frame beside the picture area, all inside it", () => {
+  it("scatters the pieces in the store, all inside it", () => {
     const { placed, storeWidth } = cut(200, 150, 50); // 12 pieces; the frame is 3 × 150 = 450 high
-    const frame = JigsawSettings.storeFrame(200, 150, 50, storeWidth)!;
-    expect(frame).toEqual({ left: 206, width: storeWidth, height: 450 }); // an eighth of a grid step (6) from the picture
+    const frame = JigsawSettings.storeFrame(150, storeWidth)!;
+    expect(frame).toEqual({ left: STORE_LEFT, width: storeWidth, height: 450 }); // far from every place on the board
+    expect(placed.every((p) => new PlacedFigure(p).inStore)).toBe(true);
     expect(storeWidth).toBeGreaterThan(0);
     for (const p of placed) {
       expect(p.centerX - 25).toBeGreaterThanOrEqual(frame.left); // the whole piece is in the frame, none on the picture area
@@ -693,22 +694,16 @@ describe("pieces that stick together", () => {
   });
 });
 
-describe("the area has room for the free space beside the picture, with all its columns", () => {
-  it("is as high as the lowest column of the free space, and not lower than the store", () => {
-    const grid = 50;
-    const store = JigsawSettings.storeFrame(800, 1000, grid, 600)!;
-    const extent = JigsawSettings.extent(800, 1000, grid, 600);
+describe("every place a piece can have", () => {
+  it("reaches from the board to the end of the store", () => {
+    const store = JigsawSettings.storeFrame(1000, 600)!;
+    const extent = JigsawSettings.extent(800, 1000, 600);
     expect(extent.width).toBe(store.left + store.width);
-    expect(extent.height).toBe(Math.max(store.height, JigsawSettings.freeSpaceBottom(1000, grid)));
-    // the top and the height of a column: a step and a half under the picture, and the picture with a step above and below it
-    expect(JigsawSettings.freeSpaceTop(1000, grid)).toBe(1075);
-    expect(JigsawSettings.freeSpaceColumnHeight(1000, grid)).toBe(1100);
-    expect(JigsawSettings.freeSpaceBottom(1000, grid)).toBe(1075 + FREE_SPACE_COLUMNS_MAX * 1100);
-    expect(extent.height).toBeGreaterThanOrEqual(store.height);
+    expect(extent.height).toBe(Math.max(store.height, BOARD_MAX_PX));
   });
 
   it("is the picture area alone when there is no store", () => {
-    expect(JigsawSettings.extent(800, 600, 50, undefined)).toEqual({ width: 800, height: 600 });
+    expect(JigsawSettings.extent(800, 600, undefined)).toEqual({ width: 800, height: 600 });
   });
 });
 
@@ -1086,18 +1081,88 @@ describe("a free piece is never below a fixed one", () => {
   });
 });
 
-describe("a piece clicks only on the picture area", () => {
+describe("a piece goes to its own place only on the picture area", () => {
   const size = { ...DEFAULT_OBJECT, width: 50, height: 50 };
   const piece = (id: string, x: number, y: number, col: number, row: number) => ({ id, centerX: x, centerY: y, object: size, piece: { col, row, top: 1, right: 1, bottom: -1, left: 1 } as const });
   const picture = { left: 0, top: 0, width: 400, height: 300 };
 
-  it("a piece dropped near its own place clicks there, and a piece dropped outside the picture area stays where it was dropped", () => {
+  const where = (d: Puzzle, id: string) => [d.get(id)!.centerX, d.get(id)!.centerY];
+
+  it("a piece dropped near its own place on the picture clicks there; outside the picture it does not", () => {
     const onIt = Puzzle.from([piece("a", 130, 80, 2, 1)], 800, 600).dropPieces(["a"], 25, picture);
-    expect([onIt.get("a")!.centerX, onIt.get("a")!.centerY]).toEqual([125, 75]);
-    const beside = Puzzle.from([piece("a", 500, 80, 2, 1), piece("b", 552, 83, 3, 1)], 800, 600).dropPieces(["b"], 25, picture); // would fit its neighbour a, but it is outside
-    expect([beside.get("b")!.centerX, beside.get("b")!.centerY]).toEqual([552, 83]);
-    const without = Puzzle.from([piece("a", 500, 80, 2, 1), piece("b", 552, 83, 3, 1)], 800, 600).dropPieces(["b"], 25); // without a place to click in, as before
-    expect([without.get("b")!.centerX, without.get("b")!.centerY]).toEqual([550, 80]);
+    expect(where(onIt, "a")).toEqual([125, 75]);
+    const off = Puzzle.from([piece("a", 130, 80, 2, 1)], 800, 600); // its own place, but the picture area given is somewhere else
+    expect(off.dropPieces(["a"], 25, { left: 300, top: 0, width: 400, height: 300 })).toBe(off);
+  });
+
+  it("neighbours join anywhere on the board: beside the picture too", () => {
+    const d = Puzzle.from([piece("a", 500, 80, 2, 1), piece("b", 552, 83, 3, 1)], 800, 600).dropPieces(["b"], 25, picture);
+    expect(where(d, "b")).toEqual([550, 80]);
+    expect(where(d, "a")).toEqual([500, 80]); // what lay still has not moved
+    expect(d.stuckGroup(["a"]).sort()).toEqual(["a", "b"]);
+    expect(d.isFixed(["a"])).toBe(false); // off its place: it can still be moved
+  });
+
+  it("neighbours join across the edge of the picture area, and over its margin", () => {
+    const across = Puzzle.from([piece("a", 390, 200, 2, 1), piece("b", 443, 198, 3, 1)], 800, 600).dropPieces(["b"], 25, picture);
+    expect(where(across, "b")).toEqual([440, 200]);
+    const margin = Puzzle.from([piece("a", 10, 400, 2, 1), piece("b", 62, 402, 3, 1)], 800, 600, 30).dropPieces(["b"], 25, picture);
+    expect(where(margin, "b")).toEqual([60, 400]);
+  });
+
+  it("only a drop joins: pieces near each other stay apart until one of them is dropped, and only that one moves", () => {
+    const near = Puzzle.from([piece("a", 500, 80, 2, 1), piece("b", 552, 83, 3, 1), piece("c", 300, 250, 0, 4)], 800, 600);
+    expect(near.settled().stuckGroup(["a"])).toEqual(["a"]);
+    const other = near.dropPieces(["c"], 25, picture); // another piece is dropped
+    expect(where(other, "a")).toEqual([500, 80]);
+    expect(where(other, "b")).toEqual([552, 83]);
+    expect(other.stuckGroup(["a"])).toEqual(["a"]);
+  });
+
+  it("no join is made to a piece that is not seen, nor from one", () => {
+    const pieces = [piece("a", 500, 80, 2, 1), piece("b", 552, 83, 3, 1)];
+    const d = Puzzle.from(pieces, 800, 600);
+    for (const unseen of ["a", "b"]) expect(where(d.dropPieces(["b"], 25, picture, new Set([unseen])), "b")).toEqual([552, 83]);
+  });
+
+  it("nothing clicks in the store, where the pieces wait", () => {
+    const x = STORE_LEFT + 100;
+    const d = Puzzle.from([piece("a", x, 80, 2, 1), piece("b", x + 52, 83, 3, 1)], STORE_LEFT + 500, 900);
+    expect(d.dropPieces(["b"], 25, picture).stuckGroup(["a"])).toEqual(["a"]);
+    expect(where(d.dropPieces(["b"], 25, picture), "b")).toEqual([x + 52, 83]);
+  });
+
+  it("a push by the game never joins pieces: one pushed exactly to where it fits is moved a pixel further", () => {
+    // b is outside the room that is shown and is pushed to its right edge, which is exactly below a, where it would fit
+    const d = Puzzle.from([piece("a", 475, 80, 2, 1), piece("b", 700, 130, 2, 2)], 800, 600);
+    const pushed = d.confine({ left: 600, top: 0, width: 200, height: 600 }, { left: 0, top: 0, width: 500, height: 600 });
+    expect(pushed.get("b")!.centerX).toBeLessThan(500);
+    expect(pushed.get("b")!.box().left + 50).toBeLessThanOrEqual(500); // still inside
+    expect(pushed.stuckGroup(["a"])).toEqual(["a"]);
+  });
+});
+
+describe("a new scatter", () => {
+  it("never starts with two pieces already stuck together", () => {
+    for (let seed = 1; seed <= 600; seed++) {
+      const { placed } = cut(600, 450, 50, seed);
+      const puzzle = Puzzle.from(placed, STORE_LEFT + 20000, 20000);
+      expect(placed.filter((p) => puzzle.stuckGroup([p.id]).length > 1).map((p) => p.id)).toEqual([]);
+    }
+  });
+});
+
+describe("the places a move may have", () => {
+  const move = (centerX: number, centerY: number) => JigsawPieces.moveError({ id: "p", centerX, centerY, layer: 1 });
+
+  it("may be a little before the picture (a small piece in the margin) and in the store", () => {
+    expect(move(-5, 100)).toBe("");
+    expect(move(100, -5)).toBe("");
+    expect(move(STORE_LEFT + 200, 800)).toBe("");
+  });
+
+  it("is not far outside everything", () => {
+    for (const [x, y] of [[-20000, 1], [1, -20000], [STORE_LEFT * 2, 1], [1, STORE_LEFT], [Number.NaN, 1], [0.25, 1]]) expect(move(x, y)).not.toBe("");
   });
 });
 

@@ -1,6 +1,6 @@
 import { JIGSAW_MAX_SIDE, JigsawSettings, STORE_HEIGHT_FACTOR } from './jigsaw-settings';
 import { DEFAULT_OBJECT, OBJECT_MAX_SIDE } from './base-object';
-import { DEFAULT_LAYER, MAX_LAYER, MAX_PIECE_INDEX, PiecePlace, PlacedObject } from './placed';
+import { DEFAULT_LAYER, MAX_LAYER, MAX_PIECE_INDEX, PiecePlace, PlacedObject, STORE_LEFT } from './placed';
 import { CutShape, CutShapes, EdgePoint } from './cut-shape';
 
 // The jigsaw: a picture cut into pieces, one for each cell of the grid, with the edges of a jigsaw puzzle.
@@ -167,18 +167,17 @@ export class JigsawCut {
         piece: { col, row, ...edges(col, row), ...(CutShapes.kept(shape) ? { shape } : {}) },
       };
     });
-    const { placed, storeWidth } = JigsawCut.scatterPieces(pieces, width, height, grid, random);
+    const { placed, storeWidth } = JigsawCut.scatterPieces(pieces, height, grid, random);
     return { placed, columns, rows, storeWidth };
   }
 
   /**
-   * The pieces put in the store frame beside the picture area (see `JigsawSettings.storeFrame`), scattered over it (see `scatter`), none over another, in a random
+   * The pieces put in the store (see `JigsawSettings.storeFrame`), scattered over it (see `scatter`), none over another, in a random
    * order and each on a random layer; they keep their own edges. `storeWidth` is how wide the frame has to be.
    */
-  static scatterPieces(pieces: PlacedObject[], width: number, height: number, grid: number, random: () => number): { placed: PlacedObject[]; storeWidth: number } {
+  static scatterPieces(pieces: PlacedObject[], height: number, grid: number, random: () => number): { placed: PlacedObject[]; storeWidth: number } {
     const count = pieces.length;
     const { spots, storeWidth } = JigsawCut.scatter(count, grid, STORE_HEIGHT_FACTOR * height, random);
-    const left = width + JigsawSettings.storeGap(grid); // where the store frame starts
     const order = Array.from({ length: count }, (_, i) => i);
     for (let i = count - 1; i > 0; i--) {
       const j = Math.floor(random() * (i + 1));
@@ -186,7 +185,7 @@ export class JigsawCut {
     }
     const placed = pieces.map((piece, i): PlacedObject => {
       const spot = spots[order[i]];
-      return { ...piece, centerX: left + spot.x, centerY: spot.y, layer: DEFAULT_LAYER + Math.floor(random() * count) };
+      return { ...piece, centerX: STORE_LEFT + spot.x, centerY: spot.y, layer: DEFAULT_LAYER + Math.floor(random() * count) };
     });
     return { placed, storeWidth };
   }
@@ -199,7 +198,7 @@ export class JigsawCut {
     const pieces = placed.filter((p) => p.piece);
     const { columns, rows } = pieceGrid(width, height, grid);
     if (pieces.length < 2) return { error: 'There are no pieces to shuffle: cut the picture first.' };
-    const { placed: shuffled, storeWidth } = JigsawCut.scatterPieces(pieces, width, height, grid, random);
+    const { placed: shuffled, storeWidth } = JigsawCut.scatterPieces(pieces, height, grid, random);
     const byId = new Map(shuffled.map((p) => [p.id, p]));
     return { placed: placed.map((p) => byId.get(p.id) ?? p), columns, rows, storeWidth };
   }
@@ -211,7 +210,8 @@ export class JigsawCut {
    * columns until all the pieces are inside the frame, with room for the tabs.
    */
   static scatter(count: number, size: number, frameHeight: number, random: () => number): { spots: { x: number; y: number }[]; storeWidth: number } {
-    const gap = () => Math.round(size * (PIECE_GAP_MIN + (PIECE_GAP_MAX - PIECE_GAP_MIN) * random()));
+    // never exactly nothing: two pieces side by side with no gap would be a fit, and two that belong together would then start as one group (only a drop joins pieces)
+    const gap = () => Math.round(size * (PIECE_GAP_MIN + (PIECE_GAP_MAX - PIECE_GAP_MIN) * random())) || 1;
     const margin = Math.round(size * 0.4); // the tabs reach out of a piece by about this much
     const pitch = size * (1 + (PIECE_GAP_MIN + PIECE_GAP_MAX) / 2); // the room a piece takes in a row, on average
     for (let columns = Math.max(1, Math.ceil(count / Math.max(1, Math.floor(frameHeight / pitch)))); ; columns++) {
@@ -373,9 +373,9 @@ export class JigsawPieces {
     const m = move as Partial<PieceMove> | null;
     if (!m || typeof m !== 'object' || typeof m.id !== 'string' || !m.id || m.id.length > 60) return 'A piece needs its id.';
     const limit = 2 * OBJECT_MAX_SIDE;
-    for (const v of [m.centerX, m.centerY]) {
-      if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > limit || !Number.isInteger(v * 2)) return `The place of piece ${m.id} is not allowed.`;
-    }
+    // a middle can be a little before 0 (a small piece in the margin at the top or the left of the picture); across, it can be in the store
+    const allowed = (v: unknown, most: number) => typeof v === 'number' && Number.isFinite(v) && v >= -OBJECT_MAX_SIDE && v <= most && Number.isInteger(v * 2);
+    if (!allowed(m.centerX, STORE_LEFT + limit) || !allowed(m.centerY, limit)) return `The place of piece ${m.id} is not allowed.`;
     if (typeof m.layer !== 'number' || !Number.isInteger(m.layer) || m.layer < 1 || m.layer > MAX_LAYER) return `The layer of piece ${m.id} is not allowed.`;
     return '';
   }

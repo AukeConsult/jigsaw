@@ -8,7 +8,12 @@
   const fire = (t, type, x, y) => t.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1, isPrimary: true, button: 0, buttons: type === 'pointerup' ? 0 : 1 }));
   const rootRect = () => c.root().nativeElement.getBoundingClientRect(); // the pieces area itself (the first div of the board can be the floating helper picture)
   const surfaceRect = () => board.querySelector('.picture-surface').getBoundingClientRect();
-  const pieces = () => [...board.querySelectorAll('.placed-object')].map((e) => ({ e, r: e.getBoundingClientRect() })).filter((o) => o.r.width > 5);
+  // pieces join anywhere on the board when they are dropped by one that fits: only a piece whose neighbours all wait in the scroller is swept, so no group is made on the way (a group stops short by its own width)
+  const lonely = (id) => {
+    const me = c.placed().find((q) => q.id === id)?.piece;
+    return !!me && c.puzzle().stuckGroup([id]).length === 1 && !c.puzzle().items.some((q) => !q.inStore && q.data.piece && Math.abs(q.data.piece.col - me.col) + Math.abs(q.data.piece.row - me.row) === 1);
+  };
+  const pieces = () => [...board.querySelectorAll('.placed-object')].filter((e) => lonely(e.dataset.id)).map((e) => ({ e, r: e.getBoundingClientRect() })).filter((o) => o.r.width > 5);
   const inside = (o, b, m) => o.r.left > b.left + m && o.r.right < b.right - m && o.r.top > b.top + m && o.r.bottom < b.bottom - m;
   const centre = (r) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
   const problems = [];
@@ -71,5 +76,5 @@
   if (piece) await drag(piece, (st) => line(st, { x: s.left + s.width / 2, y: s.top + s.height / 2 })(), 'to the picture', { x: false, y: false });
   const onPicture = () => pieces().find((o) => centre(o.r).x > s.left && centre(o.r).x < s.right && centre(o.r).y > s.top && centre(o.r).y < s.bottom && inside(o, rootRect(), 2))?.e;
   await sweeps('from the picture', onPicture);
-  return { window: [innerWidth, innerHeight], stacked: c.stacked(), zone: !!c.zone(), problems };
+  return { window: [innerWidth, innerHeight], stacked: c.stacked(), problems };
 })();

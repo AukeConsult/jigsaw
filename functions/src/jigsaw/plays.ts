@@ -318,8 +318,9 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (!Plays.mayLookAt(record.play, askerOf(req), !!(await deps.mayManage?.(askerOf(req))))) return bad(res, "No such play.", 404); // a private round is its player's
     const pieces = await piecesOf(jigsaw, record.play);
     const layout = Plays.jigsawFor(jigsaw, record.play);
+    const { positions } = Plays.currentPlaces(record.play, record.positions, pieces, layout); // a round saved before is shown as places are written now (it is rewritten when something is saved)
     // a round of a picture says the size of its picture area, its grid and its store (it has a cut of its own); another round is answered as it was
-    res.json({ play: Plays.publicOf(record.play), settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, record.positions), ...(record.play.cut ? { layout: { width: layout.width, height: layout.height, gridSize: layout.gridSize } } : {}) });
+    res.json({ play: Plays.publicOf(record.play), settings: Plays.effective(jigsaw, record.play), pieces: Plays.piecesOf(pieces, positions), ...(record.play.cut ? { layout: { width: layout.width, height: layout.height, gridSize: layout.gridSize } } : {}) });
   });
 
   // starts this round over: the pieces are scattered anew and the time is back to nothing (the same round, not another one)
@@ -362,10 +363,13 @@ export function playsRouter(plays: PlayStore, deps: PlayDeps): express.Router {
     if (storeWidth !== undefined && !(typeof storeWidth === "number" && Number.isInteger(storeWidth) && storeWidth >= 0 && storeWidth <= JIGSAW_MAX_SIDE)) {
       return bad(res, `The store must be a whole number of pixels from 0 to ${JIGSAW_MAX_SIDE} wide.`);
     }
-    const pieces = await piecesOf(jigsaw, res.locals.round as PlaySpec | undefined);
+    const round = res.locals.round as PlaySpec | undefined;
+    const pieces = await piecesOf(jigsaw, round);
+    const layout = round ? Plays.jigsawFor(jigsaw, round) : jigsaw;
     let saved;
     try {
-      saved = await plays.update(jigsaw.id, req.params.playId, (cur) => {
+      saved = await plays.update(jigsaw.id, req.params.playId, (stored) => {
+      const cur = Plays.currentPlaces(stored.play, stored.positions, pieces, layout); // a round saved before is rewritten first, so old and new places are never mixed
       const next = Plays.moved(cur.play, pieces, cur.positions, moves as PieceMove[], Date.now());
       const broken = Plays.bondsError(pieces, cur.positions, next.positions); // a bond between pieces is never broken
       if (broken) throw new BondBroken(broken);

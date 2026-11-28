@@ -3,7 +3,8 @@ import { JigsawSettings, JigsawSpec } from './jigsaw-settings';
 import { JigsawKinds } from './jigsaw-kind';
 import { DIFFICULTIES } from './jigsaw-search';
 import { JigsawCut, JigsawPiece, JigsawPieces, PieceChoice, PieceMove, JIGSAW_MAX_PIECES } from './jigsaw';
-import { STICK_TOLERANCE_PX } from './puzzle';
+import { Puzzle, STICK_TOLERANCE_PX } from './puzzle';
+import { STORE_LEFT } from './placed';
 import { JigsawUsers } from './jigsaw-user';
 import { CutShape, CutShapes } from './cut-shape';
 
@@ -19,6 +20,9 @@ export const PLAY_POSITIONS_DOC = 'positions';
 
 /** The most time a round can have been played, in milliseconds (a month: a number that is not made up by a bug or a joke). */
 export const PLAY_MAX_ELAPSED_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** How the places of the pieces of a round are written now (`PlaySpec.places`): a piece on the board where it is seen, a piece in the store from `STORE_LEFT` across. */
+export const PLAY_PLACES = 2;
 
 /** The longest id of a user. */
 export const PLAY_MAX_USER_ID = 128;
@@ -77,6 +81,8 @@ export interface PlaySpec {
   elapsedMs?: number;
   /** how wide the store frame of this game is (it depends on the screen, and grows when the pieces are collected over the whole frame) */
   storeWidth: number;
+  /** how the places of its pieces are written (`PLAY_PLACES`); a round saved before that has none, and is rewritten when it is read or saved (`Plays.currentPlaces`) */
+  places?: typeof PLAY_PLACES;
   /**
    * SERVER ONLY, never in what the API tells the page (`Plays.publicOf` takes it away): the UID of the Firebase login that started the round, kept for later use. A round is only marked when the
    * account that plays is one of the logins of the jigsaw account; a round of an open account has none.
@@ -266,11 +272,45 @@ export class Plays {
         matched,
         total,
         storeWidth: shuffled.storeWidth,
+        places: PLAY_PLACES,
         overrides: {},
         fresh: true,
       },
       positions,
     };
+  }
+
+  /**
+   * The round with its places written the way they are now (`PLAY_PLACES`); the same round and positions when they are already. A round saved before wrote the store from the right edge of the picture, and the free
+   * space beside the picture as places under it, in columns as wide as the picture: both are moved to where they were seen. **A group is moved whole**, by where the piece that stood for it was (`Puzzle.groupAnchors`),
+   * so nothing that stuck together comes apart. `jigsaw` is the jigsaw as the round plays it (`jigsawFor`).
+   */
+  static currentPlaces<P extends Omit<PlaySpec, 'id'>>(play: P, positions: PlayPositions, pieces: readonly JigsawPiece[], jigsaw: Pick<JigsawSpec, 'width' | 'height' | 'gridSize'>): { play: P; positions: PlayPositions } {
+    if (play.places === PLAY_PLACES) return { play, positions };
+    const { width, height, gridSize: grid } = jigsaw;
+    // how the places were written before
+    const storeFrom = width + JigsawSettings.storeGap(grid);
+    const freeFrom = height + grid + grid / 2;
+    const columnHeight = height + 2 * grid;
+    const columnStride = Math.max(1, width - grid);
+
+    const placed = Plays.piecesOf(pieces, positions);
+    const byId = new Map(placed.map((p) => [p.id, p]));
+    const anchors = Puzzle.from(placed.map((p) => JigsawPieces.toPlaced(p)), width, height).groupAnchors();
+    const next: PlayPositions = { ...positions };
+    for (const piece of placed) {
+      const anchor = byId.get(anchors.get(piece.id)!)!;
+      let dx = 0;
+      let dy = 0;
+      if (anchor.centerX >= storeFrom) dx = STORE_LEFT - storeFrom;
+      else if (anchor.centerY >= freeFrom) {
+        const column = Math.floor((anchor.centerY - freeFrom) / columnHeight);
+        dx = width - grid / 2 + column * columnStride;
+        dy = -(freeFrom + column * columnHeight);
+      }
+      if (positions[piece.id]) next[piece.id] = [piece.centerX + dx, piece.centerY + dy, piece.layer];
+    }
+    return { play: { ...play, places: PLAY_PLACES }, positions: next };
   }
 
   /**
@@ -390,6 +430,7 @@ export class Plays {
       matched: play.matched,
       total: play.total,
       storeWidth: play.storeWidth,
+      ...(play.places === PLAY_PLACES ? { places: PLAY_PLACES } : {}),
       ...(play.fresh ? { fresh: true } : {}),
       ...(play.cut ? { cut: { columns: play.cut.columns, rows: play.cut.rows, grid: play.cut.grid, ...(CutShapes.kept(play.cut.shape) ? { shape: play.cut.shape } : {}) } } : {}),
       ...(typeof play.snapPercent === 'number' ? { snapPercent: play.snapPercent } : {}),

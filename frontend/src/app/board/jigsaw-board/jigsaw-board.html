@@ -44,21 +44,25 @@
       }
     }
     <!-- the rectangle that is being dragged to pick pieces -->
-    @if (marquee(); as m) {
-      <div class="marquee"
-           [style.left.px]="m.left" [style.top.px]="m.top" [style.width.px]="m.width" [style.height.px]="m.height"></div>
+    @if (marqueeShown(); as m) {
+      @if (!m.inStore) {
+        <div class="marquee"
+             [style.left.px]="m.box.left" [style.top.px]="m.box.top" [style.width.px]="m.box.width" [style.height.px]="m.box.height"></div>
+      }
     }
   </div>
   <!-- the store frame of a jigsaw, beside the picture area (below it on a narrow screen, see `stacked`): the pieces wait here, spread out; it scrolls up and down -->
-  @if (store(); as s) {
+  @if (store()) {
     <div class="position-relative flex-shrink-0" [style.margin-left.px]="frameExtra()" [style.margin-top.px]="stripExtra()">
     <div #storeFrame class="store-scroller"[class.overflow-y-auto]="!stacked()" [class.overflow-y-hidden]="stacked()" [class.overflow-x-hidden]="!stacked()" [class.overflow-x-auto]="stacked()" [attr.aria-label]="t('jigsawBoard.piecesStore') || 'Jigsaw pieces store'"
          [style.width.px]="storeFrameWidth()" [style.height.px]="storeViewHeight()" (scroll)="onStoreScroll($event)">
       <div #storeInner class="position-relative" [style.width.px]="storeInnerSize().width" [style.height.px]="storeInnerSize().height" (pointerdown)="startMarquee($event)">
         <!-- the rectangle that is being dragged to pick pieces, in the store frame -->
-        @if (!stacked() && sliceCount() === 1 && marquee(); as m) {
-          <div class="marquee"
-               [style.left.px]="m.left - s.left" [style.top.px]="m.top" [style.width.px]="m.width" [style.height.px]="m.height"></div>
+        @if (marqueeShown(); as m) {
+          @if (m.inStore) {
+            <div class="marquee"
+                 [style.left.px]="m.box.left" [style.top.px]="m.box.top" [style.width.px]="m.box.width" [style.height.px]="m.box.height"></div>
+          }
         }
       </div>
     </div>

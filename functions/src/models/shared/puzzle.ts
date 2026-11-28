@@ -57,15 +57,13 @@ export class Puzzle {
     readonly items: readonly PlacedFigure[],
     readonly width: number,
     readonly height: number,
+    /** the margin round the picture area, where a piece may go too */
+    readonly margin: number,
   ) {}
 
-  /** the margin round the picture area, where a piece may go too: relative to the size of the area (`areaMargin`) */
-  get margin(): number {
-    return areaMargin(this.width, this.height);
-  }
-
-  static from(data: readonly PlacedObject[], width: number, height: number): Puzzle {
-    return new Puzzle(data.map((d) => new PlacedFigure(d)), width, height);
+  /** `width` and `height` are every place there is; `margin` is the margin round the picture (`areaMargin` of the picture area), which is that of the whole when it is left out. */
+  static from(data: readonly PlacedObject[], width: number, height: number, margin = areaMargin(width, height)): Puzzle {
+    return new Puzzle(data.map((d) => new PlacedFigure(d)), width, height, margin);
   }
 
   /** The reason these placed objects (as they come from outside, not checked yet) are not allowed on a picture area of this size, or '' when they are fine. */
@@ -91,7 +89,7 @@ export class Puzzle {
   }
 
   private with(items: readonly PlacedFigure[]): Puzzle {
-    return new Puzzle(items, this.width, this.height);
+    return new Puzzle(items, this.width, this.height, this.margin);
   }
 
   /** The puzzle with these objects on this layer (from 1 to MAX_LAYER: nothing goes on the picture layer). */
@@ -306,10 +304,11 @@ export class Puzzle {
    * enough, within `range` pixels, of one of two things: its own grid point (the home of a piece in it, see `PlacedFigure.home`), or the place where a
    * piece in it fits a neighbour that is not in the group (so the group sticks to it). The whole group moves by the smallest of these steps, so the
    * piece is exactly there, and the groups that now fit each other stick together; and when what it clicked to is within `range` of its own place as a whole, it clicks to the grid too. Only pieces are looked at, and only when they are dropped, not while
-   * they are moved. `range` 0 (or less) means nothing clicks. Nothing changes (the same puzzle) when nothing is near enough. With `within` (the picture area) a group only clicks when the middle of
-   * one of its pieces is inside it: outside it (the free space, the store) a piece settles where it is dropped.
+   * they are moved. `range` 0 (or less) means nothing clicks. Nothing changes (the same puzzle) when nothing is near enough.
+   * **Neighbours join anywhere on the board**; a group goes to **its own place only when the middle of one of its pieces is inside `within`** (the picture area). **Nothing clicks in the store** (the scroller), and
+   * **no join is made to or from a piece that is not seen** (`unseen`: hidden by "only corner and edge pieces").
    */
-  dropPieces(ids: readonly string[], range: number, within?: Box): Puzzle {
+  dropPieces(ids: readonly string[], range: number, within?: Box, unseen: ReadonlySet<string> = new Set()): Puzzle {
     if (!(range > 0)) return this;
     let puzzle: Puzzle = this;
     const done = new Set<string>();
@@ -317,17 +316,13 @@ export class Puzzle {
       if (done.has(id)) continue;
       const group = puzzle.stuckGroup([id]);
       for (const member of group) done.add(member);
-      const inside = (m: string) => {
-        const f = puzzle.get(m);
-        return !!f && !!within && f.centerX >= within.left && f.centerX <= within.left + within.width && f.centerY >= within.top && f.centerY <= within.top + within.height;
-      };
-      if (within && !group.some(inside)) continue;
-      puzzle = puzzle.snapGroup(group, range);
+      if (group.some((m) => puzzle.get(m)?.inStore)) continue; // nothing clicks in the store
+      puzzle = puzzle.snapGroup(group, range, within, unseen);
       // what it has clicked to is now one group with it: if that whole group is within `range` of its own place, it clicks there too, so pieces that stick to each other do not stay a little off the grid
       const joined = puzzle.stuckGroup([id]);
       if (joined.length > group.length) {
         for (const member of joined) done.add(member);
-        puzzle = puzzle.snapGroup(joined, range);
+        puzzle = puzzle.snapGroup(joined, range, within, unseen);
       }
     }
     return puzzle.settled(); // the pieces that are fixed now go to the bottom
@@ -342,17 +337,38 @@ export class Puzzle {
   settled(): Puzzle {
     const fixed = this.grown(this.items.filter((p) => p.data.piece && p.inPlace()));
     const back = this.groupShifts({ left: -this.margin, top: -this.margin, width: this.width + this.margin, height: this.height + this.margin }, null, fixed); // a group that is outside the area comes back whole, never piece by piece
-    let changed = false;
-    const items = this.items.map((p) => {
+    const inside = this.pushed(back, { left: -this.margin, top: -this.margin, width: this.width + this.margin, height: this.height + this.margin });
+    let changed = inside !== this;
+    const items = inside.items.map((p) => {
       if (!p.data.piece) return p;
-      const shift = back.get(p.id);
-      let next = shift ? p.at(p.centerX + shift.dx, p.centerY + shift.dy) : p;
-      const layer = Math.min(MAX_LAYER, fixed.has(p.id) ? FIXED_LAYER : Math.max(FIXED_LAYER + 1, next.layer));
-      if (layer !== next.layer) next = next.withLayer(layer);
-      if (next !== p) changed = true;
-      return next;
+      const layer = Math.min(MAX_LAYER, fixed.has(p.id) ? FIXED_LAYER : Math.max(FIXED_LAYER + 1, p.layer));
+      if (layer === p.layer) return p;
+      changed = true;
+      return p.withLayer(layer);
     });
     return changed ? this.with(items) : this;
+  }
+
+  /**
+   * The puzzle with these pieces moved by the game itself (`groupShifts`: whole groups, back into `into`). **The game never joins pieces, only a drop does**: a group that was pushed exactly to where it fits a
+   * neighbour is moved a pixel further in.
+   */
+  private pushed(shifts: ReadonlyMap<string, { dx: number; dy: number }>, into: Box): Puzzle {
+    if (!shifts.size) return this;
+    let next = this.with(this.items.map((p) => (shifts.has(p.id) ? p.at(p.centerX + shifts.get(p.id)!.dx, p.centerY + shifts.get(p.id)!.dy) : p)));
+    const done = new Set<string>();
+    for (const id of shifts.keys()) {
+      if (done.has(id)) continue;
+      const group = new Set(this.stuckGroup([id]));
+      for (const member of group) done.add(member);
+      for (let tries = 0; tries < 3 && next.stuckGroup([id]).length > group.size; tries++) {
+        const at = next.get(id)!;
+        const dx = at.centerX > into.left + into.width / 2 ? -1 : 1;
+        const dy = at.centerY > into.top + into.height / 2 ? -1 : 1;
+        next = next.with(next.items.map((p) => (group.has(p.id) ? p.at(p.centerX + dx, p.centerY + dy) : p)));
+      }
+    }
+    return next;
   }
 
   /**
@@ -381,20 +397,26 @@ export class Puzzle {
   }
 
   /**
-   * The puzzle where the free pieces whose centre is in `region` are pulled into the box `into` (the whole piece inside it), as little as it takes: a place on the board that is shown
-   * smaller than the part of the model it stands for (the free space beside the picture, when the store is below it) can never hold a piece that cannot be seen. Fixed pieces and what
-   * is not a piece stay; the same puzzle when nothing has to move.
+   * The puzzle where the free pieces whose centre is in `region` are pulled into the box `into` (the whole piece inside it), as little as it takes: the working area of a smaller screen
+   * can never leave a piece out of sight. Fixed pieces and what is not a piece stay; the same puzzle when nothing has to move.
    */
   confine(region: Box, into: Box): Puzzle {
     const fixed = this.grown(this.items.filter((p) => p.data.piece && p.inPlace()));
-    const shifts = this.groupShifts(into, region, fixed); // a group moves whole
-    if (!shifts.size) return this;
-    return this.with(this.items.map((p) => (shifts.has(p.id) ? p.at(p.centerX + shifts.get(p.id)!.dx, p.centerY + shifts.get(p.id)!.dy) : p)));
+    return this.pushed(this.groupShifts(into, region, fixed), into); // a group moves whole
   }
 
-  /** the group moved by the smallest step that puts a piece of it on its own place or exactly beside a neighbour, when that step is at most `range` */
-  private snapGroup(group: readonly string[], range: number): Puzzle {
+  /**
+   * The group moved by the smallest step that puts a piece of it on its own place or exactly beside a neighbour, when that step is at most `range`. Its own place counts only when the middle of one of
+   * its pieces is inside `within` (when that is given); a join is never made to or from a piece of `unseen`.
+   */
+  private snapGroup(group: readonly string[], range: number, within: Box | undefined, unseen: ReadonlySet<string>): Puzzle {
     const inGroup = new Set(group);
+    const onPicture =
+      !within ||
+      group.some((m) => {
+        const f = this.get(m);
+        return !!f && f.centerX >= within.left && f.centerX <= within.left + within.width && f.centerY >= within.top && f.centerY <= within.top + within.height;
+      });
     const map = this.pieceMap();
     let best: { dx: number; dy: number; distance: number } | null = null;
     const consider = (dx: number, dy: number) => {
@@ -405,11 +427,12 @@ export class Puzzle {
       const p = this.get(id);
       if (!p?.data.piece) continue;
       const home = p.home();
-      if (home) consider(home.x - p.centerX, home.y - p.centerY);
+      if (home && onPicture) consider(home.x - p.centerX, home.y - p.centerY);
+      if (unseen.has(id)) continue;
       const size = p.object.width;
       for (const [dc, dr] of PIECE_NEIGHBOURS) {
         const q = map.get(`${p.data.piece.col + dc},${p.data.piece.row + dr}`);
-        if (!q || inGroup.has(q.id) || q.object.width !== size) continue;
+        if (!q || inGroup.has(q.id) || unseen.has(q.id) || q.object.width !== size) continue;
         consider(q.centerX - dc * size - p.centerX, q.centerY - dr * size - p.centerY); // the step that puts p exactly where it fits q
       }
     }
