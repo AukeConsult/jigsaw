@@ -5,7 +5,7 @@ Transforme n’importe quelle image en puzzle et assemble-le à l’écran. Tout
 1. Appuie sur une image sur la page d’accueil. Choisis le nombre de **Pièces** (de 20 à 1000), la facilité avec laquelle une pièce s’enclenche (**Aimantation** : **Facile**, **Moyen** ou **Difficile**) et, si tu veux, **Chronométré**. Puis appuie sur **Commencer la manche**.
 2. Fais glisser les pièces du cadre à côté de l’image (en dessous sur un petit écran) vers l’image.
 3. Lâche une pièce près de sa place et elle s’enclenche. Les pièces qui vont ensemble restent collées.
-4. Le menu a des interrupteurs : **Image d’aide** montre l’image entière dans un petit cadre, et **Pièces de bord** montre seulement les pièces du bord, pour assembler d’abord le cadre. **Détails** indique le temps de jeu et contient **Réinitialiser la partie** et **Supprimer la partie**, et **Table** permet de choisir le fond sous les pièces et le son. **Plein écran** affiche le puzzle sur tout l’écran, aussi la prochaine fois que vous ouvrez un puzzle (pas sur iPhone ni dans les applications Android et Windows).
+4. Le menu a des interrupteurs : **Image d’aide** montre l’image entière dans un petit cadre, et **Pièces de bord** montre seulement les pièces du bord, pour assembler d’abord le cadre. Il se désactive tout seul quand toutes les pièces du bord sont à leur place, et les autres s’affichent. **Détails** indique le temps de jeu et contient **Réinitialiser la partie** et **Supprimer la partie**, et **Table** permet de choisir le fond sous les pièces et le son. **Plein écran** affiche le puzzle sur tout l’écran, aussi la prochaine fois que vous ouvrez un puzzle (pas sur iPhone ni dans les applications Android et Windows).
 
 Les scores arriveront plus tard.
 

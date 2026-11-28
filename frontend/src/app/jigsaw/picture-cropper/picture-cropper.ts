@@ -1,5 +1,6 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
+import { takenByAnother } from '../../core/one-pointer';
 import { PictureCrop, SourceRect } from '../../models/shared/geometry';
 
 /** The most room the frame gets on the window, in pixels (the frame has the shape of the picture area and is made as big as it can be in this). */
@@ -39,8 +40,8 @@ export class PictureCropper {
     return { w: Math.max(40, Math.round(this.width() * k)), h: Math.max(30, Math.round(this.height() * k)) };
   });
 
-  /** where the pointer was when the picture was grabbed (null: it is not being dragged) */
-  private grab: { x: number; y: number } | null = null;
+  /** by which pointer the picture was grabbed, and where that pointer was (null: it is not being dragged) */
+  private grab: { id: number; type: string; x: number; y: number } | null = null;
 
   constructor() {
     effect((onCleanup) => {
@@ -62,8 +63,8 @@ export class PictureCropper {
   }
 
   startDrag(event: PointerEvent): void {
-    if (!this.crop()) return;
-    this.grab = { x: event.clientX, y: event.clientY };
+    if (!this.crop() || takenByAnother(this.grab, event)) return;
+    this.grab = { id: event.pointerId, type: event.pointerType, x: event.clientX, y: event.clientY };
     try {
       (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
     } catch {
@@ -74,13 +75,13 @@ export class PictureCropper {
   drag(event: PointerEvent): void {
     const grab = this.grab;
     const crop = this.crop();
-    if (!grab || !crop) return;
+    if (grab?.id !== event.pointerId || !crop) return;
     this.crop.set(crop.moved(event.clientX - grab.x, event.clientY - grab.y));
-    this.grab = { x: event.clientX, y: event.clientY };
+    this.grab = { ...grab, x: event.clientX, y: event.clientY };
   }
 
-  endDrag(): void {
-    this.grab = null;
+  endDrag(event: PointerEvent): void {
+    if (this.grab?.id === event.pointerId) this.grab = null;
   }
 
   /** the wheel zooms the picture around the pointer */

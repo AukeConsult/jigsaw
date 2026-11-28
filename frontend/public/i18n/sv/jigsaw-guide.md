@@ -5,7 +5,7 @@ Gör vilken bild som helst till ett pussel och lägg det på skärmen. Allt spar
 1. Tryck på en bild på startsidan. Välj antal **Bitar** (från 20 till 1000), hur lätt en bit klickar på plats (**Snap-avstånd**: **Lätt**, **Medel** eller **Svår**) och, om du vill, **Tidtagning**. Tryck sedan på **Starta ronden**.
 2. Dra bitarna från ramen bredvid bilden (under bilden på en liten skärm) till bilden.
 3. Släpp en bit nära sin plats så klickar den på plats. Bitar som passar ihop sitter ihop.
-4. Menyn har reglage: **Hjälpbild** visar hela bilden i en liten ram, och **Kantbitar** visar bara kantbitarna, så att du kan bygga ramen först. **Detaljer** visar speltiden och har **Nollställ omgången** och **Ta bort omgången**, och **Bord** väljer vad bitarna ligger på och ljudet. **Helskärm** låter pusslet fylla hela skärmen, även nästa gång du öppnar ett pussel (inte på iPhone eller i apparna för Android och Windows).
+4. Menyn har reglage: **Hjälpbild** visar hela bilden i en liten ram, och **Kantbitar** visar bara kantbitarna, så att du kan bygga ramen först. Det stängs av av sig självt när alla kantbitar ligger på plats, och resten visas. **Detaljer** visar speltiden och har **Nollställ omgången** och **Ta bort omgången**, och **Bord** väljer vad bitarna ligger på och ljudet. **Helskärm** låter pusslet fylla hela skärmen, även nästa gång du öppnar ett pussel (inte på iPhone eller i apparna för Android och Windows).
 
 Poäng kommer senare.
 

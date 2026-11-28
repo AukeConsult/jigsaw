@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoService, provideTranslocoScope } from '@jsverse/transloco';
 import { switchMap } from 'rxjs';
 import { tr } from '../../core/i18n';
+import { takenByAnother } from '../../core/one-pointer';
 import { PuzzlePiece } from '../../jigsaw/puzzle-piece/puzzle-piece';
 import { isBoolean, readPreference, writePreference, preferenceSignal } from '../../core/preferences';
 import { JigsawHelper } from '../../jigsaw/jigsaw-helper';
@@ -372,51 +373,60 @@ export class JigsawBoard {
 
   /** how big the helper picture is, as a share of the size of the picture (from 1/10 to 1/2) */
   readonly helperScale = preferenceSignal('jigsaw.helperScale', HELPER_SCALE_START, isScale);
-  /** the corner of the frame that is being dragged to change the size: where the pointer was, and the scale then */
-  private helperSizing: { x: number; scale: number } | null = null;
+  /** the corner of the frame that is being dragged to change the size: by which pointer, where it was, and the scale then */
+  private helperSizing: { id: number; type: string; x: number; scale: number } | null = null;
+
+  /** Whether another finger already moves or sizes the helper picture (only one does). */
+  private helperTaken(event: PointerEvent): boolean {
+    return takenByAnother(this.helperGrab ?? this.helperSizing, event);
+  }
 
   /** Grab the corner of the helper picture frame to change its size. */
   startHelperSize(event: PointerEvent): void {
-    this.helperSizing = { x: event.clientX, scale: this.helperScale() };
-    this.capture(event.currentTarget as HTMLElement, event);
     event.stopPropagation();
+    if (this.helperTaken(event)) return;
+    this.helperGrab = null;
+    this.helperSizing = { id: event.pointerId, type: event.pointerType, x: event.clientX, scale: this.helperScale() };
+    this.capture(event.currentTarget as HTMLElement, event);
   }
 
   /** The picture is as wide as the corner has been pulled (the picture keeps its shape), at least 1/10 and at most 1/2 of the size of the picture. */
   moveHelperSize(event: PointerEvent): void {
     const sizing = this.helperSizing;
-    if (!sizing || !(this.width() > 0)) return;
+    if (sizing?.id !== event.pointerId || !(this.width() > 0)) return;
     const shown = this.width() * this.scale(); // the picture is this wide on the screen when the helper picture is its whole size
     const wanted = (sizing.scale * shown + (event.clientX - sizing.x)) / shown;
     this.helperScale.set(Math.min(HELPER_SCALE_MAX, Math.max(HELPER_SCALE_MIN, wanted)));
   }
 
-  endHelperSize(): void {
-    this.helperSizing = null;
+  endHelperSize(event: PointerEvent): void {
+    if (this.helperSizing?.id === event.pointerId) this.helperSizing = null;
   }
 
-  /** the frame that is being moved: where on its title it was grabbed */
-  private helperGrab: { dx: number; dy: number } | null = null;
+  /** the frame that is being moved: by which pointer, and where on the frame it was grabbed */
+  private helperGrab: { id: number; type: string; dx: number; dy: number } | null = null;
 
-  /** Grab the title of the helper picture frame to move it. */
+  /** Grab the helper picture frame to move it. */
   startHelperFrame(event: PointerEvent): void {
+    if (this.helperTaken(event)) return;
+    this.helperSizing = null;
     const frame = this.shownHelperFrame();
-    this.helperGrab = { dx: event.clientX - frame.x, dy: event.clientY - frame.y };
+    this.helperGrab = { id: event.pointerId, type: event.pointerType, dx: event.clientX - frame.x, dy: event.clientY - frame.y };
     this.capture(event.currentTarget as HTMLElement, event);
   }
 
   /** The frame follows the pointer, and stays on the window (its title can always be reached). */
   moveHelperFrame(event: PointerEvent): void {
     const grab = this.helperGrab;
-    if (!grab) return;
+    if (grab?.id !== event.pointerId) return;
     this.helperFrame.set({
       x: Math.min(Math.max(event.clientX - grab.dx, 0), window.innerWidth - 80),
       y: Math.min(Math.max(event.clientY - grab.dy, 0), window.innerHeight - 40),
     });
   }
 
-  endHelperFrame(): void {
-    this.helperGrab = null;
+  endHelperFrame(event: PointerEvent): void {
+    if (this.helperGrab?.id === event.pointerId) this.helperGrab = null;
   }
   /** the jigsaw pieces area is as high as what is left of the visible screen, from where it starts to the bottom (the jigsaw does this) */
   readonly fillScreen = input(false);
@@ -709,7 +719,7 @@ export class JigsawBoard {
   /** the store frame beside the picture area, where the pieces of a jigsaw wait (null: none) */
   readonly store = computed(() => JigsawSettings.storeFrame(this.width(), this.height(), this.gridSize(), this.storeWidth()));
   /** the ids of what is held now: they are drawn on a layer above everything (`HELD_LAYER`) until they are let go */
-  private readonly held = signal<ReadonlySet<string>>(new Set());
+  protected readonly held = signal<ReadonlySet<string>>(new Set());
   /** the puzzle of the placed objects, in order (`settledPuzzle`): while a piece is held nothing in it changes, the held piece is only drawn where the pointer is (see `FreeDrag`) */
   private readonly puzzle = computed(() => this.settledPuzzle(this.placed()));
 
@@ -821,6 +831,9 @@ export class JigsawBoard {
   /** the placed object that is being moved: the pointer's distance from its centre (or from the end that was grabbed), and the picture area it is in */
   private moving: { id: string; ids: string[]; dx: number; dy: number; screen?: { dx: number; dy: number }; free?: FreeDrag; matchedAtStart: ReadonlySet<string>; stuckAtStart: ReadonlySet<string>; fromScroller: boolean } | null = null;
 
+  /** the finger (or mouse, or pen) that holds a piece or draws the rectangle: the board listens to no other until it is let go, so a second touch of the screen does nothing */
+  private hand: { id: number; type: string } | null = null;
+
   /** where a rectangle drag on the empty picture area started */
   private marqueeStart: { x: number; y: number } | null = null;
   /** whether that drag started on the empty store frame: a click there (no drag) collects the pieces */
@@ -875,6 +888,12 @@ export class JigsawBoard {
       untracked(() => {
         if (this.room() && this.hasPieces()) this.collect(true);
       });
+    });
+    // once every border piece is on its place, "only corner and edge pieces" would show nothing: it is switched off and the rest is shown. Only as that is reached (or the round is opened with it reached),
+    // so switched on again afterwards it stays on
+    const borderDone = computed(() => this.puzzle().milestones(this.pieceGrid()).includes('border'));
+    effect(() => {
+      if (borderDone() && !this.viewOnly()) untracked(() => this.edgesOnly.set(false));
     });
     // draw the grid again whenever the size or the grid changes (a new width or height clears the canvas)
     effect(() => {
@@ -949,7 +968,7 @@ export class JigsawBoard {
 
   /** Grab a piece (mouse, pen or finger): it is picked, and follows the pointer until it is let go. */
   startMove(event: PointerEvent, item: PlacedObject): void {
-    if (this.viewOnly()) return;
+    if (this.viewOnly() || this.busy(event)) return;
     const { x, y } = this.areaPoint(event);
     // grabbing one of several picked objects moves them all; grabbing another object picks only that one
     const picked = this.selection();
@@ -978,6 +997,7 @@ export class JigsawBoard {
     this.held.set(new Set(ids));
     const freeDrag = screen ? this.freeDragOf(ids, event, box) : undefined;
     this.moving = { id: item.id, ids, dx: x - grabbed.x, dy: y - grabbed.y, screen, free: freeDrag, matchedAtStart: this.matchedAmong(this.puzzle(), ids), stuckAtStart: new Set(this.puzzle().stuckGroup(ids)), fromScroller: this.scrollerPieces().has(item.id) };
+    this.hand = { id: event.pointerId, type: event.pointerType };
     this.capture(this.root().nativeElement, event); // not the object: it is made again in the store frame when it is moved there
     this.lastX = event.clientX;
     if (item.piece && this.effects().has('taps') && this.look().sound) playTap('pick', this.look().soundStyle);
@@ -1073,8 +1093,33 @@ export class JigsawBoard {
     return { ...inner, bottom: frame && this.stacked() ? Math.min(inner.bottom, frame.bottom - 1) : inner.bottom };
   }
 
+  /** Whether the board is another finger's now. When it is not, but something is still held, the end of that never came: it is let go here. */
+  private busy(event: PointerEvent): boolean {
+    if (takenByAnother(this.hand, event)) return true;
+    if (this.hand) this.letGo();
+    return false;
+  }
+
+  /** A pointer moved: only the one that holds is followed. */
+  pointerMoved(event: PointerEvent): void {
+    if (this.hand?.id !== event.pointerId) return;
+    this.moveMove(event);
+    this.moveMarquee(event);
+  }
+
+  /** A pointer was lifted (or taken by the device): only the one that holds lets go. */
+  pointerEnded(event: PointerEvent): void {
+    if (this.hand?.id === event.pointerId) this.letGo();
+  }
+
+  private letGo(): void {
+    this.hand = null;
+    this.endMove();
+    this.endMarquee();
+  }
+
   /** What is grabbed follows the pointer: a piece is drawn where the pointer is (nothing else is touched), any other object is moved by the puzzle (see `Puzzle`). */
-  moveMove(event: PointerEvent): void {
+  private moveMove(event: PointerEvent): void {
     const moving = this.moving;
     if (!moving) return;
     const free = moving.free;
@@ -1146,7 +1191,7 @@ export class JigsawBoard {
    * where it fits a neighbour, clicks into place (see `Puzzle.dropPieces` and `snapRange`): it goes exactly there, the piece that was dropped
    * blinks (only that one, not the group it joined), and the device vibrates. A piece does not click while it is moved, only when it is dropped.
    */
-  endMove(): void {
+  private endMove(): void {
     const moving = this.moving;
     this.moving = null;
     this.held.set(new Set()); // let go: back on its own layer
@@ -1257,15 +1302,16 @@ export class JigsawBoard {
 
   /** Dragging on the empty picture area or the empty store frame picks the objects the rectangle touches (the objects stop their own pointer events, so this is only what is empty). */
   startMarquee(event: PointerEvent): void {
-    if (this.viewOnly()) return;
+    if (this.viewOnly() || this.busy(event)) return;
     const { x, y } = this.areaPoint(event); // on the picture area, or on the store frame (which can be scrolled)
     this.marqueeStart = { x, y };
     this.marqueeInStore = !!this.store() && event.currentTarget === this.storeInner()?.nativeElement;
     this.selection.set([]);
+    this.hand = { id: event.pointerId, type: event.pointerType };
     this.capture(this.root().nativeElement, event);
   }
 
-  moveMarquee(event: PointerEvent): void {
+  private moveMarquee(event: PointerEvent): void {
     const start = this.marqueeStart;
     if (!start) return;
     const { x, y } = this.areaPoint(event);
@@ -1274,7 +1320,7 @@ export class JigsawBoard {
     this.selection.set(this.puzzle().itemsIn(box).filter((id) => !this.hiddenIds().has(id))); // what is hidden is not picked
   }
 
-  endMarquee(): void {
+  private endMarquee(): void {
     const box = this.marquee();
     const clicked = !!this.marqueeStart && this.marqueeInStore && (!box || (box.width < CLICK_MAX_PX && box.height < CLICK_MAX_PX)); // pressed and let go on the empty store frame
     this.marqueeStart = null;

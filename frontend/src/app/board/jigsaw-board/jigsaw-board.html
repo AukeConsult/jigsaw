@@ -1,7 +1,7 @@
 @if (helperBanner() && helperShown() && picture(); as src) {
   <!-- the helper picture: a frame on top of the rest of the page, moved by grabbing it anywhere (the close button and the corner do their own things) -->
   <div class="helper-frame shadow border rounded bg-body" [style.left.px]="shownHelperFrame().x" [style.top.px]="shownHelperFrame().y" [attr.aria-label]="t('jigsawBoard.helperFrame') || 'Helper picture frame'"
-       (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame()" (pointercancel)="endHelperFrame()">
+       (pointerdown)="startHelperFrame($event)" (pointermove)="moveHelperFrame($event)" (pointerup)="endHelperFrame($event)" (pointercancel)="endHelperFrame($event)">
     <div class="helper-frame-title d-flex justify-content-between align-items-center gap-2 px-2 py-1 bg-body-secondary border-bottom rounded-top small">
       <span>{{ t('jigsawBoard.helperTitle') || 'Picture' }}</span>
       <button type="button" class="btn-close btn-sm" [attr.aria-label]="t('jigsawBoard.hideHelper') || 'Hide the helper picture'" (pointerdown)="$event.stopPropagation()" (click)="helper.set(false)"></button>
@@ -9,15 +9,15 @@
     <img [src]="src" class="helper-frame-picture d-block m-1 border" [style.width.px]="width() * helperScale() * scale()" [style.height.px]="height() * helperScale() * scale()" [attr.alt]="t('jigsawBoard.helperAlt') || 'The whole picture, smaller'">
     <!-- the corner: drag it to make the picture bigger (up to half its size) or smaller (down to a tenth) -->
     <div class="helper-frame-grip" [attr.aria-label]="t('jigsawBoard.helperSize') || 'Size of the helper picture'"
-         (pointerdown)="startHelperSize($event)" (pointermove)="moveHelperSize($event)" (pointerup)="endHelperSize()" (pointercancel)="endHelperSize()"><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i></div>
+         (pointerdown)="startHelperSize($event)" (pointermove)="moveHelperSize($event)" (pointerup)="endHelperSize($event)" (pointercancel)="endHelperSize($event)"><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i></div>
   </div>
 }
 <!--
   The jigsaw pieces area. The picture area is width × height in the stored pixels the objects are placed in; the whole content is drawn at `scale`, so the picture is always
   shown whole, in its own proportions, whatever the size of the screen (the sizer takes the room the scaled content takes).
 -->
-<div #root class="board-root rounded p-1" [attr.data-table]="look().table" [attr.data-pieces]="look().pieces" [attr.data-fx]="look().effects.join(' ')" [class.is-finished]="finished()" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
-     (pointermove)="moveMove($event); moveMarquee($event)" (pointerup)="endMove(); endMarquee()" (pointercancel)="endMove(); endMarquee()" (dragstart)="$event.preventDefault()">
+<div #root class="board-root rounded p-1" [attr.data-table]="look().table" [attr.data-pieces]="look().pieces" [attr.data-fx]="look().effects.join(' ')" [class.is-finished]="finished()" [class.is-carrying]="held().size > 0" [class.overflow-auto]="!fixed()" [class.overflow-hidden]="fixed()" [style.height.px]="areaHeight()" [attr.aria-label]="t('jigsawBoard.piecesArea') || 'Jigsaw pieces area'"
+     (pointermove)="pointerMoved($event)" (pointerup)="pointerEnded($event)" (pointercancel)="pointerEnded($event)" (dragstart)="$event.preventDefault()">
 <!-- (dragstart: the browser's own drag never starts here, it would take the pointer from the piece that is held) -->
 <div class="scale-sizer" [style.width.px]="overlay().width * scale()" [style.height.px]="overlay().height * scale()">
 <div class="scale-content position-relative d-flex align-items-start" [style.padding-top.px]="margin()" [style.padding-left.px]="margin()" [style.padding-right.px]="store() && !stacked() ? 0 : margin()" [style.padding-bottom.px]="store() && stacked() ? 0 : margin()" [class.flex-column]="stacked()" [style.gap.px]="stacked() ? gridSize() : gutter()" [style.width.px]="overlay().width" [style.height.px]="overlay().height" [style.--app-scale]="scale()" [style.transform]="'scale(' + scale() + ')'">
@@ -103,7 +103,7 @@
       <div class="placed-object" role="button" tabindex="0" [attr.data-id]="p.id" [attr.aria-label]="p.object.name" [style.left.px]="v.left - shift" [style.top.px]="v.top - shiftY" [style.clip-path]="clip" [style.z-index]="blinking().has(p.id) ? v.layer + 100000 : v.layer"
            [class.is-picked]="selection().includes(p.id)" [class.is-loose]="v.piece && !v.matched" [class.is-single]="v.single" [class.is-held]="v.held" [style.--app-tilt]="v.piece ? tilt(p.id) : null"
            [class.is-landed]="landed().has(p.id)" [class.is-pulled]="pulled()?.ids?.has(p.id)" [style.--app-pull-x.px]="pulled()?.ids?.has(p.id) ? pulled()!.x : null" [style.--app-pull-y.px]="pulled()?.ids?.has(p.id) ? pulled()!.y : null"
-           (pointerdown)="startMove($event, p); $event.stopPropagation()" (pointermove)="moveMove($event)" (pointerup)="endMove()" (pointercancel)="endMove()"
+           (pointerdown)="startMove($event, p); $event.stopPropagation()"
            (click)="select(p.id); $event.stopPropagation()" (keydown.enter)="select(p.id)">
         @if (v.piece; as piece) {
           <app-puzzle-piece [id]="p.id" [piece]="piece" [size]="v.object.width" [columns]="pieceGrid().columns" [rows]="pieceGrid().rows" [picture]="picture()" [numbered]="numberPoints()" [matched]="v.matched" [blinking]="blinking().has(p.id)" [lineWidth]="lineWidth()" [lineColor]="lineColor()" [skin]="look().pieces" [glow]="effects().has('glow')" [flash]="flashes().get(p.id) ?? null" />

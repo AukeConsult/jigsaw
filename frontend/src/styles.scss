@@ -929,6 +929,11 @@ small,
         max-width: 7rem;
       }
 
+      // the logo and the name (the way home) sit at the top of the bar, level with the icons of the entries, not in the middle of its height
+      > app-home {
+        align-self: flex-start;
+      }
+
       .nav-link:not(.brand-lockup) {
         flex-direction: column;
         justify-content: center;
@@ -1030,6 +1035,18 @@ small,
     &.docked-right .play-bar {
       --bs-nav-link-padding-y: 0.15em;
     }
+  }
+
+  // the entry of the page that is open (and, in the list of languages, the language in use) is marked quietly: a light wash of the colour of the app behind it, its icon and words as those of the others
+  .list-group .list-group-item.active {
+    color: var(--bs-body-color);
+    border-color: var(--bs-list-group-border-color);
+    background-color: color-mix(in srgb, var(--app-primary) 14%, var(--bs-body-bg)); // (a row of the floating menu is not see-through)
+  }
+
+  .play-bar .nav-link.active {
+    color: var(--bs-nav-link-color);
+    background-color: color-mix(in srgb, var(--app-primary) 14%, transparent);
   }
 
   // the bar
@@ -2778,6 +2795,13 @@ play-main:has(.board-root:is([data-table='felt'], [data-table='wood'], [data-tab
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+
+// while a piece is held, a second finger neither scrolls the store nor zooms: either would move the board under the held piece
+.board-root.is-carrying,
+.board-root.is-carrying .store-scroller,
+.board-root.is-carrying .store-scroller * {
+  touch-action: none;
 }
 
 // a bar with a menu or a popup that is open is lifted over the play (the menu is part of the bar, and a bar is under the play)
