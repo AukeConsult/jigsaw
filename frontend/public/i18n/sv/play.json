@@ -1,4 +1,15 @@
 {
+  "packagesHelp": {
+    "lead": "Ett paket är en samling bilder som andra kan få gratis eller köpa.",
+    "how": "Så här gör du",
+    "add": "Tryck på Lägg till: ge paketet en rubrik, välj gratis eller pris, och spara.",
+    "pictures": "Tryck på Bilder: ladda upp bilderna som ska vara med.",
+    "public": "Tryck på Ändra och sätt paketet till Offentlig. Ett nytt paket är privat, så bara du ser det.",
+    "others": "Andra hittar det under Paket och trycker på Lägg till i mina bilder eller Köp. Då kan de pussla bilderna.",
+    "rights": "Använd bara bilder som du har rätt att dela och sälja.",
+    "note": "Du kan samla bilder i paket som andra får gratis eller köper.",
+    "toMine": "Till mina paket"
+  },
   "logon": "Logga in",
   "pictures": "Bilder",
   "addPicture": "Lägg till bild",
@@ -96,7 +107,7 @@
   "admin": "Admin",
   "manyPictures": "Många bilder",
   "noPictures": "Du har inga bilder ännu.",
-  "makePackages": "Mina paket",
+  "makePackages": "Paket till allmänheten",
   "infoWelcome": "Välkommen",
   "infoHelp": "Hjälp",
   "infoAbout": "Om",
@@ -162,7 +173,7 @@
     "byAi": "av AI:n",
     "stale": "föråldrad",
     "missing": "saknas",
-    "packagesTitle": "Paket på startsidan",
+    "packagesTitle": "Paket du gör till allmänheten",
     "packageOne": "Paket",
     "free": "Gratis",
     "freeLabel": "Gratis",

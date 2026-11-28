@@ -1,4 +1,15 @@
 {
+  "packagesHelp": {
+    "lead": "Un paquete es una colección de imágenes que otros pueden obtener gratis o comprar.",
+    "how": "Cómo se hace",
+    "add": "Pulsa Añadir: pon un título al paquete, elige gratis o un precio y guarda.",
+    "pictures": "Pulsa Imágenes: sube las imágenes que van en él.",
+    "public": "Pulsa Editar y pon el paquete en Público. Un paquete nuevo es privado: solo tú lo ves.",
+    "others": "Otros lo encuentran en Paquetes y pulsan Añadir a mis imágenes o Comprar. Entonces pueden hacer los puzles de sus imágenes.",
+    "rights": "Usa solo imágenes que tengas derecho a compartir y vender.",
+    "note": "Puedes reunir imágenes en paquetes que otros obtienen gratis o compran.",
+    "toMine": "A mis paquetes"
+  },
   "logon": "Iniciar sesión",
   "pictures": "Imágenes",
   "addPicture": "Añadir imagen",
@@ -96,7 +107,7 @@
   "admin": "Admin",
   "manyPictures": "Muchas imágenes",
   "noPictures": "Aún no tienes imágenes.",
-  "makePackages": "Mis paquetes",
+  "makePackages": "Paquetes para el público",
   "infoWelcome": "Bienvenido",
   "infoHelp": "Ayuda",
   "infoAbout": "Acerca de",
@@ -162,7 +173,7 @@
     "byAi": "por la IA",
     "stale": "desactualizado",
     "missing": "falta",
-    "packagesTitle": "Paquetes en la página de inicio",
+    "packagesTitle": "Paquetes que haces para el público",
     "packageOne": "Paquete",
     "free": "Gratis",
     "freeLabel": "Gratis",

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, effect, inject, signal, untracked } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LanguageService } from '../../../app/core/language.service';
 import { preferenceSignal } from '../../../app/core/preferences';
@@ -16,12 +16,12 @@ import { AccountEdit } from '../../../app/jigsaw/account-edit';
 /**
  * The page of the route `/play/account`, who is on and everything about the user's account: **the app's own page, made of the real shared components** (`app-my-logon-users`, what a signed-in login can do about the accounts: play as one, make a new one, delete one, add the
  * login to one with a link code; `app-user-logins`, the logins verified for the account that plays; and `app-account-avatar`) An account that plays is shown
- * at the top, with the way to choose another and to sign out, and under it its edit page (its alias, name, picture, "Who am I" and language, which save by themselves, and its sign-ins), which is just there: nothing is pressed to open it. When nobody plays: a signed-in person has the box of their accounts, and anybody chooses an account from the list (a lock means it needs a sign-in first) or makes one by
+ * at the top, with the way to choose another and to sign out, and under it its edit page (its alias, name, picture, "Who am I" and language, which save by themselves, and its sign-ins), which is just there: nothing is pressed to open it. A publisher or an admin also has a note there on making packages for the public, with the way to them. When nobody plays: a signed-in person has the box of their accounts, and anybody chooses an account from the list (a lock means it needs a sign-in first) or makes one by
  * saying their name (an account that is open to anyone).
  */
 @Component({
   selector: 'play-account',
-  imports: [TranslocoDirective, AccountAvatar, LanguageField, MyLogonUsers, UserLogins],
+  imports: [TranslocoDirective, RouterLink, AccountAvatar, LanguageField, MyLogonUsers, UserLogins],
   providers: [provideTranslocoScope('play', 'userLevels'), AccountEdit],
   host: { class: 'd-block' },
   templateUrl: './account.html',

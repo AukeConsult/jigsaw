@@ -85,6 +85,14 @@
           <!-- there is no Save and nothing to press: every change is saved by itself a moment after the last one, and what is waiting is saved when the page is left -->
         </form>
       }
+      @if (users.mayPublish()) {
+        <!-- a publisher or an admin: that they can make packages for others, and the way there -->
+        <div class="card card-body mt-2">
+          <h2 class="h6 d-flex align-items-center gap-2 mb-1"><i class="bi bi-box-seam" aria-hidden="true"></i>{{ t('play.makePackages') || 'Packages for the public' }}</h2>
+          <p class="text-body-secondary mb-2">{{ t('play.packagesHelp.note') || 'You can put pictures together in packages that others get for free or buy.' }}</p>
+          <a class="btn btn-sm btn-outline-primary align-self-start" routerLink="/play/mine/packages">{{ t('play.packagesHelp.toMine') || 'To my packages' }} <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
+      }
     } @else if (!ready()) {
       <!-- the accounts are being read: nothing to choose from yet (the form of a new account must not show for a moment first) -->
       <div class="text-body-secondary" role="status">{{ t('play.account.lookingUsers') || 'Looking for the accounts…' }}</div>

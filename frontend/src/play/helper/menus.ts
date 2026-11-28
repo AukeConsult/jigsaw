@@ -41,7 +41,7 @@ export interface MenuMay {
 }
 
 // **A menu is kept small**: it takes room from the page, so it has what is used where it is shown, six entries or so besides the name of the app. What is chosen once (the language, what the home page shows) is a preference. **The
-// last entry of every menu is Help** (the info pages have their own menu, of their pages), **or the second last, where the account follows it** (it is always the very last where a menu has it). Adding a picture and taking a photo are only in the user's own menu (`mineMenu`), before Help.
+// last entry of every menu is Help** (the info pages have their own menu, of their pages), **or the second last, where the account follows it** (the user's own menu). Adding a picture and taking a photo are only in that menu (`mineMenu`), before Help.
 
 /** The first entry of every menu: the name of the app, "Karins jigsaw" with the logo, and it goes home (`/`, the list). So the name is on every page, inside the helper. */
 const BRAND: PlayMenuItem = { icon: 'bi-house', route: '/', brand: true };
@@ -82,28 +82,28 @@ const PREFERENCES: PlayMenuItem = { icon: 'bi-palette', route: '/play/account/pr
 /** On the home page Preferences opens a panel over the page with the choices of that page (`play-home-panel`), which leads on to all of them. */
 const HOME_PREFERENCES: PlayMenuItem = { icon: 'bi-palette', toggle: 'homePrefs', key: 'play.preferences', english: 'Preferences' };
 
-/** The entry to the account page, by the alias of the account that plays (several accounts can have the same name). **Where a menu has it, it is always the very last.** */
+/** The entry to the account page, by the alias of the account that plays (several accounts can have the same name): **in the user's own menu only** (`mineMenu`), where it is the very last. */
 const accountEntry = (user: { readonly username: string }): PlayMenuItem => ({ icon: 'bi-person-circle', route: '/play/account', text: user.username });
 
-/** The entries of the page menu for a user who is logged on, at its start: the brand (home), the user's own pages, the filter of the list and the packages. */
-const pageEntries: readonly PlayMenuItem[] = [BRAND, MY_STUFF, FILTER, PACKAGES];
+/** The entries of the page menu for a user who is logged on, at its start: the brand (home), the packages, the user's own pages and the filter of the list. */
+const pageEntries: readonly PlayMenuItem[] = [BRAND, PACKAGES, MY_STUFF, FILTER];
 
 /** The entries of the pages outside `/play/mine` at the start of their menu: the page entries, or for nobody the brand, the packages and "Logon". */
 const pageStart = (user: { readonly username: string } | null): readonly PlayMenuItem[] => (user ? pageEntries : [BRAND, PACKAGES, LOGON]);
 
-/** The end of the page menus, **the preferences always just above Help**: the preferences and Help, and for a user the account last. (The ways to a new picture are not here: they are among the user's own pages, My stuff.) */
-const pageEnd = (user: { readonly username: string } | null): readonly PlayMenuItem[] => [PREFERENCES, HELP, ...(user ? [accountEntry(user)] : [])];
+/** The end of the page menus, **the preferences always just above Help**: the preferences and Help. (The account and the ways to a new picture are not here: they are among the user's own pages, My stuff.) */
+const pageEnd: readonly PlayMenuItem[] = [PREFERENCES, HELP];
 
 /** The menu of the pages outside `/play/mine` (the list, the filter). */
-export const pageMenu: PlayMenu = (user) => [...pageStart(user), ...pageEnd(user)];
+export const pageMenu: PlayMenu = (user) => [...pageStart(user), ...pageEnd];
 
-/** The menu of the pages of the packages (all of them, and one): the way home (the brand), the user's own pages, where their packages are too, and the packages; for nobody the way home, the packages and "Logon" (a package is got by an account). */
-export const packagesMenu: PlayMenu = (user) => (user ? [BRAND, MY_STUFF, PACKAGES, HELP] : [BRAND, PACKAGES, LOGON, HELP]);
+/** The menu of the pages of the packages (all of them, and one): the way home (the brand), the packages and the user's own pages, where their packages are too; for nobody the way home, the packages and "Logon" (a package is got by an account). */
+export const packagesMenu: PlayMenu = (user) => (user ? [BRAND, PACKAGES, MY_STUFF, HELP] : [BRAND, PACKAGES, LOGON, HELP]);
 
 /** The menu of the home page (the list): the page menu (but its Preferences is the panel of the page), and for a user the switch My favorites after the filter (shown only while there are favorites); for nobody the language, before the preferences. */
 export const listMenu: PlayMenu = (user) => {
   const entries = pageStart(user);
-  const end = pageEnd(user).map((entry) => (entry === PREFERENCES ? HOME_PREFERENCES : entry));
+  const end = pageEnd.map((entry) => (entry === PREFERENCES ? HOME_PREFERENCES : entry));
   if (!user) return [...entries, LANGUAGE, ...end];
   const at = entries.indexOf(FILTER) + 1;
   return [...entries.slice(0, at), { icon: 'bi-heart', toggle: 'favorites', key: 'play.myFavorites', english: 'My favorites' }, ...entries.slice(at), ...end];
@@ -168,7 +168,7 @@ export const publishMenu: PlayMenu = (user) =>
     ? [
         BRAND,
         MY_STUFF,
-        { icon: 'bi-box-seam', route: '/play/mine/packages', key: 'play.makePackages', english: 'My packages' },
+        { icon: 'bi-box-seam', route: '/play/mine/packages', key: 'play.makePackages', english: 'Packages for the public' },
         { icon: 'bi-collection', route: '/play/mine/many', key: 'play.manyPictures', english: 'Many pictures' },
         { icon: 'bi-card-text', route: '/play/mine/info', key: 'play.feedInfo', english: 'Information' },
         { icon: 'bi-tag', route: '/play/mine/offers', key: 'play.feedOffers', english: 'Offers' },

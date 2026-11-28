@@ -1,4 +1,15 @@
 {
+  "packagesHelp": {
+    "lead": "Een pakket is een verzameling afbeeldingen die anderen gratis kunnen krijgen of kopen.",
+    "how": "Zo doe je het",
+    "add": "Druk op Toevoegen: geef het pakket een titel, kies gratis of een prijs en sla op.",
+    "pictures": "Druk op Afbeeldingen: upload de afbeeldingen die erin horen.",
+    "public": "Druk op Bewerken en zet het pakket op Openbaar. Een nieuw pakket is privé, dus alleen jij ziet het.",
+    "others": "Anderen vinden het onder Pakketten en drukken op Aan mijn afbeeldingen toevoegen of Kopen. Dan kunnen ze de afbeeldingen puzzelen.",
+    "rights": "Gebruik alleen afbeeldingen die je mag delen en verkopen.",
+    "note": "Je kunt afbeeldingen samenbrengen in pakketten die anderen gratis krijgen of kopen.",
+    "toMine": "Naar mijn pakketten"
+  },
   "logon": "Inloggen",
   "pictures": "Afbeeldingen",
   "addPicture": "Afbeelding toevoegen",
@@ -96,7 +107,7 @@
   "admin": "Beheer",
   "manyPictures": "Veel afbeeldingen",
   "noPictures": "Je hebt nog geen afbeeldingen.",
-  "makePackages": "Mijn pakketten",
+  "makePackages": "Pakketten voor het publiek",
   "infoWelcome": "Welkom",
   "infoHelp": "Help",
   "infoAbout": "Over",
@@ -162,7 +173,7 @@
     "byAi": "door de AI",
     "stale": "verouderd",
     "missing": "ontbreekt",
-    "packagesTitle": "Pakketten op de startpagina",
+    "packagesTitle": "Pakketten die je voor het publiek maakt",
     "packageOne": "Pakket",
     "free": "Gratis",
     "freeLabel": "Gratis",

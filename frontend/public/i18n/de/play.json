@@ -1,4 +1,15 @@
 {
+  "packagesHelp": {
+    "lead": "Ein Paket ist eine Sammlung von Bildern, die andere kostenlos bekommen oder kaufen können.",
+    "how": "So geht es",
+    "add": "Drücke Hinzufügen: gib dem Paket einen Titel, wähle kostenlos oder einen Preis und speichere.",
+    "pictures": "Drücke Bilder: lade die Bilder hoch, die dazugehören.",
+    "public": "Drücke Bearbeiten und stelle das Paket auf Öffentlich. Ein neues Paket ist privat, nur du siehst es.",
+    "others": "Andere finden es unter Pakete und drücken Zu meinen Bildern hinzufügen oder Kaufen. Dann können sie die Bilder puzzeln.",
+    "rights": "Verwende nur Bilder, die du teilen und verkaufen darfst.",
+    "note": "Du kannst Bilder zu Paketen zusammenstellen, die andere kostenlos bekommen oder kaufen.",
+    "toMine": "Zu meinen Paketen"
+  },
   "logon": "Anmelden",
   "pictures": "Bilder",
   "addPicture": "Bild hinzufügen",
@@ -96,7 +107,7 @@
   "admin": "Admin",
   "manyPictures": "Viele Bilder",
   "noPictures": "Du hast noch keine Bilder.",
-  "makePackages": "Meine Pakete",
+  "makePackages": "Pakete für die Öffentlichkeit",
   "infoWelcome": "Willkommen",
   "infoHelp": "Hilfe",
   "infoAbout": "Über",
@@ -162,7 +173,7 @@
     "byAi": "von der KI",
     "stale": "veraltet",
     "missing": "fehlt",
-    "packagesTitle": "Pakete auf der Startseite",
+    "packagesTitle": "Pakete, die du für die Öffentlichkeit machst",
     "packageOne": "Paket",
     "free": "Kostenlos",
     "freeLabel": "Kostenlos",

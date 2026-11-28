@@ -1,4 +1,15 @@
 {
+  "packagesHelp": {
+    "lead": "Un pack est une collection d’images que les autres peuvent obtenir gratuitement ou acheter.",
+    "how": "Comment faire",
+    "add": "Appuyez sur Ajouter : donnez un titre au pack, choisissez gratuit ou un prix, puis enregistrez.",
+    "pictures": "Appuyez sur Images : envoyez les images qui en font partie.",
+    "public": "Appuyez sur Modifier et mettez le pack en Public. Un nouveau pack est privé : vous seul le voyez.",
+    "others": "Les autres le trouvent sous Packs et appuient sur Ajouter à mes images ou Acheter. Ils peuvent alors faire les puzzles de ses images.",
+    "rights": "N’utilisez que des images que vous avez le droit de partager et de vendre.",
+    "note": "Vous pouvez réunir des images dans des packs que les autres obtiennent gratuitement ou achètent.",
+    "toMine": "Vers mes packs"
+  },
   "logon": "Se connecter",
   "pictures": "Images",
   "addPicture": "Ajouter une image",
@@ -96,7 +107,7 @@
   "admin": "Admin",
   "manyPictures": "Beaucoup d'images",
   "noPictures": "Tu n'as pas encore d'images.",
-  "makePackages": "Mes packs",
+  "makePackages": "Packs pour le public",
   "infoWelcome": "Bienvenue",
   "infoHelp": "Aide",
   "infoAbout": "À propos",
@@ -162,7 +173,7 @@
     "byAi": "par l'IA",
     "stale": "obsolète",
     "missing": "manquant",
-    "packagesTitle": "Paquets sur la page d'accueil",
+    "packagesTitle": "Les packs que vous faites pour le public",
     "packageOne": "Paquet",
     "free": "Gratuit",
     "freeLabel": "Gratuit",

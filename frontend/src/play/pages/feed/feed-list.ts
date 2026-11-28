@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, signal, untracked } from '@angular
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { LanguageService } from '../../../app/core/language.service';
-import { preferenceSignal } from '../../../app/core/preferences';
+import { isBoolean, preferenceSignal } from '../../../app/core/preferences';
 import { FeedAdminKind, FeedAdminService } from '../../../app/jigsaw/feed-admin.service';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { JigsawService } from '../../../app/jigsaw/jigsaw.service';
@@ -38,6 +38,8 @@ export class PlayFeedList {
   /** what was typed and the status that was chosen, kept on the device for each kind (rule 12 of `CLAUDE.md`) */
   protected readonly search = preferenceSignal(`play.feedText.${this.kind}`, '', (v): v is string => typeof v === 'string');
   protected readonly status = preferenceSignal<string>(`play.feedStatus.${this.kind}`, '', (v): v is string => STATUSES.some((s) => s === v));
+  /** the list of the packages says how packages work, until the person closes it; kept on the device, and brought back by its heading */
+  protected readonly help = preferenceSignal('play.packagesHelp', true, isBoolean);
   protected readonly items = signal<FeedItemData[] | null>(null);
   private readonly now = signal(Date.now());
   protected readonly failed = signal(false);

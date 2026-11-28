@@ -1,4 +1,15 @@
 {
+  "packagesHelp": {
+    "lead": "A package is a collection of pictures that others can get for free or buy.",
+    "how": "How to do it",
+    "add": "Press Add: give the package a title, choose free or a price, and save.",
+    "pictures": "Press Pictures: upload the pictures that go in it.",
+    "public": "Press Edit and set the package to Public. A new package is private, so only you see it.",
+    "others": "Others find it under Packages and press Add to my pictures or Buy. Then they can do the puzzles of its pictures.",
+    "rights": "Use only pictures you have the right to share and sell.",
+    "note": "You can put pictures together in packages that others get for free or buy.",
+    "toMine": "To my packages"
+  },
   "logon": "Logon",
   "pictures": "Pictures",
   "addPicture": "Add picture",
@@ -96,7 +107,7 @@
   "admin": "Admin",
   "manyPictures": "Many pictures",
   "noPictures": "You have no pictures yet.",
-  "makePackages": "My packages",
+  "makePackages": "Packages for the public",
   "infoWelcome": "Welcome",
   "infoHelp": "Help",
   "infoAbout": "About",
@@ -162,7 +173,7 @@
     "byAi": "by the AI",
     "stale": "out of date",
     "missing": "missing",
-    "packagesTitle": "Packages on the home page",
+    "packagesTitle": "Packages you make for the public",
     "packageOne": "Package",
     "free": "Free",
     "freeLabel": "Free of charge",

@@ -1,6 +1,25 @@
 <main class="container-fluid page-margin page-max" *transloco="let t">
-  <h1 class="page-title mb-1"><i class="bi me-2" [class]="icon" aria-hidden="true"></i>{{ kind === 'info' ? (t('play.feed.infoTitle') || 'Information on the home page') : kind === 'offer' ? (t('play.feed.offersTitle') || 'Offers on the home page') : (t('play.feed.packagesTitle') || 'Packages on the home page') }}</h1>
-  <p class="text-body-secondary">{{ t('play.feed.intro') || 'You write in one language and the AI translates the others when you save. A tile is shown from the day you say until the day it expires.' }}</p>
+  <h1 class="page-title mb-1"><i class="bi me-2" [class]="icon" aria-hidden="true"></i>{{ kind === 'info' ? (t('play.feed.infoTitle') || 'Information on the home page') : kind === 'offer' ? (t('play.feed.offersTitle') || 'Offers on the home page') : (t('play.feed.packagesTitle') || 'Packages you make for the public') }}</h1>
+  @if (kind === 'package' && help()) {
+    <!-- what a package is and how one reaches other people, said here, where they are made; the person can close it -->
+    <div class="card card-body mb-3">
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-2" [title]="t('play.close') || 'Close'" [attr.aria-label]="t('play.close') || 'Close'" (click)="help.set(false)"></button>
+      <p class="mb-2 pe-4">{{ t('play.packagesHelp.lead') || 'A package is a collection of pictures that others can get for free or buy.' }}</p>
+      <h2 class="h6">{{ t('play.packagesHelp.how') || 'How to do it' }}</h2>
+      <ol class="mb-2">
+        <li>{{ t('play.packagesHelp.add') || 'Press Add: give the package a title, choose free or a price, and save.' }}</li>
+        <li>{{ t('play.packagesHelp.pictures') || 'Press Pictures: upload the pictures that go in it.' }}</li>
+        <li>{{ t('play.packagesHelp.public') || 'Press Edit and set the package to Public. A new package is private, so only you see it.' }}</li>
+        <li>{{ t('play.packagesHelp.others') || 'Others find it under Packages and press Add to my pictures or Buy. Then they can do the puzzles of its pictures.' }}</li>
+      </ol>
+      <div class="alert alert-warning py-2 small mb-2">{{ t('play.feed.noPayment') || 'Payment is not set up yet: nothing is charged.' }} {{ t('play.packagesHelp.rights') || 'Use only pictures you have the right to share and sell.' }}</div>
+      <p class="small text-body-secondary mb-0">{{ t('play.feed.intro') || 'You write in one language and the AI translates the others when you save. It is shown from the day you say until the day it expires.' }}</p>
+    </div>
+  } @else if (kind === 'package') {
+    <button type="button" class="link-action mb-2" (click)="help.set(true)"><i class="bi bi-question-circle" aria-hidden="true"></i>{{ t('play.packagesHelp.how') || 'How to do it' }}</button>
+  } @else {
+    <p class="text-body-secondary">{{ t('play.feed.intro') || 'You write in one language and the AI translates the others when you save. A tile is shown from the day you say until the day it expires.' }}</p>
+  }
 
   <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <input type="search" class="form-control feed-search" [value]="search()" (input)="search.set($any($event.target).value)" [attr.aria-label]="t('play.feed.search') || 'Search'" [placeholder]="t('play.feed.search') || 'Search'">

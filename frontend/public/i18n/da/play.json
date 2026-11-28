@@ -1,4 +1,15 @@
 {
+  "packagesHelp": {
+    "lead": "En pakke er en samling billeder, som andre kan få gratis eller købe.",
+    "how": "Sådan gør du",
+    "add": "Tryk på Tilføj: giv pakken en titel, vælg gratis eller en pris, og gem.",
+    "pictures": "Tryk på Billeder: upload de billeder, der skal med.",
+    "public": "Tryk på Ret og sæt pakken til Offentlig. En ny pakke er privat, så kun du ser den.",
+    "others": "Andre finder den under Pakker og trykker på Føj til mine billeder eller Køb. Så kan de samle puslespil af billederne.",
+    "rights": "Brug kun billeder, du har ret til at dele og sælge.",
+    "note": "Du kan samle billeder i pakker, som andre får gratis eller køber.",
+    "toMine": "Til mine pakker"
+  },
   "logon": "Log ind",
   "pictures": "Billeder",
   "addPicture": "Tilføj billede",
@@ -96,7 +107,7 @@
   "admin": "Admin",
   "manyPictures": "Mange billeder",
   "noPictures": "Du har ingen billeder endnu.",
-  "makePackages": "Mine pakker",
+  "makePackages": "Pakker til offentligheden",
   "infoWelcome": "Velkommen",
   "infoHelp": "Hjælp",
   "infoAbout": "Om",
@@ -162,7 +173,7 @@
     "byAi": "af AI'en",
     "stale": "forældet",
     "missing": "mangler",
-    "packagesTitle": "Pakker på forsiden",
+    "packagesTitle": "Pakker du laver til offentligheden",
     "packageOne": "Pakke",
     "free": "Gratis",
     "freeLabel": "Gratis",

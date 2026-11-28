@@ -1,4 +1,15 @@
 {
+  "packagesHelp": {
+    "lead": "Paketti on kokoelma kuvia, jonka muut voivat saada ilmaiseksi tai ostaa.",
+    "how": "Näin teet sen",
+    "add": "Paina Lisää: anna paketille otsikko, valitse ilmainen tai hinta ja tallenna.",
+    "pictures": "Paina Kuvat: lataa pakettiin tulevat kuvat.",
+    "public": "Paina Muokkaa ja aseta paketti julkiseksi. Uusi paketti on yksityinen, joten vain sinä näet sen.",
+    "others": "Muut löytävät sen kohdasta Paketit ja painavat Lisää omiin kuviini tai Osta. Sitten he voivat koota kuvista palapelejä.",
+    "rights": "Käytä vain kuvia, joita sinulla on oikeus jakaa ja myydä.",
+    "note": "Voit koota kuvia paketeiksi, jotka muut saavat ilmaiseksi tai ostavat.",
+    "toMine": "Omiin paketteihini"
+  },
   "logon": "Kirjaudu sisään",
   "pictures": "Kuvat",
   "addPicture": "Lisää kuva",
@@ -96,7 +107,7 @@
   "admin": "Ylläpito",
   "manyPictures": "Monta kuvaa",
   "noPictures": "Sinulla ei ole vielä kuvia.",
-  "makePackages": "Omat paketit",
+  "makePackages": "Paketit yleisölle",
   "infoWelcome": "Tervetuloa",
   "infoHelp": "Ohje",
   "infoAbout": "Tietoa",
@@ -162,7 +173,7 @@
     "byAi": "tekoälyn tekemä",
     "stale": "vanhentunut",
     "missing": "puuttuu",
-    "packagesTitle": "Etusivun paketit",
+    "packagesTitle": "Yleisölle tekemäsi paketit",
     "packageOne": "Paketti",
     "free": "Ilmainen",
     "freeLabel": "Ilmainen",
