@@ -11,7 +11,7 @@ import { clockOf } from '../duration';
   imports: [RouterLink, DatePipe, TranslocoDirective],
   providers: [provideTranslocoScope('jigsawPage')],
   templateUrl: './round-row.html',
-  host: { class: 'list-group-item round-row', '[class.round-solved]': "game().status === 'solved'" },
+  host: { class: 'list-group-item round-row', '[class.round-solved]': "game().status === 'solved'", '[class.round-going]': "game().status !== 'solved'" },
 })
 export class RoundRow {
   readonly game = input.required<PlaySpec>();

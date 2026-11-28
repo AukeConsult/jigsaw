@@ -1,4 +1,7 @@
 {
+  "addDescription": "Lisää kuvaus",
+  "editName": "Muuta nimeä",
+  "editDescription": "Muuta kuvausta",
   "edit": "Muokkaa",
   "cancel": "Peruuta",
   "lookingRounds": "Etsitään kierroksiasi…",

@@ -1,4 +1,7 @@
 {
+  "addDescription": "Añadir una descripción",
+  "editName": "Cambiar el nombre",
+  "editDescription": "Cambiar la descripción",
   "edit": "Editar",
   "cancel": "Cancelar",
   "lookingRounds": "Buscando tus partidas…",

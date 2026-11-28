@@ -1,4 +1,7 @@
 {
+  "addDescription": "Lägg till en beskrivning",
+  "editName": "Ändra namnet",
+  "editDescription": "Ändra beskrivningen",
   "edit": "Ändra",
   "cancel": "Avbryt",
   "lookingRounds": "Letar efter dina omgångar…",

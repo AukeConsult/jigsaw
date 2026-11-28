@@ -1,4 +1,7 @@
 {
+  "addDescription": "Ajouter une description",
+  "editName": "Modifier le nom",
+  "editDescription": "Modifier la description",
   "edit": "Modifier",
   "cancel": "Annuler",
   "lookingRounds": "Recherche de tes parties…",

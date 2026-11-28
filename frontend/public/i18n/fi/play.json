@@ -59,6 +59,7 @@
     "optional": "(valinnainen)",
     "pictureRemove": "Poista",
     "pictureFailed": "Tiedostoa ei voitu käyttää kuvana.",
+    "bio": "Kuka olen",
     "language": "Kieli",
     "languageHelp": "Kieli, jolla sovellus näytetään sinulle, sekä kuviesi nimien ja kuvausten oletuskieli."
   },

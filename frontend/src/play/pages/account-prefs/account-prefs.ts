@@ -5,7 +5,8 @@ import { TranslocoDirective, provideTranslocoScope } from '@jsverse/transloco';
 import { JigsawUserService } from '../../../app/jigsaw/jigsaw-user.service';
 import { PlayLook } from '../../../app/jigsaw/play-look';
 import { PlayLookChoice } from '../../../app/jigsaw/play-look-choice/play-look-choice';
-import { LANGUAGES, LanguageService } from '../../../app/core/language.service';
+import { LanguageService } from '../../../app/core/language.service';
+import { LanguageField } from '../../../app/jigsaw/language-field/language-field';
 import { TextLook } from '../../../app/jigsaw/text-look';
 import { PictureEffects } from '../../../app/jigsaw/picture-effects';
 import { FONTS, TEXT_SIZES } from '../../../app/models/shared/text-look';
@@ -22,7 +23,7 @@ import { MENU_PLACES } from '../../../app/models/shared/menu-place';
  */
 @Component({
   selector: 'play-account-prefs',
-  imports: [TranslocoDirective, RouterLink, PlayLookChoice, PlayHomeChoices],
+  imports: [TranslocoDirective, RouterLink, PlayLookChoice, PlayHomeChoices, LanguageField],
   providers: [provideTranslocoScope('play')],
   host: { class: 'd-block' },
   template: `<main class="container-fluid page-margin page-max" *transloco="let t">
@@ -71,14 +72,7 @@ import { MENU_PLACES } from '../../../app/models/shared/menu-place';
             <!-- (the heading says it to the eye) -->
             <label class="visually-hidden" for="pref-language">{{ t('play.languageTitle') || 'Language' }}</label>
             <!-- the languages in a list, with the flag of the one in use beside it -->
-            <div class="input-group input-group-sm">
-              <span class="input-group-text"><img class="flag" [src]="'flags/' + language.lang() + '.svg'" alt="" width="24" height="16"></span>
-              <select id="pref-language" name="language" class="form-select" (change)="users.changeLanguage($any($event.target).value)">
-                @for (l of languages; track l.code) {
-                  <option [value]="l.code" [selected]="language.lang() === l.code">{{ l.name }}</option>
-                }
-              </select>
-            </div>
+            <app-language-field fieldId="pref-language" [value]="language.lang()" [compact]="true" (chosen)="users.changeLanguage($event)" />
           </div>
         </section>
       </div>
@@ -113,7 +107,6 @@ export class PlayAccountPrefs {
   protected readonly menu = inject(MenuSpot);
   protected readonly menuPlaces = MENU_PLACES;
   protected readonly language = inject(LanguageService);
-  protected readonly languages = LANGUAGES;
 
   private readonly router = inject(Router);
   private readonly location = inject(Location);

@@ -59,6 +59,7 @@
     "optional": "(optional)",
     "pictureRemove": "Remove",
     "pictureFailed": "That file could not be used as a picture.",
+    "bio": "Who am I",
     "language": "Language",
     "languageHelp": "The language the app is shown in for you, and the default language for the names and descriptions of your jigsaws."
   },

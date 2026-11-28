@@ -1,6 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import express from "express";
-import { JigsawIndex, JigsawSearch, JigsawSummary, JigsawTexts, JigsawVisibilities, SEARCH_MAX_READ, SUMMARY_FIELDS } from "../models";
+import { JigsawIndex, JigsawSearch, JigsawSummary, JigsawVisibilities, SEARCH_MAX_READ, SUMMARY_FIELDS } from "../models";
 import { apiRouter, askerOf, bad } from "../common/http";
 import { TtlCache } from "../common/ttl-cache";
 import { filterAsync } from "../common/filter-async";
@@ -97,8 +97,8 @@ export function jigsawSearchRouter(
     if (only !== undefined && only !== "" && only !== "everyone" && only !== "owner" && only !== "hidden" && only !== "recommended") return bad(res, "The visibility must be everyone, owner, hidden or recommended.");
     const own = (await store.load([me], SEARCH_MAX_READ)).filter((j) => j.ownerUid === me);
     const answer = JigsawSearch.mine(own, parsed.query, only === "everyone" || only === "owner" || only === "hidden" || only === "recommended" ? only : undefined);
-    // (without the descriptions, in any language: this list does not show them)
-    res.json({ ...answer, items: await Promise.all(answer.items.map(({ description: _description, translations, ...summary }) => keyed({ ...summary, ...(translations ? { translations: JigsawTexts.namesOnly(translations) } : {}) }))) });
+    // with the descriptions: this list shows them, and changes them where they are read (a list without them would offer to write one over the one there is)
+    res.json({ ...answer, items: await Promise.all(answer.items.map((summary) => keyed(summary))) });
   });
   // how many jigsaws there are for each choice of the filter, with the rest of it kept (what the Find page shows beside each tick)
   router.get("/facets", async (req, res) => {

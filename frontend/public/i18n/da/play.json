@@ -59,6 +59,7 @@
     "optional": "(valgfrit)",
     "pictureRemove": "Fjern",
     "pictureFailed": "Den fil kunne ikke bruges som billede.",
+    "bio": "Hvem er jeg",
     "language": "Sprog",
     "languageHelp": "Det sprog, appen vises på for dig, og standardsproget for navne og beskrivelser af dine billeder."
   },

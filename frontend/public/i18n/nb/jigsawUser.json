@@ -1,4 +1,7 @@
 {
+  "addDescription": "Legg til en beskrivelse",
+  "editName": "Endre navnet",
+  "editDescription": "Endre beskrivelsen",
   "edit": "Endre",
   "cancel": "Avbryt",
   "lookingRounds": "Leter etter rundene dine…",

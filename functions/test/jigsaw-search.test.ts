@@ -514,6 +514,14 @@ describe("the route of one user's jigsaws", () => {
     expect((await mineOf("")).status).toBe(401);
   });
 
+  it("gives the description, in every language it is kept in: the list shows it and changes it where it is read, so it must never seem to have none", async () => {
+    const said = [jigsaw("a", { ownerUid: "u1", description: "A cold morning", translations: { nb: { name: "Brygge", description: "En kald morgen" } } })];
+    const own = createJigsawApp({ viewKeySecret: TEST_KEY_SECRET, levels: PUBLISHER, jigsawSearch: store(said), plays: memoryPlays(), users: memoryUsers("u1") });
+    const [item] = (await request(own).get("/jigsaw/api/jigsaw-search/mine").set("X-Jigsaw-User", "u1")).body.items;
+    expect(item.description).toBe("A cold morning");
+    expect(item.translations.nb.description).toBe("En kald morgen");
+  });
+
   it("pages, sorts, looks for words and chooses who sees them; refuses what is not allowed", async () => {
     expect(ids((await mineOf("?visibility=hidden", "u1")).body.items)).toEqual(["b"]);
     const page = (await mineOf("?limit=2&page=2&sort=old", "u1")).body;

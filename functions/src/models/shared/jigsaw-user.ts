@@ -18,6 +18,8 @@ export const JIGSAW_USERS = 'jigsaw-users';
 export const USERNAME_MIN = 3;
 export const USERNAME_MAX = 30;
 export const USER_NAME_MAX = 60;
+/** The longest text a person writes about themselves ("Who am I"). */
+export const USER_BIO_MAX = 500;
 
 /** A user as the app has it. */
 export interface JigsawUserSpec {
@@ -27,6 +29,8 @@ export interface JigsawUserSpec {
   username: string;
   /** the name that is shown ("Karin") */
   name: string;
+  /** a few words the person writes about themselves ("Who am I"); open to whoever reads the account, like the name; none until something is written */
+  bio?: string;
   /** the language the app is shown in for the user (a code of `JIGSAW_LANGUAGES`; empty when the user has not chosen: the app is then in the language of the browser) */
   language: string;
   /** what the app's picture list is filtered by (the preferences of the app), kept with the user so it is the same on every device; none until the user has chosen something */
@@ -66,7 +70,7 @@ export interface JigsawUserSpec {
 }
 
 /** What a person chooses about their account (besides its picture): the fields of a change that are kept just as they are. A new setting is added here, and the compiler says where else. */
-export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'username' | 'language' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'tileDetails' | 'menuPlace' | 'showOngoing' | 'pictureEffects'>>;
+export type UserSettings = Partial<Pick<JigsawUserSpec, 'name' | 'bio' | 'username' | 'language' | 'listFilter' | 'playLook' | 'textLook' | 'tileSize' | 'tileDetails' | 'menuPlace' | 'showOngoing' | 'pictureEffects'>>;
 
 /** A change of an account as the page asks for it: the settings, and the picture (a data address; null takes it away). */
 export type UserEdit = UserSettings & { picture?: string | null };
@@ -149,6 +153,13 @@ export class JigsawUsers {
     return '';
   }
 
+  /** The reason a text about oneself is not allowed, or '' (empty takes it away). */
+  static bioError(value: unknown): string {
+    if (typeof value !== 'string') return 'Write about yourself in words.';
+    if (value.trim().length > USER_BIO_MAX) return `The text about you can be at most ${USER_BIO_MAX} characters.`;
+    return '';
+  }
+
   /** The reason a new user is not allowed, or ''. */
   static error(input: { username?: unknown; name?: unknown; language?: unknown } | null | undefined): string {
     return JigsawUsers.usernameError(input?.username) || JigsawUsers.nameError(input?.name) || JigsawLanguages.error(input?.language);
@@ -170,6 +181,11 @@ export class JigsawUsers {
       const error = JigsawUsers.nameError(body.name);
       if (error) return { error };
       change.name = (body.name as string).trim();
+    }
+    if (body.bio !== undefined) {
+      const error = JigsawUsers.bioError(body.bio);
+      if (error) return { error };
+      change.bio = (body.bio as string).trim();
     }
     if (body.username !== undefined) {
       const error = JigsawUsers.usernameError(body.username);
@@ -270,6 +286,6 @@ export class JigsawUsers {
   /** A user as it comes out of the database. A user that an earlier version made has its user name as the id of its document and no `username`: the id is read as the user name. */
   static fromStored(id: string, doc: Partial<JigsawUserSpec>): JigsawUserSpec {
     const username = doc.username ?? id;
-    return { id, username, name: doc.name ?? username, language: JigsawLanguages.is(doc.language) ? doc.language : '', ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(TileDetailLevels.of(doc.tileDetails) ? { tileDetails: TileDetailLevels.of(doc.tileDetails) } : {}), ...(MenuPlaces.is(doc.menuPlace) ? { menuPlace: doc.menuPlace } : {}), ...(typeof doc.showOngoing === 'boolean' ? { showOngoing: doc.showOngoing } : {}), ...(typeof doc.pictureEffects === 'boolean' ? { pictureEffects: doc.pictureEffects } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
+    return { id, username, name: doc.name ?? username, ...(typeof doc.bio === 'string' && doc.bio ? { bio: doc.bio } : {}), language: JigsawLanguages.is(doc.language) ? doc.language : '', ...(JigsawFilters.is(doc.listFilter) ? { listFilter: JigsawFilters.stored(doc.listFilter) } : {}), ...(PlayLooks.is(doc.playLook) ? { playLook: PlayLooks.stored(doc.playLook) } : {}), ...(TextLooks.is(doc.textLook) ? { textLook: TextLooks.stored(doc.textLook) } : {}), ...(PartSizes.is(doc.tileSize) ? { tileSize: doc.tileSize } : {}), ...(TileDetailLevels.of(doc.tileDetails) ? { tileDetails: TileDetailLevels.of(doc.tileDetails) } : {}), ...(MenuPlaces.is(doc.menuPlace) ? { menuPlace: doc.menuPlace } : {}), ...(typeof doc.showOngoing === 'boolean' ? { showOngoing: doc.showOngoing } : {}), ...(typeof doc.pictureEffects === 'boolean' ? { pictureEffects: doc.pictureEffects } : {}), createdAt: doc.createdAt ?? 0, ...(typeof doc.lastUsedAt === 'number' ? { lastUsedAt: doc.lastUsedAt } : {}), ...(typeof doc.pictureAt === 'number' ? { pictureAt: doc.pictureAt } : {}), ...(JigsawUsers.logonsOf(doc).length ? { firebaseUids: JigsawUsers.logonsOf(doc) } : {}), ...(UserLevels.stored(doc) !== 'user' ? { level: UserLevels.stored(doc) } : {}) };
   }
 }

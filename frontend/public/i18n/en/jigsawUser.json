@@ -1,4 +1,7 @@
 {
+  "addDescription": "Add a description",
+  "editName": "Change the name",
+  "editDescription": "Change the description",
   "edit": "Edit",
   "cancel": "Cancel",
   "lookingRounds": "Looking for your rounds…",

@@ -22,7 +22,7 @@
         @if (view() === 'list') {
           <ul class="list-group">
             @for (game of games(); track game.play.id) {
-              <li class="list-group-item round-row" [class.round-solved]="game.play.status === 'solved'">
+              <li class="list-group-item round-row" [class.round-solved]="game.play.status === 'solved'" [class.round-going]="game.play.status !== 'solved'">
                 <div class="round-body">
                   <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden round-thumb">
                     <ng-container *ngTemplateOutlet="thumb; context: { $implicit: game }" />
@@ -48,7 +48,7 @@
           <div class="row tile-grid row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-5 g-2 g-sm-3">
             @for (game of games(); track game.play.id) {
               <div class="col">
-                <div class="card own-card" [class.h-100]="cardInfo() === 'info'" [class.round-solved]="game.play.status === 'solved'">
+                <div class="card own-card" [class.h-100]="cardInfo() === 'info'" [class.round-solved]="game.play.status === 'solved'" [class.round-going]="game.play.status !== 'solved'">
                   <div [class.flex-grow-1]="cardInfo() === 'info'">
                     <div class="ratio ratio-4x3 bg-body-secondary overflow-hidden" [class.card-img-top]="cardInfo() === 'info'" [class.rounded]="cardInfo() === 'picture'">
                       <ng-container *ngTemplateOutlet="thumb; context: { $implicit: game }" />

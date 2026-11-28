@@ -10,10 +10,11 @@ import { pieceGrid } from '../../models/shared/jigsaw';
 import { JigsawKinds } from '../../models/shared/jigsaw-kind';
 import { JigsawCategories } from '../../models/shared/category';
 import { AccountLimits, RECOMMENDED_FULL, RECOMMENDED_PICTURES_MAX } from '../../models/shared/account-limits';
-import { JigsawInput, JigsawSettings, JigsawSpec, JigsawVisibility } from '../../models/shared/jigsaw-settings';
+import { JIGSAW_MAX_DESCRIPTION, JIGSAW_MAX_NAME, JigsawInput, JigsawSettings, JigsawSpec, JigsawVisibility } from '../../models/shared/jigsaw-settings';
 import { JigsawSummary, SearchSort } from '../../models/shared/jigsaw-search';
 import { TileShapes } from '../../models/shared/tile-shape';
 import { CategoryTags } from '../category-tags/category-tags';
+import { EditInPlace } from '../edit-in-place/edit-in-place';
 import { ImageOf, JigsawImageService } from '../jigsaw-image.service';
 import { JigsawUserService } from '../jigsaw-user.service';
 import { JigsawService } from '../jigsaw.service';
@@ -32,15 +33,18 @@ export type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number];
 
 /**
  * **The list of the jigsaws (pictures) the user made** (`/play/mine/pictures`): the words to find them by, the order, the filter (all, public, private, hidden, each with
- * how many), ticking some to change who sees them or delete them together, and a row or a card for each (the person chooses which), with who sees it chosen there, Recommended and Delete, a page at a time. What is chosen is kept on the device. A row opens the page of the picture (the same form as Add picture, to change it, with its rounds).
+ * how many), ticking some to change who sees them or delete them together, and a row or a card for each (the person chooses which), with who sees it chosen there, its name and description changed where they are read, Recommended and Delete, a page at a time. What is chosen is kept on the device. The picture of a row or a card opens the page of the picture (the same form as Add picture, to change it, with its rounds).
  */
 @Component({
   selector: 'app-my-jigsaws',
-  imports: [FormsModule, NgTemplateOutlet, RouterLink, TranslocoDirective, CategoryTags, ViewSwitch, ArrivingPicture],
+  imports: [FormsModule, NgTemplateOutlet, RouterLink, TranslocoDirective, CategoryTags, EditInPlace, ViewSwitch, ArrivingPicture],
   providers: [provideTranslocoScope('jigsawUser'), provideTranslocoScope('jigsawList'), provideTranslocoScope('jigsawLevels')],
   templateUrl: './my-jigsaws.html',
 })
 export class MyJigsaws {
+  protected readonly nameMax = JIGSAW_MAX_NAME;
+  protected readonly descriptionMax = JIGSAW_MAX_DESCRIPTION;
+
   /** the width of a picture's card for each unit of its picture's height */
   protected shapeOf(item: JigsawSummary): number {
     return TileShapes.of(item.width, item.height);
@@ -164,11 +168,33 @@ export class MyJigsaws {
     }
   }
 
+  /** The name or the description of one picture, changed where it is read (the words as written), saved at once and then translated, as the form of a picture does. */
+  protected async setWords(j: JigsawSummary, change: { name?: string; description?: string }): Promise<void> {
+    this.error.set('');
+    try {
+      const saved = await this.changed(j.id, change);
+      this.mine.update((all) => (all ?? []).map((x) => (x.id === j.id ? saved : x)));
+      void this.texts.saved(j.id);
+    } catch {
+      this.visRev.update((n) => n + 1); // drawn again: what is saved is what is shown
+      this.error.set(tr('jigsawUser.someNotChanged', 'Could not change {{ count }} of the jigsaws: try again.', { count: 1 }));
+    }
+  }
+
+  /** the changes are saved one after the other: each reads the whole jigsaw first, so two at once would lose one */
+  private saving: Promise<unknown> = Promise.resolve();
+
   /**
    * The whole jigsaw with this change, saved (the list has only what a list needs, and a save replaces the whole document, so the jigsaw is read first). What is given back is what the
    * list keeps: the jigsaw without its objects.
    */
-  private async changed(id: string, change: Partial<JigsawInput>): Promise<JigsawSummary> {
+  private changed(id: string, change: Partial<JigsawInput>): Promise<JigsawSummary> {
+    const next = this.saving.then(() => this.save(id, change));
+    this.saving = next.catch(() => undefined);
+    return next;
+  }
+
+  private async save(id: string, change: Partial<JigsawInput>): Promise<JigsawSummary> {
     const full = await this.jigsaws.get(id);
     if (!full) throw new Error('The jigsaw is not there.');
     const saved = await this.jigsaws.update(id, new JigsawSettings({ ...full, ...change }).stored());

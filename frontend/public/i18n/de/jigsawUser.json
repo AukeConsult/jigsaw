@@ -1,4 +1,7 @@
 {
+  "addDescription": "Beschreibung hinzufügen",
+  "editName": "Namen ändern",
+  "editDescription": "Beschreibung ändern",
   "edit": "Bearbeiten",
   "cancel": "Abbrechen",
   "lookingRounds": "Deine Runden werden gesucht…",

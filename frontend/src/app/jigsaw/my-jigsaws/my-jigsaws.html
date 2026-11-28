@@ -99,21 +99,22 @@
                   <label class="select-area z-2">
                     <ng-container *ngTemplateOutlet="tick; context: { $implicit: item }" />
                   </label>
-                  <!-- the picture and the name with what it is. A press anywhere on the row opens the page of the picture (the link of the name covers the row); the box, the choices and the actions lie over it -->
+                  <!-- the picture and the name with what it is. A press on the picture opens its page; the name and the description are changed where they are read -->
                   <div class="round-open">
                     <div class="round-thumb position-relative">
                       <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden">
                         <ng-container *ngTemplateOutlet="thumb; context: { $implicit: item }" />
                       </div>
                       <ng-container *ngTemplateOutlet="mark; context: { $implicit: item }" />
+                      <a class="stretched-link" [routerLink]="link(item)" [title]="texts.of(item).name" [attr.aria-label]="texts.of(item).name"></a>
                     </div>
                     <div class="round-info">
-                      <a class="text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ texts.of(item).name }}</a>
+                      <ng-container *ngTemplateOutlet="name; context: { $implicit: item, textClass: 'text-name' }" />
                       <ng-container *ngTemplateOutlet="about; context: { $implicit: item }" />
                     </div>
                   </div>
                   <!-- who sees it, chosen here (it is saved at once) -->
-                  <div class="round-visibility d-flex flex-nowrap column-gap-2 column-gap-md-4" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
+                  <div class="round-visibility tiny who-choice d-flex flex-nowrap column-gap-2 column-gap-md-4" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
                     <ng-container *ngTemplateOutlet="who; context: { $implicit: item }" />
                   </div>
                   <div class="round-actions" [class.confirming]="confirmingJigsawId() === item.id">
@@ -135,17 +136,20 @@
             @for (item of shownJigsaws(); track item.id + ':' + visRev()) {
               <div [style.--app-tile-shape]="shapeOf(item)">
                 <div class="card own-card" [class.h-100]="cardInfo() === 'info'" [class.row-selected]="selected().has(item.id)" [class.vis-hidden]="item.visibility === 'hidden'" [class.vis-private]="item.visibility === 'owner'" [class.vis-public]="!item.visibility || item.visibility === 'everyone'">
-                  <!-- a press anywhere on the card opens the page of the picture (one link covers the card); the box, the buttons and the choices lie over it -->
+                  <!-- a press on the picture opens its page (on a card with only the picture, anywhere on it); the name and the description are changed where they are read -->
                   <div [class.flex-grow-1]="cardInfo() === 'info'">
                     <div class="position-relative">
                       <div class="tile-picture ratio ratio-4x3 bg-body-secondary overflow-hidden" [class.card-img-top]="cardInfo() === 'info'" [class.rounded]="cardInfo() === 'picture'">
                         <ng-container *ngTemplateOutlet="thumb; context: { $implicit: item }" />
                       </div>
                       <ng-container *ngTemplateOutlet="mark; context: { $implicit: item }" />
+                      @if (cardInfo() === 'info') {
+                        <a class="stretched-link" [routerLink]="link(item)" [title]="texts.of(item).name" [attr.aria-label]="texts.of(item).name"></a>
+                      }
                     </div>
                     @if (cardInfo() === 'info') {
                       <div class="p-2 pb-0 text-break">
-                        <a class="d-block card-name text-name text-decoration-none stretched-link" [routerLink]="link(item)">{{ texts.of(item).name }}</a>
+                        <ng-container *ngTemplateOutlet="name; context: { $implicit: item, textClass: 'card-name text-name' }" />
                         <ng-container *ngTemplateOutlet="about; context: { $implicit: item }" />
                       </div>
                     } @else {
@@ -160,7 +164,8 @@
                     </div>
                   </div>
                   @if (cardInfo() === 'info') {
-                    <div class="d-flex flex-wrap column-gap-2 p-2" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
+                    <!-- small, the choices side by side; on a tile too narrow for the words only their icons are shown, so the row never breaks differently from tile to tile -->
+                    <div class="d-flex flex-wrap column-gap-1 tiny who-choice who-tile p-2" role="radiogroup" [attr.aria-label]="t('jigsawUser.filterVisibility') || 'Who sees it'">
                       <ng-container *ngTemplateOutlet="who; context: { $implicit: item }" />
                     </div>
                   }
@@ -201,7 +206,11 @@
       }
     }
   </ng-template>
-  <!-- pieces, difficulty and the categories the picture is in -->
+  <!-- the name, changed where it is read -->
+  <ng-template #name let-item let-textClass="textClass">
+    <app-edit-in-place [textClass]="textClass" [required]="true" [maxlength]="nameMax" [value]="item.name" [shown]="texts.of(item).name" [label]="t('jigsawUser.editName') || 'Change the name'" (changed)="setWords(item, { name: $event })" />
+  </ng-template>
+  <!-- pieces, difficulty, the description (a few lines of it, changed where it is read) and the categories the picture is in -->
   <ng-template #about let-item>
     <div class="tiny text-body-secondary d-flex flex-wrap column-gap-2">
       @if (isPicture(item)) {
@@ -214,6 +223,8 @@
         <span class="text-nowrap" [title]="t('jigsawList.motive') || 'Motive difficulty'"><i class="bi bi-bullseye me-1" aria-hidden="true"></i>{{ t('jigsawLevels.motive.' + item.motive) || item.motive }}</span>
       }
     </div>
+    <app-edit-in-place textClass="tile-description text-body-secondary tiny mt-1" [multiline]="true" [maxlength]="descriptionMax" [value]="item.description ?? ''" [shown]="texts.of(item).description ?? ''"
+                       [placeholder]="t('jigsawUser.addDescription') || 'Add a description'" [label]="t('jigsawUser.editDescription') || 'Change the description'" (changed)="setWords(item, { description: $event })" />
     @if (item.categories?.length) {
       <app-category-tags [keys]="item.categories" />
     }
@@ -224,7 +235,7 @@
       @if (v.value !== 'everyone' || users.mayPublish() || (item.visibility ?? 'everyone') === 'everyone') {
         <div class="form-check mb-0 text-nowrap position-relative z-2">
           <input class="form-check-input" type="radio" [id]="'vis-' + item.id + '-' + v.value" [name]="'vis-' + item.id" [checked]="(item.visibility ?? 'everyone') === v.value" [disabled]="changingVisibilityId() === item.id" (change)="setVisibility(item, v.value)">
-          <label class="form-check-label" [for]="'vis-' + item.id + '-' + v.value"><i class="bi me-1" [class]="v.icon" aria-hidden="true"></i>{{ t(v.label) || v.english }}</label>
+          <label class="form-check-label" [for]="'vis-' + item.id + '-' + v.value" [title]="t(v.label) || v.english"><i class="bi me-1" [class]="v.icon" aria-hidden="true"></i><span class="who-word">{{ t(v.label) || v.english }}</span></label>
         </div>
       }
     }

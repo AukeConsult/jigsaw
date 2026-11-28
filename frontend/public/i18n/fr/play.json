@@ -59,6 +59,7 @@
     "optional": "(facultatif)",
     "pictureRemove": "Retirer",
     "pictureFailed": "Ce fichier n'a pas pu être utilisé comme image.",
+    "bio": "Qui suis-je",
     "language": "Langue",
     "languageHelp": "La langue dans laquelle l'application s'affiche pour toi, et la langue par défaut des noms et des descriptions de tes images."
   },

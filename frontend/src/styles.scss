@@ -408,10 +408,80 @@ textarea { // (a button and a field do not take the spacing of the page by thems
     }
   }
 
-  // one line of whole labels: a label that does not fit wraps to a line that is not shown (a label is 1.55 of these em high)
+  // one line of whole labels: a label that does not fit wraps to a line that is not shown (a label is 1.55 of these em high). The lines are far apart, so nothing of the next one peeks out, whatever the letters.
   app-category-tags > span {
     max-height: 1.65em;
     overflow: hidden;
+    row-gap: 1.5em !important;
+  }
+
+}
+
+// words that are changed where they are read (`app-edit-in-place`): a dashed line round them says so under the pointer; none yet is said faintly
+.edit-in-place {
+  cursor: text;
+  border-radius: var(--bs-border-radius-sm);
+
+  &:hover,
+  &:focus-visible {
+    outline: 1px dashed var(--bs-secondary-color);
+  }
+
+  &.is-empty {
+    font-style: italic;
+    opacity: 0.7;
+  }
+}
+
+// My pictures: the name is smaller than on the other tiles and rows, so there is room for the description under it
+.own-cards .card-name {
+  font-size: calc(var(--app-font-size) * 0.75);
+}
+
+.admin-row .text-name {
+  font-size: var(--app-fs-small);
+}
+
+// who sees a picture of one's own, chosen on its tile or its row: small words in the standard letters, whatever family the person has chosen for the text, and lines as high as they are
+.who-choice {
+  .form-check {
+    min-height: 0;
+  }
+
+  .form-check-label {
+    font-family: var(--app-font-standard);
+    font-size: var(--app-fs-tiny);
+  }
+}
+
+// on a tile too narrow for the words, only the icons of the choices are shown (the words stay for a screen reader, and as the tooltip)
+.who-tile {
+  container-type: inline-size;
+}
+
+@container (max-width: 14.4rem) {
+  .who-tile {
+    .who-word {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    // closer together, so the three icons stay on one line on the narrowest tile
+    .form-check {
+      padding-left: 1.25em;
+
+      .form-check-input {
+        margin-left: -1.25em;
+      }
+    }
+
+    .bi {
+      margin-right: 0 !important;
+    }
   }
 }
 
@@ -462,7 +532,7 @@ $tiles-pressed: '.tile-grid play-card > .card', '.tile-grid .feed-pressable', '.
         @media (hover: hover) {
           &:hover {
             transform: translateY(-0.3125rem);
-            box-shadow: var(--bs-box-shadow);
+            box-shadow: var(--app-lifted-shadow);
 
             .ratio > img {
               transform: scale(1.08);
@@ -474,7 +544,7 @@ $tiles-pressed: '.tile-grid play-card > .card', '.tile-grid .feed-pressable', '.
 
     // a ticked card of the user's own keeps its ring while it is lifted
     .tile-grid .own-card.row-selected:hover {
-      box-shadow: 0 0 0 0.1875rem var(--app-primary), var(--bs-box-shadow);
+      box-shadow: 0 0 0 0.1875rem var(--app-primary), var(--app-lifted-shadow);
     }
 
     img.arriving {
@@ -1009,12 +1079,12 @@ small,
     }
   }
 
-  // across the top or the bottom every entry is its icon with its word under it, so a row of icons is never a riddle: an entry is as wide as what is in it, so its words stay on one line while there is room and the bar
-  // is low (a long one takes two lines at most when there is little)
+  // across the top or the bottom every entry is its icon with its word under it, so a row of icons is never a riddle: **an entry's tile is as wide as its words**, and the tiles follow each other from the left, so words
+  // stay on one line while there is room and the bar is low (a long one takes two lines at most when there is little)
   &.docked-top,
   &.docked-bottom {
     .play-bar {
-      --bs-nav-link-padding-x: 0.25em;
+      --bs-nav-link-padding-x: 0.6em;
       column-gap: 0.375rem !important;
       flex-wrap: nowrap;
       align-items: stretch !important;
@@ -1067,11 +1137,6 @@ small,
     &.docked-bottom {
       .play-bar {
         flex-wrap: wrap;
-
-        // each entry asks for no more than its longest word, so a line holds as many as can be read
-        > :not(.brand-lockup, .play-grip) {
-          flex-basis: 0;
-        }
       }
 
       app-home > a {
@@ -1871,9 +1936,16 @@ details[open] > summary .open-word > .when-open {
 }
 
 /* a round button over the middle of the side of a row of cards that scrolls */
-// every white area (a card), on every page, is slightly raised off the page
-.card {
-  box-shadow: 0 0.1875rem 0.625rem color-mix(in srgb, var(--bs-black) 20%, transparent);
+// every tile and white area (a card), and every list, on every page, is slightly raised off the page
+:root {
+  --app-raised-shadow: 0 0.125rem 0.25rem color-mix(in srgb, var(--bs-black) 24%, transparent), 0 0.25rem 0.875rem color-mix(in srgb, var(--bs-black) 20%, transparent);
+  // a tile that is lifted (the pointer rests on it)
+  --app-lifted-shadow: 0 0.25rem 0.5rem color-mix(in srgb, var(--bs-black) 24%, transparent), 0 0.625rem 1.5rem color-mix(in srgb, var(--bs-black) 24%, transparent);
+}
+
+.card,
+play-main .list-group {
+  box-shadow: var(--app-raised-shadow);
 }
 
 .card-row-button {
@@ -2067,6 +2139,18 @@ details[open] > summary .open-word > .when-open {
   cursor: pointer;
 }
 
+// a round's row or card tells by its border whether the round is solved (green) or still open (amber)
+.round-row,
+.own-card {
+  &.round-solved {
+    border: 0.125rem solid var(--bs-success);
+  }
+
+  &.round-going {
+    border: 0.125rem solid var(--bs-warning);
+  }
+}
+
 // who sees a jigsaw of the user's own is told by the colour of its row, or of its card (`.own-card`, below)
 .list-group-item {
   &.vis-hidden {
@@ -2204,7 +2288,7 @@ details[open] > summary .open-word > .when-open {
 }
 
 .admin-row .round-open {
-  // the picture and the name with what it is (the `stretched-link` of the name covers the whole row, so this is not positioned)
+  // the picture and the name with what it is
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;

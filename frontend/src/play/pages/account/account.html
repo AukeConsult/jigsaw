@@ -22,7 +22,9 @@
       @if (edit.editing()) {
         <form class="vstack gap-2" (submit)="$event.preventDefault()">
           <h2 class="d-flex align-items-center gap-2 mb-0"><i class="bi bi-person" aria-hidden="true"></i>{{ t('play.edit.sectionWho') || 'Who you are' }}</h2>
-          <div>
+          <!-- the alias and the name: on one line on a wide screen, one under the other on a narrow one -->
+          <div class="row g-3">
+          <div class="col-12 col-md-6">
             <label class="form-label" for="play-edit-username">{{ t('play.edit.usernameLabel') || 'Account alias' }}</label>
             <input id="play-edit-username" name="username" class="form-control text-input" type="text" autocapitalize="none" spellcheck="false" [attr.minlength]="usernameMin" [attr.maxlength]="usernameMax" required
                    [value]="edit.username()" (input)="edit.onUsernameTyped($any($event.target).value)">
@@ -33,12 +35,14 @@
             }
             <div class="form-text">{{ t('play.edit.usernameHelpEdit', { min: usernameMin, max: usernameMax }) || usernameMin + ' to ' + usernameMax + ' characters. Nobody else can have the same. Your rounds stay yours when you change it.' }}</div>
           </div>
-          <div>
+          <div class="col-12 col-md-6">
             <label class="form-label" for="play-edit-name">{{ t('play.edit.accountName') || 'Account name' }}</label>
             <input id="play-edit-name" name="name" class="form-control text-input-name" type="text" [attr.maxlength]="nameMax" required [value]="edit.name()" (input)="edit.name.set($any($event.target).value)">
           </div>
+          </div>
+          <!-- the picture, who the person is, and the language: side by side on a wide screen, one under the other on a narrow one -->
           <div class="row g-3">
-            <div class="col-12 col-sm-6">
+            <div class="col-12 col-lg-auto">
               <label class="form-label" for="play-edit-picture">{{ t('play.edit.pictureLabel') || 'Picture' }} <span class="text-body-secondary">{{ t('play.edit.optional') || '(optional)' }}</span></label>
               <div class="d-flex align-items-center gap-3">
                 <!-- what the account will have: the new picture, none, or the one it has; pressing it chooses a file (the file field itself is never shown); the plus on it says so, and it is not there once there is a picture -->
@@ -63,13 +67,13 @@
                 <div class="form-text text-danger">{{ t('play.edit.pictureFailed') || 'That file could not be used as a picture.' }}</div>
               }
             </div>
-            <div class="col-12 col-sm-6">
+            <div class="col-12 col-lg">
+              <label class="form-label" for="play-edit-bio">{{ t('play.edit.bio') || 'Who am I' }} <span class="text-body-secondary">{{ t('play.edit.optional') || '(optional)' }}</span></label>
+              <textarea id="play-edit-bio" name="bio" class="form-control" rows="3" [attr.maxlength]="bioMax" [value]="edit.bio()" (input)="edit.bio.set($any($event.target).value)"></textarea>
+            </div>
+            <div class="col-12 col-lg-3">
               <label class="form-label" for="play-edit-language">{{ t('play.edit.language') || 'Language' }}</label>
-              <select id="play-edit-language" name="language" class="form-select" [value]="edit.language()" (change)="edit.language.set($any($event.target).value)">
-                @for (l of languages; track l.code) {
-                  <option [value]="l.code" [selected]="l.code === edit.language()">{{ l.name }}</option>
-                }
-              </select>
+              <app-language-field fieldId="play-edit-language" [value]="edit.language()" (chosen)="edit.language.set($event)" />
               <div class="form-text">{{ t('play.edit.languageHelp') || 'The language the app is shown in for you, and the default language for the names and descriptions of your jigsaws.' }}</div>
             </div>
           </div>
